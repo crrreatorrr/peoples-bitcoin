@@ -1321,286 +1321,343 @@
   "icon_focus_soda": {
     "placeholder": "icon",
     "color": "#5a9a3a",
-    "label": "F"
+    "label": "F",
+    "sprite": "icons/icon_focus_soda.png"
   },
   "icon_protein_shake": {
     "placeholder": "icon",
     "color": "#5a9a3a",
-    "label": "P"
+    "label": "P",
+    "sprite": "icons/icon_protein_shake.png"
   },
   "icon_thick_skin_tonic": {
     "placeholder": "icon",
     "color": "#5a9a3a",
-    "label": "T"
+    "label": "T",
+    "sprite": "icons/icon_thick_skin_tonic.png"
   },
   "icon_victory_smoothie": {
     "placeholder": "icon",
     "color": "#5a9a3a",
-    "label": "V"
+    "label": "V",
+    "sprite": "icons/icon_victory_smoothie.png"
   },
   "icon_miners_espresso": {
     "placeholder": "icon",
     "color": "#5a9a3a",
-    "label": "M"
+    "label": "M",
+    "sprite": "icons/icon_miners_espresso.png"
   },
   "icon_charm_tea": {
     "placeholder": "icon",
     "color": "#5a9a3a",
-    "label": "C"
+    "label": "C",
+    "sprite": "icons/icon_charm_tea.png"
   },
   "icon_networking_mints": {
     "placeholder": "icon",
     "color": "#5a9a3a",
-    "label": "N"
+    "label": "N",
+    "sprite": "icons/icon_networking_mints.png"
   },
   "icon_smooth_lozenge": {
     "placeholder": "icon",
     "color": "#5a9a3a",
-    "label": "S"
+    "label": "S",
+    "sprite": "icons/icon_smooth_lozenge.png"
   },
   "icon_hopium_soda": {
     "placeholder": "icon",
     "color": "#5a9a3a",
-    "label": "H"
+    "label": "H",
+    "sprite": "icons/icon_hopium_soda.png"
   },
   "icon_ticket_treasury": {
     "placeholder": "icon",
     "color": "#3fa8ff",
-    "label": "T"
+    "label": "T",
+    "sprite": "icons/icon_ticket_treasury.png"
   },
   "icon_ticket_trenches": {
     "placeholder": "icon",
     "color": "#3fa8ff",
-    "label": "T"
+    "label": "T",
+    "sprite": "icons/icon_ticket_trenches.png"
   },
   "icon_ticket_bunker": {
     "placeholder": "icon",
     "color": "#3fa8ff",
-    "label": "B"
+    "label": "B",
+    "sprite": "icons/icon_ticket_bunker.png"
   },
   "icon_pick_overclocked": {
     "placeholder": "icon",
     "color": "#e0b43a",
-    "label": "O"
+    "label": "O",
+    "sprite": "icons/icon_pick_overclocked.png"
   },
   "icon_golden_rolodex": {
     "placeholder": "icon",
     "color": "#e0b43a",
-    "label": "G"
+    "label": "G",
+    "sprite": "icons/icon_golden_rolodex.png"
   },
   "icon_diamond_cards": {
     "placeholder": "icon",
     "color": "#e0b43a",
-    "label": "D"
+    "label": "D",
+    "sprite": "icons/icon_diamond_cards.png"
   },
   "icon_toolkit_master": {
     "placeholder": "icon",
     "color": "#e0b43a",
-    "label": "M"
+    "label": "M",
+    "sprite": "icons/icon_toolkit_master.png"
   },
   "icon_hard_hat": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "H"
+    "label": "H",
+    "sprite": "icons/icon_hard_hat.png"
   },
   "icon_hi_vis_vest": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "H"
+    "label": "H",
+    "sprite": "icons/icon_hi_vis_vest.png"
   },
   "icon_work_trousers": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "W"
+    "label": "W",
+    "sprite": "icons/icon_work_trousers.png"
   },
   "icon_steel_toe_boots": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "S"
+    "label": "S",
+    "sprite": "icons/icon_steel_toe_boots.png"
   },
   "icon_gala_top_hat": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "G"
+    "label": "G",
+    "sprite": "icons/icon_gala_top_hat.png"
   },
   "icon_gala_tailcoat": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "G"
+    "label": "G",
+    "sprite": "icons/icon_gala_tailcoat.png"
   },
   "icon_gala_trousers": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "G"
+    "label": "G",
+    "sprite": "icons/icon_gala_trousers.png"
   },
   "icon_patent_shoes": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "P"
+    "label": "P",
+    "sprite": "icons/icon_patent_shoes.png"
   },
   "icon_power_fedora": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "P"
+    "label": "P",
+    "sprite": "icons/icon_power_fedora.png"
   },
   "icon_power_suit": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "P"
+    "label": "P",
+    "sprite": "icons/icon_power_suit.png"
   },
   "icon_power_trousers": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "P"
+    "label": "P",
+    "sprite": "icons/icon_power_trousers.png"
   },
   "icon_power_loafers": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "P"
+    "label": "P",
+    "sprite": "icons/icon_power_loafers.png"
   },
   "icon_press_headset": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "P"
+    "label": "P",
+    "sprite": "icons/icon_press_headset.png"
   },
   "icon_press_blazer": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "P"
+    "label": "P",
+    "sprite": "icons/icon_press_blazer.png"
   },
   "icon_press_slacks": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "P"
+    "label": "P",
+    "sprite": "icons/icon_press_slacks.png"
   },
   "icon_press_sneakers": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "P"
+    "label": "P",
+    "sprite": "icons/icon_press_sneakers.png"
   },
   "icon_press_lanyard": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "P"
+    "label": "P",
+    "sprite": "icons/icon_press_lanyard.png"
   },
   "icon_gavel_pendant": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "G"
+    "label": "G",
+    "sprite": "icons/icon_gavel_pendant.png"
   },
   "icon_ticker_amulet": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "T"
+    "label": "T",
+    "sprite": "icons/icon_ticker_amulet.png"
   },
   "icon_grip_gloves": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "G"
+    "label": "G",
+    "sprite": "icons/icon_grip_gloves.png"
   },
   "icon_trigger_gloves": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "T"
+    "label": "T",
+    "sprite": "icons/icon_trigger_gloves.png"
   },
   "icon_diamond_gauntlets": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "D"
+    "label": "D",
+    "sprite": "icons/icon_diamond_gauntlets.png"
   },
   "icon_campaign_loafers": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "C"
+    "label": "C",
+    "sprite": "icons/icon_campaign_loafers.png"
   },
   "icon_combat_boots": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "C"
+    "label": "C",
+    "sprite": "icons/icon_combat_boots.png"
   },
   "icon_diamond_boots": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "D"
+    "label": "D",
+    "sprite": "icons/icon_diamond_boots.png"
   },
   "icon_briefcase_bludgeon": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "B"
+    "label": "B",
+    "sprite": "icons/icon_briefcase_bludgeon.png"
   },
   "icon_ballot_blaster": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "B"
+    "label": "B",
+    "sprite": "icons/icon_ballot_blaster.png"
   },
   "icon_gavel_of_order": {
     "placeholder": "icon",
     "color": "#8a929c",
-    "label": "G"
+    "label": "G",
+    "sprite": "icons/icon_gavel_of_order.png"
   },
   "icon_teleprompter": {
     "placeholder": "icon",
     "color": "#3fa8ff",
-    "label": "T"
+    "label": "T",
+    "sprite": "icons/icon_teleprompter.png"
   },
   "icon_chamber_key": {
     "placeholder": "icon",
     "color": "#3fa8ff",
-    "label": "C"
+    "label": "C",
+    "sprite": "icons/icon_chamber_key.png"
   },
   "icon_empty_canister": {
     "placeholder": "icon",
     "color": "#d8ccaa",
-    "label": "E"
+    "label": "E",
+    "sprite": "icons/icon_empty_canister.png"
   },
   "icon_coolant_canister": {
     "placeholder": "icon",
     "color": "#d8ccaa",
-    "label": "C"
+    "label": "C",
+    "sprite": "icons/icon_coolant_canister.png"
   },
   "icon_coordinates_drive": {
     "placeholder": "icon",
     "color": "#d8ccaa",
-    "label": "C"
+    "label": "C",
+    "sprite": "icons/icon_coordinates_drive.png"
   },
   "icon_guest_list": {
     "placeholder": "icon",
     "color": "#d8ccaa",
-    "label": "G"
+    "label": "G",
+    "sprite": "icons/icon_guest_list.png"
   },
   "icon_power_cell": {
     "placeholder": "icon",
     "color": "#d8ccaa",
-    "label": "P"
+    "label": "P",
+    "sprite": "icons/icon_power_cell.png"
   },
   "icon_sealed_envelope": {
     "placeholder": "icon",
     "color": "#d8ccaa",
-    "label": "S"
+    "label": "S",
+    "sprite": "icons/icon_sealed_envelope.png"
   },
   "icon_blackmail_photo": {
     "placeholder": "icon",
     "color": "#d8ccaa",
-    "label": "B"
+    "label": "B",
+    "sprite": "icons/icon_blackmail_photo.png"
   },
   "icon_photo_negatives": {
     "placeholder": "icon",
     "color": "#d8ccaa",
-    "label": "P"
+    "label": "P",
+    "sprite": "icons/icon_photo_negatives.png"
   },
   "icon_exit_permit": {
     "placeholder": "icon",
     "color": "#d8ccaa",
-    "label": "E"
+    "label": "E",
+    "sprite": "icons/icon_exit_permit.png"
   },
   "icon_press_release": {
     "placeholder": "icon",
     "color": "#d8ccaa",
-    "label": "S"
+    "label": "S",
+    "sprite": "icons/icon_press_release.png"
   },
   "icon_chamber_blueprints": {
     "placeholder": "icon",
     "color": "#d8ccaa",
-    "label": "C"
+    "label": "C",
+    "sprite": "icons/icon_chamber_blueprints.png"
   }
 }
