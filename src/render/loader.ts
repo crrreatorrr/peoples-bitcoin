@@ -8,7 +8,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import { z } from 'zod';
 import manifestJson from '../config/assets.manifest.json';
-import { buildPlaceholder, iconDataUrl, terrainPart, type TerrainPart } from './placeholders';
+import { buildPlaceholder, iconCanvas, terrainPart, type TerrainPart } from './placeholders';
 
 const AssetEntrySchema = z
   .object({
@@ -44,7 +44,8 @@ const MISSING: AssetEntry = { placeholder: 'box', color: '#ff00ff', scale: 1, ro
 
 export class AssetLoader {
   private readonly models = new Map<string, THREE.Object3D>();
-  private readonly icons = new Map<string, string>();
+  private readonly icons = new Map<string, HTMLCanvasElement>();
+  private readonly iconTextures = new Map<string, THREE.Texture>();
   private readonly terrain = new Map<string, TerrainPart>();
   private readonly warned = new Set<string>();
 
@@ -100,14 +101,31 @@ export class AssetLoader {
     return part;
   }
 
+  private icon(id: string): HTMLCanvasElement {
+    let canvas = this.icons.get(id);
+    if (!canvas) {
+      canvas = iconCanvas(this.entry(id));
+      this.icons.set(id, canvas);
+    }
+    return canvas;
+  }
+
   /** Data URL for an inventory icon. */
   iconUrl(id: string): string {
-    let url = this.icons.get(id);
-    if (!url) {
-      url = iconDataUrl(this.entry(id));
-      this.icons.set(id, url);
+    return this.icon(id).toDataURL();
+  }
+
+  /** The same icon as a nearest-filtered texture, for items lying on the ground. */
+  iconTexture(id: string): THREE.Texture {
+    let tex = this.iconTextures.get(id);
+    if (!tex) {
+      tex = new THREE.CanvasTexture(this.icon(id));
+      tex.magFilter = THREE.NearestFilter;
+      tex.minFilter = THREE.NearestFilter;
+      tex.colorSpace = THREE.SRGBColorSpace;
+      this.iconTextures.set(id, tex);
     }
-    return url;
+    return tex;
   }
 
   /** Short text glyph (emoji) for UI tab/skill icons. */

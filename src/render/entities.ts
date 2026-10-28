@@ -1,11 +1,11 @@
 /**
- * Draws the player, NPCs and zone objects from GameState. Reads state only.
- * The player is interpolated along the tiles stepped during the last tick.
+ * Draws the player, NPCs, zone objects and ground items from GameState. Reads
+ * state only. Actors are interpolated between their previous and current tiles.
  */
 import * as THREE from 'three';
 import { RENDER } from '../config/balance';
 import type { Content } from '../sim/content';
-import type { GameState, ObjectInstance, Tile } from '../sim/state';
+import type { GameState, GroundItem, NpcInstance, ObjectInstance, Tile } from '../sim/state';
 import type { AssetLoader } from './loader';
 
 const PLAYER_MODEL = 'player_president';
@@ -15,6 +15,8 @@ const WALK_CYCLE_HZ = 1.6;
 const WALK_SWING_RAD = 0.7;
 const MINE_CYCLE_HZ = 1.1;
 const SMOKE_BOB = 0.06;
+const GROUND_ITEM_SIZE = 0.42;
+const GROUND_ITEM_HEIGHT = 0.22;
 
 type AnimMode = 'idle' | 'walk' | 'mine';
 
@@ -40,7 +42,9 @@ export class EntityRenderer {
   private readonly player: ActorView;
   private readonly npcs = new Map<string, ActorView>();
   private readonly objects: ObjectView[] = [];
+  private readonly groundItems = new Map<string, THREE.Sprite>();
   private readonly segment = { dx: 0, dz: 0 };
+  private readonly scratch = new THREE.Vector3();
 
   constructor(
     private readonly scene: THREE.Scene,
@@ -52,7 +56,6 @@ export class EntityRenderer {
 
     for (const npc of state.zone.npcs) {
       const view = this.createActor(this.content.npcs.get(npc.defId)!.model);
-      view.root.position.set(npc.x + 0.5, 0, npc.y + 0.5);
       view.root.userData.entityId = npc.id;
       this.pickables.push(view.root);
       this.npcs.set(npc.id, view);
@@ -72,9 +75,24 @@ export class EntityRenderer {
   }
 
   update(state: GameState, alpha: number, dt: number, timeSec: number): void {
+    const t = Math.min(1, Math.max(0, alpha));
     this.updateObjects(timeSec);
-    this.updatePlayer(state, Math.min(1, Math.max(0, alpha)), dt, timeSec);
-    for (const view of this.npcs.values()) animate(view, 'idle', timeSec);
+    this.updateGroundItems(state.zone.groundItems);
+    this.updatePlayer(state, t, dt, timeSec);
+    for (const npc of state.zone.npcs) this.updateNpc(state, npc, t, dt, timeSec);
+  }
+
+  /** World-space center of an entity's footprint, or null if it doesn't exist. */
+  entityCenter(state: GameState, entityId: string): THREE.Vector3 | null {
+    const obj = state.zone.objects.find((o) => o.id === entityId);
+    if (obj) {
+      const def = this.content.objects.get(obj.defId)!;
+      return new THREE.Vector3(obj.x + def.width / 2, 0, obj.y + def.height / 2);
+    }
+    const tile =
+      state.zone.npcs.find((n) => n.id === entityId) ??
+      state.zone.groundItems.find((g) => g.id === entityId);
+    return tile ? new THREE.Vector3(tile.x + 0.5, 0, tile.y + 0.5) : null;
   }
 
   private updateObjects(timeSec: number): void {
@@ -92,39 +110,81 @@ export class EntityRenderer {
     }
   }
 
-  private updatePlayer(state: GameState, alpha: number, dt: number, timeSec: number): void {
+  private updateGroundItems(items: GroundItem[]): void {
+    const live = new Set<string>();
+    for (const item of items) {
+      live.add(item.id);
+      if (this.groundItems.has(item.id)) continue;
+      const model = this.content.items.get(item.itemId)?.model ?? '';
+      const sprite = new THREE.Sprite(
+        new THREE.SpriteMaterial({ map: this.assets.iconTexture(model), alphaTest: 0.5 }),
+      );
+      sprite.scale.setScalar(GROUND_ITEM_SIZE);
+      sprite.position.set(item.x + 0.5, GROUND_ITEM_HEIGHT, item.y + 0.5);
+      sprite.userData.entityId = item.id;
+      this.scene.add(sprite);
+      this.pickables.push(sprite);
+      this.groundItems.set(item.id, sprite);
+    }
+    for (const [id, sprite] of this.groundItems) {
+      if (live.has(id)) continue;
+      this.scene.remove(sprite);
+      sprite.material.dispose();
+      this.pickables.splice(this.pickables.indexOf(sprite), 1);
+      this.groundItems.delete(id);
+    }
+  }
+
+  private updatePlayer(state: GameState, t: number, dt: number, timeSec: number): void {
     const p = state.player;
-    const moving = interpolateSteps(p.stepsThisTick, alpha, this.playerPosition, this.segment);
+    const moving = interpolateSteps(p.stepsThisTick, t, this.playerPosition, this.segment);
     this.player.root.position.copy(this.playerPosition);
 
     let mode: AnimMode = 'idle';
     let faceX = 0;
     let faceZ = 0;
-    if (moving && alpha < 1) {
+    const targetId = p.action?.targetId ?? p.dialogue?.npcId;
+    if (moving && t < 1) {
       mode = 'walk';
       faceX = this.segment.dx;
       faceZ = this.segment.dz;
-    } else if (p.action && p.path.length === 0) {
-      const target = this.entityCenter(state, p.action.targetId);
+    } else if (targetId && p.path.length === 0) {
+      const target = this.entityCenter(state, targetId);
       if (target) {
         faceX = target.x - (p.pos.x + 0.5);
         faceZ = target.z - (p.pos.y + 0.5);
       }
-      if (p.action.action === 'Mine' && p.action.nextAttemptTick !== null) mode = 'mine';
+      if (p.action?.action === 'Mine' && p.action.nextAttemptTick !== null) mode = 'mine';
     }
     if (faceX !== 0 || faceZ !== 0) turnToward(this.player, Math.atan2(faceX, faceZ), dt);
     animate(this.player, mode, timeSec);
   }
 
-  /** World-space center of an entity's footprint, or null if it doesn't exist. */
-  entityCenter(state: GameState, entityId: string): THREE.Vector3 | null {
-    const obj = state.zone.objects.find((o) => o.id === entityId);
-    if (obj) {
-      const def = this.content.objects.get(obj.defId)!;
-      return new THREE.Vector3(obj.x + def.width / 2, 0, obj.y + def.height / 2);
+  private updateNpc(state: GameState, npc: NpcInstance, t: number, dt: number, timeSec: number) {
+    const view = this.npcs.get(npc.id);
+    if (!view) return;
+    const moving = interpolateSteps([npc.from, npc], t, view.root.position, this.segment);
+    let faceX = moving ? this.segment.dx : 0;
+    let faceZ = moving ? this.segment.dz : 0;
+    if (state.player.dialogue?.npcId === npc.id || state.player.action?.targetId === npc.id) {
+      faceX = state.player.pos.x - npc.x;
+      faceZ = state.player.pos.y - npc.y;
     }
-    const npc = state.zone.npcs.find((n) => n.id === entityId);
-    return npc ? new THREE.Vector3(npc.x + 0.5, 0, npc.y + 0.5) : null;
+    if (faceX !== 0 || faceZ !== 0) turnToward(view, Math.atan2(faceX, faceZ), dt);
+    animate(view, moving && t < 1 ? 'walk' : 'idle', timeSec);
+  }
+
+  /** Screen position (CSS px) above the player's head, or null if behind the camera. */
+  playerHeadScreen(camera: THREE.Camera, canvas: HTMLElement, height: number) {
+    const v = this.scratch.copy(this.playerPosition);
+    v.y += height;
+    v.project(camera);
+    if (v.z > 1) return null;
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: rect.left + ((v.x + 1) / 2) * rect.width,
+      y: rect.top + ((1 - v.y) / 2) * rect.height,
+    };
   }
 
   private createActor(modelId: string): ActorView {
@@ -139,20 +199,21 @@ export class EntityRenderer {
   }
 }
 
-/** Positions `out` along the tick's steps; returns true if the actor is moving. */
+/** Positions `out` along the tiles stepped this tick; returns true if the actor moved. */
 function interpolateSteps(
-  steps: Tile[],
+  steps: readonly Tile[],
   t: number,
   out: THREE.Vector3,
   segment: { dx: number; dz: number },
 ): boolean {
-  if (steps.length < 2) {
-    out.set(steps[0].x + 0.5, 0, steps[0].y + 0.5);
+  const last = steps.length - 1;
+  const moved = last > 0 && (steps[0].x !== steps[last].x || steps[0].y !== steps[last].y);
+  if (!moved) {
+    out.set(steps[last].x + 0.5, 0, steps[last].y + 0.5);
     return false;
   }
-  const segments = steps.length - 1;
-  const f = t * segments;
-  const i = Math.min(segments - 1, Math.floor(f));
+  const f = t * last;
+  const i = Math.min(last - 1, Math.floor(f));
   const local = f - i;
   const a = steps[i];
   const b = steps[i + 1];

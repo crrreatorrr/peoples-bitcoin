@@ -18,11 +18,31 @@ OSRS conventions". Newest at the bottom of each section.
   blocked tile walks to the closest reachable tile (OSRS behavior).
 - **Interaction range.** Objects and NPCs are used from tiles that share an edge with them (no
   diagonal use), like OSRS scenery.
-- **Static NPCs block their tile** until NPCs get movement.
+- **NPCs don't block paths** (changed 2026-10-28). Players walk through NPCs, as in OSRS. Idle
+  NPCs wander one tile at a time within `wanderRadius` of their spawn, never onto the player or
+  another NPC, and stand still while the player is using or talking to them.
 - **Entity ids** are placement indices in the zone (`o12`, `n0`). Saves key object depletion by
   these ids, so reordering a zone's `objects` array only resets depletion timers. Harmless.
 - **Run energy** is 0–100. Running only happens when at least 2 steps remain; the last single
   step is walked and doesn't drain energy. Energy hitting 0 turns run off.
+
+- **Open interfaces close on movement.** Walking or starting another action closes the bank and
+  any dialogue, as in OSRS.
+
+## Bank, items, chat
+
+- **Bank pulled forward from Phase 3** (approved by the owner on 2026-10-28). Booths are in the
+  Treasury hall. Every item stacks in the bank; empty stacks are removed (no placeholders);
+  400 distinct stacks. Save format moved to v2 with a v1 → v2 migration that adds an empty bank.
+- **Ground items** are not saved (like OSRS items vanishing on logout) and despawn after 300 ticks.
+  Stackables merge into one pile per tile; non-stackables get one pile each. "Take" walks onto
+  the tile.
+- **Public chat** is an intent, so the Phase 5 server can relay it. Max 80 characters, whitespace
+  collapsed, shown above the head for 5 ticks. Typing anywhere starts a message.
+- **NPC dialogue** shows one line at a time in a box over the chat log. It reads the NPC's linear
+  `lines` until node-graph dialogue arrives in Phase 3. NPC lines no longer go to the chat log.
+- **Optimistic UI.** Inventory swaps and closing the bank show immediately; the next tick
+  confirms them. Everything else waits for the tick, like OSRS.
 
 ## Mining
 
@@ -48,6 +68,12 @@ OSRS conventions". Newest at the bottom of each section.
 - **Low-res rendering** sets the WebGL pixel ratio to 0.55 of CSS pixels and lets CSS
   `image-rendering: pixelated` upscale it. Same result as a render target with less code.
 - **Context menu** opens on right-button release, so a right-drag can rotate the camera instead.
+  It lists every entity under the cursor (actions first, then Walk here, then each Examine), and
+  left-click runs the top option, as in OSRS.
+- **Minimap** is a 2D canvas drawn from the tile data (terrain colors, blocking objects, dots),
+  not a second WebGL camera: cheaper, crisp, and no extra draw calls. It turns with the camera.
+- **Hitpoints orb** shows the Hitpoints level until combat adds damage in Phase 2.
+- **Esc** closes windows and returns the side panel to Inventory (an OSRS setting).
 - **Inventory** left-click is Examine (there is no "Use" yet); shift-click drops.
 - **Talk-to** prints the NPC's `lines` in chat until the dialogue system arrives in Phase 3.
 - **Saves** store only persistent data; path and current action are dropped. On load, unknown

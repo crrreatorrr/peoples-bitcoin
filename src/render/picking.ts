@@ -1,12 +1,13 @@
 /**
- * Turns a screen position into what's under the cursor: the nearest entity (if
- * it's in front of the terrain) and the ground tile, for "Walk here".
+ * Turns a screen position into what's under the cursor: every entity in front
+ * of the terrain (nearest first) and the ground tile, for "Walk here".
  */
 import * as THREE from 'three';
 import type { Tile } from '../sim/state';
 
 export interface PickResult {
-  entityId: string | null;
+  /** Distinct entity ids under the cursor, nearest first. */
+  entityIds: string[];
   tile: Tile | null;
 }
 
@@ -35,11 +36,11 @@ export class Picker {
     this.raycaster.setFromCamera(this.ndc, this.camera);
     const hits = this.raycaster.intersectObjects([...this.entities, ...this.terrain], true);
 
-    let entityId: string | null = null;
+    const entityIds: string[] = [];
     for (const hit of hits) {
       const id = findEntityId(hit.object);
       if (id) {
-        entityId ??= id;
+        if (!entityIds.includes(id)) entityIds.push(id);
         continue;
       }
       if (!hit.face) continue;
@@ -47,9 +48,9 @@ export class Picker {
       const tile = { x: Math.floor(this.point.x), y: Math.floor(this.point.z) };
       const inside =
         tile.x >= 0 && tile.y >= 0 && tile.x < this.zoneSize.width && tile.y < this.zoneSize.height;
-      return { entityId, tile: inside ? tile : null };
+      return { entityIds, tile: inside ? tile : null };
     }
-    return { entityId, tile: null };
+    return { entityIds, tile: null };
   }
 }
 

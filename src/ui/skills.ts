@@ -1,4 +1,4 @@
-/** Skills tab: level per skill, total level, XP details on hover. */
+/** Skills tab: level per skill, total level, XP details on hover, click for the skill guide. */
 import type { Content } from '../sim/content';
 import { levelForXp, xpForLevel } from '../sim/xp';
 import { XP_CURVE } from '../config/balance';
@@ -13,7 +13,12 @@ export class SkillsPanel {
   private xp: Record<string, number> = {};
   private key = '';
 
-  constructor(content: Content, glyph: (assetId: string) => string, tooltip: Tooltip) {
+  constructor(
+    content: Content,
+    glyph: (assetId: string) => string,
+    tooltip: Tooltip,
+    openGuide: (skillId: string) => void,
+  ) {
     this.el.className = 'skills';
     const grid = document.createElement('div');
     grid.className = 'skills-grid';
@@ -30,9 +35,14 @@ export class SkillsPanel {
           next === null
             ? `XP: ${fmt.format(xp)}`
             : `XP: ${fmt.format(xp)}\nNext level at: ${fmt.format(next)}\nRemaining: ${fmt.format(next - xp)}`;
-        tooltip.show({ action: skill.name, detail }, e.clientX, e.clientY);
+        tooltip.show(
+          { action: skill.name, detail: `${detail}\nClick for the skill guide` },
+          e.clientX,
+          e.clientY,
+        );
       });
       cell.addEventListener('mouseleave', () => tooltip.hide());
+      cell.addEventListener('click', () => openGuide(skill.id));
       this.levels.set(skill.id, level);
       grid.append(cell);
     }

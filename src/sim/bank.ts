@@ -21,7 +21,12 @@ function wanted(qty: Quantity): number | null {
  * Deposits up to `qty` of the item in inventory `slot`, taking from that slot
  * first and then from any other slots holding the same item.
  */
-export function deposit(player: PlayerState, slot: number, qty: Quantity, events: SimEvent[]): void {
+export function deposit(
+  player: PlayerState,
+  slot: number,
+  qty: Quantity,
+  events: SimEvent[],
+): void {
   const first = player.inventory[slot];
   const limit = wanted(qty);
   if (!first || limit === null) return;

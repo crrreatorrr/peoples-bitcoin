@@ -3,7 +3,7 @@
 A satirical, OSRS-inspired browser MMO-lite built with Three.js, TypeScript and Vite.
 All currencies are fictional and in-game only. See [DESIGN.md](DESIGN.md) for the full design.
 
-**Status:** Phase 1 (core sandbox) complete. See [CHANGELOG.md](CHANGELOG.md) and [TODO.md](TODO.md).
+**Status:** Phase 1 (core sandbox) complete, plus an OSRS interface pass (minimap, bank, chat, dialogue, ground items). See [CHANGELOG.md](CHANGELOG.md) and [TODO.md](TODO.md).
 
 ## Run it
 
@@ -27,12 +27,17 @@ Then open the URL Vite prints (default http://localhost:5173).
 
 ## Controls
 
-- **Left-click:** walk, or the default action (Mine, Talk-to)
-- **Right-click:** all options (Mine, Talk-to, Walk here, Examine)
+- **Left-click:** walk, or the default action (Mine, Talk-to, Bank, Take)
+- **Right-click:** every option for everything under the cursor
 - **Right- or middle-drag, arrow keys:** rotate and tilt the camera
 - **Mouse wheel:** zoom
-- **Inventory:** left-click examines, shift-click drops, right-click for options
-- **Run orb** (top right): toggle running
+- **Minimap:** click to walk; click the compass to face north
+- **Chat:** start typing (or press Enter), Enter to send. Space continues NPC dialogue.
+- **Inventory:** left-click examines, shift-click drops, drag to rearrange, right-click for options
+- **Bank:** use a bank booth in the Treasury hall. 1/5/10/All set the left-click amount.
+- **Skills:** click a skill for its guide
+- **Orbs** (beside the minimap): XP counter toggle, Hitpoints, run
+- **Esc:** close windows and return to the Inventory tab
 
 Progress autosaves to `localStorage` every 10 ticks and when the tab is hidden or closed.
 Settings → Reset progress starts over.

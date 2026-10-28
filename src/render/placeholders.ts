@@ -173,6 +173,8 @@ export function buildPlaceholder(e: AssetEntry): THREE.Object3D {
       return gremlinStatue(e);
     case 'board':
       return roadmapBoard(e);
+    case 'booth':
+      return bankBooth(e);
     default:
       return box(0.8, 0.8, 0.8, lambert(e.color), 0, 0.4, 0);
   }
@@ -357,10 +359,25 @@ function roadmapBoard(e: AssetEntry): THREE.Group {
   return g;
 }
 
+function bankBooth(e: AssetEntry): THREE.Group {
+  const g = new THREE.Group();
+  const wood = lambert(e.color);
+  const trim = lambert(e.accent ?? '#d2a63a');
+  const glass = lambert('#9fd3e6', { opacity: 0.45 });
+  g.add(box(0.95, 1.0, 0.8, wood, 0, 0.5, 0));
+  g.add(box(1.0, 0.06, 0.86, trim, 0, 1.03, 0));
+  g.add(box(0.9, 0.7, 0.04, glass, 0, 1.4, 0.1));
+  g.add(box(0.06, 0.75, 0.06, wood, -0.45, 1.42, 0.1));
+  g.add(box(0.06, 0.75, 0.06, wood, 0.45, 1.42, 0.1));
+  g.add(box(1.0, 0.18, 0.86, wood, 0, 1.86, 0));
+  g.add(box(0.36, 0.12, 0.02, trim, 0, 1.86, 0.44));
+  return g;
+}
+
 // ── Icons ────────────────────────────────────────────────────────────────────
 
 /** 32×32 chunky "ore" icon in the entry's color, with its label in the corner. */
-export function iconDataUrl(e: AssetEntry): string {
+export function iconCanvas(e: AssetEntry): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = 32;
   const ctx = canvas.getContext('2d')!;
@@ -389,5 +406,5 @@ export function iconDataUrl(e: AssetEntry): string {
     ctx.fillStyle = '#000000';
     ctx.fillText(e.label, 17, 31);
   }
-  return canvas.toDataURL();
+  return canvas;
 }

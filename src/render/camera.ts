@@ -18,6 +18,15 @@ export class OrbitCamera {
     this.camera = new THREE.PerspectiveCamera(CAMERA.fovDeg, 1, CAMERA.near, CAMERA.far);
   }
 
+  /** Radians; 0 = looking north. */
+  get yawRad(): number {
+    return this.yaw;
+  }
+
+  faceNorth(): void {
+    this.yaw = 0;
+  }
+
   drag(dxPx: number, dyPx: number): void {
     this.yaw -= dxPx * CAMERA.dragYawPerPx;
     this.setPitch(this.pitch + dyPx * CAMERA.dragPitchPerPx);

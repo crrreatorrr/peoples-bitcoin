@@ -12,20 +12,27 @@
 - [ ] `sprotos.ts` state machine (FOLLOW / ASSIST / DEFEND / RETURN / SPECIAL), Recruit + Medic + Grunt
 - [ ] Shared gremlin placeholder for Sprotos (see the owner's Sproto look in `SPROTO_SCRIPTS.md`)
 - [ ] Boss: Sludge Mother (Treasury basement) in `bosses.json` + `sim/bosses/sludgeMother.ts`
-- [ ] Moving NPCs/enemies: replace static NPC tile-blocking with dynamic occupancy
 
 ## Known gaps from Phase 1
 
-- [ ] Minimap (top-right, DESIGN.md §2). Not in the Phase 1 list; the run orb sits there for now.
 - [ ] Draw calls: ~380 visible in the Treasury, over the Phase 6 budget of 300. Each placeholder
       is many small meshes. Fix: merge static placeholder meshes by material (or instance racks/trees).
 - [ ] GLB animation clips: the manifest has `clips`, but only procedural placeholder animation
       plays. Wire an `AnimationMixer` when real art lands (Phase 6).
 - [ ] Mobile: long-press menu, one-finger camera drag, bottom-drawer panels (Phase 6). Taps already work.
-- [ ] Hash → BTC conversion (bank / Treasury terminal, Phase 3).
-- [ ] Ground items: dropped items currently vanish.
+- [ ] Hash → BTC conversion (Treasury terminal, Phase 3). The bank now stores hash.
+- [ ] Draw calls rose slightly with bank booths and ground-item sprites; same merge fix applies.
 - [ ] Bundle is ~760 KB (mostly Three.js); Vite warns at 500 KB. Split vendor chunk or raise the limit.
 - [ ] Treasury exit portal once a second zone exists.
+
+## OSRS features deferred to their phase
+
+- Phase 2: combat options tab, HP bars, hitsplats, combat level in tooltips, Equipment tab
+- Phase 3: quest list, shops, random events, emotes (the Painter boss needs one), dialogue options
+- Phase 5: Grand Exchange (Swamp Exchange), friends/clan chat, world switching
+- Phase 6: music player, F-key tab hotkeys, roof toggle
+- Not planned in DESIGN.md: prayer, spellbook, special attack (Command/Sprotos fill that role),
+  achievement diaries, collection log, world map (one zone so far), doors
 
 ## Later phases
 

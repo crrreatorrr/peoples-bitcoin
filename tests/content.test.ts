@@ -26,6 +26,7 @@ describe('content', () => {
       ...[...c.terrain.values()].map((t) => t.model),
       ...[...c.objects.values()].flatMap((o) => [o.model, o.depleted?.model ?? o.model]),
       ...[...c.skills.keys()].map((id) => `skill_${id}`),
+      ...[...c.zones.values()].flatMap((z) => z.mapIcons.map((i) => i.icon)),
     ];
     for (const id of referenced) expect(ids, `missing asset '${id}'`).toContain(id);
   });
