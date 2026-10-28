@@ -134,7 +134,38 @@ The owner's revisions are recorded at the top of DESIGN.md. Choices made while b
   Sproto has a short cooldown; specials cost Summoning points that regenerate.
 - **Bunker production** counts game ticks, so farms fill only while you play (offline progress
   is Opal charging, Phase 3).
-- **Sprites** are camera-facing billboards; they flip by screen direction and bob instead of
-  having walk cycles. Terrain stays procedural 3D.
+- ~~Sprites are camera-facing billboards~~ (replaced in 0.4.0: they leaned into walls when the
+  camera turned).
 - **Save v3** renames `command` XP to `summoning` and adds HP, equipment, quests, unlocks and the
   bunker.
+
+## 3D characters, quests and dialogue (0.4.0)
+
+- **Models built in code, not generated.** The owner chose low-poly models made in code over
+  Higgsfield image-to-3D (~1,000 credits, unrigged meshes from pixel art). Looks are data (the
+  manifest's `look`), styled to match the existing sprites, which stay as UI art.
+- **Animation is procedural** (`animate.ts`): the walk cycle advances with distance travelled, so
+  feet don't slide; joints ease toward a target pose each frame. Attacks, hits and deaths are
+  timestamps on the view, so the sim stays free of animation state.
+- **One `attack` event** (`melee`, `gun`, `explosive`) replaced `projectile`, so melee swings
+  animate; tracers still draw for guns.
+- **What the player holds:** the wielded weapon; the best tool for the skill while skilling (OSRS
+  shows the pickaxe while mining); the fallback gavel while fighting unarmed or out of ammo.
+  Armor rebuilds the model when the worn head/body/legs change.
+- **Ground items** lie flat on their tile instead of standing up as billboards.
+- **Construction** builds are instant in the sim, so the hammering is a short visual burst on
+  Construction XP.
+- **Training yard:** the Sludgeling pen became a yard with Spam Bots (level 1) and Comment Trolls
+  (level 4), all passive. The tutorial adds a Comment Troll step.
+- **Morelight**, Chief of Staff, is a fictional character from the owner's written description
+  (tall, fair, mustache); per Hard Rule 2 nothing was modeled on a photo. He opens the tutorial
+  and gives the main quests.
+- **Dialogue variants** pick lines by quest status and, optionally, by the quest's next step
+  (`step`), first match wins. Variants are chosen after quest progress runs, so the talk that
+  finishes a quest already uses the after-quest lines. Lines can be the player's replies
+  (`{ "player": "..." }`); there are no choices yet.
+- **Quest prerequisites:** `requires` lists quests that must be complete before `startNpc`
+  offers one. A quest never starts on the same talk that completes its prerequisite, so the
+  turn-in and the next briefing are separate conversations.
+- **Main questline:** Sludge Duty → Name Calling → Motion Denied, one per Trenches boss, worth
+  2/2/3 quest points (tutorial and Bunker Down 1 each, 9 total).

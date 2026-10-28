@@ -6,19 +6,17 @@
 - [ ] Boss mechanics beyond adds: Sludge Mother floor sludge, Wrong-Namer Chief ticker typing,
       Captain Motion rage-quit run
 - [ ] Sprotos 6–12 (Engineer, Scout, Shield, Commander, Paratrooper, Golden Sproto)
-- [ ] More quests (DESIGN.md §12) and node-graph dialogue with options
+- [ ] More quests (DESIGN.md §12) and dialogue options (choices; replies exist)
 - [ ] Balance pass: XP rates, drop values, Terminal prices, enemy stats (all in data/balance.ts)
-- [ ] Walk/attack animation frames for sprites (currently flip + bob)
 
 ## Known gaps from Phase 1
 
-- [ ] Draw calls: ~380 visible in the Treasury, over the Phase 6 budget of 300. Each placeholder
-      is many small meshes. Fix: merge static placeholder meshes by material (or instance racks/trees).
+- [ ] Draw calls: every character is ~30 small meshes and props a dozen each, over the Phase 6
+      budget of 300. Fix: merge static meshes per joint/prop by material (or instance racks/trees).
 - [ ] GLB animation clips: the manifest has `clips`, but only procedural placeholder animation
       plays. Wire an `AnimationMixer` when real art lands (Phase 6).
 - [ ] Mobile: long-press menu, one-finger camera drag, bottom-drawer panels (Phase 6). Taps already work.
 - [ ] The BTC wallet currency is still unused (BTC Shards are items that sell at the Terminal).
-- [ ] Draw calls: sprites are cheap, but terrain walls and remaining placeholders still add up.
 - [ ] Bundle is ~760 KB (mostly Three.js); Vite warns at 500 KB. Split vendor chunk or raise the limit.
 - [ ] Treasury exit portal once a second zone exists.
 

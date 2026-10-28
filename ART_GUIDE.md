@@ -21,20 +21,34 @@
 - 1 world unit = 1 tile. Humans are ~1.5 units tall; Sprotos ~0.6.
 - Origin at the feet (y = 0), centered on the footprint, model facing **+Z**.
 - Multi-tile objects are centered on their whole footprint (e.g. the 2×1 RoadMap board).
-- Humanoid placeholders expose parts named `legL`, `legR`, `armL`, `armR` and `tool`. GLBs should
-  instead provide clips; map logical names (`idle`, `walk`, `mine`, …) to clip names with the
-  manifest's `clips` field.
+- Humanoids built in code have joints for hips, knees, shoulders, elbows and the neck
+  (`src/render/actors.ts`); `src/render/animate.ts` poses them every frame. A GLB that replaces a
+  character is shown as one body that hops (no clips are played yet).
+- Held gear (`src/render/gear.ts`) has its grip at the origin; with the forearm pointing straight
+  ahead, +Y is up and +Z is forward. Barrels run along +Z, handles along +Y. Guns put a hidden
+  mesh named `muzzle` at the barrel tip for the muzzle flash.
 
 ## Manifest fields (`src/config/assets.manifest.json`)
 
-| Field                                                                               | Meaning                                                                                                                                     |
-| ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sprite`, `spriteHeight`                                                            | PNG under `src/assets/` shown as a billboard (or icon); height in tiles. Overrides `path` and `placeholder`                                 |
-| `placeholder`                                                                       | Built-in primitive: `tile`, `wall`, `water`, `humanoid`, `rack`, `tree`, `pillar`, `bench`, `flagpole`, `gremlin`, `board`, `icon`, `glyph` |
-| `path`                                                                              | GLB/GLTF under `src/assets/`. Overrides `placeholder`                                                                                       |
-| `scale`, `rotationYDeg`                                                             | Applied to the model after loading                                                                                                          |
-| `clips`                                                                             | Logical animation name → clip name in the GLB                                                                                               |
-| `color`, `accent`, `skin`, `hair`, `pattern`, `height`, `label`, `glasses`, `smoke` | Placeholder options                                                                                                                         |
+| Field                                                    | Meaning                                                                                                                                                                                                                                                                                                                                                     |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `placeholder`                                            | Model built in code. Characters: `humanoid`, `sludge`, `wraith`, `sock`. Props: `rack`, `donor`, `podium`, `terminal`, `hatch`, `ladder`, `trench`, `barricade`, `hotspot`, `locker`, `medbay`, `desk`, `bunkbed`, `farm`, `armory`, `circle`, `tree`, `pillar`, `bench`, `flagpole`, `gremlin`, `board`, `booth`, `prop`. Terrain: `tile`, `wall`, `water` |
+| `look`                                                   | How a `humanoid` looks (below)                                                                                                                                                                                                                                                                                                                              |
+| `variant`                                                | Picks a version of a builder: donor `chicken`/`empty`/`gala`/`yacht`, farm `1`–`3`, armory `1`–`2`, sludge `mother`                                                                                                                                                                                                                                         |
+| `path`                                                   | GLB/GLTF under `src/assets/`. Overrides `placeholder`                                                                                                                                                                                                                                                                                                       |
+| `sprite`                                                 | PNG under `src/assets/`: 2D art for the UI only (inventory icons, Summoning-tab portraits, build menu). Never shown in the world                                                                                                                                                                                                                            |
+| `scale`, `rotationYDeg`                                  | Applied to the model                                                                                                                                                                                                                                                                                                                                        |
+| `color`, `accent`, `pattern`, `height`, `label`, `smoke` | Builder options                                                                                                                                                                                                                                                                                                                                             |
+
+### Character looks
+
+A `look` describes a humanoid: `head` (`human`, `goblin`, `phone`, `bear`, `sproto`, `robot`,
+`blob`, `rock`), `skin`, `hair`, `hairStyle`, `top`, `sleeves`, `shirt`, `tie`, `pants`, `shoes`,
+`coat`, `bib`, `belt`, `stripes`, `hood`, `hat`, `hatColor`, `glasses`, `mustache`, `mask`,
+`scarf`, `eyes` (glowing), `hands`, armor layers (`vest`, `plate`, `pads`, `greaves`), held gear
+(`right`, `left`: ids from `gear.ts`), `back` (`backpack`, `rug`, `spines`), `pose`, and
+proportions (`build`, `legs`, `headSize`, `hunch`). Worn armor changes the player's look through
+`ARMOR_LOOKS` in `gear.ts`.
 
 ## Palette (placeholders)
 
@@ -48,15 +62,14 @@
 | UI gold              | `#f2c14e`             |
 | Price up / down      | `#3fdc5a` / `#ff5a4d` |
 
-## Sprites (current art, from Higgsfield)
+## Sprites (2D UI art, from Higgsfield)
 
-Characters, enemies, Sprotos, props and item icons are 2D pixel-art sprites generated with
+Characters, enemies, Sprotos, props and item icons were generated as 2D pixel-art sprites with
 Higgsfield (`gpt_image_2_5`, transparent background, medium quality for sprites, low for icons),
-then cropped to their alpha bounds and downscaled: world sprites to at most 192 px
-(`src/assets/sprites/`), icons to 64 × 64 (`src/assets/icons/`). The world itself stays low-poly
-3D. In the manifest an entry's `sprite` (path under `src/assets/`) wins over `path` and
-`placeholder`; `spriteHeight` is its height in tiles. Sprites stand on the ground as camera-facing
-billboards, flip to face their direction of travel and bob while walking.
+then cropped to their alpha bounds and downscaled: sprites to at most 192 px
+(`src/assets/sprites/`), icons to 64 × 64 (`src/assets/icons/`). Since 0.4.0 the world is fully
+3D (camera-facing sprites leaned into walls as the camera turned); sprites are used for inventory
+icons, portraits and menus, and the 3D looks were made to match them.
 
 Prompt style: "Pixel art game sprite in a chunky retro MMO style, 3/4 front view, centered,
 crisp dark outline, limited palette, transparent background, no text, no logos", plus the
