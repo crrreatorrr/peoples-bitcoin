@@ -73,7 +73,10 @@ export interface ActiveAction {
 }
 
 export type OpenInterface =
-  { kind: 'bank' } | { kind: 'terminal' } | { kind: 'build'; targetId: string };
+  | { kind: 'bank' }
+  /** A shop window: the Trading Terminal or another shop's stall. */
+  | { kind: 'terminal'; shopId: string }
+  | { kind: 'build'; targetId: string };
 
 export interface Currencies {
   bitcoin: number;
@@ -268,7 +271,7 @@ export interface SimContext {
 export type MessageKind = 'game' | 'npc' | 'public' | 'levelup' | 'warning' | 'quest';
 
 /** How an attack looks: a swing, a shot, or an explosive shell. */
-export type AttackStyle = 'melee' | 'gun' | 'explosive';
+export type AttackStyle = 'melee' | 'gun' | 'explosive' | 'magic';
 
 export type SimEvent =
   | { type: 'message'; kind: MessageKind; text: string; speaker?: string }

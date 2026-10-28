@@ -1,8 +1,9 @@
 /**
  * Equipment, combat styles, eating, and the attack profile the combat code
- * uses. Guns fire common rounds from the ammo slot; explosive cannons fire
- * mined Hash straight from the inventory. A gun with nothing to fire is
- * swung as a club; with no weapon at all the President uses the gavel.
+ * uses. Guns fire Rounds and staffs fire COOM from the ammo slot; explosive
+ * cannons fire mined Hash straight from the inventory. A gun or staff with
+ * nothing to fire is swung as a club; with no weapon at all the President
+ * uses the gavel.
  */
 import { COMBAT, OUTFITS } from '../config/balance';
 import { addItem } from './inventory';
@@ -142,7 +143,8 @@ export function attackProfile(player: PlayerState, ctx: SimContext): AttackProfi
 
   const w = equipped.weapon!;
   if (w.type === 'gun') {
-    if (w.ammo === 'rounds' && !((player.equipment.ammo?.qty ?? 0) > 0)) outOfAmmo = true;
+    if ((w.ammo === 'rounds' || w.ammo === 'coom') && !loaded(player, ctx, w.ammo))
+      outOfAmmo = true;
     if (w.ammo === 'hash') {
       player.inventory.forEach((s, i) => {
         const shell = s && ctx.content.items.get(s.itemId)?.shell;
@@ -183,7 +185,15 @@ export function attackProfile(player: PlayerState, ctx: SimContext): AttackProfi
   };
 }
 
-/** Spends one round or one Hash shell for a shot. */
+/** True if the ammo slot holds ammo this weapon can fire. */
+function loaded(player: PlayerState, ctx: SimContext, type: 'rounds' | 'coom'): boolean {
+  const ammo = player.equipment.ammo;
+  return (
+    !!ammo && ammo.qty > 0 && (ctx.content.items.get(ammo.itemId)?.ammoType ?? 'rounds') === type
+  );
+}
+
+/** Spends one round, vial or Hash shell for a shot. */
 export function consumeAmmo(player: PlayerState, profile: AttackProfile): void {
   if (profile.type !== 'gun') return;
   if (profile.shellSlot !== null) {

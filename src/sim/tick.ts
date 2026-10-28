@@ -10,6 +10,7 @@ import {
   MOVEMENT,
   PROCESSING,
   SUMMONING,
+  TERMINAL_SHOP_ID,
 } from '../config/balance';
 import { deposit, depositAll, withdraw } from './bank';
 import { build, builtOption, hotspotActions, useStation } from './bunker';
@@ -283,7 +284,7 @@ function stepActions(state: GameState, ctx: SimContext, events: SimEvent[]): voi
       player.interface = { kind: 'bank' };
       break;
     case 'terminal':
-      player.interface = { kind: 'terminal' };
+      player.interface = { kind: 'terminal', shopId: def.shop ?? TERMINAL_SHOP_ID };
       break;
     case 'portal':
       usePortal(state, ctx, obj, events);

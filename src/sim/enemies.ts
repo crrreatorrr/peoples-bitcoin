@@ -150,7 +150,7 @@ function fight(
     type: 'attack',
     attackerId: enemy.id,
     targetId: enemy.target!,
-    style: melee ? 'melee' : 'gun',
+    style: melee ? 'melee' : def.magic ? 'magic' : 'gun',
   });
 
   if (enemy.target === SPROTO_ID && state.player.sproto) {

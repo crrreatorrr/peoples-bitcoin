@@ -11,14 +11,20 @@ import type { GameState, Quantity, SimContext, SimEvent } from './state';
 
 const MAX_BUY = 10_000;
 
-/** $BITCOIN the Terminal charges for `qty` of an item right now, or null if it isn't sold. */
+/** The shop whose window is open (the Trading Terminal if none is). */
+function openShop(state: GameState): string {
+  const ui = state.player.interface;
+  return ui?.kind === 'terminal' ? ui.shopId : TERMINAL_SHOP_ID;
+}
+
+/** $BITCOIN the open shop charges for `qty` of an item right now, or null if it isn't sold there. */
 export function buyPrice(
   state: GameState,
   ctx: SimContext,
   itemId: string,
   qty: number,
 ): number | null {
-  const entry = ctx.content.shops.get(TERMINAL_SHOP_ID)?.stock.find((s) => s.item === itemId);
+  const entry = ctx.content.shops.get(openShop(state))?.stock.find((s) => s.item === itemId);
   return entry ? Math.ceil(usdToBitcoin(state.economy, entry.priceUsd * qty)) : null;
 }
 

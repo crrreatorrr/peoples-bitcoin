@@ -1080,13 +1080,200 @@
       {
         "player": "Where are we?"
       },
-      "Somewhere new. The coordinates only got us this far. Everything past that hill is unexplored.",
-      "The Chamber works both ways. Go home whenever you like; the Treasury will want to hear about this.",
+      "Somewhere new. The coordinates only got us this far. But look across the lake: towers, lights. Somebody over there is doing magic.",
+      "There's a rowboat at the water's edge with a note on it. It says 'TO THE ACADEMY. ROW YOURSELF.'",
+      "The Chamber works both ways, so go home whenever you like.",
       {
         "player": "And you?"
       },
       "I'm going to stand here a while. Guarding the mustache. From a much better view."
     ],
-    "dialogue": []
+    "dialogue": [
+      {
+        "quest": "quest_moonward",
+        "status": "complete",
+        "lines": [
+          "A wizard academy. Of course there's a wizard academy. And of course its treasurer ran off with the gold.",
+          "Some things are the same everywhere, President. Good to know we're useful out here too."
+        ]
+      }
+    ]
+  },
+  {
+    "id": "npc_archmage",
+    "name": "Archmage Hodlwyn",
+    "examine": "Headmaster of Moonward Academy. His beard has its own beard.",
+    "model": "npc_archmage",
+    "actions": ["Talk-to"],
+    "wanderRadius": 0,
+    "lines": ["Welcome to Moonward, President. Mind the students; they duel in the halls."],
+    "dialogue": [
+      {
+        "quest": "quest_moonward",
+        "status": "complete",
+        "lines": [
+          "The rug is unravelled and the gold is back in the vault. Moonward is open again, and every student wants your autograph.",
+          {
+            "player": "What happens now?"
+          },
+          "Now we teach. And you keep exploring, President. The world out here is bigger than either of us thought.",
+          "Come back any time. The Staffwright will keep your COOM topped up."
+        ]
+      },
+      {
+        "quest": "quest_moonward",
+        "status": "started",
+        "step": ["wield"],
+        "lines": [
+          "Visitors! Actual visitors, across the lake, in a rowboat! Welcome to the Moonward Academy of Applied Wizardry.",
+          "I am Archmage Hodlwyn, headmaster. And you are... a President? From behind the big wall? We thought that place was sealed.",
+          {
+            "player": "It was. We got out."
+          },
+          "Then you know a thing or two about locked doors, and about treasuries. We've lost ours.",
+          "Our Bursar, the man who kept the academy's gold, wove the whole endowment into one magnificent rug. Then he pulled it.",
+          {
+            "player": "He pulled the rug."
+          },
+          "Right out from under us. He calls himself the Rugmancer now. He's holed up in the north tower with our gold, and he's spellbound our Battlemages to keep everyone out.",
+          "First, you'll want to cast. Here: an Apprentice Staff, and some COOM to fire from it.",
+          {
+            "player": "COOM?"
+          },
+          "Concentrated Occult Output Matter. Little white vials. Every staff runs on it. We do not discuss where it comes from.",
+          "Wield the staff and put the COOM in your ammo slot. It fires like any gun you've held, and your Shooting carries over."
+        ]
+      },
+      {
+        "quest": "quest_moonward",
+        "status": "started",
+        "step": ["duel"],
+        "lines": [
+          "Good grip! Now practise. The Duelling Grounds are in the east wing. The Apprentices there will duel anyone who stands still.",
+          "Win one duel. Keep your distance; a staff reaches as far as a good rifle."
+        ]
+      },
+      {
+        "quest": "quest_moonward",
+        "status": "started",
+        "step": ["battlemage"],
+        "lines": [
+          "Splendid! Now a Battlemage. They were our best teachers before the Rugmancer's spell.",
+          "Two of them guard the way to the north tower, and more patrol the Duelling Grounds. Beat one and the spell on it breaks. Mind their bolts; they hit hard."
+        ]
+      },
+      {
+        "quest": "quest_moonward",
+        "status": "started",
+        "step": ["report"],
+        "lines": ["You beat a Battlemage? Then come here and tell me everything."]
+      },
+      {
+        "quest": "quest_moonward",
+        "status": "started",
+        "step": ["rugmancer"],
+        "lines": [
+          {
+            "player": "The Battlemage woke up. It said the spell comes from the north tower."
+          },
+          "Of course it does. He always did like the view from up there. Unobstructed. Unaudited.",
+          "Go up and take back the endowment. He'll call Apprentices to defend him. Spellbound ones. Go easy on them; they're only students.",
+          {
+            "player": "Any advice?"
+          },
+          "He's a bursar, not a fighter. He fights the way he budgets: badly, then all at once."
+        ]
+      },
+      {
+        "quest": "quest_moonward",
+        "status": "started",
+        "step": ["finish"],
+        "lines": ["I felt it from here. The rug, unravelling."]
+      }
+    ]
+  },
+  {
+    "id": "npc_staffwright",
+    "name": "The Staffwright",
+    "examine": "Makes staffs. Sells COOM. Asks no questions.",
+    "model": "npc_staffwright",
+    "actions": ["Talk-to"],
+    "wanderRadius": 0,
+    "lines": [
+      "Staffs! Hats! Robes! COOM by the crate!",
+      "My stall's right here. Trade at the stall, not with me. I'm busy.",
+      {
+        "player": "What's the difference between the staffs?"
+      },
+      "Bigger crystal, bigger bang. You'll need more Shooting for the good ones.",
+      "And always carry spare COOM. Nothing sadder than a wizard hitting someone with a stick."
+    ],
+    "dialogue": [
+      {
+        "quest": "quest_moonward",
+        "status": "complete",
+        "lines": [
+          "The President who unravelled the Rugmancer! For you, the good COOM. It's the same COOM. Same price, too.",
+          "Business is booming now the gold's back. Everyone wants a staff."
+        ]
+      }
+    ]
+  },
+  {
+    "id": "npc_student",
+    "name": "Moonward Student",
+    "examine": "Supposed to be studying.",
+    "model": "npc_student",
+    "actions": ["Talk-to"],
+    "wanderRadius": 3,
+    "lines": [
+      "Are you the President from behind the wall? Can I have your autograph? On my homework?",
+      {
+        "player": "Shouldn't you be studying?"
+      },
+      "Nobody's taught a class since the Rugmancer took the gold. We just duel. And read. Mostly duel."
+    ],
+    "dialogue": [
+      {
+        "quest": "quest_moonward",
+        "status": "complete",
+        "lines": [
+          "Classes start again tomorrow! Real ones! With teachers who aren't spellbound!",
+          "Professor Ironcloak says he'll make an example of the first student who duels in the library. It's going to be me."
+        ]
+      },
+      {
+        "quest": "quest_moonward",
+        "status": "started",
+        "step": ["rugmancer"],
+        "lines": [
+          "You're going up the tower? Can you bring back my scholarship? It's woven in near the left corner of the rug."
+        ]
+      }
+    ]
+  },
+  {
+    "id": "npc_professor",
+    "name": "Professor Ironcloak",
+    "examine": "Taught battle magic for forty years. Now teaches it to anyone who stands still.",
+    "model": "npc_professor",
+    "actions": ["Talk-to"],
+    "wanderRadius": 1,
+    "lines": [
+      "Ah, a new student. Of a sort.",
+      "Rule one: keep your distance. A staff fires as far as a good rifle.",
+      "Rule two: Accurate, Rapid or Longrange, same as your guns. Longrange trains Defense as well.",
+      "Rule three: COOM in the ammo slot. You'd be amazed how many forget rule three."
+    ],
+    "dialogue": [
+      {
+        "quest": "quest_moonward",
+        "status": "complete",
+        "lines": [
+          "The spell is gone from my head. Like waking from a very long lecture. Thank you, President.",
+          "If you want to keep your casting sharp, the Apprentices still duel all day. Teach them some manners."
+        ]
+      }
+    ]
   }
 ]

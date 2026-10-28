@@ -368,5 +368,43 @@
         "priceUsd": 36669
       }
     ]
+  },
+  {
+    "id": "shop_staffwright",
+    "name": "The Staffwright's Stall",
+    "stock": [
+      {
+        "item": "item_coom",
+        "priceUsd": 1.69
+      },
+      {
+        "item": "staff_apprentice",
+        "priceUsd": 69
+      },
+      {
+        "item": "staff_hopium",
+        "priceUsd": 669
+      },
+      {
+        "item": "staff_moonward",
+        "priceUsd": 2669
+      },
+      {
+        "item": "item_moonward_hat",
+        "priceUsd": 469
+      },
+      {
+        "item": "item_moonward_robe",
+        "priceUsd": 869
+      },
+      {
+        "item": "item_tp_soundbite",
+        "priceUsd": 9.69
+      },
+      {
+        "item": "item_hopium_soda",
+        "priceUsd": 26.69
+      }
+    ]
   }
 ]

@@ -662,5 +662,98 @@
     "actions": [],
     "blocks": true,
     "role": "scenery"
+  },
+  {
+    "id": "obj_staff_stall",
+    "name": "Staffwright's Stall",
+    "examine": "Staffs, hats, robes and crates of COOM, priced in $BITCOIN.",
+    "model": "stall_staffs",
+    "actions": ["Trade"],
+    "blocks": true,
+    "role": "terminal",
+    "shop": "shop_staffwright"
+  },
+  {
+    "id": "obj_ferry_outside",
+    "name": "Rowboat",
+    "examine": "A note is pinned to the seat: 'TO THE ACADEMY. ROW YOURSELF.'",
+    "model": "rowboat",
+    "actions": ["Board"],
+    "blocks": true,
+    "role": "portal"
+  },
+  {
+    "id": "obj_ferry_academy",
+    "name": "Rowboat",
+    "examine": "Back across the lake to The World Out There.",
+    "model": "rowboat",
+    "actions": ["Board"],
+    "blocks": true,
+    "role": "portal"
+  },
+  {
+    "id": "obj_bookshelf",
+    "name": "Bookshelf",
+    "examine": "Spellbooks: 'Hexes for Bear Markets', 'Charms for the Long Hold', 'One Weird Cantrip'.",
+    "model": "bookshelf",
+    "actions": [],
+    "blocks": true,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_cauldron",
+    "name": "Cauldron",
+    "examine": "Something green bubbles inside. It smells like ambition.",
+    "model": "cauldron",
+    "actions": [],
+    "blocks": true,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_crystal_ball",
+    "name": "Crystal Ball",
+    "examine": "You see a candle chart. It only goes up. Then you blink and it's a crystal ball again.",
+    "model": "crystal_ball",
+    "actions": [],
+    "blocks": true,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_long_table",
+    "name": "Dining Table",
+    "examine": "Set for a feast nobody has eaten since the Rugmancer took the gold.",
+    "model": "long_table",
+    "actions": [],
+    "blocks": true,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_academy_sign",
+    "name": "Academy Sign",
+    "examine": "MOONWARD ACADEMY OF APPLIED WIZARDRY. Students: no duelling in the halls. Or the library. Or near the lake.",
+    "model": "sign_academy",
+    "actions": [],
+    "blocks": true,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_turret",
+    "name": "Turret",
+    "examine": "A pointed tower roof. The academy has a lot of these. Wizards like pointy things.",
+    "model": "turret",
+    "actions": [],
+    "blocks": true,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_great_rug",
+    "name": "The Great Rug",
+    "examine": "The academy's whole endowment, woven into one magnificent rug. It's worth more than the tower it's lying in.",
+    "model": "great_rug",
+    "actions": [],
+    "blocks": false,
+    "role": "scenery",
+    "width": 3,
+    "height": 2
   }
 ]

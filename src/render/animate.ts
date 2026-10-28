@@ -156,6 +156,11 @@ function holdPose(p: Pose, actor: ActorModel, ready: boolean): void {
       if (ready) Object.assign(p, { armRx: -0.9, foreRx: -1.0 });
       else Object.assign(p, { armRx: -0.15, foreRx: -0.9 });
       break;
+    case 'staff':
+      // Planted upright like a walking staff; leveled at the target to cast.
+      if (ready) Object.assign(p, { armRx: -0.55, foreRx: -1.25 });
+      else Object.assign(p, { armRx: -0.1, foreRx: -1.45 });
+      break;
     case 'item':
       Object.assign(p, { armRx: -0.25, foreRx: -1.35 });
       break;
@@ -234,6 +239,10 @@ function run(p: Pose, actor: ActorModel, phase: number): void {
   if (actor.right === null || actor.right === 'carry') {
     p.armRx = -0.6 * s - 0.2;
     p.foreRx = -1.55;
+  } else if (actor.right === 'staff') {
+    // A staff stays upright, bobbing with the stride.
+    p.armRx = -0.15 * s - 0.15;
+    p.foreRx = -1.4;
   } else if (swingsFreely(actor.right)) {
     // A pistol or club is carried low and forward, pumping less.
     p.armRx = -0.3 * s - 0.15;

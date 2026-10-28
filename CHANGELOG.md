@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.6.0 — The Trenches story and Moonward Academy (2026-10-28)
+
+- **The Trenches escape story:** Expedition One dug the Trenches on the first day of the
+  Lockdown; the Scout was their lookout and Captain Motion their leader, who found the Teleport
+  Chamber dead and has run laps in front of it ever since. Morelight, the Scout (now with a
+  question menu), quest journals, enemy examines, signs and crates along the Trenches tell it.
+- **Enemies talk:** bosses and many enemies shout a line when a fight starts, when they're hurt
+  and when they're beaten, in chat and over their heads.
+- **Moonward Academy:** a big new wizard-school zone across the lake from The World Out There:
+  Great Hall, library, Duelling Grounds, the Rugmancer's tower, a courtyard with cauldrons, and
+  five new Higgsfield wizards (plus students and a professor).
+- **Staffs and COOM:** four staffs that fire COOM (small white vials) and train Shooting, spells
+  that fly as glowing orbs, a Moonward hat and robe, and the Staffwright's Stall to buy them.
+- **Moonward Enrollment:** a new 3-point quest ending in the Rugmancer's tower.
+- **Adults only:** the game is now rated 18+ (owner); the parody notice says so.
+- **Tests:** 177.
+
 ## 0.5.1 — Owner fixes (2026-10-28)
 
 - **Running feels like OSRS:** one footfall per tile, a proper run cycle (bent elbows pumping,

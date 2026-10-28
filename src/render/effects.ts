@@ -66,7 +66,11 @@ export const PALETTES = {
   fireworks: ['#f2c14e', '#3fdc5a', '#ff5a4d', '#4fd8ea', '#ffffff'],
   sludge: ['#2f3b22', '#4a5a2e', '#6b7a3a', '#1e2616'],
   explosion: ['#ffcf3f', '#ff7a1a', '#ff3b2f', '#fff1b0'],
+  magic: ['#ffffff', '#f4e9ff', '#c9b6ff', '#a8d8ff'],
 } as const;
+
+/** What a shot looks like in flight. */
+export type ShotKind = 'shot' | 'explosive' | 'magic';
 
 interface Burst {
   points: THREE.Points;
@@ -161,15 +165,17 @@ interface Shot {
 /**
  * Shots fly from shooter to target, OSRS-style, and the hitsplat waits for
  * them. Damage already resolved on the tick; this is only what you see.
- * Explosive shells lob in an arc.
+ * Explosive shells lob in an arc; spells are glowing orbs.
  */
 export class Tracers {
   private readonly active: Shot[] = [];
   private readonly geometry = new THREE.OctahedronGeometry(0.07, 0);
   private readonly shell = new THREE.IcosahedronGeometry(0.13, 0);
+  private readonly orb = new THREE.IcosahedronGeometry(0.11, 1);
   private readonly materials = {
     shot: new THREE.MeshBasicMaterial({ color: '#fff1a8' }),
     explosive: new THREE.MeshBasicMaterial({ color: '#7cff6b' }),
+    magic: new THREE.MeshBasicMaterial({ color: '#f4e9ff' }),
   };
 
   constructor(private readonly scene: THREE.Scene) {}
@@ -178,7 +184,7 @@ export class Tracers {
   fire(
     from: THREE.Vector3,
     to: THREE.Vector3,
-    explosive: boolean,
+    kind: ShotKind,
     now: number,
     onArrive?: () => void,
   ): number {
@@ -189,13 +195,11 @@ export class Tracers {
       RENDER.projectileMaxMs,
       RENDER.projectileMsBase + RENDER.projectileMsPerTile * tiles,
     );
-    const mesh = new THREE.Mesh(
-      explosive ? this.shell : this.geometry,
-      explosive ? this.materials.explosive : this.materials.shot,
-    );
+    const geometry = { shot: this.geometry, explosive: this.shell, magic: this.orb }[kind];
+    const mesh = new THREE.Mesh(geometry, this.materials[kind]);
     mesh.position.copy(a);
     this.scene.add(mesh);
-    const arc = explosive ? 0.25 * tiles : 0;
+    const arc = kind === 'explosive' ? 0.25 * tiles : 0;
     this.active.push({ mesh, from: a, to: b, startedAt: now, flightMs, arc, onArrive });
     return flightMs;
   }

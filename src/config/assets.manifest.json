@@ -1694,5 +1694,173 @@
     "placeholder": "prop",
     "color": "#5a6b3a",
     "height": 0.35
+  },
+  "npc_archmage": {
+    "placeholder": "humanoid",
+    "look": {
+      "top": "#1d2a5a",
+      "pants": "#1d2a5a",
+      "hair": "#b8b8b8",
+      "hat": "wizard",
+      "hatColor": "#1d2a5a",
+      "right": "staff_archmage"
+    },
+    "path": "models/npc_archmage.glb"
+  },
+  "npc_staffwright": {
+    "placeholder": "humanoid",
+    "look": {
+      "top": "#3f6b3a",
+      "pants": "#3f6b3a",
+      "hair": "#c0502a",
+      "hat": "wizard",
+      "hatColor": "#3f6b3a",
+      "right": "staff_hopium"
+    },
+    "path": "models/npc_staffwright.glb"
+  },
+  "npc_student": {
+    "placeholder": "humanoid",
+    "look": {
+      "top": "#7d858f",
+      "pants": "#7d858f",
+      "hair": "#e0c060",
+      "hat": "wizard",
+      "hatColor": "#7d858f",
+      "left": "book"
+    },
+    "path": "models/enemy_apprentice.glb"
+  },
+  "npc_professor": {
+    "placeholder": "humanoid",
+    "look": {
+      "top": "#8a1d2a",
+      "pants": "#8a1d2a",
+      "hair": "#1b1b1f",
+      "hat": "wizard",
+      "hatColor": "#8a1d2a",
+      "right": "staff_moonward"
+    },
+    "path": "models/enemy_battlemage.glb"
+  },
+  "enemy_apprentice": {
+    "placeholder": "humanoid",
+    "look": {
+      "top": "#7d858f",
+      "pants": "#7d858f",
+      "hair": "#e0c060",
+      "hat": "wizard",
+      "hatColor": "#7d858f",
+      "right": "staff_apprentice"
+    },
+    "path": "models/enemy_apprentice.glb"
+  },
+  "enemy_battlemage": {
+    "placeholder": "humanoid",
+    "look": {
+      "top": "#8a1d2a",
+      "pants": "#8a1d2a",
+      "hair": "#1b1b1f",
+      "hat": "wizard",
+      "hatColor": "#8a1d2a",
+      "right": "staff_moonward"
+    },
+    "path": "models/enemy_battlemage.glb"
+  },
+  "enemy_rugmancer": {
+    "placeholder": "humanoid",
+    "look": {
+      "top": "#8a1d2a",
+      "pants": "#8a1d2a",
+      "hood": true,
+      "skin": "#9aa0a6",
+      "right": "staff_rugmancer"
+    },
+    "path": "models/enemy_rugmancer.glb",
+    "scale": 1.0
+  },
+  "icon_coom": {
+    "placeholder": "icon",
+    "color": "#f2efe6",
+    "label": "C",
+    "sprite": "icons/icon_coom.png"
+  },
+  "icon_staff_apprentice": {
+    "placeholder": "icon",
+    "color": "#8a6a42",
+    "label": "S",
+    "sprite": "icons/icon_staff_apprentice.png"
+  },
+  "icon_staff_hopium": {
+    "placeholder": "icon",
+    "color": "#5dff6b",
+    "label": "S",
+    "sprite": "icons/icon_staff_hopium.png"
+  },
+  "icon_staff_moonward": {
+    "placeholder": "icon",
+    "color": "#a8d8ff",
+    "label": "S",
+    "sprite": "icons/icon_staff_moonward.png"
+  },
+  "icon_staff_archmage": {
+    "placeholder": "icon",
+    "color": "#e0b43a",
+    "label": "S",
+    "sprite": "icons/icon_staff_archmage.png"
+  },
+  "icon_moonward_hat": {
+    "placeholder": "icon",
+    "color": "#1d2a5a",
+    "label": "H",
+    "sprite": "icons/icon_moonward_hat.png"
+  },
+  "icon_moonward_robe": {
+    "placeholder": "icon",
+    "color": "#1d2a5a",
+    "label": "R",
+    "sprite": "icons/icon_moonward_robe.png"
+  },
+  "stall_staffs": {
+    "placeholder": "booth",
+    "color": "#5a3d8a",
+    "accent": "#e0b43a"
+  },
+  "rowboat": {
+    "placeholder": "boat",
+    "color": "#7a4f2a"
+  },
+  "bookshelf": {
+    "placeholder": "bookshelf",
+    "color": "#5a3a22"
+  },
+  "cauldron": {
+    "placeholder": "cauldron",
+    "color": "#26272c",
+    "accent": "#7cff6b"
+  },
+  "crystal_ball": {
+    "placeholder": "orb",
+    "color": "#8a8f99",
+    "accent": "#a8d8ff"
+  },
+  "long_table": {
+    "placeholder": "longtable",
+    "color": "#6b4a2b"
+  },
+  "sign_academy": {
+    "placeholder": "signpost",
+    "color": "#1d2a5a",
+    "label": "MOONWARD/ACADEMY"
+  },
+  "turret": {
+    "placeholder": "turret",
+    "color": "#b8b0a0",
+    "accent": "#1d2a5a"
+  },
+  "great_rug": {
+    "placeholder": "rug",
+    "color": "#8a1d2a",
+    "height": 3
   }
 }

@@ -11,7 +11,8 @@ import * as THREE from 'three';
 import { blob, box, cone, glow, group, lambert, shade, tube } from './kit';
 
 /** How a held thing is carried, which picks the arm poses. */
-export type HoldKind = 'pistol' | 'rifle' | 'heavy' | 'melee' | 'item' | 'carry' | 'shield';
+export type HoldKind =
+  'pistol' | 'rifle' | 'heavy' | 'melee' | 'item' | 'carry' | 'shield' | 'staff';
 
 /** Name of the hidden flash mesh at a gun's muzzle. */
 export const MUZZLE = 'muzzle';
@@ -322,6 +323,60 @@ function medkit(): THREE.Group {
 
 // ── Shields (upright, facing forward) ────────────────────────────────────────
 
+// ── Staffs (shaft along +y, gripped a third of the way up) ────────────────────
+
+/** A wizard staff: a shaft and a glowing head; spells fly from the head (the muzzle). */
+function staff(
+  shaft: string,
+  head: string,
+  shape: 'crystal' | 'orb' | 'moon' | 'arrow',
+  trim?: string,
+): THREE.Group {
+  const g = group([tube(0.028, 0.034, 1.45, lambert(shaft), 0, 0.27, 0, 6)]);
+  const top = 1.0;
+  const gem = glow(head);
+  switch (shape) {
+    case 'crystal':
+      g.add(cone(0.06, 0.22, gem, 0, top + 0.11, 0, 4));
+      break;
+    case 'orb':
+      g.add(blob(0.1, gem, 0, top + 0.1, 0));
+      for (const a of [0, 2.1, 4.2]) {
+        g.add(
+          box(
+            0.02,
+            0.16,
+            0.02,
+            lambert(trim ?? GOLD),
+            Math.cos(a) * 0.09,
+            top + 0.07,
+            Math.sin(a) * 0.09,
+          ),
+        );
+      }
+      break;
+    case 'moon': {
+      const moon = tube(0.11, 0.11, 0.035, gem, 0, top + 0.12, 0, 10);
+      moon.rotation.x = Math.PI / 2;
+      g.add(moon, blob(0.05, lambert(shaft), 0.05, top + 0.12, 0));
+      break;
+    }
+    case 'arrow':
+      g.add(
+        cone(0.08, 0.16, gem, 0, top + 0.13, 0, 4),
+        box(0.05, 0.12, 0.05, gem, 0, top + 0.01, 0),
+      );
+      break;
+  }
+  if (trim) g.add(tube(0.042, 0.042, 0.06, lambert(trim), 0, top - 0.06, 0, 6));
+  // Spells leave from the head, and the head flashes as they do.
+  const flash = blob(0.13, glow('#f4e9ff'), 0, top + 0.12, 0);
+  flash.name = MUZZLE;
+  flash.visible = false;
+  g.add(flash);
+  return g;
+}
+
 function shield(face: string, w: number, h: number, mark?: string): THREE.Group {
   const g = group([box(w, h, 0.04, lambert(face), 0, 0.02, 0.1)]);
   if (mark) g.add(box(w * 0.4, h * 0.4, 0.01, lambert(mark), 0, 0.02, 0.125));
@@ -329,6 +384,12 @@ function shield(face: string, w: number, h: number, mark?: string): THREE.Group 
 }
 
 export const GEAR: Record<string, GearDef> = {
+  // Staffs: fire COOM, train Shooting
+  staff_apprentice: { hold: 'staff', build: () => staff('#8a6a42', '#f4f4ff', 'crystal') },
+  staff_hopium: { hold: 'staff', build: () => staff('#4a3423', '#5dff6b', 'arrow') },
+  staff_moonward: { hold: 'staff', build: () => staff('#c9ced8', '#a8d8ff', 'moon', '#7d858f') },
+  staff_archmage: { hold: 'staff', build: () => staff('#1d2a5a', '#ffffff', 'orb', GOLD) },
+  staff_rugmancer: { hold: 'staff', build: () => staff('#2a1a12', '#6bff8a', 'orb', '#8a1d2a') },
   // Guns
   gun_campaign_pistol: { hold: 'pistol', build: () => pistol('#2b2d36', '#b3262e', '#e8e8e8') },
   gun_confetti_shotgun: {
@@ -437,6 +498,8 @@ export function holdOf(id: string | null | undefined): HoldKind | null {
 /** How wearing an item changes a look (see LookSchema in actors.ts). */
 export const ARMOR_LOOKS: Record<string, Record<string, string>> = {
   item_campaign_hat: { hat: 'cap', hatColor: '#b3262e' },
+  item_moonward_hat: { hat: 'wizard', hatColor: '#1d2a5a' },
+  item_moonward_robe: { vest: '#1d2a5a' },
   item_aviators: { glasses: 'aviators' },
   item_flak_helmet: { hat: 'helmet', hatColor: '#4b5a2e' },
   item_kevlar_fedora: { hat: 'fedora', hatColor: '#1c1c22' },

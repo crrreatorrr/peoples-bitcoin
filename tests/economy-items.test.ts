@@ -7,7 +7,7 @@ import { give, messages, newGame } from './helpers';
 
 function atTerminal() {
   const game = newGame();
-  game.state.player.interface = { kind: 'terminal' };
+  game.state.player.interface = { kind: 'terminal', shopId: 'shop_terminal' };
   return game;
 }
 

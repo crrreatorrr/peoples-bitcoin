@@ -431,5 +431,96 @@
     "aggroRange": 3,
     "respawnTicks": 25,
     "drops": "drops_party_crasher"
+  },
+  {
+    "id": "enemy_apprentice",
+    "name": "Duelling Apprentice",
+    "examine": "Practising hexes on anyone who walks past. Mostly on other apprentices.",
+    "model": "enemy_apprentice",
+    "level": 10,
+    "hp": 18,
+    "attack": 9,
+    "strength": 8,
+    "defense": 8,
+    "accuracy": 8,
+    "damage": 5,
+    "armor": 6,
+    "speed": 4,
+    "range": 5,
+    "type": "gun",
+    "aggressive": false,
+    "aggroRange": 0,
+    "wanderRadius": 3,
+    "respawnTicks": 30,
+    "drops": "drops_apprentice",
+    "magic": true,
+    "barks": {
+      "aggro": ["En garde! No, wait, that's fencing.", "I read about this! Chapter one!"],
+      "hurt": ["That's not in the textbook!"],
+      "defeat": ["I yield! I yield!"]
+    }
+  },
+  {
+    "id": "enemy_battlemage",
+    "name": "Battlemage",
+    "examine": "One of Moonward's best teachers, spellbound by the Rugmancer to guard the academy from its own students.",
+    "model": "enemy_battlemage",
+    "level": 32,
+    "hp": 50,
+    "attack": 30,
+    "strength": 28,
+    "defense": 28,
+    "accuracy": 26,
+    "damage": 18,
+    "armor": 24,
+    "speed": 5,
+    "range": 6,
+    "type": "gun",
+    "aggressive": true,
+    "aggroRange": 4,
+    "wanderRadius": 2,
+    "respawnTicks": 60,
+    "drops": "drops_battlemage",
+    "magic": true,
+    "barks": {
+      "aggro": ["Halt! The academy is closed!", "By order of the Bursar!"],
+      "hurt": ["The Rugmancer will hear of this!"],
+      "defeat": ["The spell... it's lifting..."]
+    }
+  },
+  {
+    "id": "enemy_rugmancer",
+    "name": "The Rugmancer",
+    "examine": "Moonward's former Bursar. Wove the academy's whole endowment into one magnificent rug, then pulled it.",
+    "model": "enemy_rugmancer",
+    "level": 60,
+    "hp": 280,
+    "attack": 55,
+    "strength": 50,
+    "defense": 48,
+    "accuracy": 52,
+    "damage": 34,
+    "armor": 46,
+    "speed": 4,
+    "range": 6,
+    "type": "gun",
+    "aggressive": true,
+    "aggroRange": 6,
+    "wanderRadius": 1,
+    "respawnTicks": 200,
+    "drops": "drops_rugmancer",
+    "magic": true,
+    "barks": {
+      "aggro": ["Welcome, President! Mind the rug.", "You can't pull a rug that's already pulled!"],
+      "hurt": ["Apprentices! Defend your Bursar!"],
+      "defeat": ["My beautiful rug... unravelling..."]
+    },
+    "boss": {
+      "adds": {
+        "enemy": "enemy_apprentice",
+        "everyTicks": 15,
+        "max": 2
+      }
+    }
   }
 ]

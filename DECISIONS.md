@@ -275,3 +275,26 @@ An audit compared movement and interface with OSRS; these choices came out of it
   take their two lines of text from the manifest `label`.
 - **The Scout** answers questions through a "Select an Option" menu and has lines for every
   stage of the escape, through The Way Out.
+
+## Moonward Academy (0.6.0)
+
+- **An original wizard school** (owner asked for one "like Hogwarts"). Hogwarts is trademarked and
+  Hard Rule 3 bans the wizard boy, so Moonward Academy of Applied Wizardry has its own names, no
+  houses and no characters from any book. Its story mirrors the Treasury's: the Bursar wove the
+  endowment into a rug and pulled it (the Rugmancer), so the President, who knows lost
+  treasuries, gets the job.
+- **Found after The Way Out:** a rowboat in The World Out There ferries you across the lake, so
+  the escape story leads straight into it.
+- **Staffs are guns that fire COOM** (owner): ranged weapons that train Shooting and use the same
+  styles. COOM is an ammo-slot item with `ammoType: coom`; guns only fire Rounds and staffs only
+  fire COOM. Out of COOM, you bash with the staff. Spells fly as glowing orbs (attack style
+  `magic`), and wizard enemies (`EnemyDef.magic`) cast them too.
+- **Five Higgsfield wizards** (owner: only five). The Archmage, the Staffwright, the Apprentice,
+  the Battlemage and the Rugmancer; students and Professor Ironcloak reuse the Apprentice and
+  Battlemage models, so the academy is full of wizards on five models.
+- **More than one shop:** a terminal object can name its `shop` (default the Trading Terminal),
+  and the shop window shows that shop's stock. The Staffwright's Stall sells staffs, COOM, the
+  Moonward hat and robe, Soundbites and Hopium Soda; every shop's prices end in 69.
+- **Moonward Enrollment** (3 quest points): the Archmage hands you a staff and COOM, then you win
+  a duel, break the spell on a Battlemage, and beat the Rugmancer, who only wakes in his tower
+  when the quest gets to him. Reward: the Archmage's Staff.

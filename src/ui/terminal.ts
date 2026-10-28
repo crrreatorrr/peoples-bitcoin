@@ -1,9 +1,9 @@
 /**
- * The Trading Terminal window: the stock list with live $BITCOIN prices.
- * Like an OSRS shop, left-click checks the price (Value) and right-click buys.
- * Selling happens from the inventory while this window is open.
+ * A shop window (the Trading Terminal, the Staffwright's stall...): the stock
+ * list with live $BITCOIN prices. Like an OSRS shop, left-click checks the
+ * price (Value) and right-click buys. Selling happens from the inventory
+ * while this window is open.
  */
-import { TERMINAL_SHOP_ID } from '../config/balance';
 import type { Content } from '../sim/content';
 import type { MenuOption } from './contextmenu';
 import { formatUsd } from './hud';
@@ -27,14 +27,16 @@ export class TerminalWindow {
   private readonly grid = document.createElement('div');
   private readonly wallet = span('terminal-wallet', '');
   private readonly rate = span('terminal-rate', '');
+  private readonly title = document.createElement('h2');
   private readonly priceLabels = new Map<string, HTMLElement>();
   private closing = false;
   private key = '';
+  private shopId: string | null = null;
 
   constructor(
     root: HTMLElement,
-    content: Content,
-    iconUrl: (modelId: string) => string,
+    private readonly content: Content,
+    private readonly iconUrl: (modelId: string) => string,
     private readonly tooltip: Tooltip,
     private readonly h: TerminalHandlers,
   ) {
@@ -42,16 +44,33 @@ export class TerminalWindow {
     this.el.hidden = true;
     const header = document.createElement('div');
     header.className = 'window-header';
-    const title = document.createElement('h2');
-    title.textContent = 'Trading Terminal';
     const close = document.createElement('button');
     close.className = 'window-close';
     close.textContent = '✕';
     close.addEventListener('click', () => this.close());
-    header.append(title, this.wallet, close);
-
+    header.append(this.title, this.wallet, close);
     this.grid.className = 'terminal-grid';
-    for (const entry of content.shops.get(TERMINAL_SHOP_ID)?.stock ?? []) {
+
+    const footer = document.createElement('div');
+    footer.className = 'terminal-footer';
+    footer.append(
+      this.rate,
+      span('terminal-hint', 'Buy: right-click an item. Sell: click items in your inventory.'),
+    );
+    this.el.append(header, this.grid, footer);
+    root.append(this.el);
+  }
+
+  /** Fills the window with a shop's stock. */
+  private build(shopId: string): void {
+    const { content, iconUrl, tooltip, h } = this;
+    this.shopId = shopId;
+    this.key = '';
+    this.grid.replaceChildren();
+    this.priceLabels.clear();
+    const shop = content.shops.get(shopId);
+    this.title.textContent = shop?.name ?? 'Shop';
+    for (const entry of shop?.stock ?? []) {
       const def = content.items.get(entry.item);
       if (!def) continue;
       const cell = document.createElement('div');
@@ -111,15 +130,6 @@ export class TerminalWindow {
       cell.addEventListener('mouseleave', () => tooltip.hide());
       this.grid.append(cell);
     }
-
-    const footer = document.createElement('div');
-    footer.className = 'terminal-footer';
-    footer.append(
-      this.rate,
-      span('terminal-hint', 'Buy: right-click an item. Sell: click items in your inventory.'),
-    );
-    this.el.append(header, this.grid, footer);
-    root.append(this.el);
   }
 
   get isOpen(): boolean {
@@ -134,10 +144,12 @@ export class TerminalWindow {
     this.h.close();
   }
 
-  update(open: boolean, wallet: number, priceUsd: number): void {
-    if (!open) this.closing = false;
-    this.el.hidden = !open || this.closing;
-    if (this.el.hidden) return;
+  /** `shopId` is the open shop, or null when none is. */
+  update(shopId: string | null, wallet: number, priceUsd: number): void {
+    if (!shopId) this.closing = false;
+    this.el.hidden = !shopId || this.closing;
+    if (!shopId || this.el.hidden) return;
+    if (shopId !== this.shopId) this.build(shopId);
     const key = `${wallet}|${priceUsd}`;
     if (key === this.key) return;
     this.key = key;

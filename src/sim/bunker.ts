@@ -5,7 +5,7 @@
  * respawn bed, a summoning circle, and production stations that fill up over
  * time (server farms, an ammo crate).
  */
-import { SUMMONING } from '../config/balance';
+import { SUMMONING, TERMINAL_SHOP_ID } from '../config/balance';
 import { giveItem } from './ground';
 import { bestTool, countItem, removeItem } from './inventory';
 import { progressQuests } from './quests';
@@ -112,7 +112,7 @@ export function useStation(
       player.interface = { kind: 'bank' };
       break;
     case 'terminal':
-      player.interface = { kind: 'terminal' };
+      player.interface = { kind: 'terminal', shopId: TERMINAL_SHOP_ID };
       break;
     case 'heal':
       player.hp = maxHp(player);

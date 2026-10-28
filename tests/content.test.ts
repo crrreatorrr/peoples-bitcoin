@@ -49,18 +49,23 @@ describe('content', () => {
     for (const id of referenced) expect(ids, `missing asset '${id}'`).toContain(id);
   });
 
-  it('every gun uses common rounds unless it is an explosive cannon that fires Hash', () => {
+  it('guns fire Rounds, explosive cannons fire Hash, and staffs fire COOM', () => {
     for (const item of content().items.values()) {
       if (item.weapon?.type !== 'gun') continue;
       expect(item.weapon.ammo === 'hash', item.id).toBe(item.weapon.splash);
-      if (item.weapon.ammo !== 'hash') expect(item.weapon.ammo, item.id).toBe('rounds');
+      if (item.weapon.ammo === 'hash') continue;
+      const expected = item.id.startsWith('staff_') ? 'coom' : 'rounds';
+      expect(item.weapon.ammo, item.id).toBe(expected);
     }
+    expect(content().items.get('item_coom')?.ammoType).toBe('coom');
   });
 
-  it('everything the Terminal sells has a price ending in 69', () => {
-    for (const s of content().shops.get('shop_terminal')!.stock) {
-      const shown = Number.isInteger(s.priceUsd) ? String(s.priceUsd) : s.priceUsd.toFixed(2);
-      expect(shown, s.item).toMatch(/69$/);
+  it('everything every shop sells has a price ending in 69', () => {
+    for (const shop of content().shops.values()) {
+      for (const s of shop.stock) {
+        const shown = Number.isInteger(s.priceUsd) ? String(s.priceUsd) : s.priceUsd.toFixed(2);
+        expect(shown, `${shop.id}: ${s.item}`).toMatch(/69$/);
+      }
     }
   });
 

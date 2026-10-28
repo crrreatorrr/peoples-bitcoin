@@ -51,6 +51,7 @@ export const LookSchema = z.object({
       'headset',
       'helm',
       'tophat',
+      'wizard',
     ])
     .optional(),
   hatColor: Color.optional(),
@@ -619,6 +620,14 @@ export function hat(
           );
         }
       }
+      break;
+    case 'wizard':
+      // A tall pointed hat with a wide brim and a silver moon.
+      neck.add(
+        tube(w * 0.95, w * 0.95, 0.025, mat, 0, top - 0.02, 0, 10),
+        cone(w * 0.48, 0.5, mat, 0, top + 0.24, 0, 8),
+        box(0.07, 0.07, 0.01, lambert('#d8dde6'), 0, top + 0.12, w * 0.36),
+      );
       break;
     case 'boonie':
       neck.add(

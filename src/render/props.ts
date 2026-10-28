@@ -61,6 +61,20 @@ export function buildProp(e: AssetEntry): THREE.Object3D | null {
       return teleportChamber(e);
     case 'signpost':
       return signpost(e);
+    case 'bookshelf':
+      return bookshelf(e);
+    case 'cauldron':
+      return cauldron(e);
+    case 'orb':
+      return orbPedestal(e);
+    case 'boat':
+      return rowboat(e);
+    case 'longtable':
+      return longTable(e);
+    case 'turret':
+      return turret(e);
+    case 'rug':
+      return greatRug(e);
     default:
       return null;
   }
@@ -494,4 +508,129 @@ function signpost(e: AssetEntry): THREE.Group {
     box(0.1, 1.5, 0.1, wood, 0, 0.75, 0),
     box(0.9, 0.45, 0.05, lambert('#ffffff', { map: board }), 0, 1.3, 0.06),
   ]);
+}
+
+// ── Moonward Academy ─────────────────────────────────────────────────────────
+
+/** A tall bookshelf packed with spellbooks, against the back of its tile. */
+function bookshelf(e: AssetEntry): THREE.Group {
+  const wood = lambert(e.color);
+  const g = group([
+    box(0.9, 1.9, 0.35, wood, 0, 0.95, -0.25),
+    box(0.94, 0.06, 0.4, lambert(shade(e.color, 0.8)), 0, 1.92, -0.25),
+  ]);
+  const covers = ['#8a1d2a', '#1d2a5a', '#2f5a2a', '#d2a63a', '#5a3d8a', '#c9b6a0'];
+  for (let shelf = 0; shelf < 4; shelf++) {
+    const y = 0.25 + shelf * 0.44;
+    g.add(box(0.84, 0.03, 0.3, lambert(shade(e.color, 0.7)), 0, y - 0.04, -0.2));
+    for (let i = 0; i < 7; i++) {
+      const h = 0.26 + ((i * 7 + shelf * 3) % 5) * 0.025;
+      g.add(
+        box(
+          0.1,
+          h,
+          0.24,
+          lambert(covers[(i + shelf * 2) % covers.length]),
+          -0.36 + i * 0.12,
+          y + h / 2,
+          -0.18,
+        ),
+      );
+    }
+  }
+  return g;
+}
+
+/** A black iron cauldron on stubby legs, brimming with glowing brew. */
+function cauldron(e: AssetEntry): THREE.Group {
+  const iron = lambert('#26272c');
+  const g = group([
+    tube(0.36, 0.28, 0.5, iron, 0, 0.38, 0, 10),
+    tube(0.4, 0.4, 0.06, iron, 0, 0.64, 0, 10),
+    tube(0.34, 0.34, 0.04, glow(e.accent ?? '#7cff6b'), 0, 0.6, 0, 10),
+  ]);
+  for (const a of [0.6, 2.7, 4.8]) {
+    g.add(box(0.06, 0.16, 0.06, iron, Math.cos(a) * 0.24, 0.08, Math.sin(a) * 0.24));
+  }
+  for (const [x, z] of [
+    [0.1, 0.05],
+    [-0.12, -0.08],
+  ]) {
+    g.add(blob(0.06, glow(e.accent ?? '#7cff6b'), x, 0.7, z));
+  }
+  return g;
+}
+
+/** A crystal ball on a stone pedestal. */
+function orbPedestal(e: AssetEntry): THREE.Group {
+  const stone = lambert(e.color);
+  return group([
+    box(0.5, 0.12, 0.5, stone, 0, 0.06, 0),
+    tube(0.12, 0.16, 0.8, stone, 0, 0.52, 0, 6),
+    box(0.36, 0.08, 0.36, stone, 0, 0.96, 0),
+    blob(0.2, glow(e.accent ?? '#a8d8ff'), 0, 1.2, 0, 1),
+  ]);
+}
+
+/** A little wooden rowboat with oars, for the ferry across the lake. */
+function rowboat(e: AssetEntry): THREE.Group {
+  const wood = lambert(e.color);
+  const dark = lambert(shade(e.color, 0.7));
+  return group([
+    box(0.7, 0.22, 1.5, wood, 0, 0.08, 0),
+    box(0.5, 0.18, 0.4, wood, 0, 0.1, 0.85),
+    box(0.62, 0.05, 1.3, dark, 0, 0.18, 0),
+    box(0.6, 0.06, 0.18, wood, 0, 0.26, -0.1),
+    box(1.3, 0.04, 0.05, dark, 0, 0.3, -0.1),
+  ]);
+}
+
+/** One tile of a long dining table, with a plate and a candle. */
+function longTable(e: AssetEntry): THREE.Group {
+  const wood = lambert(e.color);
+  return group([
+    box(1.0, 0.08, 0.9, wood, 0, 0.72, 0),
+    box(0.08, 0.7, 0.08, wood, -0.4, 0.35, -0.35),
+    box(0.08, 0.7, 0.08, wood, 0.4, 0.35, 0.35),
+    tube(0.12, 0.12, 0.02, lambert('#e8e2d0'), -0.15, 0.77, 0.1, 8),
+    tube(0.03, 0.03, 0.18, lambert('#f2efe6'), 0.2, 0.85, -0.15, 6),
+    blob(0.035, glow('#ffd23f'), 0.2, 0.97, -0.15),
+  ]);
+}
+
+/** A round stone turret with a tall pointed roof, for castle corners. */
+function turret(e: AssetEntry): THREE.Group {
+  const stone = lambert(e.color);
+  const roof = lambert(e.accent ?? '#1d2a5a');
+  return group([
+    tube(0.55, 0.6, 3.6, stone, 0, 1.8, 0, 8),
+    tube(0.66, 0.66, 0.3, lambert(shade(e.color, 0.85)), 0, 3.7, 0, 8),
+    cone(0.75, 1.8, roof, 0, 4.75, 0, 8),
+    box(0.2, 0.36, 0.05, lambert('#ffd23f', { emissive: '#806a10' }), 0, 2.6, 0.58),
+  ]);
+}
+
+/** The endowment, woven into one huge patterned rug (footprint from the object). */
+function greatRug(e: AssetEntry): THREE.Group {
+  const w = e.height ?? 3;
+  const rug = canvasTexture('great_rug', 32, 32, (ctx) => {
+    ctx.fillStyle = '#8a1d2a';
+    ctx.fillRect(0, 0, 32, 32);
+    ctx.fillStyle = '#d2a63a';
+    ctx.fillRect(2, 2, 28, 2);
+    ctx.fillRect(2, 28, 28, 2);
+    ctx.fillRect(2, 2, 2, 28);
+    ctx.fillRect(28, 2, 2, 28);
+    for (const [x, y] of [
+      [10, 10],
+      [18, 18],
+      [10, 18],
+      [18, 10],
+    ]) {
+      ctx.fillRect(x, y, 4, 4);
+    }
+    ctx.fillStyle = '#2f5a2a';
+    ctx.fillRect(14, 14, 4, 4);
+  });
+  return group([box(w - 0.1, 0.04, w * 0.66 - 0.1, lambert('#ffffff', { map: rug }), 0, 0.02, 0)]);
 }

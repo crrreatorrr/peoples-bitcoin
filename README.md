@@ -3,7 +3,7 @@
 A satirical, OSRS-inspired browser MMO-lite built with Three.js, TypeScript and Vite.
 All currencies are fictional and in-game only. See [DESIGN.md](DESIGN.md) for the full design.
 
-**Status:** Phase 1 sandbox plus the owner's revisions: 10 interconnected skills, the Trading Terminal, combat in The Trenches, Sproto summons, the bunker, an OSRS-style tutorial guided by Morelight, eight quests that lead out of the locked-down Treasury, and a low-poly 3D cast made with Higgsfield. See `DESIGN.md` → Revisions, [CHANGELOG.md](CHANGELOG.md) and [TODO.md](TODO.md).
+**Status:** Phase 1 sandbox plus the owner's revisions: 10 interconnected skills, the Trading Terminal, combat in The Trenches, Sproto summons, the bunker, an OSRS-style tutorial guided by Morelight, nine quests that lead out of the locked-down Treasury and on to Moonward Academy (a wizard school with staffs that fire COOM), and a low-poly 3D cast made with Higgsfield. For adults (18+). See `DESIGN.md` → Revisions, [CHANGELOG.md](CHANGELOG.md) and [TODO.md](TODO.md).
 
 ## Run it
 
@@ -41,8 +41,8 @@ Clicks act on press, like OSRS.
 - **Inventory:** left-click uses (Wield, Wear, Drink, Recite, Summon, Read...), shift-click drops,
   drag to rearrange, right-click for options. **Use** an item, then click an object or NPC to use
   it on that ("Use X -> Y").
-- **Trading Terminal** (main hall): left-click shows the price, right-click buys; with it open,
-  inventory clicks sell
+- **Trading Terminal** (main hall) and other shops (the Staffwright's Stall at Moonward): left-click
+  shows the price, right-click buys; with a shop open, inventory clicks sell
 - **Equipment tab:** combat styles, Auto Retaliate; click (or right-click) a slot to remove gear
 - **Quests tab:** quest list and points; click a quest for its journal. Follow the yellow arrow.
 - **Bank:** use a bank booth in the Treasury hall. 1/5/10/All set the left-click amount;

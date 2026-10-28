@@ -684,7 +684,7 @@
   {
     "id": "item_rounds",
     "name": "Rounds",
-    "examine": "Common ammo. Every gun takes it, except the cannons.",
+    "examine": "Common ammo. Every gun takes it, except the cannons. Staffs fire COOM instead.",
     "stackable": true,
     "model": "icon_rounds",
     "value": 0.25,
@@ -1947,5 +1947,159 @@
     "stackable": false,
     "model": "icon_chamber_blueprints",
     "value": 0
+  },
+  {
+    "id": "item_coom",
+    "name": "COOM",
+    "examine": "A small white vial of COOM: Concentrated Occult Output Matter. Every staff runs on it. Nobody asks how it's harvested.",
+    "stackable": true,
+    "model": "icon_coom",
+    "value": 0.69,
+    "ammoType": "coom",
+    "equip": {
+      "slot": "ammo"
+    }
+  },
+  {
+    "id": "staff_apprentice",
+    "name": "Apprentice Staff",
+    "examine": "Knobbly, wobbly and only slightly cursed. Fires COOM.",
+    "stackable": false,
+    "model": "icon_staff_apprentice",
+    "value": 27.6,
+    "requires": [
+      {
+        "skill": "shooting",
+        "level": 1
+      }
+    ],
+    "equip": {
+      "slot": "weapon"
+    },
+    "weapon": {
+      "type": "gun",
+      "ammo": "coom",
+      "speed": 4,
+      "range": 6,
+      "accuracy": 12,
+      "damage": 9
+    }
+  },
+  {
+    "id": "staff_hopium",
+    "name": "Hopium Staff",
+    "examine": "The crystal only ever points up. Fires COOM.",
+    "stackable": false,
+    "model": "icon_staff_hopium",
+    "value": 296,
+    "requires": [
+      {
+        "skill": "shooting",
+        "level": 25
+      }
+    ],
+    "equip": {
+      "slot": "weapon"
+    },
+    "weapon": {
+      "type": "gun",
+      "ammo": "coom",
+      "speed": 4,
+      "range": 7,
+      "accuracy": 28,
+      "damage": 24
+    }
+  },
+  {
+    "id": "staff_moonward",
+    "name": "Moonward Staff",
+    "examine": "Silver, light, and aimed at the moon. Fires COOM.",
+    "stackable": false,
+    "model": "icon_staff_moonward",
+    "value": 1269,
+    "requires": [
+      {
+        "skill": "shooting",
+        "level": 45
+      }
+    ],
+    "equip": {
+      "slot": "weapon"
+    },
+    "weapon": {
+      "type": "gun",
+      "ammo": "coom",
+      "speed": 4,
+      "range": 7,
+      "accuracy": 46,
+      "damage": 40
+    }
+  },
+  {
+    "id": "staff_archmage",
+    "name": "Archmage's Staff",
+    "examine": "Hodlwyn's own staff, lent indefinitely. He has eleven more. Fires COOM.",
+    "stackable": false,
+    "model": "icon_staff_archmage",
+    "value": 2690,
+    "requires": [
+      {
+        "skill": "shooting",
+        "level": 60
+      }
+    ],
+    "equip": {
+      "slot": "weapon"
+    },
+    "weapon": {
+      "type": "gun",
+      "ammo": "coom",
+      "speed": 4,
+      "range": 8,
+      "accuracy": 62,
+      "damage": 55
+    }
+  },
+  {
+    "id": "item_moonward_hat",
+    "name": "Moonward Hat",
+    "examine": "A tall pointed hat. It helps you aim. Nobody knows how.",
+    "stackable": false,
+    "model": "icon_moonward_hat",
+    "value": 187,
+    "requires": [
+      {
+        "skill": "shooting",
+        "level": 25
+      }
+    ],
+    "equip": {
+      "slot": "head"
+    },
+    "armor": {
+      "defense": 6,
+      "accuracy": 6
+    }
+  },
+  {
+    "id": "item_moonward_robe",
+    "name": "Moonward Robe",
+    "examine": "Silver trim, deep pockets, mild enchantment.",
+    "stackable": false,
+    "model": "icon_moonward_robe",
+    "value": 347,
+    "requires": [
+      {
+        "skill": "shooting",
+        "level": 25
+      }
+    ],
+    "equip": {
+      "slot": "body"
+    },
+    "armor": {
+      "defense": 12,
+      "accuracy": 8
+    }
   }
 ]

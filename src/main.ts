@@ -469,8 +469,17 @@ async function boot(): Promise<void> {
           const from = view.entities.positionOf(e.attackerId);
           const to = view.entities.positionOf(e.targetId);
           if (!from || !to) break;
-          const ms = view.tracers.fire(from, to, explosive, now);
+          const kind = explosive ? 'explosive' : e.style === 'magic' ? 'magic' : 'shot';
+          const ms = view.tracers.fire(from, to, kind, now);
           flight.set(e.targetId, ms);
+          if (kind === 'magic') {
+            view.bursts.spawn(to, PALETTES.magic, now + ms, {
+              count: 16,
+              speed: 1.4,
+              durationMs: 450,
+              lift: 0.9,
+            });
+          }
           if (explosive) {
             splashDelay = ms;
             view.bursts.spawn(to, PALETTES.explosion, now + ms, {
@@ -593,7 +602,11 @@ async function boot(): Promise<void> {
     });
     dialogue.update(currentDialogue());
     bank.update(p.interface?.kind === 'bank', p.bank);
-    terminal.update(p.interface?.kind === 'terminal', p.currencies.bitcoin, state.economy.priceUsd);
+    terminal.update(
+      p.interface?.kind === 'terminal' ? p.interface.shopId : null,
+      p.currencies.bitcoin,
+      state.economy.priceUsd,
+    );
     const build = buildState(content, ctx, state);
     buildWindow.update(build.name, build.choices);
     inventory.update(p.inventory);

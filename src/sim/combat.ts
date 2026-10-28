@@ -169,7 +169,13 @@ export function tickPlayerAttack(
     type: 'attack',
     attackerId: PLAYER_ID,
     targetId: enemy.id,
-    style: melee ? 'melee' : profile.explosive ? 'explosive' : 'gun',
+    style: melee
+      ? 'melee'
+      : profile.explosive
+        ? 'explosive'
+        : profile.weapon.weapon?.ammo === 'coom'
+          ? 'magic'
+          : 'gun',
   });
   awardCombatXp(state, ctx, damage, melee, events);
   if (enemy.target === null) enemy.target = PLAYER_ID;

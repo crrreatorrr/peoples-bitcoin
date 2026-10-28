@@ -1127,5 +1127,121 @@
       ]
     },
     "completeMessage": "THE WAY OUT: complete! You stepped through the Teleport Chamber into the world out there."
+  },
+  {
+    "id": "quest_moonward",
+    "name": "Moonward Enrollment",
+    "points": 3,
+    "ordered": true,
+    "startNpc": "npc_archmage",
+    "requires": ["quest_way_out"],
+    "summary": "Across the lake from The World Out There stands Moonward Academy, whose Bursar pulled the rug on its gold. The Archmage needs a President who knows about lost treasuries.",
+    "steps": [
+      {
+        "id": "briefing",
+        "text": "Talk to Archmage Hodlwyn in the Great Hall of Moonward Academy.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_archmage"
+        },
+        "hint": {
+          "npc": "npc_archmage"
+        },
+        "reward": {
+          "items": [
+            {
+              "item": "staff_apprentice",
+              "qty": 1
+            },
+            {
+              "item": "item_coom",
+              "qty": 150
+            }
+          ]
+        }
+      },
+      {
+        "id": "wield",
+        "text": "Wield the Apprentice Staff, with COOM in your ammo slot.",
+        "trigger": {
+          "type": "equip",
+          "slot": "weapon"
+        },
+        "hint": {}
+      },
+      {
+        "id": "duel",
+        "text": "Win a duel against an Apprentice in the Duelling Grounds (east wing).",
+        "trigger": {
+          "type": "kill",
+          "enemy": "enemy_apprentice"
+        },
+        "hint": {
+          "enemy": "enemy_apprentice"
+        }
+      },
+      {
+        "id": "battlemage",
+        "text": "Break the spell on a Battlemage.",
+        "trigger": {
+          "type": "kill",
+          "enemy": "enemy_battlemage"
+        },
+        "hint": {
+          "enemy": "enemy_battlemage"
+        }
+      },
+      {
+        "id": "report",
+        "text": "Tell the Archmage what the Battlemage said.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_archmage"
+        },
+        "hint": {
+          "npc": "npc_archmage"
+        }
+      },
+      {
+        "id": "rugmancer",
+        "text": "Defeat the Rugmancer in the north tower.",
+        "trigger": {
+          "type": "kill",
+          "enemy": "enemy_rugmancer"
+        },
+        "hint": {
+          "enemy": "enemy_rugmancer"
+        }
+      },
+      {
+        "id": "finish",
+        "text": "Tell the Archmage the rug is unravelled.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_archmage"
+        },
+        "hint": {
+          "npc": "npc_archmage"
+        }
+      }
+    ],
+    "reward": {
+      "usd": 6969,
+      "xp": {
+        "shooting": 5000,
+        "defense": 2000
+      },
+      "items": [
+        {
+          "item": "staff_archmage",
+          "qty": 1
+        },
+        {
+          "item": "item_coom",
+          "qty": 300
+        }
+      ]
+    },
+    "completeMessage": "Quest complete: Moonward Enrollment! The rug is unravelled, the gold is back, and Moonward Academy is open again."
   }
 ]

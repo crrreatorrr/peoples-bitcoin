@@ -43,8 +43,11 @@ export const ItemDefSchema = z.object({
   weapon: z
     .object({
       type: z.enum(['gun', 'melee']),
-      /** rounds = common ammo in the ammo slot; hash = explosive, fires mined Hash from the inventory. */
-      ammo: z.enum(['none', 'rounds', 'hash']),
+      /**
+       * rounds / coom = ammo of that type in the ammo slot (guns fire Rounds, staffs fire COOM);
+       * hash = explosive, fires mined Hash from the inventory.
+       */
+      ammo: z.enum(['none', 'rounds', 'coom', 'hash']),
       speed: z.number().int().positive(),
       range: z.number().int().positive(),
       accuracy: z.number(),
@@ -67,6 +70,8 @@ export const ItemDefSchema = z.object({
     .optional(),
   /** Damage bonus when fired from an explosive (hash) cannon. */
   shell: z.object({ damage: z.number() }).optional(),
+  /** For ammo-slot items: which weapons can fire it (guns take Rounds, the default; staffs take COOM). */
+  ammoType: z.enum(['rounds', 'coom']).optional(),
   summon: z.object({ sproto: Id }).optional(),
   /** A drink: boosts skills for a while (OSRS potions) and/or restores run energy. */
   drink: z
@@ -139,6 +144,8 @@ export const ObjectDefSchema = z.object({
     .default('scenery'),
   /** For stations: which skill's recipes are made here. */
   skill: Id.optional(),
+  /** For terminals: whose stock it sells (default: the Trading Terminal). */
+  shop: Id.optional(),
   /** For hotspots: what can be built here. */
   builds: z.array(BuildOptionSchema).default([]),
   /** How the object looks and reads while depleted (e.g. an overheated rack). */
@@ -281,6 +288,8 @@ export const EnemyDefSchema = z.object({
   wanderRadius: z.number().int().nonnegative().default(2),
   respawnTicks: z.number().int().positive(),
   drops: Id,
+  /** Its ranged attacks are spells: they fly as magic bolts instead of bullets. */
+  magic: z.boolean().default(false),
   /** What it says, in chat and over its head: as a fight starts, below half HP, and when beaten. */
   barks: z
     .object({
