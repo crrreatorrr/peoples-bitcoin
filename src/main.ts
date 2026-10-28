@@ -16,6 +16,7 @@ import { createLowResRenderer, fitToContainer } from './render/lowres';
 import type { PickResult } from './render/picking';
 import { ZoneView } from './render/zoneview';
 import { buildProblem, builtOption } from './sim/bunker';
+import { combatLevel } from './sim/combat';
 import { loadContent, type Content } from './sim/content';
 import { buildGrids } from './sim/grid';
 import { currentHint } from './sim/quests';
@@ -37,6 +38,7 @@ import { BuildWindow } from './ui/build';
 import { Chat } from './ui/chat';
 import { ContextMenu, type MenuOption } from './ui/contextmenu';
 import { DialogueBox, type DialogueLine } from './ui/dialogue';
+import { levelTag } from './ui/format';
 import { Hitsplats } from './ui/hitsplats';
 import { Hud } from './ui/hud';
 import { InventoryPanel, type InventoryMode } from './ui/inventory';
@@ -58,6 +60,8 @@ interface EntityInfo {
   examine: string;
   actions: string[];
   kind: TargetKind;
+  /** Combat level, for monsters. */
+  level?: number;
 }
 
 function $(selector: string): HTMLElement {
@@ -110,13 +114,16 @@ async function boot(): Promise<void> {
   /** OSRS menu order: every entity's actions, Walk here, then each Examine. */
   const menuOptions = (pick: PickResult): MenuOption[] => {
     const infos = pick.entityIds.map(describe).filter((i): i is EntityInfo => i !== null);
+    const yours = combatLevel(state.player.skills);
     const options: MenuOption[] = [];
     for (const info of infos) {
+      const level = info.level === undefined ? undefined : levelTag(info.level, yours);
       for (const action of info.actions) {
         options.push({
           action,
           target: info.name,
           targetKind: info.kind,
+          level,
           run: () => interact(info.id, action),
         });
       }
@@ -224,15 +231,34 @@ async function boot(): Promise<void> {
   let resetting = false;
   const persist = () => !resetting && saveGame(state);
   const sidePanel = new SidePanel($('#sidepanel'), [
-    { id: 'inventory', icon: glyph('tab_inventory'), title: 'Inventory', content: inventory.el },
-    { id: 'equipment', icon: glyph('tab_equipment'), title: 'Equipment', content: equipment.el },
-    { id: 'skills', icon: glyph('tab_skills'), title: 'Skills', content: skills.el },
-    { id: 'summoning', icon: glyph('tab_summoning'), title: 'Summoning', content: summoning.el },
-    { id: 'quests', icon: glyph('tab_quests'), title: 'Quests', content: quests.el },
+    {
+      id: 'inventory',
+      icon: glyph('tab_inventory'),
+      title: 'Inventory',
+      hotkey: 'F4',
+      content: inventory.el,
+    },
+    {
+      id: 'equipment',
+      icon: glyph('tab_equipment'),
+      title: 'Equipment',
+      hotkey: 'F1',
+      content: equipment.el,
+    },
+    { id: 'skills', icon: glyph('tab_skills'), title: 'Skills', hotkey: 'F2', content: skills.el },
+    {
+      id: 'summoning',
+      icon: glyph('tab_summoning'),
+      title: 'Summoning',
+      hotkey: 'F5',
+      content: summoning.el,
+    },
+    { id: 'quests', icon: glyph('tab_quests'), title: 'Quests', hotkey: 'F3', content: quests.el },
     {
       id: 'settings',
       icon: glyph('tab_settings'),
       title: 'Settings',
+      hotkey: 'F10',
       content: buildSettingsPanel(
         () => chat.add(persist() ? 'Game saved.' : 'Saving is unavailable in this browser.'),
         () => {
@@ -277,6 +303,10 @@ async function boot(): Promise<void> {
     }
   });
   window.addEventListener('keydown', (e) => {
+    if (/^F\d+$/.test(e.key) && sidePanel.selectByHotkey(e.key)) {
+      e.preventDefault(); // F-keys switch tabs, as in OSRS (F5 must not reload)
+      return;
+    }
     if (document.activeElement === chat.input) return;
     if (e.key === 'Escape') {
       bank.close();
@@ -298,7 +328,7 @@ async function boot(): Promise<void> {
   const updateHoverTooltip = () => {
     if (!hover || menu.isOpen) return;
     const [top, ...rest] = menuOptions(view.picker.pick(hover.x, hover.y));
-    if (top) tooltip.show({ ...top, moreOptions: rest.length }, hover.x, hover.y);
+    if (top) tooltip.showFixed({ ...top, moreOptions: rest.length });
     else tooltip.hide();
   };
 
@@ -509,10 +539,11 @@ function describeEntity(ctx: SimContext, state: GameState, entityId: string): En
       return def
         ? {
             id,
-            name: `${def.name} (level ${def.level})`,
+            name: def.name,
             examine: def.examine,
             actions,
             kind: 'npc',
+            level: def.level,
           }
         : null;
     }

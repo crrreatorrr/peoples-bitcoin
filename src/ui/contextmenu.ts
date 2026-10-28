@@ -1,10 +1,11 @@
 /** OSRS-style right-click menu: "Choose Option", one row per action, then Cancel. */
-import { span, type TargetKind } from './tooltips';
+import { optionParts, span, type TargetKind, type TooltipContent } from './tooltips';
 
 export interface MenuOption {
   action: string;
   target?: string;
   targetKind?: TargetKind;
+  level?: TooltipContent['level'];
   run?: () => void;
 }
 
@@ -29,8 +30,7 @@ export class ContextMenu {
     const rows = [...options, { action: 'Cancel' }].map((opt) => {
       const row = document.createElement('div');
       row.className = 'menu-row';
-      row.append(span('tip-action', opt.action));
-      if (opt.target) row.append(' ', span(`tip-${opt.targetKind ?? 'object'}`, opt.target));
+      row.append(...optionParts(opt));
       row.addEventListener('click', () => {
         this.close();
         opt.run?.();

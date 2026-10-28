@@ -789,6 +789,16 @@ body {
 
 /* ── Tooltip & context menu ─────────────────────────────────────────────── */
 
+/* In the game world the hover text sits top-left of the play area, like OSRS. */
+#tooltip.fixed {
+  top: 8px;
+  left: 264px;
+  max-width: calc(100vw - 520px);
+  background: none;
+  border: 0;
+  font-size: 20px;
+}
+
 #tooltip {
   position: fixed;
   z-index: 20;
@@ -937,6 +947,10 @@ body {
 @media (max-width: 760px) {
   #ticker {
     width: 200px;
+  }
+
+  #tooltip.fixed {
+    left: 216px;
   }
 
   #chatbox {

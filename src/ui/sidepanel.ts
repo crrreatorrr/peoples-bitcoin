@@ -1,9 +1,11 @@
-/** Right-hand tabbed panel (Inventory, Equipment, Skills, Military, Quests, Settings). */
+/** Right-hand tabbed panel (Inventory, Equipment, Skills, Summoning, Quests, Settings). */
 export interface TabDef {
   id: string;
   icon: string;
   title: string;
   content: HTMLElement;
+  /** Keyboard shortcut, OSRS-style (e.g. "F4"). */
+  hotkey?: string;
 }
 
 export class SidePanel {
@@ -19,7 +21,7 @@ export class SidePanel {
     for (const tab of tabs) {
       const btn = document.createElement('button');
       btn.className = 'tab-btn';
-      btn.title = tab.title;
+      btn.title = tab.hotkey ? `${tab.title} (${tab.hotkey})` : tab.title;
       btn.textContent = tab.icon;
       btn.addEventListener('click', () => this.select(tab.id));
       this.buttons.set(tab.id, btn);
@@ -28,6 +30,13 @@ export class SidePanel {
     this.body.className = 'tab-body';
     root.replaceChildren(bar, this.body);
     this.select(tabs[0].id);
+  }
+
+  /** Selects the tab bound to a key like "F4"; returns false if none is. */
+  selectByHotkey(key: string): boolean {
+    const tab = this.tabs.find((t) => t.hotkey === key);
+    if (tab) this.select(tab.id);
+    return tab !== undefined;
   }
 
   select(id: string): void {
