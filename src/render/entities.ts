@@ -29,7 +29,7 @@ import { HpBar } from './effects';
 import { holdOf } from './gear';
 import type { AssetLoader } from './loader';
 
-const PLAYER_MODEL = 'player_president';
+export const PLAYER_MODEL = 'player_president';
 const SMOKE_BOB = 0.06;
 const GROUND_ITEM_SIZE = 0.5;
 /** HP bars stay up this long after a hit. */
@@ -457,7 +457,7 @@ export class EntityRenderer {
 }
 
 /** Worn head, body and legs items, which change how the player is built. */
-function dressKeyOf(p: PlayerState): string {
+export function dressKeyOf(p: PlayerState): string {
   return [p.equipment.head, p.equipment.body, p.equipment.legs]
     .map((s) => s?.itemId ?? '')
     .join('|');

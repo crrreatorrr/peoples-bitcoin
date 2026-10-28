@@ -9,8 +9,11 @@ import { GAME_TITLE, PRESIDENT_NAME } from './config/branding';
 import { Keyboard } from './input/keyboard';
 import { attachMouse } from './input/mouse';
 import { clearSavedGame, loadSavedGame, saveGame } from './persist';
+import { dressFor } from './render/actors';
 import { OrbitCamera } from './render/camera';
+import { ChatHeads } from './render/chatheads';
 import { PALETTES } from './render/effects';
+import { dressKeyOf, PLAYER_MODEL } from './render/entities';
 import { AssetLoader } from './render/loader';
 import { createLowResRenderer, fitToContainer } from './render/lowres';
 import type { PickResult } from './render/picking';
@@ -94,6 +97,7 @@ async function boot(): Promise<void> {
   const cam = new OrbitCamera();
   const canvas = renderer.domElement;
   let view = new ZoneView(state, content, assets, cam.camera, canvas);
+  const heads = new ChatHeads(renderer, assets);
   const resize = () => fitToContainer(renderer, cam.camera, viewport);
   resize();
   window.addEventListener('resize', resize);
@@ -340,9 +344,12 @@ async function boot(): Promise<void> {
     const line = d.lines[d.line];
     if (!def || line === undefined) return null;
     const key = `${d.npcId}:${d.lines.length}:${d.line}`;
-    return typeof line === 'string'
-      ? { key, speaker: def.name, text: line }
-      : { key, speaker: state.player.name, text: line.player, player: true };
+    if (typeof line === 'string') {
+      return { key, speaker: def.name, text: line, portrait: heads.url(def.model) };
+    }
+    const dress = dressFor(dressKeyOf(state.player).split('|'));
+    const portrait = heads.url(PLAYER_MODEL, dress, true);
+    return { key, speaker: state.player.name, text: line.player, player: true, portrait };
   };
 
   /** The nearest instance in this zone of whatever the tutorial wants next. */

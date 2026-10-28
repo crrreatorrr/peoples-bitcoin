@@ -424,6 +424,25 @@ body {
   font-size: 20px;
 }
 
+.chathead {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  width: 84px;
+  height: 84px;
+  transform: translateY(-50%);
+  image-rendering: pixelated;
+}
+
+.dialogue.player .chathead {
+  right: 12px;
+  left: auto;
+}
+
+.dialogue:has(.chathead:not([hidden])) {
+  padding-inline: 104px;
+}
+
 .dialogue.player .dialogue-speaker {
   color: #0e2a7a;
 }
