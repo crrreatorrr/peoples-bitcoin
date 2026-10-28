@@ -1,7 +1,7 @@
 /** Dialogue QA: every NPC dialogue variant can actually be seen. */
 import { describe, expect, it } from 'vitest';
 import type { NpcDef } from '../src/sim/schemas';
-import { content } from './helpers';
+import { content, newGame, runUntil } from './helpers';
 
 type Variant = NpcDef['dialogue'][number];
 
@@ -105,6 +105,23 @@ describe('NPC dialogue', () => {
       }
     }
     expect(dead).toEqual([]);
+  });
+
+  it('says the shorter `repeat` lines once you have met, so free stuff is only offered once', () => {
+    const { state, ctx } = newGame();
+    const talk = () => {
+      const npc = state.zone.npcs.find((n) => n.defId === 'npc_drill_sergeant')!;
+      state.player.dialogue = null;
+      runUntil(state, ctx, () => state.player.dialogue !== null, [
+        { type: 'interact', targetId: npc.id, action: 'Talk-to' },
+      ]);
+      return state.player.dialogue!.lines;
+    };
+    const sergeant = content().npcs.get('npc_drill_sergeant')!;
+    expect(talk()).toBe(sergeant.lines);
+    expect(talk()).toBe(sergeant.repeat);
+    state.player.quests.quest_tutorial.complete = true;
+    expect(talk()).toBe(sergeant.dialogue[0].lines); // quest lines still come first
   });
 
   it('points variants at real quests and steps', () => {

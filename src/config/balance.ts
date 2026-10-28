@@ -142,6 +142,9 @@ export const ECONOMY = {
   k1Hopium: 0.0002,
   k2BossWins: 0.002,
   k3Dumps: 0.003,
+  /** Pull back toward anchorPriceUsd per update, as a fraction of the log distance (half-life ~17 min). */
+  k4Revert: 0.002,
+  anchorPriceUsd: 0.0691,
   /** Std-dev of the random log-return per price update. */
   volatility: 0.015,
   /** recentBossWins / recentDumps are multiplied by this each price update. */

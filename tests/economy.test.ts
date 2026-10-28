@@ -67,6 +67,30 @@ describe('price model', () => {
     expect(run((e) => (e.recentDumps = 5))).toBeLessThan(neutral);
   });
 
+  it('pulls a runaway price back toward normal', () => {
+    const econ = createEconomy();
+    econ.priceUsd = ECONOMY.anchorPriceUsd * 10;
+    expect(priceDrift(econ)).toBeLessThan(0);
+    econ.priceUsd = ECONOMY.anchorPriceUsd / 10;
+    expect(priceDrift(econ)).toBeGreaterThan(0);
+  });
+
+  it('stays within a band of normal over a long run, instead of wandering off', () => {
+    for (const seed of [1, 2, 3]) {
+      const econ = createEconomy();
+      const rng = createRng(seed);
+      let lo = Infinity;
+      let hi = 0;
+      for (let i = 0; i < 100_000; i++) {
+        updatePrice(econ, rng);
+        lo = Math.min(lo, econ.priceUsd);
+        hi = Math.max(hi, econ.priceUsd);
+      }
+      expect(hi).toBeLessThan(ECONOMY.anchorPriceUsd * 5);
+      expect(lo).toBeGreaterThan(ECONOMY.anchorPriceUsd / 5);
+    }
+  });
+
   it('computes market cap from supply', () => {
     const econ = createEconomy();
     expect(marketCapUsd(econ)).toBeCloseTo(ECONOMY.startPriceUsd * ECONOMY.supply);

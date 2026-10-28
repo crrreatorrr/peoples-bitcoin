@@ -190,6 +190,8 @@ export const NpcDefSchema = z.object({
   actions: z.array(z.string()),
   /** Shown one at a time on Talk-to until node-graph dialogue lands. */
   lines: z.array(DialogueLineSchema).default([]),
+  /** Said instead of `lines` once you've met: for NPCs whose first lines hand you something. */
+  repeat: z.array(DialogueLineSchema).optional(),
   /**
    * Lines that replace `lines` as quests progress; the first match wins. With
    * `step`, a started quest matches only while its next step is one of those.

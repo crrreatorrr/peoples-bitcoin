@@ -143,7 +143,9 @@ export function tickPlayerAttack(
     events.push({
       type: 'message',
       kind: 'warning',
-      text: `Out of ammo! You bash with your ${profile.weapon.name}.`,
+      text: profile.keptForQuest
+        ? `Out of spare Hash (the rest is for your quest). You bash with your ${profile.weapon.name}.`
+        : `Out of ammo! You bash with your ${profile.weapon.name}.`,
     });
   }
   if (player.action) player.action.nextAttemptTick = state.tick;

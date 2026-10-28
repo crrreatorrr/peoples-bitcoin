@@ -25,7 +25,7 @@ import { despawnGroundItems, dropToGround, takeGroundItem } from './ground';
 import { swapSlots } from './inventory';
 import { stepNpcs } from './npcs';
 import { findPath } from './pathfinding';
-import { npcLines, progressQuests } from './quests';
+import { metFlag, npcLines, progressQuests } from './quests';
 import { dismiss, stepSproto, summonFromInventory, useSpecial } from './sprotos';
 import {
   findEntity,
@@ -258,6 +258,8 @@ function stepActions(state: GameState, ctx: SimContext, events: SimEvent[]): voi
     progressQuests(state, ctx, { type: 'talk', npc: entity.instance.defId }, events);
     const lines = npcDef ? npcLines(player, npcDef, ctx.content) : [];
     if (lines.length > 0) player.dialogue = { npcId: entity.instance.id, line: 0, lines };
+    const met = metFlag(entity.instance.defId);
+    if (npcDef?.repeat && !player.unlocks.includes(met)) player.unlocks.push(met);
     return;
   }
   if (entity.kind === 'ground') {

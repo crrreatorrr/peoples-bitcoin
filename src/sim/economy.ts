@@ -1,5 +1,6 @@
 /**
- * $BITCOIN price model (DESIGN.md §6): a multiplicative random walk with drift,
+ * $BITCOIN price model (DESIGN.md §6): a multiplicative random walk with drift and
+ * a pull back toward a normal price,
  * updated every few ticks, clamped to a floor, with a fixed-length history for
  * the ticker sparkline.
  */
@@ -17,12 +18,16 @@ export function createEconomy(): EconomyState {
   };
 }
 
-/** drift = k1*(hopium-50) + k2*recentBossWins - k3*recentDumps, as a log-return per update. */
+/**
+ * drift = k1*(hopium-50) + k2*recentBossWins - k3*recentDumps - k4*ln(price/anchor), as a
+ * log-return per update. The last term pulls the price back so it can't wander off for good.
+ */
 export function priceDrift(econ: EconomyState): number {
   return (
     ECONOMY.k1Hopium * (econ.hopium - ECONOMY.hopiumNeutral) +
     ECONOMY.k2BossWins * econ.recentBossWins -
-    ECONOMY.k3Dumps * econ.recentDumps
+    ECONOMY.k3Dumps * econ.recentDumps -
+    ECONOMY.k4Revert * Math.log(econ.priceUsd / ECONOMY.anchorPriceUsd)
   );
 }
 

@@ -393,6 +393,14 @@
           "None! Er. Well. The Lockdown. But that one is technically a security incident. The gates saw the ticker, panicked and passed a law. Nobody voted for it. Not even the gates."
         ]
       }
+    ],
+    "repeat": [
+      "President! The reserve is exactly as empty as when you left. I checked. Eleven times.",
+      "Mine, fundraise, lobby, and sell what you make at the Trading Terminal in this hall.",
+      {
+        "player": "Any more petty cash?"
+      },
+      "You have all of it, President. That was all of it."
     ]
   },
   {
@@ -481,6 +489,11 @@
           }
         ]
       }
+    ],
+    "repeat": [
+      "Still here. Still not touching the blinking ones.",
+      "Mine the Dusty Server Racks with the pick I gave you, then sell the Hash at the Terminal or bank it.",
+      "Better picks from the Terminal mine faster. Mine is rusty. So am I."
     ]
   },
   {
@@ -595,6 +608,10 @@
         "step": ["return"],
         "lines": ["Where's my guest list, darling? Bring it here before anyone else 'borrows' it."]
       }
+    ],
+    "repeat": [
+      "Darling! Back so soon? Work a Rubber Chicken Dinner with your Donor List. That is where the scandals are.",
+      "Spin them at the Press Podium. Raw, they're a liability. Spun, they're lunch."
     ]
   },
   {
@@ -664,6 +681,10 @@
           "Optimism, President. Always optimism."
         ]
       }
+    ],
+    "repeat": [
+      "Back for more spin? Bring raw scandals to my podium and turn them into Talking Points.",
+      "Recite one in a fight and you feel better. Spin badly and it blows up in your face. Practice, President."
     ]
   },
   {
@@ -767,6 +788,10 @@
           "Keep your photos boring, President. Blackmail is bad for business."
         ]
       }
+    ],
+    "repeat": [
+      "...Still didn't see me. You've got the cards. Hand them out to the Junior Lobbyists.",
+      "Bigger lobbyists pay better, if your Lobbying is up to it. Now walk away slowly."
     ]
   },
   {
@@ -804,6 +829,11 @@
           "Twenty Scrap Hash! For the budget! DISMISSED!"
         ]
       }
+    ],
+    "repeat": [
+      "BACK AGAIN, RECRUIT? You already have your Rounds! I am not made of Rounds!",
+      "Accurate, Rapid or Longrange in the Equipment tab! Take the gun off and you swing your gavel!",
+      "And SERGEANT SANDBAG laughs at gavels! Use what you bought at the Terminal! From a distance! DISMISSED!"
     ]
   },
   {
@@ -831,6 +861,10 @@
           "Watch your Summoning points. A special at the right moment wins fights."
         ]
       }
+    ],
+    "repeat": [
+      "Your contract's in your pack. Summon your Sproto with it; they're shy until you do.",
+      "One at a time. Specials cost Summoning points; check the Summoning tab."
     ]
   },
   {

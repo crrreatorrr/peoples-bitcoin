@@ -143,7 +143,7 @@ export interface PlayerState {
   skills: Record<string, number>;
   currencies: Currencies;
   quests: Record<string, QuestProgress>;
-  /** Earned flags: boss kills ("boss:<enemyId>") and quest unlocks ("bunker"). */
+  /** Earned flags: boss kills ("boss:<enemyId>"), quest unlocks ("bunker") and NPCs met ("met:<npcId>"). */
   unlocks: string[];
   /** Bunker hotspot key → built option id. */
   bunker: Record<string, string>;

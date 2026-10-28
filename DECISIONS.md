@@ -359,3 +359,13 @@ Three audits (gameplay duels in the real sim, every NPC variant, the story as a 
   next to anything that reads as school-age. The press-conference answers are jokes rather than
   investing slogans in the President's voice.
 - **American spelling** everywhere (Defense, Enrollment, Dueling, practice, unraveled).
+- **NPCs who hand you something say it once:** an NPC with `repeat` lines says those instead of its
+  defaults after the first talk (a `met:<npcId>` flag in `unlocks`, so the save format is
+  unchanged). Quest variants still come first.
+- **The price reverts to normal:** drift gains `- k4Revert * ln(price / anchorPriceUsd)` (half-life
+  about 17 minutes), so the random walk stays within roughly ±25% (1σ) instead of wandering about
+  ±50% an hour; a boss win still lifts it for a while.
+- **A Hash Cannon keeps quest Hash:** it never fires Hash the next step of an active quest will
+  take (Bunker Down's 10 Scrap Hash, the Chamber's fuel); out of spare Hash, it bashes and says why.
+- **Spent quest leftovers** (Photo Negatives, Blackmail Photo) can be dropped like anything else;
+  no special handling.

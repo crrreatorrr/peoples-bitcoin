@@ -139,7 +139,7 @@ function giverOf(content: Content, quest: QuestDef, itemId: string): string | un
     : undefined;
 }
 
-/** An NPC's lines for the player's quest progress: the first matching variant, else the defaults. */
+/** An NPC's lines for the player's quest progress: the first matching variant, else the defaults (or `repeat`, once met). */
 export function npcLines(player: PlayerState, npc: NpcDef, content: Content): DialogueLine[] {
   const variant = npc.dialogue.find((d) => {
     const progress = player.quests[d.quest];
@@ -151,7 +151,33 @@ export function npcLines(player: PlayerState, npc: NpcDef, content: Content): Di
       !d.step || (quest !== undefined && d.step.includes(nextStep(quest, progress.done)?.id ?? ''))
     );
   });
-  return variant?.lines ?? npc.lines;
+  if (variant) return variant.lines;
+  return npc.repeat && player.unlocks.includes(metFlag(npc.id)) ? npc.repeat : npc.lines;
+}
+
+/** Set the first time you talk to an NPC, so its `repeat` lines take over. */
+export function metFlag(npcId: string): string {
+  return `met:${npcId}`;
+}
+
+/** Items the active quests' next steps will take (deliveries, and items used on something), by id. */
+export function questItemsNeeded(player: PlayerState, content: Content): Map<string, number> {
+  const needed = new Map<string, number>();
+  const add = (item: string, qty: number) => needed.set(item, (needed.get(item) ?? 0) + qty);
+  for (const [questId, progress] of Object.entries(player.quests)) {
+    const quest = content.quests.get(questId);
+    if (!quest || progress.complete) continue;
+    const step = nextStep(quest, progress.done);
+    const t = step?.trigger;
+    if (t?.type === 'deliver') for (const s of t.items) add(s.item, s.qty);
+    if (t?.type === 'use') {
+      const use = content.uses.find(
+        (u) => u.item === t.item && u.target === t.target && u.quest?.step === step!.id,
+      );
+      add(t.item, use?.consume ?? 1);
+    }
+  }
+  return needed;
 }
 
 /** True while the quest is under way and its next step is `step`. */

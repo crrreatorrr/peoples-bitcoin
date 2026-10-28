@@ -6,8 +6,8 @@
  * uses the gavel.
  */
 import { COMBAT, OUTFITS } from '../config/balance';
-import { addItem } from './inventory';
-import { progressQuests } from './quests';
+import { addItem, countItem } from './inventory';
+import { progressQuests, questItemsNeeded } from './quests';
 import type { ItemDef } from './schemas';
 import {
   maxHp,
@@ -35,6 +35,8 @@ export interface AttackProfile {
   shellSlot: number | null;
   /** A gun is equipped but has nothing to fire. */
   outOfAmmo: boolean;
+  /** Out of Hash only because the rest is kept for a quest step. */
+  keptForQuest: boolean;
 }
 
 /** null if the player meets the item's requirements, otherwise the reason. */
@@ -140,15 +142,23 @@ export function attackProfile(player: PlayerState, ctx: SimContext): AttackProfi
   let shellSlot: number | null = null;
   let shellDamage = 0;
   let outOfAmmo = false;
+  let keptForQuest = false;
 
   const w = equipped.weapon!;
   if (w.type === 'gun') {
     if ((w.ammo === 'rounds' || w.ammo === 'coom') && !loaded(player, ctx, w.ammo))
       outOfAmmo = true;
     if (w.ammo === 'hash') {
+      // Hash your quest is waiting for (Bunker Down's materials, the Chamber's fuel) stays put.
+      const keep = questItemsNeeded(player, ctx.content);
       player.inventory.forEach((s, i) => {
         const shell = s && ctx.content.items.get(s.itemId)?.shell;
-        if (shell && (shellSlot === null || shell.damage > shellDamage)) {
+        if (!shell) return;
+        if (countItem(player.inventory, s.itemId) <= (keep.get(s.itemId) ?? 0)) {
+          keptForQuest = true;
+          return;
+        }
+        if (shellSlot === null || shell.damage > shellDamage) {
           shellSlot = i;
           shellDamage = shell.damage;
         }
@@ -170,6 +180,7 @@ export function attackProfile(player: PlayerState, ctx: SimContext): AttackProfi
       explosive: false,
       shellSlot: null,
       outOfAmmo,
+      keptForQuest,
     };
   }
   return {
@@ -182,6 +193,7 @@ export function attackProfile(player: PlayerState, ctx: SimContext): AttackProfi
     explosive: w.ammo === 'hash',
     shellSlot,
     outOfAmmo,
+    keptForQuest,
   };
 }
 

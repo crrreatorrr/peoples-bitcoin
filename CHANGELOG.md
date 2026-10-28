@@ -20,7 +20,11 @@
   Reporter's press-release hint, the Contractor's blueprints, the Scout at every report step);
   boss hints point at the weapon that works; repeated tutorial jokes rewritten; a shorter
   Archmage intro; Moonward's students are adults; barks for the training-yard enemies.
-- **Tests:** 195, including dialogue checks that fail on lines nobody can see.
+- **Free stuff is offered once:** NPCs who hand you something (petty cash, a pick, Rounds, a Donor
+  List, Business Cards, a contract) say shorter lines after the first talk.
+- **Steadier price:** the $BITCOIN price drifts back toward normal instead of wandering off.
+- **A Hash Cannon no longer fires the Scrap Hash you're carrying for a quest.**
+- **Tests:** 199, including dialogue checks that fail on lines nobody can see.
 
 ## 0.6.0 — The Trenches story and Moonward Academy (2026-10-28)
 

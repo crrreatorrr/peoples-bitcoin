@@ -127,6 +127,17 @@ describe('fighting', () => {
     expect(attackProfile(state.player, ctx).weapon.id).toBe(COMBAT.fallbackWeaponId);
   });
 
+  it("the Hash Cannon won't fire the Hash a quest step is waiting for", () => {
+    const { state, ctx } = newGame();
+    state.player.skills.shooting = xpForLevel(40);
+    armed(state, 'gun_hash_cannon', 0);
+    state.player.quests.quest_bunker = { done: ['agree'], complete: false, choices: [] };
+    give(state, 'item_scrap_hash', 10); // exactly what the Contractor wants
+    expect(attackProfile(state.player, ctx)).toMatchObject({ outOfAmmo: true, keptForQuest: true });
+    give(state, 'item_scrap_hash', 1); // one spare
+    expect(attackProfile(state.player, ctx).outOfAmmo).toBe(false);
+  });
+
   it('the Hash Cannon fires mined Hash, best first, and splashes neighbors', () => {
     const { state, ctx } = newGame(11);
     state.player.skills.shooting = xpForLevel(40);
