@@ -125,7 +125,10 @@ describe('findPath', () => {
   });
 
   it('ignores out-of-bounds goals', () => {
-    expect(findPath(open, { x: 0, y: 0 }, [{ x: 50, y: 50 }])).toEqual({ path: [], complete: false });
+    expect(findPath(open, { x: 0, y: 0 }, [{ x: 50, y: 50 }])).toEqual({
+      path: [],
+      complete: false,
+    });
   });
 
   it('finds a long path through a maze', () => {

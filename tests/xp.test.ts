@@ -37,7 +37,9 @@ describe('grantXp', () => {
     expect(state.player.skills.mining).toBe(97.5);
     expect(events).toContainEqual({ type: 'xp', skillId: 'mining', amount: 17.5 });
     expect(events).toContainEqual({ type: 'levelUp', skillId: 'mining', level: 2 });
-    expect(events.some((e) => e.type === 'message' && e.text.includes('Mining level is now 2'))).toBe(true);
+    expect(
+      events.some((e) => e.type === 'message' && e.text.includes('Mining level is now 2')),
+    ).toBe(true);
   });
 
   it('does not emit a level-up without crossing a level', () => {

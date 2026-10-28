@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { INVENTORY_SIZE } from '../src/config/balance';
-import { addItem, canAdd, countItem, createInventory, freeSlotCount, removeSlot } from '../src/sim/inventory';
+import {
+  addItem,
+  canAdd,
+  countItem,
+  createInventory,
+  freeSlotCount,
+  removeSlot,
+} from '../src/sim/inventory';
 import type { ItemDef } from '../src/sim/schemas';
 
 const ore: ItemDef = { id: 'ore', name: 'Ore', examine: '', stackable: false, model: 'm' };

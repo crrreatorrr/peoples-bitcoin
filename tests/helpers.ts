@@ -1,7 +1,13 @@
 import { START_ZONE_ID } from '../src/config/balance';
 import { loadContent, type Content } from '../src/sim/content';
 import { buildZoneGrid, type Grid } from '../src/sim/grid';
-import { createGameState, type GameState, type Intent, type SimContext, type SimEvent } from '../src/sim/state';
+import {
+  createGameState,
+  type GameState,
+  type Intent,
+  type SimContext,
+  type SimEvent,
+} from '../src/sim/state';
 import { runTick } from '../src/sim/tick';
 
 /** Grid from ASCII rows: '#' is blocked, anything else is walkable. */
@@ -24,7 +30,10 @@ export function content(): Content {
 export function newGame(seed = 1234): { state: GameState; ctx: SimContext } {
   const c = content();
   const zone = c.zones.get(START_ZONE_ID)!;
-  return { state: createGameState(c, START_ZONE_ID, seed), ctx: { content: c, grid: buildZoneGrid(zone, c) } };
+  return {
+    state: createGameState(c, START_ZONE_ID, seed),
+    ctx: { content: c, grid: buildZoneGrid(zone, c) },
+  };
 }
 
 /** Runs ticks until `done` returns true; returns all events. Throws if it takes too long. */

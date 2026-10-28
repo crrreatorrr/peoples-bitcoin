@@ -23,7 +23,9 @@ const SaveV1Schema = z.object({
     pos: z.object({ x: z.number().int(), y: z.number().int() }),
     running: z.boolean(),
     runEnergy: z.number(),
-    inventory: z.array(z.object({ itemId: z.string(), qty: z.number().int().positive() }).nullable()),
+    inventory: z.array(
+      z.object({ itemId: z.string(), qty: z.number().int().positive() }).nullable(),
+    ),
     skills: z.record(z.string(), z.number().nonnegative()),
     currencies: z.object({ bitcoin: z.number(), btc: z.number() }),
   }),

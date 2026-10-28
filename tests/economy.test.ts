@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { ECONOMY } from '../src/config/balance';
-import { createEconomy, marketCapUsd, priceDrift, stepEconomy, updatePrice } from '../src/sim/economy';
+import {
+  createEconomy,
+  marketCapUsd,
+  priceDrift,
+  stepEconomy,
+  updatePrice,
+} from '../src/sim/economy';
 import { createRng } from '../src/sim/rng';
 
 describe('price model', () => {

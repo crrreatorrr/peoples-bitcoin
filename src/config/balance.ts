@@ -73,7 +73,7 @@ export const CAMERA = {
   minPitchDeg: 25,
   maxPitchDeg: 75,
   startPitchDeg: 48,
-  startYawDeg: 200,
+  startYawDeg: 15,
   minDistance: 7,
   maxDistance: 24,
   startDistance: 13,
@@ -90,7 +90,6 @@ export const CAMERA = {
 export const RENDER = {
   /** Fraction of CSS resolution the scene renders at before nearest-neighbor upscale. */
   resolutionScale: 0.55,
-  maxDevicePixelRatio: 1,
   fogNear: 22,
   fogFar: 48,
   /** Radians per second used to turn actors toward their facing. */

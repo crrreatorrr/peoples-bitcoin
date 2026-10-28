@@ -25,6 +25,7 @@ describe('content', () => {
       ...[...c.npcs.values()].map((n) => n.model),
       ...[...c.terrain.values()].map((t) => t.model),
       ...[...c.objects.values()].flatMap((o) => [o.model, o.depleted?.model ?? o.model]),
+      ...[...c.skills.keys()].map((id) => `skill_${id}`),
     ];
     for (const id of referenced) expect(ids, `missing asset '${id}'`).toContain(id);
   });

@@ -13,12 +13,16 @@ function rackAt(state: GameState, x: number, y: number): ObjectInstance {
   return rack;
 }
 
-const mine = (rack: ObjectInstance) => [{ type: 'interact' as const, targetId: rack.id, action: 'Mine' }];
+const mine = (rack: ObjectInstance) => [
+  { type: 'interact' as const, targetId: rack.id, action: 'Mine' },
+];
 
 describe('mining', () => {
   it('scales success chance with level and caps it', () => {
     expect(miningSuccessChance(1, 1)).toBeCloseTo(MINING.successAtReq);
-    expect(miningSuccessChance(11, 1)).toBeCloseTo(MINING.successAtReq + 10 * MINING.successPerLevel);
+    expect(miningSuccessChance(11, 1)).toBeCloseTo(
+      MINING.successAtReq + 10 * MINING.successPerLevel,
+    );
     expect(miningSuccessChance(99, 1)).toBe(MINING.successMax);
   });
 

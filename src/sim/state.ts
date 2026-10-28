@@ -112,8 +112,7 @@ export type SimEvent =
   | { type: 'autosave' };
 
 export type EntityRef =
-  | { kind: 'object'; instance: ObjectInstance }
-  | { kind: 'npc'; instance: NpcInstance };
+  { kind: 'object'; instance: ObjectInstance } | { kind: 'npc'; instance: NpcInstance };
 
 export function createZoneState(zone: ZoneDef): ZoneState {
   return {

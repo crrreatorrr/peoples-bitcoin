@@ -83,7 +83,11 @@ describe('tick loop', () => {
     for (let i = 0; i < AUTOSAVE_EVERY_TICKS * 3; i++) {
       if (runTick(state, ctx, []).some((e) => e.type === 'autosave')) saves.push(state.tick);
     }
-    expect(saves).toEqual([AUTOSAVE_EVERY_TICKS, AUTOSAVE_EVERY_TICKS * 2, AUTOSAVE_EVERY_TICKS * 3]);
+    expect(saves).toEqual([
+      AUTOSAVE_EVERY_TICKS,
+      AUTOSAVE_EVERY_TICKS * 2,
+      AUTOSAVE_EVERY_TICKS * 3,
+    ]);
   });
 
   it('a walk click cancels the current action', () => {
@@ -132,7 +136,8 @@ describe('tick loop', () => {
       const { state, ctx } = newGame(4242);
       const rack = state.zone.objects.find((o) => o.x === 27 && o.y === 27)!;
       for (let i = 0; i < 300; i++) {
-        const intents = i % 40 === 0 ? [{ type: 'interact' as const, targetId: rack.id, action: 'Mine' }] : [];
+        const intents =
+          i % 40 === 0 ? [{ type: 'interact' as const, targetId: rack.id, action: 'Mine' }] : [];
         runTick(state, ctx, intents);
       }
       return JSON.stringify(state);

@@ -51,7 +51,8 @@ export function findPath(grid: Grid, start: Tile, goals: readonly Tile[]): PathR
     for (const g of validGoals) {
       const dx = Math.abs(x - g.x);
       const dy = Math.abs(y - g.y);
-      const h = STRAIGHT_COST * Math.max(dx, dy) + (DIAGONAL_COST - STRAIGHT_COST) * Math.min(dx, dy);
+      const h =
+        STRAIGHT_COST * Math.max(dx, dy) + (DIAGONAL_COST - STRAIGHT_COST) * Math.min(dx, dy);
       if (h < best) best = h;
     }
     return best;
@@ -73,7 +74,8 @@ export function findPath(grid: Grid, start: Tile, goals: readonly Tile[]): PathR
     const current = open.pop();
     if (closed[current]) continue;
     closed[current] = 1;
-    if (goalSet.has(current)) return { path: reconstruct(cameFrom, current, width), complete: true };
+    if (goalSet.has(current))
+      return { path: reconstruct(cameFrom, current, width), complete: true };
 
     const h = heuristic(current);
     if (h < closestH || (h === closestH && gScore[current] < gScore[closestIdx])) {

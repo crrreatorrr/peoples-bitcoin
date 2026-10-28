@@ -48,7 +48,11 @@ function applyIntent(state: GameState, ctx: SimContext, intent: Intent, events: 
     }
     case 'toggleRun': {
       if (!player.running && player.runEnergy < MOVEMENT.runEnergyToEnable) {
-        events.push({ type: 'message', kind: 'game', text: 'You have no Motion left. Rest a moment.' });
+        events.push({
+          type: 'message',
+          kind: 'game',
+          text: 'You have no Motion left. Rest a moment.',
+        });
         break;
       }
       player.running = !player.running;

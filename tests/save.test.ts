@@ -9,7 +9,9 @@ function playedGame() {
   const { state, ctx } = newGame(31337);
   const rack = state.zone.objects.find((o) => o.x === 27 && o.y === 27)!;
   for (let i = 0; i < 120; i++) {
-    const intents = state.player.action ? [] : [{ type: 'interact' as const, targetId: rack.id, action: 'Mine' }];
+    const intents = state.player.action
+      ? []
+      : [{ type: 'interact' as const, targetId: rack.id, action: 'Mine' }];
     runTick(state, ctx, rack.depletedUntil === null ? intents : []);
   }
   runTick(state, ctx, [{ type: 'walk', x: 25, y: 30 }]);
