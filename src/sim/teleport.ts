@@ -40,7 +40,12 @@ export function startTeleport(
   player.dialogue = null;
   player.teleport = { at: state.tick + TELEPORT.delayTicks, zone: t.zone, x: t.x, y: t.y };
   events.push({ type: 'teleport' });
-  say(`You ${t.verb.toLowerCase()} the ${def.name}...`);
+  // Tickets keep the default verb; "You teleport the ticket" reads badly.
+  say(
+    t.verb === 'Teleport'
+      ? `You tear the ${def.name}. The world tugs at you...`
+      : `You ${t.verb.toLowerCase()} the ${def.name}...`,
+  );
 }
 
 /** Lands a teleport that's due. */

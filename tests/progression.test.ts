@@ -137,7 +137,9 @@ describe('quest-aware dialogue, Morelight and the quest list', () => {
 
     changeZone(state, ctx, 'zone_trenches', { x: 18, y: 119 }, []);
     const scout = content().npcs.get('npc_scout')!;
-    const intel = scout.dialogue.find((d) => d.quest === 'quest_sludge_duty')!;
+    const intel = scout.dialogue.find(
+      (d) => d.quest === 'quest_sludge_duty' && d.status === 'started',
+    )!;
     expect(talk(state, ctx, 'npc_scout')).toBe(intel.lines);
     expect(currentHint(state, ctx)?.enemy).toBe('enemy_sludge_mother');
 

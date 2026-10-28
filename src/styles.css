@@ -290,7 +290,8 @@ body {
   line-height: 1;
 }
 
-#overhead {
+#overhead,
+.overhead {
   position: fixed;
   z-index: 5;
   transform: translate(-50%, -100%);

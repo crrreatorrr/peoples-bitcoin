@@ -281,6 +281,14 @@ export const EnemyDefSchema = z.object({
   wanderRadius: z.number().int().nonnegative().default(2),
   respawnTicks: z.number().int().positive(),
   drops: Id,
+  /** What it says, in chat and over its head: as a fight starts, below half HP, and when beaten. */
+  barks: z
+    .object({
+      aggro: z.array(z.string()).default([]),
+      hurt: z.array(z.string()).default([]),
+      defeat: z.array(z.string()).default([]),
+    })
+    .optional(),
   boss: z
     .object({
       adds: z

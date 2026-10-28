@@ -4,6 +4,7 @@
  * Hit chance uses the OSRS comparison; damage on a hit is 0..maxHit.
  */
 import { COMBAT, GROUND_ITEMS } from '../config/balance';
+import { bark, barkOnHurt } from './barks';
 import { effectiveLevel } from './boosts';
 import { payUsd } from './economy';
 import { attackProfile, consumeAmmo } from './equipment';
@@ -224,6 +225,7 @@ export function damageEnemy(
   enemy.hp -= dealt;
   events.push({ type: 'hitsplat', targetId: enemy.id, damage: dealt });
   if (enemy.hp <= 0) killEnemy(state, ctx, enemy, events);
+  else barkOnHurt(state, ctx, enemy, ctx.content.enemies.get(enemy.defId)?.hp ?? enemy.hp, events);
 }
 
 function killEnemy(
@@ -235,6 +237,7 @@ function killEnemy(
   const def = ctx.content.enemies.get(enemy.defId)!;
   const player = state.player;
   events.push({ type: 'death', entityId: enemy.id });
+  bark(state, ctx, enemy, 'defeat', events);
   enemy.respawnAt = state.tick + def.respawnTicks;
   enemy.target = null;
   if (player.action?.targetId === enemy.id) player.action = null;

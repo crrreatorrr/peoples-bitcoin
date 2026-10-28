@@ -844,21 +844,21 @@
           "x": 20,
           "y": 83,
           "requires": "boss:enemy_sludge_mother",
-          "lockedMessage": "Locked. Defeat the Sludge Mother to pass."
+          "lockedMessage": "Locked. Sludge oozes through every gap. Defeat the Sludge Mother to pass."
         },
         {
           "objectId": "obj_barricade",
           "x": 20,
           "y": 45,
           "requires": "boss:enemy_wrongnamer_chief",
-          "lockedMessage": "Locked. Defeat the Wrong-Namer Chief to pass."
+          "lockedMessage": "Locked. Someone has painted GO HOME across it. Defeat the Wrong-Namer Chief to pass."
         },
         {
           "objectId": "obj_barricade",
           "x": 20,
           "y": 11,
           "requires": "boss:enemy_captain_motion",
-          "lockedMessage": "Locked. Defeat Captain Motion to pass."
+          "lockedMessage": "Locked. Behind it, footsteps going round and round. Defeat Captain Motion to pass."
         },
         {
           "objectId": "obj_teleport_chamber",
@@ -871,6 +871,41 @@
           },
           "requires": "chamber_ready",
           "lockedMessage": "The chamber is dark and silent. Morelight will know what it needs."
+        },
+        {
+          "objectId": "obj_expedition_sign",
+          "x": 15,
+          "y": 120
+        },
+        {
+          "objectId": "obj_expedition_crate",
+          "x": 14,
+          "y": 119
+        },
+        {
+          "objectId": "obj_tally_board",
+          "x": 22,
+          "y": 119
+        },
+        {
+          "objectId": "obj_go_home_placard",
+          "x": 22,
+          "y": 80
+        },
+        {
+          "objectId": "obj_abandoned_pack",
+          "x": 23,
+          "y": 52
+        },
+        {
+          "objectId": "obj_keep_moving_sign",
+          "x": 23,
+          "y": 17
+        },
+        {
+          "objectId": "obj_chamber_sign",
+          "x": 17,
+          "y": 9
         }
       ],
       "npcs": [

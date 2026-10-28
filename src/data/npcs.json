@@ -29,7 +29,7 @@
         "step": ["decide"],
         "lines": [
           "Everything's ready, President. The Coordinates, the Power Cell, the Permit, the press. Even the blueprints, the Contractor says.",
-          "Once we switch that Chamber on, we go somewhere nobody has been since the Lockdown. Are you sure?",
+          "Once we switch that Chamber on, we go where Expedition One meant to go. Somewhere nobody has been since the Lockdown. Are you sure?",
           {
             "options": [
               {
@@ -85,12 +85,16 @@
         "status": "started",
         "step": ["scout"],
         "lines": [
-          "One last job. There's a man at the north end of the Trenches who never stops running. They call him Captain Motion.",
+          "The last barricade, President. And Captain Motion.",
+          {
+            "player": "The Captain from Expedition One?"
+          },
+          "The same. He led them north on day one. Whatever he found up there, he never came back to report it.",
+          "He's guarded that last barricade ever since. Running.",
           {
             "player": "Running where?"
           },
-          "Nobody knows. In circles, mostly. He guards the last barricade and he is very, very fast.",
-          "The Scout has been tracking him for weeks. Talk to The Scout first, then go and stop him."
+          "In circles. Very fast circles. The Scout knows him better than anyone. Talk to the Scout first."
         ]
       },
       {
@@ -99,18 +103,22 @@
         "step": ["captain"],
         "lines": [
           "The Captain hits fast but tires. Stand your ground and keep your health up.",
-          "And President? Wear your best armor. I've seen what he does to a nice suit."
+          "And President? Wear your best armor. And bring him down gently if you can. He was one of ours."
         ]
       },
       {
         "quest": "quest_motion_denied",
         "status": "complete",
         "lines": [
-          "The Scout found it, past the last barricade: the old Teleport Chamber. Built before the Lockdown. Dead, but whole.",
-          "That's our way out, President. Not just for us. For everyone stuck behind these walls.",
-          "To wake it we need four things. The Sysadmin's missing coordinates. A Power Cell, which the Party Planner's gala could pay for.",
+          {
+            "player": "He stopped. He said the Chamber's dead, and he kept running so nobody would see."
+          },
+          "...A year of laps, to hide a broken machine. Poor man.",
+          "But dead isn't gone, President. The Scout's been up to look. The Chamber is whole. It's just asleep.",
+          "Expedition One had the courage. What they didn't have was the parts.",
+          "Coordinates, from the Sysadmin's lost files. A Power Cell, which the Party Planner's gala could pay for.",
           "An Exit Permit, which only the Broker can sign; the Fixer knows him. And the public on our side, which is the Spin Doctor's department.",
-          "Bring me all four, and I'll tell you the rest."
+          "Bring me all four, and we finish what Expedition One started."
         ]
       },
       {
@@ -122,7 +130,7 @@
           {
             "player": "What's left?"
           },
-          "Only the one at the very top of the Trenches. Rest up and come back to me. You'll need to be quick."
+          "The last barricade. And the man in front of it. Rest up, then come and see me."
         ]
       },
       {
@@ -130,12 +138,13 @@
         "status": "started",
         "step": ["hecklers"],
         "lines": [
-          "President, it's the Wrong-Namers. They've dug in past the first barricade and they will not stop shouting.",
+          "President, the Wrong-Namers. They've dug in past the first barricade.",
           {
-            "player": "Shouting what?"
+            "player": "Who are they?"
           },
-          "That it's $BITCON. That it was always a con. That we should all go home. They brought megaphones.",
-          "Start with a Heckler. Then expose one of their Sockpuppets. That will bring out their Chief at the second barricade.",
+          "People who decided the walls are a comfort. There is no outside, they say. It's all a con. $BITCON, they call our coin.",
+          "They turn back anyone heading north. Shouting, mostly. Megaphones, occasionally.",
+          "Start with a Heckler. Then knock over a Sockpuppet; that brings out their Chief at the second barricade.",
           "Correct them, President. Firmly. With whatever you're holding."
         ]
       },
@@ -161,12 +170,13 @@
         "quest": "quest_sludge_duty",
         "status": "complete",
         "lines": [
-          "The Sludge Mother is gone? Splendid! I'll have the Trenches hosed down. Twice.",
-          "The first barricade is open, and The Scout says the next stretch belongs to the Wrong-Namers.",
+          "The Sludge Mother is gone? Splendid. I'll have the Trenches hosed down. Twice.",
+          "And President, the Scout sent word. Expedition One's Captain is still up there, past the barricades.",
           {
-            "player": "The ones who keep calling it $BITCON?"
+            "player": "Still alive?"
           },
-          "The very same. Catch your breath and come back to me. That's our next job."
+          "Still running, apparently. Which is more than any of us expected.",
+          "The next stretch belongs to the Wrong-Namers. Catch your breath and come back to me."
         ]
       },
       {
@@ -175,12 +185,16 @@
         "step": ["scout"],
         "lines": [
           "You made it through training in one piece. The mustache and I are proud.",
-          "Now the bad news. Something is clogging the Trenches. Our people call it the Sludge Mother.",
+          "Now, the real job. The north end of the wall is the only stretch nobody has checked since the Lockdown.",
           {
-            "player": "That sounds disgusting."
+            "player": "Why not?"
           },
-          "It is. It sits at the first barricade and keeps spitting out Sludgelings. Nothing gets north while it's there.",
-          "The Scout keeps a camp just inside the Trenches entrance. Talk to The Scout first. They know the ground."
+          "Because the only way there is the Trenches. On the first day of the Lockdown, twelve brave fools called Expedition One dug them, heading north.",
+          {
+            "player": "What happened to them?"
+          },
+          "Nobody came back up to tell us. And since then, something has clogged the Trenches. Our people call it the Sludge Mother.",
+          "The Scout keeps a camp just inside the entrance. The Scout was there on day one. Start there."
         ]
       },
       {
@@ -798,25 +812,121 @@
   {
     "id": "npc_scout",
     "name": "The Scout",
-    "examine": "Has been in the Trenches longer than the Trenches.",
+    "examine": "Lookout for Expedition One. Has been in the Trenches longer than the Trenches.",
     "model": "npc_scout",
     "actions": ["Talk-to"],
     "lines": [
       "Welcome to the Trenches. Mind the craters.",
-      "It gets nastier the further north you go. Each barricade opens once you beat the boss in front of it.",
-      "If you fall, your pack stays where you dropped. Come back for it quick.",
       {
-        "player": "Anything else?"
-      },
-      "Talking Points. Never leave the Treasury without them."
+        "options": [
+          {
+            "text": "Who are you?",
+            "lines": [
+              "The Scout. I was the lookout for Expedition One.",
+              "Twelve of us went north on the first day of the Lockdown. I'm the one who came back down.",
+              {
+                "player": "And the others?"
+              },
+              "Went home. Gave up. Got lost. One of them is still up there, if you listen at night."
+            ]
+          },
+          {
+            "text": "What are the Trenches?",
+            "lines": [
+              "We dug them along the inside of the wall, heading for the north end. Took us a week.",
+              "Since then the Treasury's been tipping its worst down here. Panic. Doubt. People who sell at the first sign of trouble.",
+              "It gets nastier the further north you go. Each barricade opens once you beat whatever stands in front of it."
+            ]
+          },
+          {
+            "text": "What's at the north end?",
+            "lines": [
+              "The old maps call it a Teleport Chamber. Out of service.",
+              "I heard it hum once. Just once. That's why I'm still here."
+            ]
+          },
+          {
+            "text": "Any advice?",
+            "lines": [
+              "If you fall, your pack stays where you dropped. Come back for it quick.",
+              "And Talking Points. Never leave the Treasury without them."
+            ]
+          }
+        ]
+      }
     ],
     "dialogue": [
+      {
+        "quest": "quest_way_out",
+        "status": "complete",
+        "lines": [
+          "I heard it from all the way down here. The hum. Then a big bang. Then nothing.",
+          "You made it out. Expedition One made it out. Took us long enough.",
+          {
+            "player": "Are you coming?"
+          },
+          "Soon. Somebody has to walk the Captain through. He's not used to going slowly."
+        ]
+      },
+      {
+        "quest": "quest_way_out",
+        "status": "started",
+        "lines": [
+          "Morelight's really doing it? Waking the Chamber?",
+          "Go on up. I'll keep the Trenches quiet behind you. The Captain's sitting by the Chamber already. Wouldn't miss it."
+        ]
+      },
       {
         "quest": "quest_motion_denied",
         "status": "complete",
         "lines": [
-          "You beat the Captain! Then you've seen it: the machine past the last barricade. The old Teleport Chamber.",
-          "It hums at night. I've been listening for years. Go and tell Morelight."
+          "You stopped him. I heard it. The running. It stopped.",
+          "He's sitting by the Chamber now, catching his breath. Says he'll be first in line if it ever wakes up.",
+          "Tell Morelight what he told you. And President... thank you."
+        ]
+      },
+      {
+        "quest": "quest_motion_denied",
+        "status": "started",
+        "step": ["captain"],
+        "lines": [
+          "So it's the Captain's turn.",
+          "He was our leader. Best runner in the Treasury. We reached the north end in a week, and there it was: the Chamber. Cold. Dead.",
+          "The Captain wouldn't accept it. 'Keep moving,' he said. 'Momentum is everything.' He's been running laps in front of it ever since.",
+          {
+            "player": "Why guard it?"
+          },
+          "So nobody else sees it doesn't work. So nobody else gives up. I think that's what he tells himself.",
+          "He moves twice as fast as anyone. Don't chase him. Let him come to you.",
+          {
+            "player": "And then?"
+          },
+          "Then stop him, President. Gently, if you can. Then let's bring him home."
+        ]
+      },
+      {
+        "quest": "quest_name_calling",
+        "status": "complete",
+        "lines": [
+          "Quiet up there. Quieter than it's been in a year. Thank you.",
+          "Only the Captain left now. Morelight will want to talk to you about him."
+        ]
+      },
+      {
+        "quest": "quest_name_calling",
+        "status": "started",
+        "lines": [
+          "Wrong-Namers everywhere past the first barricade. My ears are still ringing.",
+          "They weren't always like this. Some of them were Treasury clerks. Got scared of the walls, then got more scared of what's past them.",
+          "Their Chief guards the second barricade. Bring a hammer. Shields hate hammers."
+        ]
+      },
+      {
+        "quest": "quest_sludge_duty",
+        "status": "complete",
+        "lines": [
+          "The first barricade's open. First time in four hundred days. I counted.",
+          "Past it, the Wrong-Namers. They'll tell you there's nothing out there. Don't listen."
         ]
       },
       {
@@ -825,33 +935,16 @@
         "step": ["mother"],
         "lines": [
           "Morelight sent you? Good. I was running out of patience and snacks.",
-          "The Sludge Mother squats at the first barricade, straight north. When she's hurt she calls up Sludgelings.",
+          "Twelve of us dug these Trenches. Then the panic of the Lockdown came down after us and pooled up. That's her. The Sludge Mother.",
+          "She squats at the first barricade, straight north. When she's hurt she calls up Sludgelings.",
           {
             "player": "Any advice?"
           },
-          "Clear the little ones if they swarm you, then go back to Mom. And don't step in anything."
-        ]
-      },
-      {
-        "quest": "quest_name_calling",
-        "status": "started",
-        "step": ["hecklers", "puppets", "chief"],
-        "lines": [
-          "Wrong-Namers everywhere past the first barricade. My ears are still ringing.",
-          "Their Chief guards the second barricade. Bring a hammer. Shields hate hammers."
-        ]
-      },
-      {
-        "quest": "quest_motion_denied",
-        "status": "started",
-        "step": ["captain"],
-        "lines": [
-          "Captain Motion? I've chased him for weeks. He guards the last barricade, at the far north end.",
-          "He moves twice as fast as anyone. Don't chase him. Let him come to you.",
+          "Clear the little ones if they swarm you, then go back to Mom. And don't step in anything.",
           {
-            "player": "And then?"
+            "player": "What's past her?"
           },
-          "Then hit him until he sits down."
+          "More Trenches. And past those, the Captain. Still running. I can hear him some nights."
         ]
       }
     ]

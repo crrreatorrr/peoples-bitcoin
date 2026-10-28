@@ -477,16 +477,18 @@ function teleportChamber(e: AssetEntry): THREE.Group {
   return g;
 }
 
+/** A post with a painted board; `label` is its two lines, split by "/". */
 function signpost(e: AssetEntry): THREE.Group {
   const wood = lambert(e.color);
-  const board = canvasTexture('signpost', 64, 32, (ctx) => {
+  const [top, bottom = ''] = (e.label ?? 'THE WORLD/OUT THERE').split('/');
+  const board = canvasTexture(`signpost:${e.label ?? ''}`, 64, 32, (ctx) => {
     ctx.fillStyle = '#c9a66b';
     ctx.fillRect(0, 0, 64, 32);
     ctx.fillStyle = '#3a2a1c';
     ctx.font = 'bold 9px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('THE WORLD', 32, 13);
-    ctx.fillText('OUT THERE', 32, 25);
+    ctx.fillText(top, 32, 13, 60);
+    ctx.fillText(bottom, 32, 25, 60);
   });
   return group([
     box(0.1, 1.5, 0.1, wood, 0, 0.75, 0),

@@ -253,3 +253,26 @@ An audit compared movement and interface with OSRS; these choices came out of it
   0.26 s. As in OSRS, the run cycle waits until the actor faces where it's going; while it turns
   it steps along at the walk cycle.
 - **Arrow keys:** left turns the view left, as in OSRS (it was reversed).
+- **Adult audience** (owner, 2026-10-28): the game is for adults (18+). DESIGN.md Hard Rule 4 now
+  allows crude meme humor (the owner's COOM vials) but still nothing explicit and no gore. The
+  parody notice says "for adults (18+)".
+
+## The Trenches escape story
+
+- **Backstory:** on the first day of the Lockdown, twelve people called Expedition One dug the
+  Trenches north toward an old Teleport Chamber. They found it dead. Their Captain wouldn't
+  accept it and has run laps in front of it ever since, so nobody else would see it fail. Their
+  lookout, the Scout, came back down and has waited at the bottom ever since.
+- **Each boss is a reason people stay in:** the Sludge Mother is the Lockdown's panic pooled up,
+  the Wrong-Namers say there is no outside ("it's all $BITCON"), and Captain Motion is motion
+  without progress. His defeat line ("The Chamber's dead. I ran so nobody would see.") sets up
+  The Way Out's four parts.
+- **Enemies talk** (`EnemyDef.barks`): a line as a fight starts, one below half HP, one when
+  beaten, in the chatbox and over their heads (OSRS-style shouts). Lines are picked by tick and
+  id, not the RNG, so they never change combat rolls.
+- **Lore along the way:** signs and crates in the Trenches tell Expedition One's story through
+  Examine (the OSRS way), and the barricades' locked messages say what's behind them. Signposts
+  take their two lines of text from the manifest `label`.
+- **The Scout** answers questions through a "Select an Option" menu and has lines for every
+  stage of the escape, through The Way Out.
+

@@ -599,5 +599,68 @@
     "actions": [],
     "blocks": true,
     "role": "scenery"
+  },
+  {
+    "id": "obj_expedition_sign",
+    "name": "Expedition Sign",
+    "examine": "Painted on the first day of the Lockdown: EXPEDITION ONE, NORTH OR BUST. Someone has underlined BUST.",
+    "model": "sign_expedition",
+    "actions": [],
+    "blocks": true,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_expedition_crate",
+    "name": "Expedition Crate",
+    "examine": "Stencilled EXPEDITION ONE. Inside: empty Hopium cans and a list of twelve names. Ten are crossed out. Not the Captain. Not the Scout.",
+    "model": "crate_expedition",
+    "actions": [],
+    "blocks": true,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_tally_board",
+    "name": "Tally Board",
+    "examine": "The Scout's calendar: four hundred and twelve tally marks. The newest one is fresh.",
+    "model": "sign_tally",
+    "actions": [],
+    "blocks": true,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_go_home_placard",
+    "name": "Wrong-Namer Placard",
+    "examine": "THERE IS NO OUTSIDE. GO HOME. On the back, in tiny letters: 'what if there is though'.",
+    "model": "sign_go_home",
+    "actions": [],
+    "blocks": true,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_abandoned_pack",
+    "name": "Abandoned Pack",
+    "examine": "Left on the duckboards with a note: 'If you find this, I went back. Sorry, Captain.'",
+    "model": "crate_pack",
+    "actions": [],
+    "blocks": true,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_keep_moving_sign",
+    "name": "Keep Moving Sign",
+    "examine": "Painted, then repainted, then repainted again. The mud around it is worn into a perfect loop.",
+    "model": "sign_keep_moving",
+    "actions": [],
+    "blocks": true,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_chamber_sign",
+    "name": "Old Treasury Sign",
+    "examine": "TELEPORT CHAMBER: OUT OF SERVICE. Someone has scratched out OUT OF.",
+    "model": "sign_chamber",
+    "actions": [],
+    "blocks": true,
+    "role": "scenery"
   }
 ]

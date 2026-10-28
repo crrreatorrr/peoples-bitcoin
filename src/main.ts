@@ -46,7 +46,7 @@ import { Hitsplats } from './ui/hitsplats';
 import { Hud } from './ui/hud';
 import { InventoryPanel, type InventoryMode } from './ui/inventory';
 import { Minimap } from './ui/minimap';
-import { OverheadText } from './ui/overhead';
+import { OverheadPool, OverheadText } from './ui/overhead';
 import { buildSettingsPanel } from './ui/settings';
 import { SidePanel } from './ui/sidepanel';
 import { SkillGuide } from './ui/skillguide';
@@ -213,6 +213,7 @@ async function boot(): Promise<void> {
   });
   minimap.setZone(content.zones.get(state.zone.id)!);
   const overhead = new OverheadText($('#overhead'));
+  const shouts = new OverheadPool($('#overheads'));
   const hitsplats = new Hitsplats($('#hitsplats'));
   const dialogue = new DialogueBox(
     chat.dialogueHost,
@@ -565,6 +566,20 @@ async function boot(): Promise<void> {
     overhead.update(
       p.overhead?.text ?? null,
       view.entities.toScreen(view.entities.playerPosition, UI.overheadHeight, cam.camera, canvas),
+    );
+    shouts.update(
+      state.zone.enemies.flatMap((e) => {
+        const pos = e.overhead && view.entities.positionOf(e.id);
+        if (!e.overhead || !pos) return [];
+        const above = view.entities.heightOf(e.id) + 0.15;
+        return [
+          {
+            id: e.id,
+            text: e.overhead.text,
+            at: view.entities.toScreen(pos, above, cam.camera, canvas),
+          },
+        ];
+      }),
     );
 
     hud.update(state);

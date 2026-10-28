@@ -5,6 +5,7 @@
  * adds. Enemies fight the player or the player's Sproto with the same math.
  */
 import { COMBAT, ENEMIES, SUMMONING } from '../config/balance';
+import { barkOnAggro } from './barks';
 import { effectiveLevel } from './boosts';
 import { accuracyRoll, combatLevel, inAttackRange, maxHit, pathToward, rollDamage } from './combat';
 import { armorTotals } from './equipment';
@@ -39,6 +40,7 @@ export function stepEnemies(state: GameState, ctx: SimContext, events: SimEvent[
     enemy.from = { x: enemy.x, y: enemy.y };
     const def = ctx.content.enemies.get(enemy.defId);
     if (!def) continue;
+    if (enemy.overhead && state.tick >= enemy.overhead.untilTick) enemy.overhead = null;
 
     // Quest-only enemies sleep until their quest step comes up, and leave after it.
     const awake = !enemy.gate || atStep(player, ctx.content, enemy.gate.quest, enemy.gate.step);
@@ -82,6 +84,7 @@ export function stepEnemies(state: GameState, ctx: SimContext, events: SimEvent[
       enemy.lastCombatTick = state.tick;
     }
 
+    barkOnAggro(state, ctx, enemy, events);
     const targetPos = targetTile(state, enemy);
     if (targetPos) fight(state, ctx, enemy, targetPos, events);
     else if (chebyshev(enemy, enemy.spawn) > def.wanderRadius) walkHome(state, ctx, enemy);

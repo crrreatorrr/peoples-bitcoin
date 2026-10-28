@@ -212,6 +212,10 @@ export interface EnemyInstance {
   goal: Tile | null;
   /** Quest-only enemies: only around while that quest's next step is `step`. */
   gate?: { quest: string; step: string };
+  /** A line it's saying (see EnemyDef.barks). */
+  overhead: Overhead | null;
+  /** Which barks it has used this life. */
+  said: { aggro: boolean; hurt: boolean };
 }
 
 export interface GroundItem {
@@ -358,6 +362,8 @@ export function newEnemy(
     nextAddTick: 0,
     lastCombatTick: 0,
     goal: null,
+    overhead: null,
+    said: { aggro: false, hurt: false },
   };
 }
 

@@ -1659,5 +1659,40 @@
     "color": "#d8ccaa",
     "label": "C",
     "sprite": "icons/icon_chamber_blueprints.png"
+  },
+  "sign_expedition": {
+    "placeholder": "signpost",
+    "color": "#7a5530",
+    "label": "EXPEDITION/ONE: NORTH"
+  },
+  "sign_tally": {
+    "placeholder": "signpost",
+    "color": "#7a5530",
+    "label": "DAY 412/STILL HERE"
+  },
+  "sign_go_home": {
+    "placeholder": "signpost",
+    "color": "#7a5530",
+    "label": "GO HOME/NO OUTSIDE"
+  },
+  "sign_keep_moving": {
+    "placeholder": "signpost",
+    "color": "#7a5530",
+    "label": "KEEP/MOVING"
+  },
+  "sign_chamber": {
+    "placeholder": "signpost",
+    "color": "#7a5530",
+    "label": "CHAMBER/AHEAD"
+  },
+  "crate_expedition": {
+    "placeholder": "prop",
+    "color": "#6b4a2b",
+    "height": 0.6
+  },
+  "crate_pack": {
+    "placeholder": "prop",
+    "color": "#5a6b3a",
+    "height": 0.35
   }
 }

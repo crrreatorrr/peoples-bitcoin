@@ -248,7 +248,7 @@ describe('fighting', () => {
     changeZone(state, ctx, 'zone_trenches', { x: 20, y: 46 }, []);
     const gate = state.zone.objects.find((o) => o.defId === 'obj_barricade' && o.y === 45)!;
     const events = runTick(state, ctx, [{ type: 'interact', targetId: gate.id, action: 'Pass' }]);
-    expect(messages(events)).toContain('Locked. Defeat the Wrong-Namer Chief to pass.');
+    expect(messages(events).join(' ')).toMatch(/Defeat the Wrong-Namer Chief to pass\./);
     expect(state.player.pos).toEqual({ x: 20, y: 46 });
   });
 });

@@ -352,11 +352,11 @@
     "ordered": true,
     "startNpc": "npc_morelight",
     "requires": ["quest_tutorial"],
-    "summary": "The Trenches are the only way toward the north end of the wall, and something is clogging them. Morelight would like it unclogged.",
+    "summary": "On the first day of the Lockdown, Expedition One dug the Trenches toward the north end of the wall. Nobody came back up. Now the Sludge Mother squats in the way.",
     "steps": [
       {
         "id": "briefing",
-        "text": "Hear Morelight out about the trouble in the Trenches.",
+        "text": "Hear Morelight out about the Trenches.",
         "trigger": {
           "type": "talk",
           "npc": "npc_morelight"
@@ -389,7 +389,7 @@
       },
       {
         "id": "report",
-        "text": "Report back to Morelight in the Treasury.",
+        "text": "Tell Morelight the first barricade is open.",
         "trigger": {
           "type": "talk",
           "npc": "npc_morelight"
@@ -412,7 +412,7 @@
         }
       ]
     },
-    "completeMessage": "Quest complete: Sludge Duty! The first barricade is clear, and the Trenches smell slightly better."
+    "completeMessage": "Quest complete: Sludge Duty! The first barricade is open. Somewhere north, someone is still running."
   },
   {
     "id": "quest_name_calling",
@@ -421,7 +421,7 @@
     "ordered": true,
     "startNpc": "npc_morelight",
     "requires": ["quest_sludge_duty"],
-    "summary": "The Wrong-Namers hold the middle of the Trenches and insist it's $BITCON. Loudly. Morelight wants them corrected so you can push north.",
+    "summary": "Past the first barricade, the Wrong-Namers turn back anyone heading north. There is no outside, they say; it's all $BITCON. Morelight disagrees.",
     "steps": [
       {
         "id": "briefing",
@@ -492,7 +492,7 @@
         }
       ]
     },
-    "completeMessage": "Quest complete: Name Calling! The Wrong-Namers have finally gone quiet. It's $BITCOIN."
+    "completeMessage": "Quest complete: Name Calling! The second barricade is open, and the Trenches are finally quiet."
   },
   {
     "id": "quest_motion_denied",
@@ -501,11 +501,11 @@
     "ordered": true,
     "startNpc": "npc_morelight",
     "requires": ["quest_name_calling"],
-    "summary": "Captain Motion guards the last barricade before the north end, where nobody has looked since the Lockdown. Morelight would like him to stop.",
+    "summary": "Captain Motion led Expedition One north and never came back. He guards the last barricade and hasn't stopped running since. The Scout wants him stopped, and home.",
     "steps": [
       {
         "id": "briefing",
-        "text": "Ask Morelight about the last job.",
+        "text": "Ask Morelight about the last barricade.",
         "trigger": {
           "type": "talk",
           "npc": "npc_morelight"
@@ -516,7 +516,7 @@
       },
       {
         "id": "scout",
-        "text": "Ask The Scout where Captain Motion runs.",
+        "text": "Ask The Scout about Captain Motion.",
         "trigger": {
           "type": "talk",
           "npc": "npc_scout"
@@ -527,7 +527,7 @@
       },
       {
         "id": "captain",
-        "text": "Defeat Captain Motion at the last barricade.",
+        "text": "Stop Captain Motion at the last barricade.",
         "trigger": {
           "type": "kill",
           "enemy": "enemy_captain_motion"
@@ -538,7 +538,7 @@
       },
       {
         "id": "report",
-        "text": "Tell Morelight the Captain has stopped.",
+        "text": "Tell Morelight what the Captain said about the Chamber.",
         "trigger": {
           "type": "talk",
           "npc": "npc_morelight"
@@ -977,7 +977,7 @@
       "quest_hostile_takeover",
       "quest_press_conference"
     ],
-    "summary": "Since the Lockdown, nobody has left the Treasury. Morelight has a Teleport Chamber, four parts and a plan.",
+    "summary": "Expedition One found the Teleport Chamber, and it was dead. Morelight has four parts, a plan to wake it, and the whole Treasury watching.",
     "steps": [
       {
         "id": "briefing",

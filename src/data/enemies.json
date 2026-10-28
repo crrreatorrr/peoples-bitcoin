@@ -65,7 +65,7 @@
   {
     "id": "enemy_heckler",
     "name": "Wrong-Namer Heckler",
-    "examine": "Keeps shouting '$BITCON President!'",
+    "examine": "Turns back anyone heading north. Keeps shouting '$BITCON President!'",
     "model": "enemy_heckler",
     "level": 6,
     "hp": 12,
@@ -81,7 +81,16 @@
     "aggressive": true,
     "aggroRange": 3,
     "respawnTicks": 30,
-    "drops": "drops_heckler"
+    "drops": "drops_heckler",
+    "barks": {
+      "aggro": [
+        "$BITCON PRESIDENT!",
+        "Go home! There's no outside!",
+        "It's a con! It was always a con!"
+      ],
+      "hurt": ["You can't prove there's an outside!"],
+      "defeat": ["I'll be back. Louder."]
+    }
   },
   {
     "id": "enemy_sockpuppet",
@@ -102,7 +111,12 @@
     "aggressive": true,
     "aggroRange": 3,
     "respawnTicks": 35,
-    "drops": "drops_sockpuppet"
+    "drops": "drops_sockpuppet",
+    "barks": {
+      "aggro": ["I agree with the last guy!", "Me too! Go home!"],
+      "hurt": ["My other account will hear about this!"],
+      "defeat": ["Logging off..."]
+    }
   },
   {
     "id": "enemy_paper_hands",
@@ -123,7 +137,12 @@
     "aggressive": true,
     "aggroRange": 4,
     "respawnTicks": 40,
-    "drops": "drops_paper_hands"
+    "drops": "drops_paper_hands",
+    "barks": {
+      "aggro": ["Sell! Sell everything!", "Turn back while you still can!"],
+      "hurt": ["I'm out! I'm out!"],
+      "defeat": ["Should've sold at the top..."]
+    }
   },
   {
     "id": "enemy_fud_wraith",
@@ -144,7 +163,11 @@
     "aggressive": true,
     "aggroRange": 5,
     "respawnTicks": 45,
-    "drops": "drops_fud_wraith"
+    "drops": "drops_fud_wraith",
+    "barks": {
+      "aggro": ["The walls are there for a reason...", "What if outside is worse?"],
+      "defeat": ["...the doubt... fades..."]
+    }
   },
   {
     "id": "enemy_sludge_brute",
@@ -186,7 +209,11 @@
     "aggressive": true,
     "aggroRange": 5,
     "respawnTicks": 55,
-    "drops": "drops_bear_raider"
+    "drops": "drops_bear_raider",
+    "barks": {
+      "aggro": ["It's all going to zero!"],
+      "defeat": ["See? Zero."]
+    }
   },
   {
     "id": "enemy_rug_puller",
@@ -207,7 +234,11 @@
     "aggressive": true,
     "aggroRange": 6,
     "respawnTicks": 60,
-    "drops": "drops_rug_puller"
+    "drops": "drops_rug_puller",
+    "barks": {
+      "aggro": ["Nice floor you're standing on."],
+      "defeat": ["Not the rug!"]
+    }
   },
   {
     "id": "enemy_dump_golem",
@@ -228,7 +259,11 @@
     "aggressive": true,
     "aggroRange": 4,
     "respawnTicks": 70,
-    "drops": "drops_dump_golem"
+    "drops": "drops_dump_golem",
+    "barks": {
+      "aggro": ["DUMP."],
+      "defeat": ["...dumped."]
+    }
   },
   {
     "id": "enemy_margin_caller",
@@ -249,12 +284,17 @@
     "aggressive": true,
     "aggroRange": 6,
     "respawnTicks": 80,
-    "drops": "drops_margin_caller"
+    "drops": "drops_margin_caller",
+    "barks": {
+      "aggro": ["*ring ring* You've been called."],
+      "hurt": ["Please hold."],
+      "defeat": ["The number you have dialed is no longer..."]
+    }
   },
   {
     "id": "enemy_sludge_mother",
     "name": "Sludge Mother",
-    "examine": "The source of the sludge. She calls her children when hurt.",
+    "examine": "Every panicked sell order from the day of the Lockdown, in one heap. She calls her children when hurt.",
     "model": "enemy_sludge_mother",
     "level": 25,
     "hp": 120,
@@ -277,12 +317,20 @@
         "everyTicks": 12,
         "max": 3
       }
+    },
+    "barks": {
+      "aggro": [
+        "Stay down here, little President. It's safe.",
+        "Sell... sell it all... and stay..."
+      ],
+      "hurt": ["Children! Mother needs you!"],
+      "defeat": ["Just... one more... dip..."]
     }
   },
   {
     "id": "enemy_wrongnamer_chief",
     "name": "Wrong-Namer Chief",
-    "examine": "Commands the hecklers. Insists it's $BITCON.",
+    "examine": "Commands the Hecklers. Insists there is no outside and it's all $BITCON.",
     "model": "enemy_wrongnamer_chief",
     "level": 45,
     "hp": 220,
@@ -305,12 +353,17 @@
         "everyTicks": 15,
         "max": 2
       }
+    },
+    "barks": {
+      "aggro": ["THERE IS NO OUTSIDE! IT'S ALL $BITCON!"],
+      "hurt": ["Sockpuppets! Agree with me! LOUDER!"],
+      "defeat": ["Fine! Maybe there's an outside. MAYBE."]
     }
   },
   {
     "id": "enemy_captain_motion",
     "name": "Captain Motion",
-    "examine": "Maximum Motion. Attacks twice as fast as anyone else.",
+    "examine": "Led Expedition One north on the first day of the Lockdown. Hasn't stopped running since.",
     "model": "enemy_captain_motion",
     "level": 65,
     "hp": 300,
@@ -327,7 +380,15 @@
     "aggroRange": 4,
     "respawnTicks": 200,
     "drops": "drops_captain_motion",
-    "boss": {}
+    "boss": {},
+    "barks": {
+      "aggro": [
+        "Can't stop! Won't stop! Momentum is everything!",
+        "Turn back! Nothing up here but me and my laps!"
+      ],
+      "hurt": ["If I stop, I have to admit it doesn't work!"],
+      "defeat": ["The Chamber's dead. I ran so nobody would see."]
+    }
   },
   {
     "id": "enemy_rogue_process",
