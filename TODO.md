@@ -7,7 +7,6 @@
       Captain Motion rage-quit run
 - [ ] Sprotos 6–12 (Engineer, Scout, Shield, Commander, Paratrooper, Golden Sproto)
 - [ ] More quests (DESIGN.md §12), with content in The World Out There (an empty zone so far)
-- [ ] Item icons for the ~60 0.5.0 items (colored placeholders now; Higgsfield icons, ~14 credits)
 - [ ] Balance pass: XP rates, drop values, Terminal prices, enemy stats (all in data/balance.ts)
 
 ## OSRS QA leftovers (0.4.0 audit)

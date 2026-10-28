@@ -36,10 +36,11 @@ const HIT_MS = 320;
 /** How long a death plays before the body is hidden. */
 export const DEATH_MS = 1100;
 const FLASH_MS = 80;
-/** How fast joints ease toward their target pose (per second). */
+/** How fast joints ease toward their target pose (per second); faster while moving so the gait keeps its snap. */
 const BLEND_RATE = 22;
-/** Walk cycle radians per tile travelled. */
-export const STRIDE_RAD_PER_TILE = Math.PI * 1.5;
+const BLEND_RATE_MOVING = 40;
+/** Gait cycle radians per tile travelled: one footfall per tile, walking or running (as in OSRS). */
+export const STRIDE_RAD_PER_TILE = Math.PI;
 
 interface Pose {
   armLx: number;
@@ -68,7 +69,7 @@ export function poseActor(actor: ActorModel, a: AnimInput): void {
   } else {
     actor.root.rotation.x = 0;
     actor.root.position.y = 0;
-    if (actor.joints) applyPose(actor, humanPose(actor, a), a.dt);
+    if (actor.joints) applyPose(actor, humanPose(actor, a), a.dt, a.moving);
     else poseBody(actor, a);
   }
   actor.sync?.();
@@ -170,26 +171,73 @@ function holdPose(p: Pose, actor: ActorModel, ready: boolean): void {
 const swingsFreely = (hold: HoldKind | null) =>
   hold === null || hold === 'carry' || hold === 'pistol' || hold === 'melee';
 
+/**
+ * Gait. `phase` advances π per tile, so each tile is one footfall; the left
+ * leg is forward when sin(phase) > 0. Negative x rotation swings a limb forward.
+ */
 function walk(p: Pose, actor: ActorModel, a: AnimInput): void {
-  const run = a.running;
-  const s = Math.sin(a.phase);
-  const c = Math.cos(a.phase);
-  const stride = run ? 0.85 : 0.55;
-  const knee = run ? 1.3 : 0.75;
-  p.legLx = -stride * s;
-  p.legRx = stride * s;
-  p.shinLx = knee * Math.max(0, c);
-  p.shinRx = knee * Math.max(0, -c);
-  p.bodyY = actor.bodyY + (run ? 0.07 : 0.035) * (Math.abs(c) - 0.5);
-  p.torsoX += run ? 0.18 : 0.04;
-  const swing = (run ? 0.8 : 0.5) * s;
+  if (a.running) run(p, actor, a.phase);
+  else stroll(p, actor, a.phase);
+}
+
+/** OSRS walk: easy stride, straight-ish arms, highest as the legs pass. */
+function stroll(p: Pose, actor: ActorModel, phase: number): void {
+  const s = Math.sin(phase);
+  const c = Math.cos(phase);
+  p.legLx = -0.5 * s;
+  p.legRx = 0.5 * s;
+  // The swinging leg bends as it passes under the body.
+  p.shinLx = 0.75 * Math.max(0, c);
+  p.shinRx = 0.75 * Math.max(0, -c);
+  p.bodyY = actor.bodyY + 0.03 * (Math.abs(c) - 0.5);
+  p.torsoX += 0.04;
+  const swing = 0.45 * s;
   if (swingsFreely(actor.left) && actor.right !== 'rifle' && actor.right !== 'heavy') {
     p.armLx += swing;
-    if (run && actor.left === null) p.foreLx = -1.3;
   }
-  if (swingsFreely(actor.right)) {
-    p.armRx -= swing * (actor.right === null ? 1 : 0.5);
-    if (run && actor.right === null) p.foreRx = -1.3;
+  if (swingsFreely(actor.right)) p.armRx -= swing * (actor.right === null ? 1 : 0.5);
+}
+
+/**
+ * OSRS run: a jog with a slight forward lean, elbows bent and pumping against
+ * the legs, the back heel kicking up, the front leg reaching nearly straight,
+ * lowest mid-stance and highest in the air.
+ */
+function run(p: Pose, actor: ActorModel, phase: number): void {
+  const s = Math.sin(phase);
+  const leg = (sin: number, cos: number) => ({
+    thigh: -0.72 * sin - 0.08,
+    // Heel kick peaks just after the leg leaves the ground behind.
+    knee: 0.2 + 1.45 * Math.max(0, cos * Math.SQRT1_2 - sin * Math.SQRT1_2),
+  });
+  const left = leg(s, Math.cos(phase));
+  const right = leg(-s, -Math.cos(phase));
+  p.legLx = left.thigh;
+  p.legRx = right.thigh;
+  p.shinLx = left.knee;
+  p.shinRx = right.knee;
+  p.bodyY = actor.bodyY + 0.05 * (Math.abs(s) - 0.5);
+  p.torsoX += 0.16;
+  p.torsoY = 0.1 * s;
+  p.headX -= 0.1;
+  const twoHanded = actor.right === 'rifle' || actor.right === 'heavy';
+  if (twoHanded) {
+    // Both hands on the gun: carry it, bobbing with the stride.
+    p.armRx += 0.06 * s;
+    p.armLx += 0.06 * s;
+    return;
+  }
+  if (swingsFreely(actor.left)) {
+    p.armLx = 0.6 * s - 0.2;
+    p.foreLx = -1.55;
+  }
+  if (actor.right === null || actor.right === 'carry') {
+    p.armRx = -0.6 * s - 0.2;
+    p.foreRx = -1.55;
+  } else if (swingsFreely(actor.right)) {
+    // A pistol or club is carried low and forward, pumping less.
+    p.armRx = -0.3 * s - 0.15;
+    p.foreRx = -0.85;
   }
 }
 
@@ -279,9 +327,9 @@ function flinch(p: Pose, actor: ActorModel, h: number): void {
   }
 }
 
-function applyPose(actor: ActorModel, p: Pose, dt: number): void {
+function applyPose(actor: ActorModel, p: Pose, dt: number, moving: boolean): void {
   const j = actor.joints!;
-  const k = 1 - Math.exp(-BLEND_RATE * dt);
+  const k = 1 - Math.exp(-(moving ? BLEND_RATE_MOVING : BLEND_RATE) * dt);
   const ease = (o: THREE.Object3D, axis: 'x' | 'y' | 'z', target: number) => {
     o.rotation[axis] += (target - o.rotation[axis]) * k;
   };

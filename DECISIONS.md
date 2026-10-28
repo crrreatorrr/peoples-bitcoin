@@ -236,3 +236,20 @@ An audit compared movement and interface with OSRS; these choices came out of it
 - **Tripo exports face +x;** Meshy's rigger expects +z and builds a broken skeleton otherwise.
   `tools/turn_glb.py` turns each mesh and stands it on the ground before rigging.
   `tools/shrink_glb.py` cuts textures to 512 px JPEG (about 270 KB per character).
+
+## Owner fixes after 0.5.0
+
+- **$BITCOIN is the only currency** (owner). The BTC wallet is gone and DESIGN.md Hard Rule 1
+  now bans real coins by name. The BTC Shard became the Hash Crystal (same drops and price). The
+  Wrong-Namers' gag is that they call the coin **$BITCON** ("it's a con"), and the planned final
+  raid boss BTC Prime is now The Old Coin. Save v6 converts old saves.
+- **Running like OSRS** (owner: "the running is very awkward"). The gait does one footfall per
+  tile walking or running, so a run is one full stride cycle per tick (it was 1.5 footfalls per
+  tile, a sprinter's cadence). The run has its own cycle: forward lean, bent elbows pumping
+  against the legs, a heel kick behind, a nearly straight reaching leg, and its low point
+  mid-stance (the walk peaks mid-stance, like an inverted pendulum). A pistol or club is carried
+  low and forward. Two-handed guns are carried and bob.
+- **Turning at the OSRS rate:** half a turn in 0.64 s (`RENDER.turnSpeed`), down from about
+  0.26 s. As in OSRS, the run cycle waits until the actor faces where it's going; while it turns
+  it steps along at the walk cycle.
+- **Arrow keys:** left turns the view left, as in OSRS (it was reversed).

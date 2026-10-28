@@ -194,8 +194,8 @@ export const RENDER = {
   resolutionScale: 0.55,
   fogNear: 22,
   fogFar: 48,
-  /** Radians per second used to turn actors toward their facing. */
-  turnSpeed: 12,
+  /** Radians per second actors turn toward their facing: OSRS turns half a circle in 0.64 s. */
+  turnSpeed: Math.PI / 0.64,
   clickMarkerMs: 450,
   /** Shot flight time: base + per tile, capped. The hitsplat lands on arrival. */
   projectileMsBase: 120,

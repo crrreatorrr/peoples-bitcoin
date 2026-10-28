@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.5.1 — Owner fixes (2026-10-28)
+
+- **Running feels like OSRS:** one footfall per tile, a proper run cycle (bent elbows pumping,
+  heel kick, forward lean, bounce in the right place), OSRS turning speed, and the run cycle only
+  once you face your way.
+- **$BITCOIN is the only currency:** BTC is gone from the wallet, items and dialogue. BTC Shards
+  are now Hash Crystals, and the Wrong-Namers shout "$BITCON".
+- **Item art:** the 57 items that showed letter placeholders have pixel-art icons.
+- **Arrow keys** turn the camera the right way.
+- **Saves:** format v6; older saves upgrade.
+- **Tests:** 165.
+
 ## 0.5.0 — The Way Out, new mechanics and a Higgsfield cast (2026-10-28)
 
 - **Story:** the Treasury has been sealed since the Lockdown, and every quest now builds toward

@@ -392,13 +392,18 @@ export class EntityRenderer {
       : face && (face.x !== here.x || face.y !== here.y)
         ? { dx: face.x - here.x, dz: face.y - here.y }
         : null;
-    if (dir && (dir.dx !== 0 || dir.dz !== 0)) turnToward(view, Math.atan2(dir.dx, dir.dz), dt);
+    let facingAway = 0;
+    if (dir && (dir.dx !== 0 || dir.dz !== 0)) {
+      facingAway = turnToward(view, Math.atan2(dir.dx, dir.dz), dt);
+    }
 
     poseActor(view.actor, {
       now,
       dt,
       moving,
-      running: steps.length > 2,
+      // Two steps this tick is a run, but like OSRS the run cycle waits until
+      // the actor faces its way; while turning it steps along at a walk.
+      running: steps.length > 2 && (!moving || facingAway < Math.PI / 4),
       phase: view.phase,
       combat: doing.combat,
       work: moving ? null : doing.work,
@@ -508,10 +513,12 @@ function interpolateSteps(
   return true;
 }
 
-function turnToward(view: ActorView, angle: number, dt: number): void {
+/** Turns at a fixed rate toward `angle`; returns how far off it still is (radians). */
+function turnToward(view: ActorView, angle: number, dt: number): number {
   let diff = angle - view.facing;
   diff = Math.atan2(Math.sin(diff), Math.cos(diff));
   const step = RENDER.turnSpeed * dt;
   view.facing += Math.abs(diff) <= step ? diff : Math.sign(diff) * step;
   view.root.rotation.y = view.facing;
+  return Math.max(0, Math.abs(diff) - step);
 }
