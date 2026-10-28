@@ -8,8 +8,8 @@
   individuals only with their consent.
 - **No trademarked characters.** No wizard boys, blue hedgehogs, studio mascots or anything that
   reads as one. The Gremlin mascot and Sprotos are original designs.
-- **Teen-friendly.** Guns are chunky, cartoon and low-poly. No gore; defeated enemies poof into
-  sludge.
+- **Adult (18+) satire** (owner). Crude meme humor is fine; nothing explicit. Guns and staffs are
+  chunky, cartoon and low-poly. No gore; defeated enemies poof into sludge.
 
 ## Style
 

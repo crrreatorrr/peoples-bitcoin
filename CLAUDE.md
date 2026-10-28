@@ -5,7 +5,7 @@ At the start of every session read, in order: `DESIGN.md` (source of truth), `DE
 
 - Hard rules (DESIGN.md §0) override any request: fictional in-game currency only, invented
   character names (the one exception: the satirical President Obama, with the parody notice; no
-  real-world endorsements in anyone's voice), no trademarked characters, teen-friendly,
+  real-world endorsements in anyone's voice), no trademarked characters, adult (18+) satire with no explicit content or gore,
   placeholders via the asset manifest.
 - Every tunable number goes in `src/config/balance.ts`.
 - `src/sim` stays pure (no DOM/Three). Check with `npm run typecheck` and `npm run lint`.
