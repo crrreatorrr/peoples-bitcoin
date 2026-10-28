@@ -1,14 +1,16 @@
 /**
  * Asset manifest loader. Code refers to art only by logical id; the manifest
- * says whether that id is a sprite (a PNG under src/assets shown as a
- * camera-facing billboard, or an inventory icon), a GLB model, or a built-in
- * placeholder made from primitives. Swapping art = editing the manifest.
+ * says whether that id is a GLB model or a model built in code (a placeholder
+ * kind, with a `look` for characters). A `sprite` is 2D art for the UI only:
+ * inventory icons, portraits in the Summoning tab and build menu. Swapping art
+ * = editing the manifest.
  */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import { z } from 'zod';
 import manifestJson from '../config/assets.manifest.json';
+import { buildActor, LookSchema, staticActor, type ActorModel, type Look } from './actors';
 import { buildPlaceholder, iconCanvas, terrainPart, type TerrainPart } from './placeholders';
 
 const AssetEntrySchema = z
@@ -17,10 +19,12 @@ const AssetEntrySchema = z
     placeholder: z.string().optional(),
     /** GLB/GLTF path relative to src/assets. */
     path: z.string().optional(),
-    /** PNG path relative to src/assets. Takes precedence over path and placeholder. */
+    /** PNG path relative to src/assets: 2D art for icons and portraits, never shown in the world. */
     sprite: z.string().optional(),
-    /** World height of a sprite billboard, in tiles. */
-    spriteHeight: z.number().default(1.7),
+    /** Picks a version of a placeholder builder. */
+    variant: z.string().optional(),
+    /** How a humanoid looks (see actors.ts). */
+    look: LookSchema.optional(),
     scale: z.number().default(1),
     rotationYDeg: z.number().default(0),
     /** Logical clip name → clip name inside the GLB. */
@@ -56,11 +60,7 @@ const MISSING: AssetEntry = {
   color: '#ff00ff',
   scale: 1,
   rotationYDeg: 0,
-  spriteHeight: 1,
 };
-
-/** Marks the billboard inside a sprite-based model, so renderers can flip and bob it. */
-export const SPRITE_NAME = 'sprite';
 
 export class AssetLoader {
   private readonly models = new Map<string, THREE.Object3D>();
@@ -121,21 +121,37 @@ export class AssetLoader {
     return MISSING;
   }
 
-  /** A new scene object for the id, wrapped in a group so callers can position it freely. */
+  /**
+   * A new scene object for the id, wrapped in a group so callers can position
+   * it freely. Characters used as objects (lobbyists) carry their ActorModel in
+   * `userData.actor` so they can be animated.
+   */
   create(id: string): THREE.Group {
     const entry = this.entry(id);
     const root = new THREE.Group();
-    const tex = this.sprites.get(id);
-    if (tex) {
-      root.add(billboard(tex, entry.spriteHeight));
+    const actor = this.models.has(id) ? null : buildActor(entry);
+    if (actor) {
+      root.add(actor.root);
+      root.userData.actor = actor;
       return root;
     }
+    root.add(this.model(id, entry));
+    return root;
+  }
+
+  /** A character model; `dress` changes its look (worn armor, held gear). */
+  actor(id: string, dress: Partial<Look> = {}): ActorModel {
+    const entry = this.entry(id);
+    if (this.models.has(id)) return staticActor(this.model(id, entry));
+    return buildActor(entry, dress) ?? staticActor(this.model(id, entry));
+  }
+
+  private model(id: string, entry: AssetEntry): THREE.Object3D {
     const source = this.models.get(id);
     const model = source ? cloneSkinned(source) : buildPlaceholder(entry);
     model.scale.multiplyScalar(entry.scale);
     model.rotation.y += THREE.MathUtils.degToRad(entry.rotationYDeg);
-    root.add(model);
-    return root;
+    return model;
   }
 
   /** Shared geometry + material for instanced terrain tiles. */
@@ -179,14 +195,4 @@ export class AssetLoader {
   glyph(id: string): string {
     return this.entry(id).label ?? '?';
   }
-}
-
-/** A camera-facing sprite standing on the ground, `height` tiles tall. */
-function billboard(tex: THREE.Texture, height: number): THREE.Sprite {
-  const image = tex.image as { width: number; height: number };
-  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, alphaTest: 0.4 }));
-  sprite.name = SPRITE_NAME;
-  sprite.center.set(0.5, 0);
-  sprite.scale.set((height * image.width) / image.height, height, 1);
-  return sprite;
 }

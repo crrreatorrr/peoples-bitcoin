@@ -38,105 +38,93 @@
   },
   "player_president": {
     "placeholder": "humanoid",
-    "color": "#1f2a44",
-    "accent": "#b3262e",
-    "skin": "#d9a57a",
-    "hair": "#9c9c9c",
-    "clips": {
-      "idle": "idle",
-      "walk": "walk",
-      "mine": "mine"
+    "look": {
+      "top": "#1f2a44",
+      "shirt": "#f0f0f0",
+      "tie": "#b3262e",
+      "pants": "#1f2a44",
+      "hair": "#b8b8b8",
+      "hairStyle": "slick",
+      "skin": "#e0b08a"
     },
-    "sprite": "sprites/player_president.png",
-    "spriteHeight": 1.75
+    "sprite": "sprites/player_president.png"
   },
   "npc_treasurer": {
     "placeholder": "humanoid",
-    "color": "#5b5f66",
-    "accent": "#2f8f4e",
-    "skin": "#b77d55",
-    "hair": "#3a2a1c",
-    "glasses": true,
-    "clips": {
-      "idle": "idle"
+    "look": {
+      "top": "#5b5f66",
+      "shirt": "#f0f0f0",
+      "tie": "#2f8f4e",
+      "pants": "#4a4e55",
+      "glasses": "round",
+      "skin": "#e0b08a",
+      "left": "book"
     },
-    "sprite": "sprites/npc_treasurer.png",
-    "spriteHeight": 1.7
+    "sprite": "sprites/npc_treasurer.png"
   },
   "rack_dusty": {
     "placeholder": "rack",
     "color": "#625d55",
     "accent": "#7cff6b",
-    "sprite": "sprites/rack_dusty.png",
-    "spriteHeight": 1.9
+    "sprite": "sprites/rack_dusty.png"
   },
   "rack_humming": {
     "placeholder": "rack",
     "color": "#3c4350",
     "accent": "#ffd23f",
-    "sprite": "sprites/rack_humming.png",
-    "spriteHeight": 1.9
+    "sprite": "sprites/rack_humming.png"
   },
   "rack_liquid": {
     "placeholder": "rack",
     "color": "#22303f",
     "accent": "#3fd8ff",
-    "sprite": "sprites/rack_liquid.png",
-    "spriteHeight": 1.95
+    "sprite": "sprites/rack_liquid.png"
   },
   "rack_overheated": {
     "placeholder": "rack",
     "color": "#3a3330",
     "accent": "#ff3b2f",
     "smoke": true,
-    "sprite": "sprites/rack_overheated.png",
-    "spriteHeight": 1.9
+    "sprite": "sprites/rack_overheated.png"
   },
   "board_roadmap": {
     "placeholder": "board",
     "color": "#1b1b1b",
     "accent": "#3fdc5a",
-    "sprite": "sprites/board_roadmap.png",
-    "spriteHeight": 2.0
+    "sprite": "sprites/board_roadmap.png"
   },
   "bank_booth": {
     "placeholder": "booth",
     "color": "#6b4a2b",
     "accent": "#d2a63a",
-    "sprite": "sprites/bank_booth.png",
-    "spriteHeight": 1.9
+    "sprite": "sprites/bank_booth.png"
   },
   "pillar_marble": {
     "placeholder": "pillar",
     "color": "#e8e2d4",
-    "sprite": "sprites/pillar_marble.png",
-    "spriteHeight": 2.6
+    "sprite": "sprites/pillar_marble.png"
   },
   "flagpole": {
     "placeholder": "flagpole",
     "color": "#c9c9c9",
     "accent": "#2f9e44",
-    "sprite": "sprites/flagpole.png",
-    "spriteHeight": 3.4
+    "sprite": "sprites/flagpole.png"
   },
   "bench_park": {
     "placeholder": "bench",
     "color": "#6b4a2b",
-    "sprite": "sprites/bench_park.png",
-    "spriteHeight": 0.9
+    "sprite": "sprites/bench_park.png"
   },
   "statue_gremlin": {
     "placeholder": "gremlin",
     "color": "#d4a83a",
-    "sprite": "sprites/statue_gremlin.png",
-    "spriteHeight": 2.0
+    "sprite": "sprites/statue_gremlin.png"
   },
   "tree_oak": {
     "placeholder": "tree",
     "color": "#3f7a2c",
     "accent": "#5b3b22",
-    "sprite": "sprites/tree_oak.png",
-    "spriteHeight": 3.3
+    "sprite": "sprites/tree_oak.png"
   },
   "tab_inventory": {
     "placeholder": "glyph",
@@ -567,426 +555,603 @@
     "sprite": "icons/icon_circuit_board.png"
   },
   "donor_chicken": {
-    "placeholder": "prop",
-    "color": "#7a6a52",
-    "height": 1.2,
-    "sprite": "sprites/donor_chicken.png",
-    "spriteHeight": 1.2
+    "placeholder": "donor",
+    "variant": "chicken",
+    "color": "#f2efe6",
+    "sprite": "sprites/donor_chicken.png"
   },
   "donor_empty": {
-    "placeholder": "prop",
-    "color": "#4a3f33",
-    "height": 1.0,
-    "sprite": "sprites/donor_empty.png",
-    "spriteHeight": 1.1
+    "placeholder": "donor",
+    "variant": "empty",
+    "color": "#f2efe6",
+    "sprite": "sprites/donor_empty.png"
   },
   "donor_gala": {
-    "placeholder": "prop",
-    "color": "#7a6a52",
-    "height": 1.2,
-    "sprite": "sprites/donor_gala.png",
-    "spriteHeight": 1.3
+    "placeholder": "donor",
+    "variant": "gala",
+    "color": "#d9b44a",
+    "sprite": "sprites/donor_gala.png"
   },
   "donor_yacht": {
-    "placeholder": "prop",
-    "color": "#7a6a52",
-    "height": 1.2,
-    "sprite": "sprites/donor_yacht.png",
-    "spriteHeight": 1.6
+    "placeholder": "donor",
+    "variant": "yacht",
+    "color": "#f4f4f4",
+    "sprite": "sprites/donor_yacht.png"
   },
   "lobbyist_junior": {
-    "placeholder": "prop",
-    "color": "#7a6a52",
-    "height": 1.2,
-    "sprite": "sprites/lobbyist_junior.png",
-    "spriteHeight": 1.7
+    "placeholder": "humanoid",
+    "look": {
+      "top": "#1f2a6a",
+      "shirt": "#f0f0f0",
+      "tie": "#b3262e",
+      "pants": "#1f2a6a",
+      "hair": "#6b3f22",
+      "skin": "#e8b890",
+      "right": "briefcase"
+    },
+    "sprite": "sprites/lobbyist_junior.png"
   },
   "lobbyist_busy": {
-    "placeholder": "prop",
-    "color": "#4a3f33",
-    "height": 1.0,
-    "sprite": "sprites/lobbyist_busy.png",
-    "spriteHeight": 1.7
+    "placeholder": "humanoid",
+    "look": {
+      "top": "#5b5f66",
+      "shirt": "#f0f0f0",
+      "tie": "#b3262e",
+      "pants": "#4a4e55",
+      "hair": "#6b3f22",
+      "skin": "#e8b890",
+      "left": "phone",
+      "pose": "phone"
+    },
+    "sprite": "sprites/lobbyist_busy.png"
   },
   "lobbyist_veteran": {
-    "placeholder": "prop",
-    "color": "#7a6a52",
-    "height": 1.2,
-    "sprite": "sprites/lobbyist_veteran.png",
-    "spriteHeight": 1.75
+    "placeholder": "humanoid",
+    "look": {
+      "top": "#2b2b3a",
+      "shirt": "#f0f0f0",
+      "tie": "#b3262e",
+      "pants": "#2b2b3a",
+      "hair": "#b8b8b8",
+      "hairStyle": "slick",
+      "skin": "#e0b08a",
+      "right": "briefcase"
+    },
+    "sprite": "sprites/lobbyist_veteran.png"
   },
   "lobbyist_broker": {
-    "placeholder": "prop",
-    "color": "#7a6a52",
-    "height": 1.2,
-    "sprite": "sprites/lobbyist_broker.png",
-    "spriteHeight": 1.8
+    "placeholder": "humanoid",
+    "look": {
+      "coat": "#141418",
+      "top": "#141418",
+      "pants": "#141418",
+      "hat": "fedora",
+      "hatColor": "#141418",
+      "skin": "#2a2a30",
+      "eyes": "#f2e05a",
+      "hairStyle": "bald",
+      "right": "envelope"
+    },
+    "scale": 1.05,
+    "sprite": "sprites/lobbyist_broker.png"
   },
   "press_podium": {
-    "placeholder": "prop",
-    "color": "#7a6a52",
-    "height": 1.2,
-    "sprite": "sprites/press_podium.png",
-    "spriteHeight": 1.6
+    "placeholder": "podium",
+    "color": "#7a4a2a",
+    "sprite": "sprites/press_podium.png"
   },
   "terminal": {
-    "placeholder": "prop",
-    "color": "#7a6a52",
-    "height": 1.2,
-    "sprite": "sprites/terminal.png",
-    "spriteHeight": 1.5
+    "placeholder": "terminal",
+    "color": "#d8ccaa",
+    "sprite": "sprites/terminal.png"
   },
   "bunker_hatch": {
-    "placeholder": "prop",
-    "color": "#7a6a52",
-    "height": 1.2,
-    "sprite": "sprites/bunker_hatch.png",
-    "spriteHeight": 0.7
+    "placeholder": "hatch",
+    "color": "#5c636c",
+    "sprite": "sprites/bunker_hatch.png"
   },
   "ladder": {
-    "placeholder": "prop",
-    "color": "#7a6a52",
-    "height": 1.2,
-    "sprite": "sprites/ladder.png",
-    "spriteHeight": 2.0
+    "placeholder": "ladder",
+    "color": "#7a5530",
+    "sprite": "sprites/ladder.png"
   },
   "trench_entrance": {
-    "placeholder": "prop",
-    "color": "#7a6a52",
-    "height": 1.2,
-    "sprite": "sprites/trench_entrance.png",
-    "spriteHeight": 1.7
+    "placeholder": "trench",
+    "color": "#a08c62",
+    "sprite": "sprites/trench_entrance.png"
   },
   "barricade": {
-    "placeholder": "prop",
-    "color": "#7a6a52",
-    "height": 1.2,
-    "sprite": "sprites/barricade.png",
-    "spriteHeight": 1.8
+    "placeholder": "barricade",
+    "color": "#7a5530",
+    "sprite": "sprites/barricade.png"
   },
   "hotspot": {
-    "placeholder": "prop",
-    "color": "#7a6a52",
-    "height": 1.2,
-    "sprite": "sprites/hotspot.png",
-    "spriteHeight": 0.6
+    "placeholder": "hotspot",
+    "color": "#e8c22a",
+    "sprite": "sprites/hotspot.png"
   },
   "build_locker": {
-    "placeholder": "prop",
-    "color": "#5a6f8a",
-    "height": 1.4,
-    "sprite": "sprites/build_locker.png",
-    "spriteHeight": 1.8
+    "placeholder": "locker",
+    "color": "#8a929c",
+    "sprite": "sprites/build_locker.png"
   },
   "build_medbay": {
-    "placeholder": "prop",
-    "color": "#5a6f8a",
-    "height": 1.4,
-    "sprite": "sprites/build_medbay.png",
-    "spriteHeight": 1.3
+    "placeholder": "medbay",
+    "color": "#4b5a2e",
+    "sprite": "sprites/build_medbay.png"
   },
   "build_home_terminal": {
-    "placeholder": "prop",
-    "color": "#5a6f8a",
-    "height": 1.4,
-    "sprite": "sprites/build_home_terminal.png",
-    "spriteHeight": 1.4
+    "placeholder": "desk",
+    "color": "#5c636c",
+    "sprite": "sprites/build_home_terminal.png"
   },
   "build_bed": {
-    "placeholder": "prop",
-    "color": "#5a6f8a",
-    "height": 1.4,
-    "sprite": "sprites/build_bed.png",
-    "spriteHeight": 1.3
+    "placeholder": "bunkbed",
+    "color": "#3e4a26",
+    "sprite": "sprites/build_bed.png"
   },
   "build_farm_1": {
-    "placeholder": "prop",
-    "color": "#5a6f8a",
-    "height": 1.4,
-    "sprite": "sprites/build_farm_1.png",
-    "spriteHeight": 1.8
+    "placeholder": "farm",
+    "variant": "1",
+    "color": "#2b2f38",
+    "accent": "#7cff6b",
+    "sprite": "sprites/build_farm_1.png"
   },
   "build_farm_2": {
-    "placeholder": "prop",
-    "color": "#5a6f8a",
-    "height": 1.4,
-    "sprite": "sprites/build_farm_2.png",
-    "spriteHeight": 2.0
+    "placeholder": "farm",
+    "variant": "2",
+    "color": "#2b2f38",
+    "accent": "#ffd23f",
+    "sprite": "sprites/build_farm_2.png"
   },
   "build_farm_3": {
-    "placeholder": "prop",
-    "color": "#5a6f8a",
-    "height": 1.4,
-    "sprite": "sprites/build_farm_3.png",
-    "spriteHeight": 2.2
+    "placeholder": "farm",
+    "variant": "3",
+    "color": "#22303f",
+    "accent": "#3fd8ff",
+    "sprite": "sprites/build_farm_3.png"
   },
   "build_armory_1": {
-    "placeholder": "prop",
-    "color": "#5a6f8a",
-    "height": 1.4,
-    "sprite": "sprites/build_armory_1.png",
-    "spriteHeight": 1.0
+    "placeholder": "armory",
+    "variant": "1",
+    "color": "#6b4a2b",
+    "sprite": "sprites/build_armory_1.png"
   },
   "build_armory_2": {
-    "placeholder": "prop",
-    "color": "#5a6f8a",
-    "height": 1.4,
-    "sprite": "sprites/build_armory_2.png",
-    "spriteHeight": 1.9
+    "placeholder": "armory",
+    "variant": "2",
+    "color": "#7d858f",
+    "sprite": "sprites/build_armory_2.png"
   },
   "build_circle": {
-    "placeholder": "prop",
-    "color": "#5a6f8a",
-    "height": 1.4,
-    "sprite": "sprites/build_circle.png",
-    "spriteHeight": 0.6
+    "placeholder": "circle",
+    "color": "#5c5c62",
+    "accent": "#3fa8ff",
+    "sprite": "sprites/build_circle.png"
   },
   "npc_sysadmin": {
     "placeholder": "humanoid",
-    "color": "#4a5568",
-    "accent": "#d2a63a",
-    "skin": "#c98e62",
-    "hair": "#3a2a1c",
-    "sprite": "sprites/npc_sysadmin.png",
-    "spriteHeight": 1.7
+    "look": {
+      "top": "#8a8f98",
+      "hood": true,
+      "pants": "#2b2b33",
+      "shoes": "#e8e8e8",
+      "hair": "#2a2a2a",
+      "glasses": "round",
+      "hat": "headset",
+      "left": "tablet"
+    },
+    "sprite": "sprites/npc_sysadmin.png"
   },
   "npc_party_planner": {
     "placeholder": "humanoid",
-    "color": "#4a5568",
-    "accent": "#d2a63a",
-    "skin": "#c98e62",
-    "hair": "#3a2a1c",
-    "sprite": "sprites/npc_party_planner.png",
-    "spriteHeight": 1.7
+    "look": {
+      "top": "#6a3a8a",
+      "shirt": "#f0e6f5",
+      "pants": "#5a2f78",
+      "hair": "#5a2f78",
+      "hairStyle": "bun",
+      "skin": "#f0c8a8",
+      "right": "tray",
+      "left": "clipboard",
+      "build": 0.9
+    },
+    "sprite": "sprites/npc_party_planner.png"
   },
   "npc_spin_doctor": {
     "placeholder": "humanoid",
-    "color": "#4a5568",
-    "accent": "#d2a63a",
-    "skin": "#c98e62",
-    "hair": "#3a2a1c",
-    "sprite": "sprites/npc_spin_doctor.png",
-    "spriteHeight": 1.7
+    "look": {
+      "coat": "#f2f2f2",
+      "top": "#dfe9f5",
+      "tie": "#b3262e",
+      "pants": "#2b3550",
+      "hair": "#5a3a1c",
+      "glasses": "round",
+      "skin": "#e8b890",
+      "right": "microphone"
+    },
+    "sprite": "sprites/npc_spin_doctor.png"
   },
   "npc_fixer": {
     "placeholder": "humanoid",
-    "color": "#4a5568",
-    "accent": "#d2a63a",
-    "skin": "#c98e62",
-    "hair": "#3a2a1c",
-    "sprite": "sprites/npc_fixer.png",
-    "spriteHeight": 1.75
+    "look": {
+      "coat": "#141418",
+      "top": "#141418",
+      "pants": "#141418",
+      "hair": "#141418",
+      "hairStyle": "spiky",
+      "glasses": "shades",
+      "right": "playing_cards"
+    },
+    "sprite": "sprites/npc_fixer.png"
   },
   "npc_drill_sergeant": {
     "placeholder": "humanoid",
-    "color": "#4a5568",
-    "accent": "#d2a63a",
-    "skin": "#c98e62",
-    "hair": "#3a2a1c",
-    "sprite": "sprites/npc_drill_sergeant.png",
-    "spriteHeight": 1.75
+    "look": {
+      "top": "#5a6b3a",
+      "pants": "#5a6b3a",
+      "belt": "#3a2a1c",
+      "hat": "drill",
+      "hatColor": "#6b5a32",
+      "skin": "#c98e62",
+      "hair": "#2a2a2a",
+      "shoes": "#2a1c10",
+      "build": 1.1
+    },
+    "sprite": "sprites/npc_drill_sergeant.png"
   },
   "npc_sproto_handler": {
     "placeholder": "humanoid",
-    "color": "#4a5568",
-    "accent": "#d2a63a",
-    "skin": "#c98e62",
-    "hair": "#3a2a1c",
-    "sprite": "sprites/npc_sproto_handler.png",
-    "spriteHeight": 1.7
+    "look": {
+      "top": "#5a6b3a",
+      "pants": "#4b5a2e",
+      "belt": "#3a2a1c",
+      "hat": "cap",
+      "hatColor": "#4b5a2e",
+      "hair": "#6b3f22",
+      "hairStyle": "ponytail",
+      "skin": "#e8b890",
+      "left": "clipboard"
+    },
+    "sprite": "sprites/npc_sproto_handler.png"
   },
   "npc_contractor": {
     "placeholder": "humanoid",
-    "color": "#4a5568",
-    "accent": "#d2a63a",
-    "skin": "#c98e62",
-    "hair": "#3a2a1c",
-    "sprite": "sprites/npc_contractor.png",
-    "spriteHeight": 1.75
+    "look": {
+      "top": "#f0f0f0",
+      "bib": "#2f4fa8",
+      "pants": "#2f4fa8",
+      "belt": "#6b4a2b",
+      "hat": "hardhat",
+      "hatColor": "#f2c11e",
+      "skin": "#e0b08a",
+      "hair": "#6b3f22",
+      "shoes": "#5a3a1c",
+      "right": "plans"
+    },
+    "sprite": "sprites/npc_contractor.png"
   },
   "npc_scout": {
     "placeholder": "humanoid",
-    "color": "#4a5568",
-    "accent": "#d2a63a",
-    "skin": "#c98e62",
-    "hair": "#3a2a1c",
-    "sprite": "sprites/npc_scout.png",
-    "spriteHeight": 1.7
+    "look": {
+      "coat": "#5a5a3a",
+      "top": "#4b5a2e",
+      "pants": "#4b5a2e",
+      "hat": "boonie",
+      "hatColor": "#6b6a45",
+      "scarf": "#3e4a26",
+      "skin": "#c98e62",
+      "back": "backpack",
+      "left": "binoculars"
+    },
+    "sprite": "sprites/npc_scout.png"
   },
   "enemy_sludgeling": {
     "placeholder": "sludge",
     "color": "#3b4a2c",
     "accent": "#e0c040",
-    "skin": "#8a7a6a",
-    "hair": "#222222",
-    "scale": 1.0,
-    "sprite": "sprites/enemy_sludgeling.png",
-    "spriteHeight": 0.9
+    "sprite": "sprites/enemy_sludgeling.png"
   },
   "enemy_spam_bot": {
-    "placeholder": "prop",
-    "color": "#9aa3ad",
-    "height": 0.8
+    "placeholder": "humanoid",
+    "look": {
+      "head": "robot",
+      "top": "#9aa3ad",
+      "sleeves": "#7d858f",
+      "pants": "#7d858f",
+      "shoes": "#4a4e55",
+      "hands": "#5a5a60",
+      "build": 0.85,
+      "legs": 0.7
+    },
+    "scale": 0.7
   },
   "enemy_comment_troll": {
     "placeholder": "humanoid",
-    "color": "#5a7a3a",
-    "skin": "#7a9a4a"
+    "look": {
+      "head": "goblin",
+      "skin": "#7a9a4a",
+      "top": "#4a3a6a",
+      "hood": true,
+      "pants": "#3a3a44",
+      "hairStyle": "bald",
+      "right": "phone",
+      "hunch": 0.35,
+      "build": 1.1,
+      "legs": 0.75
+    },
+    "scale": 0.8
   },
   "enemy_heckler": {
     "placeholder": "humanoid",
-    "color": "#6a2e2e",
-    "accent": "#e0c040",
-    "skin": "#8a7a6a",
-    "hair": "#222222",
-    "scale": 1.0,
-    "sprite": "sprites/enemy_heckler.png",
-    "spriteHeight": 1.75
+    "look": {
+      "top": "#c8261e",
+      "hood": true,
+      "pants": "#3a3a44",
+      "shoes": "#e8e8e8",
+      "hat": "cap",
+      "hatColor": "#c8261e",
+      "skin": "#e8b890",
+      "hair": "#5a3a1c",
+      "right": "megaphone"
+    },
+    "sprite": "sprites/enemy_heckler.png"
   },
   "enemy_sockpuppet": {
-    "placeholder": "humanoid",
-    "color": "#6a2e2e",
-    "accent": "#e0c040",
-    "skin": "#8a7a6a",
-    "hair": "#222222",
-    "scale": 1.0,
-    "sprite": "sprites/enemy_sockpuppet.png",
-    "spriteHeight": 1.7
+    "placeholder": "sock",
+    "color": "#c8261e",
+    "accent": "#2f4fa8",
+    "sprite": "sprites/enemy_sockpuppet.png"
   },
   "enemy_paper_hands": {
     "placeholder": "humanoid",
-    "color": "#6a2e2e",
-    "accent": "#e0c040",
-    "skin": "#8a7a6a",
-    "hair": "#222222",
-    "scale": 1.0,
-    "sprite": "sprites/enemy_paper_hands.png",
-    "spriteHeight": 1.5
+    "look": {
+      "head": "goblin",
+      "skin": "#7a9a4a",
+      "top": "#6b5a3a",
+      "pants": "#4a3f2a",
+      "hands": "#f2f2f2",
+      "hairStyle": "bald",
+      "hunch": 0.3,
+      "build": 0.9
+    },
+    "scale": 0.9,
+    "sprite": "sprites/enemy_paper_hands.png"
   },
   "enemy_fud_wraith": {
-    "placeholder": "humanoid",
-    "color": "#6a2e2e",
-    "accent": "#e0c040",
-    "skin": "#8a7a6a",
-    "hair": "#222222",
-    "scale": 1.0,
-    "sprite": "sprites/enemy_fud_wraith.png",
-    "spriteHeight": 2.0
+    "placeholder": "wraith",
+    "color": "#6a3aa8",
+    "accent": "#f2e05a",
+    "sprite": "sprites/enemy_fud_wraith.png"
   },
   "enemy_sludge_brute": {
-    "placeholder": "sludge",
-    "color": "#3b4a2c",
-    "accent": "#e0c040",
-    "skin": "#8a7a6a",
-    "hair": "#222222",
-    "scale": 1.0,
-    "sprite": "sprites/enemy_sludge_brute.png",
-    "spriteHeight": 2.3
+    "placeholder": "humanoid",
+    "look": {
+      "head": "blob",
+      "skin": "#2f3b22",
+      "top": "#3b4a2c",
+      "pants": "#2f3b22",
+      "shoes": "#2f3b22",
+      "hands": "#3b4a2c",
+      "eyes": "#e0c040",
+      "build": 1.5,
+      "legs": 0.8,
+      "hunch": 0.25
+    },
+    "scale": 1.35,
+    "sprite": "sprites/enemy_sludge_brute.png"
   },
   "enemy_bear_raider": {
     "placeholder": "humanoid",
-    "color": "#6a2e2e",
-    "accent": "#e0c040",
-    "skin": "#8a7a6a",
-    "hair": "#222222",
-    "scale": 1.0,
-    "sprite": "sprites/enemy_bear_raider.png",
-    "spriteHeight": 2.3
+    "look": {
+      "head": "bear",
+      "skin": "#6b4a2b",
+      "top": "#6b4a2b",
+      "pants": "#5a3a22",
+      "shoes": "#3a2a1c",
+      "hands": "#4a3020",
+      "belt": "#3a2a1c",
+      "right": "club",
+      "build": 1.3
+    },
+    "scale": 1.3,
+    "sprite": "sprites/enemy_bear_raider.png"
   },
   "enemy_rug_puller": {
     "placeholder": "humanoid",
-    "color": "#6a2e2e",
-    "accent": "#e0c040",
-    "skin": "#8a7a6a",
-    "hair": "#222222",
-    "scale": 1.0,
-    "sprite": "sprites/enemy_rug_puller.png",
-    "spriteHeight": 1.9
+    "look": {
+      "coat": "#8a5a35",
+      "top": "#1b1b1f",
+      "pants": "#1b1b1f",
+      "hat": "fedora",
+      "hatColor": "#1b1b1f",
+      "mask": "#0e0e12",
+      "hair": "#1b1b1f",
+      "back": "rug",
+      "right": "pistol"
+    },
+    "scale": 1.05,
+    "sprite": "sprites/enemy_rug_puller.png"
   },
   "enemy_dump_golem": {
     "placeholder": "humanoid",
-    "color": "#6a2e2e",
-    "accent": "#e0c040",
-    "skin": "#8a7a6a",
-    "hair": "#222222",
-    "scale": 1.0,
-    "sprite": "sprites/enemy_dump_golem.png",
-    "spriteHeight": 2.9
+    "look": {
+      "head": "rock",
+      "skin": "#6a6a70",
+      "top": "#5a5a60",
+      "sleeves": "#6a6a70",
+      "pants": "#5a5a60",
+      "shoes": "#4a4a50",
+      "hands": "#6a6a70",
+      "eyes": "#ff3b2f",
+      "stripes": "#d62828",
+      "left": "stone_shield",
+      "build": 1.6,
+      "legs": 0.9
+    },
+    "scale": 1.5,
+    "sprite": "sprites/enemy_dump_golem.png"
   },
   "enemy_margin_caller": {
     "placeholder": "humanoid",
-    "color": "#6a2e2e",
-    "accent": "#e0c040",
-    "skin": "#8a7a6a",
-    "hair": "#222222",
-    "scale": 1.0,
-    "sprite": "sprites/enemy_margin_caller.png",
-    "spriteHeight": 2.1
+    "look": {
+      "head": "phone",
+      "top": "#1b1b1f",
+      "shirt": "#f0f0f0",
+      "tie": "#c8261e",
+      "pants": "#1b1b1f",
+      "skin": "#e8b890",
+      "right": "pistol"
+    },
+    "scale": 1.15,
+    "sprite": "sprites/enemy_margin_caller.png"
   },
   "enemy_sludge_mother": {
     "placeholder": "sludge",
-    "color": "#3b4a2c",
-    "accent": "#e0c040",
-    "skin": "#8a7a6a",
-    "hair": "#222222",
+    "variant": "mother",
+    "color": "#2f3b22",
+    "accent": "#e0d040",
     "scale": 2.0,
-    "sprite": "sprites/enemy_sludge_mother.png",
-    "spriteHeight": 3.2
+    "sprite": "sprites/enemy_sludge_mother.png"
   },
   "enemy_wrongnamer_chief": {
     "placeholder": "humanoid",
-    "color": "#6a2e2e",
-    "accent": "#e0c040",
-    "skin": "#8a7a6a",
-    "hair": "#222222",
-    "scale": 2.0,
-    "sprite": "sprites/enemy_wrongnamer_chief.png",
-    "spriteHeight": 2.6
+    "look": {
+      "top": "#c8261e",
+      "shirt": "#f0f0f0",
+      "pants": "#f2f2f2",
+      "belt": "#e0b43a",
+      "hat": "officer",
+      "hatColor": "#c8261e",
+      "mustache": "#3a2a1c",
+      "skin": "#e8b890",
+      "right": "megaphone",
+      "left": "cardboard_shield",
+      "build": 1.25
+    },
+    "scale": 1.45,
+    "sprite": "sprites/enemy_wrongnamer_chief.png"
   },
   "enemy_captain_motion": {
     "placeholder": "humanoid",
-    "color": "#6a2e2e",
-    "accent": "#e0c040",
-    "skin": "#8a7a6a",
-    "hair": "#222222",
-    "scale": 2.0,
-    "sprite": "sprites/enemy_captain_motion.png",
-    "spriteHeight": 2.3
+    "look": {
+      "top": "#2f4fd8",
+      "pants": "#2f4fd8",
+      "stripes": "#f2f2f2",
+      "shoes": "#f2f2f2",
+      "hair": "#2f4fd8",
+      "hairStyle": "spiky",
+      "skin": "#e8b890",
+      "build": 0.95,
+      "legs": 1.1
+    },
+    "scale": 1.3,
+    "sprite": "sprites/enemy_captain_motion.png"
   },
   "sp_recruit": {
-    "placeholder": "gremlin",
-    "color": "#3f6fd8",
-    "scale": 0.55,
-    "sprite": "sprites/sp_recruit.png",
-    "spriteHeight": 0.9
+    "placeholder": "humanoid",
+    "look": {
+      "head": "sproto",
+      "skin": "#3f6fd8",
+      "top": "#3f6fd8",
+      "pants": "#3f6fd8",
+      "shoes": "#2f4fa8",
+      "hands": "#3f6fd8",
+      "back": "spines",
+      "headSize": 1.6,
+      "legs": 0.55,
+      "build": 0.85,
+      "hat": "helmet",
+      "hatColor": "#4b5a2e",
+      "right": "pistol",
+      "belt": "#d62828"
+    },
+    "scale": 0.62,
+    "sprite": "sprites/sp_recruit.png"
   },
   "sp_medic": {
-    "placeholder": "gremlin",
-    "color": "#3f6fd8",
-    "scale": 0.55,
-    "sprite": "sprites/sp_medic.png",
-    "spriteHeight": 0.9
+    "placeholder": "humanoid",
+    "look": {
+      "head": "sproto",
+      "skin": "#3f6fd8",
+      "top": "#3f6fd8",
+      "pants": "#3f6fd8",
+      "shoes": "#2f4fa8",
+      "hands": "#3f6fd8",
+      "back": "spines",
+      "headSize": 1.6,
+      "legs": 0.55,
+      "build": 0.85,
+      "hat": "medic",
+      "hatColor": "#4b5a2e",
+      "left": "medkit"
+    },
+    "scale": 0.62,
+    "sprite": "sprites/sp_medic.png"
   },
   "sp_grunt": {
-    "placeholder": "gremlin",
-    "color": "#3f6fd8",
-    "scale": 0.55,
-    "sprite": "sprites/sp_grunt.png",
-    "spriteHeight": 1.0
+    "placeholder": "humanoid",
+    "look": {
+      "head": "sproto",
+      "skin": "#3f6fd8",
+      "top": "#3f6fd8",
+      "pants": "#3f6fd8",
+      "shoes": "#2f4fa8",
+      "hands": "#3f6fd8",
+      "back": "spines",
+      "headSize": 1.6,
+      "legs": 0.55,
+      "build": 0.85,
+      "hat": "helmet",
+      "hatColor": "#4b5a2e",
+      "right": "club",
+      "left": "wood_shield",
+      "vest": "#4b5a2e"
+    },
+    "scale": 0.62,
+    "sprite": "sprites/sp_grunt.png"
   },
   "sp_sniper": {
-    "placeholder": "gremlin",
-    "color": "#3f6fd8",
-    "scale": 0.55,
-    "sprite": "sprites/sp_sniper.png",
-    "spriteHeight": 0.95
+    "placeholder": "humanoid",
+    "look": {
+      "head": "sproto",
+      "skin": "#3f6fd8",
+      "top": "#3f6fd8",
+      "pants": "#3f6fd8",
+      "shoes": "#2f4fa8",
+      "hands": "#3f6fd8",
+      "back": "spines",
+      "headSize": 1.6,
+      "legs": 0.55,
+      "build": 0.85,
+      "hat": "leafy",
+      "hatColor": "#4b5a2e",
+      "right": "sniper",
+      "vest": "#4b5a2e"
+    },
+    "scale": 0.62,
+    "sprite": "sprites/sp_sniper.png"
   },
   "sp_heavy": {
-    "placeholder": "gremlin",
-    "color": "#3f6fd8",
-    "scale": 0.55,
-    "sprite": "sprites/sp_heavy.png",
-    "spriteHeight": 1.05
+    "placeholder": "humanoid",
+    "look": {
+      "head": "sproto",
+      "skin": "#3f6fd8",
+      "top": "#3f6fd8",
+      "pants": "#3f6fd8",
+      "shoes": "#2f4fa8",
+      "hands": "#3f6fd8",
+      "back": "spines",
+      "headSize": 1.6,
+      "legs": 0.55,
+      "build": 1.0,
+      "hat": "helmet",
+      "hatColor": "#4b5a2e",
+      "right": "minigun",
+      "vest": "#4b5a2e"
+    },
+    "scale": 0.62,
+    "sprite": "sprites/sp_heavy.png"
   },
   "tile_fence": {
     "placeholder": "wall",

@@ -72,6 +72,9 @@ async function boot(): Promise<void> {
   const ctx: SimContext = { content, grids: buildGrids(content) };
 
   let pending: Intent[] = [];
+  /** Added to the browser clock; only the dev QA hook moves it. */
+  let clockOffset = 0;
+  const clockNow = () => performance.now() + clockOffset;
   const queue = (intent: Intent) => pending.push(intent);
 
   const chat = new Chat($('#chatbox'), PRESIDENT_NAME, (text) => queue({ type: 'chat', text }));
@@ -96,11 +99,11 @@ async function boot(): Promise<void> {
   const interact = (entityId: string, action: string) => {
     queue({ type: 'interact', targetId: entityId, action });
     const c = view.entities.entityCenter(state, entityId);
-    if (c) view.marker.show(c.x, c.z, 'action', performance.now());
+    if (c) view.marker.show(c.x, c.z, 'action', clockNow());
   };
   const walk = (tile: Tile) => {
     queue({ type: 'walk', x: tile.x, y: tile.y });
-    view.marker.show(tile.x + 0.5, tile.y + 0.5, 'walk', performance.now());
+    view.marker.show(tile.x + 0.5, tile.y + 0.5, 'walk', clockNow());
   };
   const examine = (text: string) => chat.add(text, 'examine');
 
@@ -330,7 +333,7 @@ async function boot(): Promise<void> {
   // ── Sim events ─────────────────────────────────────────────────────────────
   const skillName = (id: string) => content.skills.get(id)?.name ?? id;
   const handleEvents = (events: SimEvent[]) => {
-    const now = performance.now();
+    const now = clockNow();
     for (const e of events) {
       switch (e.type) {
         case 'message':
@@ -338,6 +341,7 @@ async function boot(): Promise<void> {
           break;
         case 'xp':
           hud.xpDrop(skillName(e.skillId), e.amount);
+          view.entities.playWork(state, e.skillId, now);
           break;
         case 'levelUp':
           hud.banner(`${skillName(e.skillId)} level ${e.level}!`);
@@ -348,6 +352,7 @@ async function boot(): Promise<void> {
           view.entities.markHit(e.targetId, now);
           break;
         case 'attack': {
+          view.entities.playAttack(e.attackerId, e.style, now);
           if (e.style === 'melee') break;
           const explosive = e.style === 'explosive';
           const from = view.entities.positionOf(e.attackerId);
@@ -364,6 +369,7 @@ async function boot(): Promise<void> {
           break;
         }
         case 'death': {
+          view.entities.markDeath(e.entityId, now);
           const at = view.entities.positionOf(e.entityId);
           if (at && e.entityId !== PLAYER_ID) {
             view.bursts.spawn(at, PALETTES.sludge, now, {
@@ -391,14 +397,20 @@ async function boot(): Promise<void> {
   document.addEventListener('visibilitychange', () => document.hidden && persist());
 
   if (import.meta.env.DEV) {
-    Object.assign(window, { __game: { state, queue, content, ctx } });
+    // QA hook. advance(ms) steps the game clock frame by frame, even in a hidden tab.
+    const advance = (ms: number) => {
+      for (let t = 0; t < ms; t += 16) {
+        clockOffset += 16;
+        step(clockNow());
+      }
+    };
+    Object.assign(window, { __game: { state, queue, content, ctx, view: () => view, advance } });
   }
 
   // ── Main loop: fixed 600 ms ticks, rendering every frame ───────────────────
-  let lastTickAt = performance.now();
+  let lastTickAt = clockNow();
   let lastFrameAt = lastTickAt;
-  const frame = (now: number) => {
-    requestAnimationFrame(frame);
+  const step = (now: number) => {
     // After a long stall (background tab), resume without a burst of ticks.
     if (now - lastTickAt > TICK_MS * MAX_CATCHUP_TICKS) lastTickAt = now - TICK_MS;
     while (now - lastTickAt >= TICK_MS) {
@@ -412,7 +424,7 @@ async function boot(): Promise<void> {
     lastFrameAt = now;
     const p = state.player;
 
-    view.entities.update(state, alpha, dt, now / 1000, cam.camera);
+    view.entities.update(state, alpha, dt, now);
     cam.update(dt, keyboard.cameraAxes(), view.entities.playerPosition);
     view.marker.update(now);
     view.bursts.update(now);
@@ -454,6 +466,10 @@ async function boot(): Promise<void> {
     quests.update(state, currentHint(state, ctx));
     journal.update(state);
     renderer.render(view.scene, cam.camera);
+  };
+  const frame = (t: number) => {
+    requestAnimationFrame(frame);
+    step(t + clockOffset);
   };
   requestAnimationFrame(frame);
 }

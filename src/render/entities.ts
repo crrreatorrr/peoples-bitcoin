@@ -1,55 +1,69 @@
 /**
  * Draws everything that lives in the current zone: the player, their Sproto,
- * NPCs, enemies, objects and ground items. Reads state only. Actors are
- * interpolated between their previous and current tiles. Sprite actors flip to
- * face their direction of travel and bob as they walk; primitive placeholders
- * turn and swing their limbs instead.
+ * NPCs, enemies, objects and ground items. Reads state only. Actors are 3D
+ * models interpolated between their previous and current tiles; they turn to
+ * face where they walk or what they fight, and animate.ts poses them (walk,
+ * run, weapon stances, attacks, flinches, skilling, death). The player wears
+ * their armor and holds their weapon, or their tool while skilling.
  */
 import * as THREE from 'three';
-import { RENDER } from '../config/balance';
+import { COMBAT, RENDER } from '../config/balance';
 import { builtOption } from '../sim/bunker';
 import type { Content } from '../sim/content';
+import { bestTool } from '../sim/inventory';
 import {
   maxHp,
   PLAYER_ID,
   SPROTO_ID,
+  type AttackStyle,
   type GameState,
   type GroundItem,
   type ObjectInstance,
+  type PlayerState,
   type Tile,
 } from '../sim/state';
+import { levelForXp } from '../sim/xp';
+import { dressFor, holdRight, type ActorModel } from './actors';
+import { DEATH_MS, poseActor, STRIDE_RAD_PER_TILE, type WorkAnim } from './animate';
 import { HpBar } from './effects';
-import { SPRITE_NAME, type AssetLoader } from './loader';
+import { holdOf } from './gear';
+import type { AssetLoader } from './loader';
 
 const PLAYER_MODEL = 'player_president';
-
-// Procedural placeholder animation (sprites bob instead).
-const WALK_CYCLE_HZ = 1.6;
-const WALK_SWING_RAD = 0.7;
-const MINE_CYCLE_HZ = 1.1;
-const SPRITE_BOB = 0.07;
 const SMOKE_BOB = 0.06;
-const GROUND_ITEM_SIZE = 0.42;
-const GROUND_ITEM_HEIGHT = 0.22;
+const GROUND_ITEM_SIZE = 0.5;
 /** HP bars stay up this long after a hit. */
 const HP_BAR_MS = 4000;
-
-type AnimMode = 'idle' | 'walk' | 'work';
+/** How long a one-off skilling burst (a Construction build) animates. */
+const WORK_BURST_MS = 1400;
+/** Moving further than this in one frame is a teleport, not a step. */
+const TELEPORT_DISTANCE = 2.5;
 
 interface ActorView {
+  /** Positioned on the tile, turned to face. */
   root: THREE.Group;
-  parts: Partial<Record<'legL' | 'legR' | 'armL' | 'armR' | 'tool', THREE.Object3D>>;
-  sprite: THREE.Sprite | null;
-  height: number;
-  facing: number;
-  hpBar: HpBar;
-  lastHitAt: number;
+  actor: ActorModel;
   modelId: string;
+  /** Worn items the model was built with (player only). */
+  dressKey: string;
+  facing: number;
+  phase: number;
+  attackAt: number;
+  attackStyle: AttackStyle;
+  hitAt: number;
+  diedAt: number;
+  hpBar: HpBar;
+}
+
+interface Doing {
+  combat: boolean;
+  work: WorkAnim | null;
+  face: Tile | null;
 }
 
 interface ObjectView {
   root: THREE.Group;
-  model: THREE.Object3D;
+  model: THREE.Group;
   modelId: string;
   instance: ObjectInstance;
 }
@@ -65,10 +79,11 @@ export class EntityRenderer {
   private readonly npcs = new Map<string, ActorView>();
   private readonly enemies = new Map<string, ActorView>();
   private readonly objects: ObjectView[] = [];
-  private readonly groundItems = new Map<string, THREE.Sprite>();
+  private readonly groundItems = new Map<string, THREE.Mesh>();
+  private readonly groundGeometry = new THREE.PlaneGeometry(GROUND_ITEM_SIZE, GROUND_ITEM_SIZE);
   private readonly segment = { dx: 0, dz: 0 };
   private readonly scratch = new THREE.Vector3();
-  private readonly cameraRight = new THREE.Vector3();
+  private workBurst: { anim: WorkAnim; tool: string | null; until: number } | null = null;
 
   constructor(
     private readonly scene: THREE.Scene,
@@ -76,7 +91,8 @@ export class EntityRenderer {
     private readonly content: Content,
     state: GameState,
   ) {
-    this.player = this.createActor(PLAYER_MODEL);
+    this.player = this.createActor(PLAYER_MODEL, dressKeyOf(state.player));
+    interpolateSteps([state.player.pos], 1, this.player.root.position, this.segment);
 
     for (const npc of state.zone.npcs) {
       const view = this.createActor(this.content.npcs.get(npc.defId)!.model);
@@ -99,27 +115,54 @@ export class EntityRenderer {
     }
   }
 
-  update(state: GameState, alpha: number, dt: number, timeSec: number, camera: THREE.Camera): void {
+  update(state: GameState, alpha: number, dt: number, now: number): void {
     const t = Math.min(1, Math.max(0, alpha));
-    this.cameraRight.setFromMatrixColumn(camera.matrixWorld, 0);
-    this.updateObjects(state, timeSec);
+    this.updateObjects(state, dt, now);
     this.updateGroundItems(state.zone.groundItems);
-    this.updatePlayer(state, t, dt, timeSec);
-    this.updateSproto(state, t, dt, timeSec);
-    this.updateEnemies(state, t, dt, timeSec);
+    this.updatePlayer(state, t, dt, now);
+    this.updateSproto(state, t, dt, now);
+    this.updateEnemies(state, t, dt, now);
     for (const npc of state.zone.npcs) {
       const view = this.npcs.get(npc.id);
       if (!view) continue;
-      const talking =
-        state.player.dialogue?.npcId === npc.id || state.player.action?.targetId === npc.id;
-      this.moveActor(view, [npc.from, npc], t, dt, timeSec, talking ? state.player.pos : null, npc);
+      const talking = state.player.dialogue?.npcId === npc.id;
+      const facing = talking || state.player.action?.targetId === npc.id;
+      this.drive(view, [npc.from, npc], t, dt, now, npc, {
+        combat: false,
+        work: talking ? 'gesture' : null,
+        face: facing ? state.player.pos : null,
+      });
     }
   }
 
-  /** Called when something is hit, so its HP bar shows. */
+  /** Something was hit: show its HP bar and play a flinch. */
   markHit(entityId: string, now: number): void {
     const view = this.viewOf(entityId);
-    if (view) view.lastHitAt = now;
+    if (view) view.hitAt = now;
+  }
+
+  /** Something attacked: swing, shoot or lunge. */
+  playAttack(attackerId: string, style: AttackStyle, now: number): void {
+    const view = this.viewOf(attackerId);
+    if (!view) return;
+    view.attackAt = now;
+    view.attackStyle = style;
+  }
+
+  /** Something died: it falls over before disappearing. */
+  markDeath(entityId: string, now: number): void {
+    const view = this.viewOf(entityId);
+    if (view && entityId !== PLAYER_ID) view.diedAt = now;
+  }
+
+  /** A one-off skilling animation for actions that finish instantly (Construction). */
+  playWork(state: GameState, skillId: string, now: number): void {
+    if (skillId !== 'construction') return;
+    this.workBurst = {
+      anim: 'hammer',
+      tool: this.toolFor(state.player, skillId),
+      until: now + WORK_BURST_MS,
+    };
   }
 
   /** Interpolated world position of an entity's feet, or null if it isn't drawn. */
@@ -132,10 +175,9 @@ export class EntityRenderer {
     return this.groundItems.get(entityId)?.position ?? null;
   }
 
-  /** Height of an entity's sprite/model, for placing hitsplats and arrows above it. */
+  /** Height of an entity's model, for placing hitsplats and arrows above it. */
   heightOf(entityId: string): number {
-    if (entityId === PLAYER_ID) return this.player.height;
-    return this.viewOf(entityId)?.height ?? 1.5;
+    return this.viewOf(entityId)?.actor.height ?? 1.5;
   }
 
   /** World-space center of an entity's footprint, or null if it doesn't exist. */
@@ -175,7 +217,7 @@ export class EntityRenderer {
     return def.model;
   }
 
-  private updateObjects(state: GameState, timeSec: number): void {
+  private updateObjects(state: GameState, dt: number, now: number): void {
     for (const view of this.objects) {
       const modelId = this.objectModel(state, view.instance);
       if (modelId !== view.modelId) {
@@ -185,7 +227,9 @@ export class EntityRenderer {
         view.modelId = modelId;
       }
       const smoke = view.model.getObjectByName('smoke');
-      if (smoke) smoke.position.y = Math.sin(timeSec * 3) * SMOKE_BOB;
+      if (smoke) smoke.position.y = Math.sin((now / 1000) * 3) * SMOKE_BOB;
+      const actor = view.model.userData.actor as ActorModel | undefined;
+      if (actor) poseActor(actor, idleInput(now, dt));
     }
   }
 
@@ -195,47 +239,57 @@ export class EntityRenderer {
       live.add(item.id);
       if (this.groundItems.has(item.id)) continue;
       const model = this.content.items.get(item.itemId)?.model ?? '';
-      const sprite = new THREE.Sprite(
-        new THREE.SpriteMaterial({ map: this.assets.iconTexture(model), alphaTest: 0.4 }),
+      // Lying flat on the ground, like OSRS drops: never pokes through walls.
+      const mesh = new THREE.Mesh(
+        this.groundGeometry,
+        new THREE.MeshBasicMaterial({ map: this.assets.iconTexture(model), alphaTest: 0.4 }),
       );
-      sprite.scale.setScalar(GROUND_ITEM_SIZE);
-      sprite.position.set(item.x + 0.5, GROUND_ITEM_HEIGHT, item.y + 0.5);
-      sprite.userData.entityId = item.id;
-      this.scene.add(sprite);
-      this.pickables.push(sprite);
-      this.groundItems.set(item.id, sprite);
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.position.set(item.x + 0.5, 0.03, item.y + 0.5);
+      mesh.userData.entityId = item.id;
+      this.scene.add(mesh);
+      this.pickables.push(mesh);
+      this.groundItems.set(item.id, mesh);
     }
-    for (const [id, sprite] of this.groundItems) {
+    for (const [id, mesh] of this.groundItems) {
       if (live.has(id)) continue;
-      this.scene.remove(sprite);
-      sprite.material.dispose();
-      this.pickables.splice(this.pickables.indexOf(sprite), 1);
+      this.scene.remove(mesh);
+      (mesh.material as THREE.Material).dispose();
+      this.pickables.splice(this.pickables.indexOf(mesh), 1);
       this.groundItems.delete(id);
     }
   }
 
-  private updatePlayer(state: GameState, t: number, dt: number, timeSec: number): void {
+  private updatePlayer(state: GameState, t: number, dt: number, now: number): void {
     const p = state.player;
-    const view = this.player;
-    const moving = interpolateSteps(p.stepsThisTick, t, this.playerPosition, this.segment);
-    view.root.position.copy(this.playerPosition);
+    const key = dressKeyOf(p);
+    if (key !== this.player.dressKey) this.redress(this.player, key);
 
-    let mode: AnimMode = moving && t < 1 ? 'walk' : 'idle';
-    let face: Tile | null = null;
+    const work = this.workOf(state, now);
+    const fighting = p.action?.action === 'Attack';
+    const weapon = p.equipment.weapon?.itemId ?? null;
+    const swingingWithoutWeapon =
+      this.player.attackStyle === 'melee' &&
+      holdOf(weapon) !== 'melee' &&
+      now - this.player.attackAt < 900;
+    let held = weapon;
+    if (work) held = work.tool;
+    else if ((fighting && !weapon) || swingingWithoutWeapon) held = COMBAT.fallbackWeaponId;
+    holdRight(this.player.actor, held);
+
     const targetId = p.action?.targetId ?? p.dialogue?.npcId;
-    if (mode === 'idle' && targetId && p.path.length === 0) {
-      const target = this.entityCenter(state, targetId);
-      if (target) face = { x: target.x - 0.5, y: target.z - 0.5 };
-      if (p.action && p.action.nextAttemptTick !== null) mode = 'work';
-    }
-    this.pose(view, mode, moving ? this.segment : null, face, p.pos, dt, timeSec);
-    view.hpBar.set(
-      p.hp / maxHp(p),
-      p.hp < maxHp(p) || performance.now() - view.lastHitAt < HP_BAR_MS,
-    );
+    const target = targetId ? this.entityCenter(state, targetId) : null;
+    const face = target ? { x: target.x - 0.5, y: target.z - 0.5 } : null;
+    this.drive(this.player, p.stepsThisTick, t, dt, now, p.pos, {
+      combat: fighting && p.path.length === 0,
+      work: work?.anim ?? null,
+      face,
+    });
+    this.playerPosition.copy(this.player.root.position);
+    this.player.hpBar.set(p.hp / maxHp(p), p.hp < maxHp(p) || now - this.player.hitAt < HP_BAR_MS);
   }
 
-  private updateSproto(state: GameState, t: number, dt: number, timeSec: number): void {
+  private updateSproto(state: GameState, t: number, dt: number, now: number): void {
     const s = state.player.sproto;
     const modelId = s ? this.content.sprotos.get(s.defId)?.model : undefined;
     if (this.sproto && (!s || this.sproto.modelId !== modelId)) {
@@ -247,109 +301,182 @@ export class EntityRenderer {
     if (!this.sproto) {
       this.sproto = this.createActor(modelId);
       this.sproto.root.userData.entityId = SPROTO_ID;
+      interpolateSteps([s], 1, this.sproto.root.position, this.segment);
     }
     const target = s.target ? state.zone.enemies.find((e) => e.id === s.target) : null;
-    this.moveActor(this.sproto, [s.from, s], t, dt, timeSec, target ?? null);
+    this.drive(this.sproto, [s.from, s], t, dt, now, s, {
+      combat: target != null,
+      work: null,
+      face: target ?? null,
+    });
     const max = this.content.sprotos.get(s.defId)?.hp ?? s.hp;
     this.sproto.hpBar.set(s.hp / max, s.hp < max);
   }
 
-  private updateEnemies(state: GameState, t: number, dt: number, timeSec: number): void {
+  private updateEnemies(state: GameState, t: number, dt: number, now: number): void {
     const live = new Set<string>();
-    const now = performance.now();
     for (const enemy of state.zone.enemies) {
       live.add(enemy.id);
       let view = this.enemies.get(enemy.id);
       if (!view) {
         view = this.createActor(this.content.enemies.get(enemy.defId)!.model);
         view.root.userData.entityId = enemy.id;
+        interpolateSteps([enemy], 1, view.root.position, this.segment);
         this.pickables.push(view.root);
         this.enemies.set(enemy.id, view);
       }
-      view.root.visible = enemy.respawnAt === null;
+      const dead = enemy.respawnAt !== null;
+      if (!dead && view.diedAt !== -Infinity) {
+        // Respawned: stand up at the spawn point.
+        view.diedAt = -Infinity;
+        view.hitAt = -Infinity;
+        interpolateSteps([enemy], 1, view.root.position, this.segment);
+      }
+      view.root.visible = !dead || now - view.diedAt < DEATH_MS;
       if (!view.root.visible) continue;
+      if (dead) {
+        poseActor(view.actor, { ...idleInput(now, dt), diedAt: view.diedAt });
+        continue;
+      }
       const target =
         enemy.target === PLAYER_ID
           ? state.player.pos
           : enemy.target === SPROTO_ID
             ? state.player.sproto
             : null;
-      this.moveActor(view, [enemy.from, enemy], t, dt, timeSec, target ?? null);
+      this.drive(view, [enemy.from, enemy], t, dt, now, enemy, {
+        combat: target != null,
+        work: null,
+        face: target ?? null,
+      });
       const max = this.content.enemies.get(enemy.defId)?.hp ?? enemy.hp;
-      view.hpBar.set(enemy.hp / max, enemy.hp < max || now - view.lastHitAt < HP_BAR_MS);
+      view.hpBar.set(enemy.hp / max, enemy.hp < max || now - view.hitAt < HP_BAR_MS);
     }
     for (const [id, view] of this.enemies) {
       if (live.has(id)) continue;
+      // Adds vanish from the state when killed; let them finish falling.
+      if (now - view.diedAt < DEATH_MS) {
+        poseActor(view.actor, { ...idleInput(now, dt), diedAt: view.diedAt });
+        continue;
+      }
       this.scene.remove(view.root);
       this.pickables.splice(this.pickables.indexOf(view.root), 1);
       this.enemies.delete(id);
     }
   }
 
-  /** Interpolates an actor between two tiles and poses it. */
-  private moveActor(
+  /** Moves an actor along this tick's steps, turns it and poses it. */
+  private drive(
     view: ActorView,
     steps: readonly Tile[],
     t: number,
     dt: number,
-    timeSec: number,
-    faceTarget: Tile | null,
-    at?: Tile,
-  ): void {
-    const moving = interpolateSteps(steps, t, view.root.position, this.segment);
-    const here = at ?? steps[steps.length - 1];
-    this.pose(
-      view,
-      moving && t < 1 ? 'walk' : 'idle',
-      moving ? this.segment : null,
-      faceTarget,
-      here,
-      dt,
-      timeSec,
-    );
-  }
-
-  private pose(
-    view: ActorView,
-    mode: AnimMode,
-    moveDir: { dx: number; dz: number } | null,
-    faceTile: Tile | null,
+    now: number,
     here: Tile,
-    dt: number,
-    timeSec: number,
+    doing: Doing,
   ): void {
-    const dir = moveDir ?? (faceTile ? { dx: faceTile.x - here.x, dz: faceTile.y - here.y } : null);
-    if (view.sprite) {
-      // Flip the billboard to face left/right on screen, and bob while moving or working.
-      if (dir && (dir.dx !== 0 || dir.dz !== 0)) {
-        const screenX = dir.dx * this.cameraRight.x + dir.dz * this.cameraRight.z;
-        if (Math.abs(screenX) > 0.01)
-          view.sprite.scale.x = Math.abs(view.sprite.scale.x) * (screenX < 0 ? -1 : 1);
-      }
-      const hz = mode === 'walk' ? WALK_CYCLE_HZ * 2 : mode === 'work' ? MINE_CYCLE_HZ * 2 : 0;
-      view.sprite.position.y = hz ? Math.abs(Math.sin(timeSec * Math.PI * hz)) * SPRITE_BOB : 0;
-      return;
-    }
+    const before = this.scratch.copy(view.root.position);
+    const moved = interpolateSteps(steps, t, view.root.position, this.segment);
+    const moving = moved && t < 1;
+    const distance = before.distanceTo(view.root.position);
+    if (distance < TELEPORT_DISTANCE) view.phase += distance * STRIDE_RAD_PER_TILE;
+
+    const face = doing.face;
+    const dir = moving
+      ? this.segment
+      : face && (face.x !== here.x || face.y !== here.y)
+        ? { dx: face.x - here.x, dz: face.y - here.y }
+        : null;
     if (dir && (dir.dx !== 0 || dir.dz !== 0)) turnToward(view, Math.atan2(dir.dx, dir.dz), dt);
-    animate(view, mode, timeSec);
+
+    poseActor(view.actor, {
+      now,
+      dt,
+      moving,
+      running: steps.length > 2,
+      phase: view.phase,
+      combat: doing.combat,
+      work: moving ? null : doing.work,
+      attackAt: view.attackAt,
+      attackStyle: view.attackStyle,
+      hitAt: view.hitAt,
+      diedAt: view.diedAt,
+    });
   }
 
-  private createActor(modelId: string): ActorView {
-    const root = this.assets.create(modelId);
-    const parts: ActorView['parts'] = {};
-    for (const name of ['legL', 'legR', 'armL', 'armR', 'tool'] as const) {
-      const part = root.getObjectByName(name);
-      if (part) parts[name] = part;
-    }
-    const sprite = (root.getObjectByName(SPRITE_NAME) as THREE.Sprite | undefined) ?? null;
-    const box = new THREE.Box3().setFromObject(root);
-    const height = sprite ? sprite.scale.y : Math.max(0.5, box.max.y);
-    const hpBar = new HpBar();
-    hpBar.sprite.position.y = height + 0.25;
-    root.add(hpBar.sprite);
-    this.scene.add(root);
-    return { root, parts, sprite, height, facing: 0, hpBar, lastHitAt: -Infinity, modelId };
+  /** What skilling loop the player is in, and the tool it shows. */
+  private workOf(state: GameState, now: number): { anim: WorkAnim; tool: string | null } | null {
+    const p = state.player;
+    if (this.workBurst && now < this.workBurst.until && p.path.length === 0) return this.workBurst;
+    const a = p.action;
+    if (!a || a.action === 'Attack' || a.nextAttemptTick === null || p.path.length > 0) return null;
+    const obj = state.zone.objects.find((o) => o.id === a.targetId);
+    const def = obj && this.content.objects.get(obj.defId);
+    if (!def) return null;
+    if (def.role === 'station') return { anim: 'gesture', tool: null };
+    const node = this.content.gatherByObject.get(def.id);
+    if (!node) return null;
+    const tool = this.toolFor(p, node.skillId);
+    return { anim: node.skillId === 'mining' ? 'swing' : 'gesture', tool };
   }
+
+  private toolFor(p: PlayerState, skillId: string): string | null {
+    const level = levelForXp(p.skills[skillId] ?? 0);
+    return bestTool(p.inventory, this.content, skillId, level)?.id ?? null;
+  }
+
+  private createActor(modelId: string, dressKey = ''): ActorView {
+    const root = new THREE.Group();
+    const view: ActorView = {
+      root,
+      actor: this.assets.actor(modelId, dressFor(dressKey.split('|'))),
+      modelId,
+      dressKey,
+      facing: 0,
+      phase: 0,
+      attackAt: -Infinity,
+      attackStyle: 'melee',
+      hitAt: -Infinity,
+      diedAt: -Infinity,
+      hpBar: new HpBar(),
+    };
+    root.add(view.actor.root, view.hpBar.sprite);
+    view.hpBar.sprite.position.y = view.actor.height + 0.25;
+    this.scene.add(root);
+    return view;
+  }
+
+  /** Rebuilds the player's model after armor changes. */
+  private redress(view: ActorView, dressKey: string): void {
+    view.root.remove(view.actor.root);
+    view.actor = this.assets.actor(view.modelId, dressFor(dressKey.split('|')));
+    view.dressKey = dressKey;
+    view.root.add(view.actor.root);
+    view.hpBar.sprite.position.y = view.actor.height + 0.25;
+  }
+}
+
+/** Worn head, body and legs items, which change how the player is built. */
+function dressKeyOf(p: PlayerState): string {
+  return [p.equipment.head, p.equipment.body, p.equipment.legs]
+    .map((s) => s?.itemId ?? '')
+    .join('|');
+}
+
+function idleInput(now: number, dt: number) {
+  return {
+    now,
+    dt,
+    moving: false,
+    running: false,
+    phase: 0,
+    combat: false,
+    work: null,
+    attackAt: -Infinity,
+    attackStyle: 'melee' as const,
+    hitAt: -Infinity,
+    diedAt: -Infinity,
+  };
 }
 
 /** Positions `out` along the tiles stepped this tick; returns true if the actor moved. */
@@ -382,17 +509,4 @@ function turnToward(view: ActorView, angle: number, dt: number): void {
   const step = RENDER.turnSpeed * dt;
   view.facing += Math.abs(diff) <= step ? diff : Math.sign(diff) * step;
   view.root.rotation.y = view.facing;
-}
-
-function animate(view: ActorView, mode: AnimMode, t: number): void {
-  const { legL, legR, armL, armR, tool } = view.parts;
-  const swing = mode === 'walk' ? Math.sin(t * Math.PI * 2 * WALK_CYCLE_HZ) * WALK_SWING_RAD : 0;
-  if (legL) legL.rotation.x = swing;
-  if (legR) legR.rotation.x = -swing;
-  if (armL) armL.rotation.x = -swing * 0.8;
-  if (armR) {
-    armR.rotation.x =
-      mode === 'work' ? -1.4 - 0.8 * Math.sin(t * Math.PI * 2 * MINE_CYCLE_HZ) : swing * 0.8;
-  }
-  if (tool) tool.visible = mode === 'work';
 }

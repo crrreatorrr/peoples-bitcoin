@@ -5,101 +5,15 @@
  * and replaceable by GLBs later.
  */
 import * as THREE from 'three';
+import { blob, box, canvasTexture, cylinder, hash2, lambert, shade } from './kit';
 import type { AssetEntry } from './loader';
+import { buildProp } from './props';
 
 const TEX_SIZE = 64;
-const materialCache = new Map<string, THREE.MeshLambertMaterial>();
-const textureCache = new Map<string, THREE.Texture>();
 
 export interface TerrainPart {
   geometry: THREE.BufferGeometry;
   material: THREE.Material;
-}
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-interface MatOptions {
-  emissive?: string;
-  map?: THREE.Texture;
-  opacity?: number;
-}
-
-function lambert(color: string, opts: MatOptions = {}): THREE.MeshLambertMaterial {
-  const key = [color, opts.emissive, opts.map?.uuid, opts.opacity].join('|');
-  let mat = materialCache.get(key);
-  if (!mat) {
-    mat = new THREE.MeshLambertMaterial({
-      color,
-      flatShading: true,
-      emissive: opts.emissive ?? '#000000',
-      map: opts.map ?? null,
-      transparent: opts.opacity !== undefined,
-      opacity: opts.opacity ?? 1,
-    });
-    materialCache.set(key, mat);
-  }
-  return mat;
-}
-
-function box(
-  w: number,
-  h: number,
-  d: number,
-  mat: THREE.Material,
-  x = 0,
-  y = 0,
-  z = 0,
-): THREE.Mesh {
-  const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
-  mesh.position.set(x, y, z);
-  return mesh;
-}
-
-function cylinder(r: number, h: number, mat: THREE.Material, y: number, segments = 6): THREE.Mesh {
-  const mesh = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, segments), mat);
-  mesh.position.y = y;
-  return mesh;
-}
-
-function blob(r: number, mat: THREE.Material, x: number, y: number, z: number): THREE.Mesh {
-  const mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(r, 0), mat);
-  mesh.position.set(x, y, z);
-  return mesh;
-}
-
-/** Brightens (>1) or darkens (<1) a hex color. */
-function shade(hex: string, factor: number): string {
-  return `#${new THREE.Color(hex).multiplyScalar(factor).getHexString()}`;
-}
-
-/** Deterministic 0..1 noise for texture pixels. */
-function hash2(x: number, y: number, seed: number): number {
-  let h = (x * 374761393 + y * 668265263 + seed * 982451653) | 0;
-  h = Math.imul(h ^ (h >>> 13), 1274126177);
-  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
-}
-
-function canvasTexture(
-  key: string,
-  width: number,
-  height: number,
-  draw: (ctx: CanvasRenderingContext2D) => void,
-): THREE.Texture {
-  let tex = textureCache.get(key);
-  if (tex) return tex;
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d')!;
-  ctx.imageSmoothingEnabled = false;
-  draw(ctx);
-  tex = new THREE.CanvasTexture(canvas);
-  tex.magFilter = THREE.NearestFilter;
-  tex.minFilter = THREE.NearestFilter;
-  tex.generateMipmaps = false;
-  tex.colorSpace = THREE.SRGBColorSpace;
-  textureCache.set(key, tex);
-  return tex;
 }
 
 function patternTexture(e: AssetEntry): THREE.Texture {
@@ -153,12 +67,10 @@ export function terrainPart(e: AssetEntry): TerrainPart {
   return { geometry, material: lambert('#ffffff', { map: patternTexture(e) }) };
 }
 
-// ── Entity placeholders (feet at y = 0, facing +z) ───────────────────────────
+// ── Props (feet at y = 0, facing +z) ─────────────────────────────────────────
 
 export function buildPlaceholder(e: AssetEntry): THREE.Object3D {
   switch (e.placeholder) {
-    case 'humanoid':
-      return humanoid(e);
     case 'rack':
       return rack(e);
     case 'tree':
@@ -177,59 +89,9 @@ export function buildPlaceholder(e: AssetEntry): THREE.Object3D {
       return bankBooth(e);
     case 'prop':
       return prop(e);
-    case 'sludge':
-      return sludge(e);
     default:
-      return box(0.8, 0.8, 0.8, lambert(e.color), 0, 0.4, 0);
+      return buildProp(e) ?? box(0.8, 0.8, 0.8, lambert(e.color), 0, 0.4, 0);
   }
-}
-
-function humanoid(e: AssetEntry): THREE.Group {
-  const g = new THREE.Group();
-  const suit = lambert(e.color);
-  const trousers = lambert(shade(e.color, 0.75));
-  const skin = lambert(e.skin ?? '#d9a57a');
-  const hair = lambert(e.hair ?? '#333333');
-  const black = lambert('#141414');
-  const shirt = lambert('#f0f0f0');
-
-  for (const side of [-1, 1]) {
-    const leg = new THREE.Group();
-    leg.name = side < 0 ? 'legL' : 'legR';
-    leg.position.set(side * 0.11, 0.56, 0);
-    leg.add(box(0.17, 0.5, 0.2, trousers, 0, -0.25, 0));
-    leg.add(box(0.18, 0.08, 0.27, black, 0, -0.52, 0.03));
-    g.add(leg);
-  }
-
-  g.add(box(0.48, 0.55, 0.28, suit, 0, 0.84, 0));
-  g.add(box(0.16, 0.22, 0.01, shirt, 0, 1.0, 0.145));
-  g.add(box(0.07, 0.36, 0.02, lambert(e.accent ?? '#b3262e'), 0, 0.92, 0.15));
-
-  for (const side of [-1, 1]) {
-    const arm = new THREE.Group();
-    arm.name = side < 0 ? 'armL' : 'armR';
-    arm.position.set(side * 0.31, 1.08, 0);
-    arm.add(box(0.13, 0.48, 0.16, suit, 0, -0.22, 0));
-    arm.add(box(0.11, 0.1, 0.12, skin, 0, -0.5, 0));
-    if (side > 0) {
-      const tool = new THREE.Group();
-      tool.name = 'tool';
-      tool.visible = false;
-      tool.add(box(0.04, 0.04, 0.42, lambert('#6b4a2b'), 0, -0.5, 0.2));
-      tool.add(box(0.06, 0.26, 0.07, lambert('#9aa3ad'), 0, -0.5, 0.4));
-      arm.add(tool);
-    }
-    g.add(arm);
-  }
-
-  g.add(box(0.3, 0.32, 0.3, skin, 0, 1.3, 0));
-  g.add(box(0.32, 0.08, 0.32, hair, 0, 1.48, -0.01));
-  g.add(box(0.32, 0.2, 0.06, hair, 0, 1.38, -0.15));
-  g.add(box(0.05, 0.05, 0.01, black, -0.07, 1.32, 0.151));
-  g.add(box(0.05, 0.05, 0.01, black, 0.07, 1.32, 0.151));
-  if (e.glasses) g.add(box(0.27, 0.025, 0.01, black, 0, 1.35, 0.158));
-  return g;
 }
 
 function rack(e: AssetEntry): THREE.Group {
@@ -368,19 +230,6 @@ function prop(e: AssetEntry): THREE.Group {
   const h = e.height ?? 1;
   g.add(box(0.8, h, 0.8, lambert(e.color), 0, h / 2, 0));
   g.add(box(0.84, 0.08, 0.84, lambert(shade(e.color, 1.3)), 0, h, 0));
-  return g;
-}
-
-function sludge(e: AssetEntry): THREE.Group {
-  const g = new THREE.Group();
-  const goo = lambert(e.color);
-  const eye = lambert('#111111', { emissive: e.accent ?? '#e0c040' });
-  g.add(
-    blob(0.42, goo, 0, 0.35, 0),
-    blob(0.3, goo, 0.18, 0.2, 0.12),
-    blob(0.26, goo, -0.2, 0.18, -0.08),
-  );
-  g.add(box(0.08, 0.08, 0.02, eye, -0.12, 0.5, 0.38), box(0.08, 0.08, 0.02, eye, 0.12, 0.5, 0.38));
   return g;
 }
 
