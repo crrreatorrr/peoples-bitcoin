@@ -169,3 +169,29 @@ The owner's revisions are recorded at the top of DESIGN.md. Choices made while b
   turn-in and the next briefing are separate conversations.
 - **Main questline:** Sludge Duty → Name Calling → Motion Denied, one per Trenches boss, worth
   2/2/3 quest points (tutorial and Bunker Down 1 each, 9 total).
+- **Chat heads** are rendered from the 3D models into an offscreen target on the main renderer
+  (no second WebGL context) and cached as images.
+
+## OSRS feel pass (0.4.0)
+
+An audit compared movement and interface with OSRS; these choices came out of it.
+
+- **Clicks act on press** (left: default action; right: the menu). Right-drag no longer rotates
+  the camera (DESIGN.md §2 said it did): middle-drag, arrow keys and a sideways trackpad swipe do.
+- **Enemies chase with direct steps** (diagonal, else x, else y), not A\*, so walls block them
+  and safespots work; they aggro only with line of sight. A\* is kept for the player, Sprotos and
+  enemies walking home.
+- **Leash:** enemies never step more than `ENEMIES.leashRange` from spawn and hold at the edge.
+  Fights with no attack either way for `ENEMIES.giveUpTicks` are dropped; enemies heal 1 HP per
+  `COMBAT.hpRegenEveryTicks` (no instant full heal).
+- **Single-way combat** everywhere except boss fights (bosses and their adds are multi-way): an
+  enemy can't attack you within `COMBAT.singleWayTicks` of another enemy's attack. The player
+  is not stopped from attacking a second enemy.
+- **Auto Retaliate** (saved, save v4) also interrupts skilling and closes menus, as in OSRS.
+- **Death** plays for `DEATH.respawnDelayTicks` ("Oh dear, you are dead!"); inputs are ignored
+  and enemies drop you while you fall.
+- **Projectile timing is visual only.** Damage still lands on the tick; the client delays the
+  hitsplat, flinch, death fall and explosion until the shot arrives (`RENDER.projectile*`).
+- **Terminal** left-click is Value; buying is in the right-click menu, like OSRS shops.
+- **Bosses stay one tile** in the sim; their models were scaled down to fit it rather than adding
+  multi-tile enemies.

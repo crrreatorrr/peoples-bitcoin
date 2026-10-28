@@ -9,6 +9,15 @@
 - [ ] More quests (DESIGN.md §12) and dialogue options (choices; replies exist)
 - [ ] Balance pass: XP rates, drop values, Terminal prices, enemy stats (all in data/balance.ts)
 
+## OSRS QA leftovers (0.4.0 audit)
+
+- [ ] Inventory "Use" (Use X → target, "Nothing interesting happens.") and the Use/Drop/Examine order
+- [ ] Inventory drag with pointer events and a drag delay (now native drag and drop)
+- [ ] Withdraw-X / Deposit-X with an "Enter amount" prompt; Deposit worn items
+- [ ] Multi-tile bosses (footprint for reach, pathing and blocking) instead of scaled-down models
+- [ ] Right-click menus on orbs (Toggle Run) and tab buttons
+- [ ] Optional OSRS setting: hide Attack on higher-level monsters (left-click walks)
+
 ## Known gaps from Phase 1
 
 - [ ] Draw calls: every character is ~30 small meshes and props a dozen each, over the Phase 6
@@ -24,7 +33,7 @@
 
 - Phase 3: random events, dialogue options, emotes
 - Phase 5: Grand Exchange (Swamp Exchange), friends/clan chat, world switching
-- Phase 6: music player, F-key tab hotkeys, roof toggle
+- Phase 6: music player, roof toggle
 - Not planned in DESIGN.md: prayer, spellbook, special attack (Command/Sprotos fill that role),
   achievement diaries, collection log, world map (one zone so far), doors
 

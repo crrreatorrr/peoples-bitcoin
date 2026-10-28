@@ -114,7 +114,10 @@ export class TerminalWindow {
 
     const footer = document.createElement('div');
     footer.className = 'terminal-footer';
-    footer.append(this.rate, span('terminal-hint', 'Sell: click items in your inventory.'));
+    footer.append(
+      this.rate,
+      span('terminal-hint', 'Buy: right-click an item. Sell: click items in your inventory.'),
+    );
     this.el.append(header, this.grid, footer);
     root.append(this.el);
   }

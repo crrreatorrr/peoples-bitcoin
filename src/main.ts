@@ -616,7 +616,7 @@ function greet(chat: Chat, status: 'loaded' | 'none' | 'unreadable'): void {
   }
   chat.add(`Welcome to The Treasury, ${PRESIDENT_NAME}.`);
   chat.add(
-    'ATTENTION ATTENTION: Follow the yellow arrow and the Quests tab. The Treasurer is waiting in the main hall.',
+    'ATTENTION ATTENTION: Follow the yellow arrow and the Quests tab. Morelight, your Chief of Staff, is waiting by the main path.',
   );
 }
 

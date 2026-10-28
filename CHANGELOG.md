@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.4.0 — 3D characters, Morelight, quests and an OSRS feel pass (2026-10-28)
+
+- **3D everything:** all characters and props are low-poly models built in code, styled like the
+  old sprites (which now serve as UI art). Nothing pokes through walls when the camera turns;
+  dropped items lie flat.
+- **Animation:** walk and run cycles, weapon stances, melee swings, gun recoil with muzzle flash,
+  monster lunges, flinches, death falls, and skilling loops (pick swings, hammering, gestures).
+- **Gear shows:** your weapon is in your hand (your tool while skilling); helmets, vests, plates
+  and greaves change your model.
+- **Morelight**, your Chief of Staff, opens the tutorial and guides it step by step, then gives
+  the main quests: **Sludge Duty**, **Name Calling** and **Motion Denied** (one per Trenches boss).
+- **Dialogue:** every NPC rewritten, with your character's replies, lines that change with quest
+  progress, and OSRS-style **chat heads**.
+- **Quest list:** quest points, red/yellow/green names, and a journal per quest.
+- **Training yard:** Spam Bots and Comment Trolls join the Sludgelings; a Comment Troll step.
+- **OSRS feel:** clicks act on press; `(level-N)` tags colored by your level; top-left hover
+  text; F-key tabs; attack clicks move on the same tick; direct-step enemy chasing with
+  safespots, leashes, give-ups and regen; single-way combat; Auto Retaliate (also while
+  skilling); 3-tick food delay; a death fall before respawn; projectiles with hits on arrival;
+  merged XP drops with icons; Terminal Value on left-click; Withdraw-All-but-1; minimap zoom and
+  instant flag; skilling start messages; NPCs wander to a spot.
+- **Fixes:** a dismissed Sproto made another enemy unclickable; lost clicks on tab buttons;
+  ranged attackers stuck on their target's tile; bank withdraws hitting a shifted stack; zone
+  changes leaked GPU memory; enemies remembered you across zones.
+- **Saves:** format v4 (Auto Retaliate); older saves upgrade.
+- **Tests:** 153.
+
 ## 0.3.0 — Skill web, combat, tutorial and Higgsfield art (2026-10-28)
 
 - **10 interconnected skills** (owner revision): Shooting, Melee, Defense, Hitpoints, Summoning,
