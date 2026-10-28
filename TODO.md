@@ -26,7 +26,7 @@
       plays. Wire an `AnimationMixer` when real art lands (Phase 6).
 - [ ] Mobile: long-press menu, one-finger camera drag, bottom-drawer panels (Phase 6). Taps already work.
 - [ ] The BTC wallet currency is still unused (BTC Shards are items that sell at the Terminal).
-- [ ] Bundle is ~760 KB (mostly Three.js); Vite warns at 500 KB. Split vendor chunk or raise the limit.
+- [ ] Bundle is ~1 MB (290 KB gzipped; mostly Three.js plus the code-built models); Vite warns at 500 KB. Split the vendor chunk or raise the limit.
 - [ ] Treasury exit portal once a second zone exists.
 
 ## OSRS features deferred to their phase
