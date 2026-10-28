@@ -114,6 +114,17 @@
         }
       },
       {
+        "id": "melee",
+        "text": "Hit a Sludgeling with your gavel (remove your gun in the Equipment tab first).",
+        "trigger": {
+          "type": "xp",
+          "skill": "melee"
+        },
+        "hint": {
+          "enemy": "enemy_sludgeling"
+        }
+      },
+      {
         "id": "talk_planner",
         "text": "Talk to The Party Planner in the west garden.",
         "trigger": {
