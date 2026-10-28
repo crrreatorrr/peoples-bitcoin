@@ -1162,10 +1162,13 @@ body {
 .equip-grid {
   display: grid;
   grid-template-columns: repeat(3, 46px);
+  /* OSRS worn-equipment layout. */
   grid-template-areas:
     '. head .'
-    'weapon body ammo'
-    '. legs .';
+    '. neck ammo'
+    'weapon body .'
+    '. legs .'
+    'hands feet .';
   gap: 4px;
   justify-content: center;
   margin-bottom: 8px;
@@ -1199,6 +1202,15 @@ body {
 }
 .equip-ammo {
   grid-area: ammo;
+}
+.equip-neck {
+  grid-area: neck;
+}
+.equip-hands {
+  grid-area: hands;
+}
+.equip-feet {
+  grid-area: feet;
 }
 
 .equip-slot img {
