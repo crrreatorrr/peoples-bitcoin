@@ -46,7 +46,8 @@ import { buildSettingsPanel } from './ui/settings';
 import { SidePanel } from './ui/sidepanel';
 import { SkillGuide } from './ui/skillguide';
 import { SkillsPanel } from './ui/skills';
-import { EquipmentTab, QuestsTab, SummoningTab } from './ui/tabs';
+import { QuestJournal, QuestList } from './ui/quests';
+import { EquipmentTab, SummoningTab } from './ui/tabs';
 import { TerminalWindow } from './ui/terminal';
 import { Tooltip, type TargetKind } from './ui/tooltips';
 import './styles.css';
@@ -214,7 +215,8 @@ async function boot(): Promise<void> {
     special: () => queue({ type: 'special' }),
     dismiss: () => queue({ type: 'dismiss' }),
   });
-  const quests = new QuestsTab(content);
+  const journal = new QuestJournal(hudRoot, content);
+  const quests = new QuestList(ctx, (questId) => journal.open(questId));
 
   let resetting = false;
   const persist = () => !resetting && saveGame(state);
@@ -278,6 +280,7 @@ async function boot(): Promise<void> {
       terminal.close();
       buildWindow.close();
       guide.close();
+      journal.close();
       sidePanel.select('inventory');
     } else if (e.key === ' ' && dialogue.isOpen) {
       e.preventDefault();
@@ -449,6 +452,7 @@ async function boot(): Promise<void> {
     equipment.update(state);
     summoning.update(state);
     quests.update(state, currentHint(state, ctx));
+    journal.update(state);
     renderer.render(view.scene, cam.camera);
   };
   requestAnimationFrame(frame);

@@ -1,12 +1,12 @@
 /**
  * Side-panel tabs that read game state: Equipment (gear, bonuses, combat
- * styles), Summoning (the active Sproto and its special) and Quests.
+ * styles) and Summoning (the active Sproto and its special). Quests live in
+ * quests.ts.
  */
 import { SUMMONING, TICK_MS } from '../config/balance';
 import { combatLevel } from '../sim/combat';
 import type { Content } from '../sim/content';
 import { armorTotals, attackProfile, GUN_STYLES, MELEE_STYLES } from '../sim/equipment';
-import type { QuestHint } from '../sim/quests';
 import { EQUIP_SLOTS } from '../sim/schemas';
 import type { CombatStyle, EquipSlot, GameState, SimContext } from '../sim/state';
 import { levelForXp } from '../sim/xp';
@@ -175,42 +175,5 @@ export class SummoningTab {
       parts.push(card, special, dismiss);
     }
     this.body.replaceChildren(...parts);
-  }
-}
-
-export class QuestsTab {
-  readonly el = document.createElement('div');
-  private key = '';
-
-  constructor(private readonly content: Content) {
-    this.el.className = 'quests';
-  }
-
-  update(state: GameState, hint: QuestHint | null): void {
-    const key = JSON.stringify([state.player.quests, hint?.text]);
-    if (key === this.key) return;
-    this.key = key;
-    const blocks: Node[] = [];
-    if (hint) blocks.push(span('quest-hint', `Next: ${hint.text}`));
-    for (const quest of this.content.quests.values()) {
-      const progress = state.player.quests[quest.id];
-      const status = !progress ? 'not-started' : progress.complete ? 'complete' : 'started';
-      const block = document.createElement('div');
-      block.className = 'quest-block';
-      block.append(span(`quest-name ${status}`, quest.name));
-      if (!progress) {
-        const npc = quest.startNpc ? this.content.npcs.get(quest.startNpc)?.name : null;
-        block.append(span('quest-step', npc ? `Talk to ${npc} to begin.` : 'Not started.'));
-      } else if (!progress.complete) {
-        for (const step of quest.steps) {
-          const done = progress.done.includes(step.id);
-          block.append(
-            span(`quest-step${done ? ' done' : ''}`, `${done ? '✔' : '•'} ${step.text}`),
-          );
-        }
-      }
-      blocks.push(block);
-    }
-    this.el.replaceChildren(...blocks);
   }
 }
