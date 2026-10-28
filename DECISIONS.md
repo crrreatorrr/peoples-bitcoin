@@ -275,4 +275,3 @@ An audit compared movement and interface with OSRS; these choices came out of it
   take their two lines of text from the manifest `label`.
 - **The Scout** answers questions through a "Select an Option" menu and has lines for every
   stage of the escape, through The Way Out.
-
