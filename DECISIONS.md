@@ -195,3 +195,44 @@ An audit compared movement and interface with OSRS; these choices came out of it
 - **Terminal** left-click is Value; buying is in the right-click menu, like OSRS shops.
 - **Bosses stay one tile** in the sim; their models were scaled down to fit it rather than adding
   multi-tile enemies.
+
+## Quests, items and Higgsfield characters (0.5.0)
+
+- **Hard Rule 2 exception (owner):** the President is "President Obama", a satirical low-poly
+  caricature. A parody notice (`PARODY_NOTICE` in `branding.ts`) shows at the start of a new game
+  and in Settings. No other real people; nothing reads as a real endorsement.
+- **One story:** since the Lockdown the Treasury's gates are sealed and every quest points at
+  getting out. The skill quests each earn a part for the old Teleport Chamber north of the
+  Trenches; **The Way Out** needs Bunker Down, Motion Denied and all four skill quests, and ends
+  by stepping through the Chamber into a new zone, The World Out There.
+- **Dialogue choices** are OSRS "Select an Option" menus (keys 1–5). The chosen line is echoed as
+  the player's reply. A choice can be a quest trigger (`choice`), grant `choiceRewards`, and is
+  saved (save v5) so later lines can depend on it (`choice` on NPC variants).
+- **Use X → Y** reads `uses.json`; an entry can be limited to a quest step. Anything else gets
+  "Nothing interesting happens." The player walks to the target first, as with any interaction.
+- **Quest-only enemies** sleep (no spawn, no respawn) whenever their quest isn't at the right
+  step. **Quest-only drops** (`questDrops`) roll only while the quest needs them.
+- **Drinks** boost like OSRS potions: `levels + pct × base level`, for a fixed time; drinking
+  again re-applies the boost instead of stacking. Requirements and rolls use the boosted level.
+- **Teleports:** tickets are used up; quest teleports (Teleprompter, Chamber Key) are reusable
+  with a cooldown. Teleporting takes `TELEPORT.delayTicks`, during which the player can't act.
+- **Outfits:** each skilling piece adds a small XP bonus to its skill, plus a set bonus for all
+  `OUTFITS.setPieces` pieces. New neck, hands and feet slots hold the extra gear.
+- **Out of ammo** the gun becomes a club: melee with its bonuses scaled by `COMBAT.bashScale`, no
+  faster than `COMBAT.bashMinSpeed`. The gavel only shows with no weapon at all.
+- **Characters from Higgsfield (owner):** every NPC, enemy and Sproto is a Higgsfield model.
+  Each starts as a concept in one locked style prompt (an early-2000s low-poly MMO look: slit
+  eyes, shard hair, barrel chest, mitten hands, A-pose) so the cast matches without copying any
+  real game's characters. Concepts go through Tripo image-to-3D (about 3k triangles), then the
+  Meshy auto-rig. Creatures without arms and legs stay unrigged and hop like any static model.
+- **Rigged GLBs use the procedural animation,** not clips: invisible proxy joints sit where the
+  bones are, `animate.ts` poses them like a code-built humanoid, and each frame copies their
+  rotation onto the bones (arms turned down out of the A-pose first). One animation system
+  covers both kinds of character, and held gear and worn armor attach to the bones.
+- **Rig height is the in-game height:** each character was rigged at the height its code-built
+  version stood, so manifest scales are 1 (Morelight keeps 1.16 to stay tall). Held gear scales
+  with height against a 1.83-unit human, so Sprotos carry Sproto-sized guns. The manifest
+  `look` still supplies held gear (`left`, `right`) and `pose`; the mesh shows everything else.
+- **Tripo exports face +x;** Meshy's rigger expects +z and builds a broken skeleton otherwise.
+  `tools/turn_glb.py` turns each mesh and stands it on the ground before rigging.
+  `tools/shrink_glb.py` cuts textures to 512 px JPEG (about 270 KB per character).

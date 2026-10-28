@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.5.0 — The Way Out, new mechanics and a Higgsfield cast (2026-10-28)
+
+- **Story:** the Treasury has been sealed since the Lockdown, and every quest now builds toward
+  getting out. The finale, **The Way Out** (Morelight), has you install the parts, fuel the old
+  Teleport Chamber and step through to a new zone, The World Out There.
+- **Four skill quests:** Server Meltdown (Sysadmin), Gala Night (Party Planner), Hostile
+  Takeover (Fixer) and Press Conference (Spin Doctor, with a new Reporter).
+- **Dialogue choices:** OSRS "Select an Option" menus (keys 1–5), with quizzes, branching rewards
+  and NPCs who remember what you chose.
+- **Use X → Y:** use items on objects and NPCs ("Nothing interesting happens." otherwise).
+- **Quest-only enemies and drops,** **teleport tickets** and reusable quest teleports with
+  cooldowns.
+- **~60 items:** boost drinks (combat, skilling, run energy), tier-4 tools, four skilling
+  outfits with XP bonuses and a set bonus, neck/hands/feet gear in new slots, three weapons.
+- **Out of ammo** you bash with your gun instead of switching to the gavel.
+- **Characters:** the whole cast (President, NPCs, enemies, Sprotos) is now low-poly 3D models
+  made with Higgsfield (concept, then Tripo image-to-3D, then the Meshy auto-rig). They use the
+  same procedural walks, swings and poses as before, hold their gear, and show worn armor.
+- **President Obama:** the President is a satirical caricature, with a parody notice at the start
+  and in Settings.
+- **Saves:** format v5 (quest choices, new slots); older saves upgrade.
+- **Tests:** 164.
+
 ## 0.4.0 — 3D characters, Morelight, quests and an OSRS feel pass (2026-10-28)
 
 - **3D everything:** all characters and props are low-poly models built in code, styled like the

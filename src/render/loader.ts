@@ -29,6 +29,8 @@ const AssetEntrySchema = z
     look: LookSchema.optional(),
     scale: z.number().default(1),
     rotationYDeg: z.number().default(0),
+    /** How an unrigged GLB character moves: hops (default) or floats. */
+    motion: z.enum(['hop', 'float']).optional(),
     /** Logical clip name → clip name inside the GLB. */
     clips: z.record(z.string(), z.string()).optional(),
     color: z.string().default('#ff00ff'),
@@ -158,7 +160,7 @@ export class AssetLoader {
     const source = this.models.get(id);
     if (source && isRigged(source))
       return riggedActor(source, entry.scale, { ...held(entry), ...dress });
-    if (source) return staticActor(this.model(id, entry));
+    if (source) return staticActor(this.model(id, entry), entry.motion);
     return buildActor(entry, dress) ?? staticActor(this.model(id, entry));
   }
 

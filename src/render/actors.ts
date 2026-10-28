@@ -159,12 +159,12 @@ export function buildActor(spec: ActorSpec, dress: Partial<Look> = {}): ActorMod
   return actor;
 }
 
-/** Wraps any model (a GLB, a prop) so it can move like a hopping actor. */
-export function staticActor(model: THREE.Object3D): ActorModel {
+/** Wraps any model (a GLB, a prop) so it can move like a hopping (or floating) actor. */
+export function staticActor(model: THREE.Object3D, motion: Motion = 'hop'): ActorModel {
   const body = group([model]);
   const root = group([body]);
   const height = Math.max(0.5, new THREE.Box3().setFromObject(root).max.y);
-  return { ...noHands(), root, body, bodyY: 0, joints: null, height, motion: 'hop', hunch: 0 };
+  return { ...noHands(), root, body, bodyY: 0, joints: null, height, motion, hunch: 0 };
 }
 
 function noHands() {

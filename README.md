@@ -3,7 +3,7 @@
 A satirical, OSRS-inspired browser MMO-lite built with Three.js, TypeScript and Vite.
 All currencies are fictional and in-game only. See [DESIGN.md](DESIGN.md) for the full design.
 
-**Status:** Phase 1 sandbox plus the owner's revisions: 10 interconnected skills, the Trading Terminal, combat in The Trenches, Sproto summons, the bunker, an OSRS-style tutorial guided by Morelight, a three-quest main line, and low-poly 3D characters built in code. See `DESIGN.md` → Revisions, [CHANGELOG.md](CHANGELOG.md) and [TODO.md](TODO.md).
+**Status:** Phase 1 sandbox plus the owner's revisions: 10 interconnected skills, the Trading Terminal, combat in The Trenches, Sproto summons, the bunker, an OSRS-style tutorial guided by Morelight, eight quests that lead out of the locked-down Treasury, and a low-poly 3D cast made with Higgsfield. See `DESIGN.md` → Revisions, [CHANGELOG.md](CHANGELOG.md) and [TODO.md](TODO.md).
 
 ## Run it
 
@@ -36,8 +36,11 @@ Clicks act on press, like OSRS.
 - **Mouse wheel:** zoom
 - **F-keys:** F1 Equipment, F2 Skills, F3 Quests, F4 Inventory, F5 Summoning, F10 Settings
 - **Minimap:** click to walk, scroll to zoom; click the compass to face north
-- **Chat:** start typing (or press Enter), Enter to send. Space continues NPC dialogue.
-- **Inventory:** left-click uses (Wield, Wear, Recite, Summon), shift-click drops, drag to rearrange, right-click for options
+- **Chat:** start typing (or press Enter), Enter to send. Space continues NPC dialogue; number
+  keys 1–5 pick a "Select an Option" answer.
+- **Inventory:** left-click uses (Wield, Wear, Drink, Recite, Summon, Read...), shift-click drops,
+  drag to rearrange, right-click for options. **Use** an item, then click an object or NPC to use
+  it on that ("Use X -> Y").
 - **Trading Terminal** (main hall): left-click shows the price, right-click buys; with it open,
   inventory clicks sell
 - **Equipment tab:** combat styles, Auto Retaliate; click (or right-click) a slot to remove gear
@@ -58,12 +61,14 @@ src/
   config/   branding.ts (names), balance.ts (every tunable number), assets.manifest.json
   data/     items, objects, npcs, skills, zones (JSON, validated with Zod at load)
   sim/      pure game logic: tick loop, pathfinding, skills, combat, quests, economy, saves
-  render/   Three.js: low-res renderer, camera, world, code-built 3D actors and props,
+  render/   Three.js: low-res renderer, camera, world, code-built props, rigged GLB characters,
             procedural animation, gear, chat heads, picking
+  assets/   character GLBs (Higgsfield), sprites and icons
   ui/       HTML overlay: ticker HUD, chat, inventory, skills, tooltips, context menu
   input/    mouse and keyboard
   main.ts   wires it together and runs the 600 ms tick loop
 tests/      Vitest tests for src/sim
+tools/      shrink_glb.py and turn_glb.py for the GLB pipeline (see ART_GUIDE.md)
 ```
 
 `src/sim` has no DOM or Three.js imports (enforced by `tsconfig.sim.json` and an ESLint rule), so

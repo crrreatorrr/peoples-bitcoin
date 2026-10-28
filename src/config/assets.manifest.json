@@ -960,7 +960,8 @@
     "accent": "#f2e05a",
     "sprite": "sprites/enemy_fud_wraith.png",
     "path": "models/enemy_fud_wraith.glb",
-    "scale": 1.6
+    "scale": 1.6,
+    "motion": "float"
   },
   "enemy_sludge_brute": {
     "placeholder": "humanoid",
