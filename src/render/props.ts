@@ -75,6 +75,8 @@ export function buildProp(e: AssetEntry): THREE.Object3D | null {
       return turret(e);
     case 'rug':
       return greatRug(e);
+    case 'gates':
+      return sealedGates(e);
     default:
       return null;
   }
@@ -265,6 +267,23 @@ function barricade(): THREE.Group {
     links.rotation.z = -angle * 0.8;
     g.add(links);
   }
+  return g;
+}
+
+/** The Treasury's sealed gates: two stone pillars, iron bars and the Lockdown Act's brass plate. Two tiles wide. */
+function sealedGates(e: AssetEntry): THREE.Group {
+  const stone = lambert(e.color);
+  const iron = lambert(DARK);
+  const g = group([
+    box(0.36, 2.2, 0.36, stone, -0.82, 1.1, 0),
+    box(0.36, 2.2, 0.36, stone, 0.82, 1.1, 0),
+    box(0.46, 0.14, 0.46, lambert(shade(e.color, 0.8)), -0.82, 2.27, 0),
+    box(0.46, 0.14, 0.46, lambert(shade(e.color, 0.8)), 0.82, 2.27, 0),
+    box(1.3, 0.08, 0.06, iron, 0, 1.8, 0),
+    box(1.3, 0.08, 0.06, iron, 0, 0.3, 0),
+    box(0.5, 0.26, 0.04, lambert(e.accent ?? '#d4a83a'), 0, 1.1, 0.06),
+  ]);
+  for (let i = 0; i < 7; i++) g.add(box(0.05, 1.9, 0.05, iron, -0.6 + i * 0.2, 1.05, 0));
   return g;
 }
 

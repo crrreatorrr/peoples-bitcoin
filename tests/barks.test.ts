@@ -54,7 +54,7 @@ describe('enemy barks', () => {
   it('keeps quiet for enemies without lines', () => {
     const { state, ctx } = newGame();
     const { x, y } = state.player.pos;
-    const bot = newEnemy('bot', 'enemy_spam_bot', x + 1, y, content(), false);
+    const bot = newEnemy('bot', 'enemy_sludgeling', x + 1, y, content(), false);
     bot.target = 'player';
     const events: SimEvent[] = [];
     barkOnAggro(state, ctx, bot, events);

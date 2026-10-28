@@ -18,7 +18,13 @@
     "aggressive": false,
     "aggroRange": 0,
     "respawnTicks": 20,
-    "drops": "drops_spam_bot"
+    "drops": "drops_spam_bot",
+    "barks": {
+      "aggro": ["gm", "gm gm gm"],
+      "hurt": [],
+      "defeat": ["gn"],
+      "resist": []
+    }
   },
   {
     "id": "enemy_comment_troll",
@@ -39,7 +45,13 @@
     "aggressive": false,
     "aggroRange": 0,
     "respawnTicks": 25,
-    "drops": "drops_comment_troll"
+    "drops": "drops_comment_troll",
+    "barks": {
+      "aggro": ["FIRST!", "DID U EVEN READ THE WHITE PAPER"],
+      "hurt": [],
+      "defeat": ["...going to touch grass"],
+      "resist": []
+    }
   },
   {
     "id": "enemy_sludgeling",
@@ -334,7 +346,7 @@
   {
     "id": "enemy_wrongnamer_chief",
     "name": "Wrong-Namer Chief",
-    "examine": "Commands the Hecklers. Insists there is no outside and it's all $BITCON.",
+    "examine": "Expedition One's map-reader, once. Came back down, picked up a megaphone, and now insists there is no outside and it's all $BITCON.",
     "model": "enemy_wrongnamer_chief",
     "level": 45,
     "hp": 220,
@@ -362,7 +374,7 @@
       "aggro": ["THERE IS NO OUTSIDE! IT'S ALL $BITCON!"],
       "hurt": ["Sockpuppets! Agree with me! LOUDER!"],
       "defeat": ["Fine! Maybe there's an outside. MAYBE."],
-      "resist": ["LOUDER! I CAN'T HEAR YOU!"]
+      "resist": ["HA! Nobody's called ME to order in a year!"]
     },
     "weakTo": {
       "weapons": ["item_gavel", "item_oak_gavel", "item_iron_gavel", "item_gavel_of_order"]
@@ -396,7 +408,7 @@
       ],
       "hurt": ["If I stop, I have to admit it doesn't work!"],
       "defeat": ["The Chamber's dead. I ran so nobody would see."],
-      "resist": ["Too slow! You'll never catch me up close!"]
+      "resist": ["Too slow! Only the Treasury's long arm could catch me!"]
     },
     "weakTo": {
       "weapons": ["gun_treasury_rifle"]
@@ -452,12 +464,18 @@
     "aggressive": true,
     "aggroRange": 3,
     "respawnTicks": 25,
-    "drops": "drops_party_crasher"
+    "drops": "drops_party_crasher",
+    "barks": {
+      "aggro": ["I'm on the list! Under 'plus one'."],
+      "hurt": [],
+      "defeat": ["Worth it for the canapés."],
+      "resist": []
+    }
   },
   {
     "id": "enemy_apprentice",
-    "name": "Duelling Apprentice",
-    "examine": "Practising hexes on anyone who walks past. Mostly on other apprentices.",
+    "name": "Dueling Apprentice",
+    "examine": "A postgrad practicing hexes on anyone who walks past. Mostly on other postgrads.",
     "model": "enemy_apprentice",
     "level": 10,
     "hp": 18,
@@ -485,7 +503,7 @@
   {
     "id": "enemy_battlemage",
     "name": "Battlemage",
-    "examine": "One of Moonward's best teachers, spellbound by the Rugmancer to guard the academy from its own students.",
+    "examine": "One of Moonward's best teachers, spellbound by the Rugmancer. Some still patrol out of habit; the Archmage calls it 'office hours'.",
     "model": "enemy_battlemage",
     "level": 32,
     "hp": 50,
@@ -507,7 +525,7 @@
     "barks": {
       "aggro": ["Halt! The academy is closed!", "By order of the Bursar!"],
       "hurt": ["The Rugmancer will hear of this!"],
-      "defeat": ["The spell... it's lifting..."]
+      "defeat": ["The spell... lifting... it comes from the north tower..."]
     }
   },
   {
@@ -638,7 +656,7 @@
     },
     "barks": {
       "aggro": ["Who invited YOU?", "This party's dead. Let me liven it up."],
-      "resist": ["Is that all? BORING!"],
+      "resist": ["Is that all? Where are the FIREWORKS?"],
       "hurt": ["Okay, okay, now it's a party!"],
       "defeat": ["Best... party... ever..."]
     },

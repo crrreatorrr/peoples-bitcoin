@@ -36,7 +36,10 @@ describe('weapon-locked bosses', () => {
     const warnings = events.filter((e) => e.type === 'message' && e.kind === 'warning');
     expect(warnings).toHaveLength(1);
     expect(events).toContainEqual(
-      expect.objectContaining({ speaker: 'Wrong-Namer Chief', text: "LOUDER! I CAN'T HEAR YOU!" }),
+      expect.objectContaining({
+        speaker: 'Wrong-Namer Chief',
+        text: "HA! Nobody's called ME to order in a year!",
+      }),
     );
     // Calling order with a gavel works.
     expect(

@@ -86,7 +86,7 @@ export function build(
   const key = hotspotKey(state.zone.id, obj);
   state.player.bunker[key] = option.id;
   state.player.collected[key] = state.tick;
-  events.push({ type: 'message', kind: 'game', text: `You build a ${option.name}.` });
+  events.push({ type: 'message', kind: 'game', text: `You build the ${option.name}.` });
   grantXp(
     state.player,
     'construction',

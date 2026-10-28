@@ -30,7 +30,7 @@
   {
     "id": "obj_rack_liquid",
     "name": "Liquid-Cooled Rack",
-    "examine": "Kept in the vault. Bubbles like a premium aquarium.",
+    "examine": "Kept in the west wing. Bubbles like a premium aquarium.",
     "model": "rack_liquid",
     "actions": ["Mine"],
     "blocks": true,
@@ -114,7 +114,7 @@
   {
     "id": "obj_lobbyist_broker",
     "name": "Shadow Broker",
-    "examine": "Nobody knows who they work for. The money is real.",
+    "examine": "Nobody knows who he works for. The money is real.",
     "model": "lobbyist_broker",
     "actions": ["Do a favor"],
     "blocks": true,
@@ -612,7 +612,7 @@
   {
     "id": "obj_expedition_crate",
     "name": "Expedition Crate",
-    "examine": "Stencilled EXPEDITION ONE. Inside: empty Hopium cans and a list of twelve names. Ten are crossed out. Not the Captain. Not the Scout.",
+    "examine": "Stenciled EXPEDITION ONE. Inside: empty Hopium cans and a list of twelve names. Ten are crossed out. Not the Captain. Not the Scout.",
     "model": "crate_expedition",
     "actions": [],
     "blocks": true,
@@ -755,5 +755,15 @@
     "role": "scenery",
     "width": 3,
     "height": 2
+  },
+  {
+    "id": "obj_treasury_gates",
+    "name": "Treasury Gates",
+    "examine": "Sealed since the ticker crashed. A brass plate reads: THE LOCKDOWN ACT. SECTION ONE: THE GATES STAY SHUT. Nobody remembers voting for it.",
+    "model": "treasury_gates",
+    "actions": [],
+    "blocks": true,
+    "role": "scenery",
+    "width": 2
   }
 ]

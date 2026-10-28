@@ -17,7 +17,7 @@
         "step": ["warden"],
         "lines": [
           "The gates have stood up and called themselves the Lockdown Warden. Of course they have.",
-          "It's a law, President. You can't shoot a law. You can only veto it."
+          "It's a law, President. Bullets bounce off laws. You need a veto, swung or fired."
         ]
       },
       {
@@ -37,7 +37,7 @@
         "status": "started",
         "step": ["decide"],
         "lines": [
-          "Everything's ready, President. The Coordinates, the Power Cell, the Permit, the press. Even the blueprints, the Contractor says.",
+          "Everything's ready, President. The Coordinates, the Power Cell, the Permit, the press. And the Contractor says he's dug up something for us.",
           "Once we switch that Chamber on, we go where Expedition One meant to go. Somewhere nobody has been since the Lockdown. Are you sure?",
           {
             "options": [
@@ -133,6 +133,7 @@
           "Expedition One had the courage. What they didn't have was the parts.",
           "Coordinates, from the Sysadmin's lost files. A Power Cell, which the Party Planner's gala could pay for.",
           "An Exit Permit, which only the Broker can sign; the Fixer knows him. And the public on our side, which is the Spin Doctor's department.",
+          "And finish the Contractor's bunker. He keeps digging up drawings of 'some big machine'.",
           "Bring me all four, and we finish what Expedition One started."
         ]
       },
@@ -153,13 +154,13 @@
         "status": "started",
         "step": ["hecklers"],
         "lines": [
-          "President, the Wrong-Namers. They've dug in past the first barricade.",
+          "President, the Wrong-Namers. They've dug in all the way up the Trenches.",
           {
             "player": "Who are they?"
           },
           "People who decided the walls are a comfort. There is no outside, they say. It's all a con. $BITCON, they call our coin.",
           "They turn back anyone heading north. Shouting, mostly. Megaphones, occasionally.",
-          "Start with a Heckler. Then knock over a Sockpuppet; that brings out their Chief at the second barricade.",
+          "Start with a Heckler. Then knock over a Sockpuppet. Then their Chief, at the second barricade, has nobody left to agree with him.",
           "Correct them, President. Firmly. With whatever you're holding."
         ]
       },
@@ -191,7 +192,8 @@
             "player": "Still alive?"
           },
           "Still running, apparently. Which is more than any of us expected.",
-          "The next stretch belongs to the Wrong-Namers. Catch your breath and come back to me."
+          "The next stretch belongs to the Wrong-Namers. Catch your breath and come back to me.",
+          "While you catch your breath: the Sysadmin, the Party Planner, the Fixer and the Spin Doctor have all been asking for you. I may have asked each of them a favor. Don't ask what for. Yet."
         ]
       },
       {
@@ -204,12 +206,14 @@
           {
             "player": "Why not?"
           },
-          "Because the only way there is the Trenches. On the first day of the Lockdown, twelve brave fools called Expedition One dug them, heading north.",
+          "Because the only way there is the Trenches. On the first day of the Lockdown, twelve brave fools called Expedition One started digging them, heading north.",
           {
             "player": "What happened to them?"
           },
-          "Nobody came back up to tell us. And since then, something has clogged the Trenches. Our people call it the Sludge Mother.",
-          "The Scout keeps a camp just inside the entrance. The Scout was there on day one. Start there."
+          "A few came back up. None of them will say what they found. Most of them say 'it's all $BITCON' now.",
+          "And since then, something has clogged the Trenches. Our people call it the Sludge Mother.",
+          "The Scout keeps a camp just inside the entrance. The Scout was there on day one. Start there.",
+          "The Scout won't come up and won't talk to me. Says I'm 'management'."
         ]
       },
       {
@@ -219,13 +223,6 @@
         "lines": [
           "The Mother calls her little ones when she's hurt. Hit hard and keep moving.",
           "Sludge feeds on gloom, President. Bring something festive. And bring Talking Points; sludge is very hard to get out of a suit."
-        ]
-      },
-      {
-        "quest": "quest_tutorial",
-        "status": "complete",
-        "lines": [
-          "Welcome back, President. Finish what you're doing and come and see me. We have walls to get past."
         ]
       },
       {
@@ -242,7 +239,11 @@
           {
             "player": "Nobody? Ever?"
           },
-          "Not yet. I have a plan for that. But first, the basics: Mining, Fundraising, Lobbying. You can't escape on an empty stomach.",
+          "Not in four hundred and twelve days. We held an election in the canteen to keep spirits up. You won.",
+          {
+            "player": "Who ran against me?"
+          },
+          "Nobody could get in. A landslide. Now, I have a plan for getting out. But first, the basics: Mining, Fundraising, Lobbying. You can't escape on an empty stomach.",
           "See The Treasurer in the main hall, just north. Follow the yellow arrow. It has never steered me wrong.",
           "Come back to me whenever you're lost. I'll be right here, guarding the mustache."
         ]
@@ -264,7 +265,7 @@
       {
         "quest": "quest_tutorial",
         "status": "started",
-        "step": ["talk_sergeant", "buy_pistol", "equip", "kill", "melee", "troll"],
+        "step": ["talk_sergeant", "buy_pistol", "equip", "kill", "melee", "troll", "sandbag"],
         "lines": [
           "Money in your pocket and Hash on your shoes. Now, self-defense.",
           "The Drill Sergeant runs the training yard to the south-west. Spam Bots, Sludgelings, Comment Trolls. All very beatable.",
@@ -299,7 +300,7 @@
           {
             "player": "Usually?"
           },
-          "Sometimes they find photos. Then the favor is free. Keep your photos boring, President."
+          "Some pay in $BITCOIN. Some pay in leverage. Learn the difference before they do."
         ]
       },
       {
@@ -312,7 +313,7 @@
           {
             "player": "Are they safe?"
           },
-          "Perfectly. As long as you never call them gremlins. They hate that."
+          "Perfectly. They've only bitten the Treasurer twice. He had it coming."
         ]
       },
       {
@@ -329,7 +330,7 @@
         "status": "started",
         "step": ["talk_contractor"],
         "lines": [
-          "One more thing. Every leader needs somewhere to hide when the ticker goes red.",
+          "One more thing. The ticker goes red sometimes. Very red. You'll want a hole to hide in.",
           "The Contractor in the main hall can build you a bunker. Go and ask about it."
         ]
       },
@@ -368,6 +369,18 @@
     ],
     "dialogue": [
       {
+        "quest": "quest_way_out",
+        "status": "complete",
+        "lines": [
+          "President! You opened the door. Half the Treasury has queued at the Trenches.",
+          "The other half says it's a con. I'm staying. Someone has to watch the ticker.",
+          {
+            "player": "You could come and see the lake."
+          },
+          "Lakes are just liquidity with fish in, President. No thank you."
+        ]
+      },
+      {
         "quest": "quest_tutorial",
         "status": "complete",
         "lines": [
@@ -376,7 +389,7 @@
           {
             "player": "Any more accounting incidents I should know about?"
           },
-          "None! Er. Well. The Lockdown. But that one is technically a security incident."
+          "None! Er. Well. The Lockdown. But that one is technically a security incident. The gates saw the ticker, panicked and passed a law. Nobody voted for it. Not even the gates."
         ]
       }
     ]
@@ -402,8 +415,13 @@
         "status": "complete",
         "lines": [
           "You did it. The racks are cool, the Rogue Process is gone, and OUTSIDE.TXT is safe.",
-          "Take the Coordinates Drive to Morelight. Whatever's out there, it has an address.",
-          "And keep the Overclocked Pick. It runs hot. Like me, after that fight."
+          "The Coordinates Drive is Morelight's now. Whatever's out there, it has an address.",
+          "Keep the Overclocked Pick. It runs hot. Like me, watching that fight from under the desk.",
+          {
+            "player": "Any mining tips?"
+          },
+          "Humming racks need Mining 15. The liquid-cooled racks in the west wing need Mining 30.",
+          "A Steel Hash Pick works from Mining 15, a Quantum Hash Pick from 35. Both on the Terminal. Tell them I sent you. They won't care."
         ]
       },
       {
@@ -412,7 +430,7 @@
         "step": ["fill", "cool"],
         "lines": [
           "Bad news. The liquid-cooled racks in the west wing are cooking themselves, and something on the network is fighting me.",
-          "It's guarding a file. OUTSIDE.TXT. From before the Lockdown. Nobody's opened it in years.",
+          "It's guarding a file. OUTSIDE.TXT. From before the Lockdown. Nobody's opened it in four hundred and twelve days. I'd know. I count too.",
           "First, coolant. Fill this canister at the Gremlin Fountain. That water has never frozen and never boiled. Use the canister on the statue.",
           "Then use the coolant on a Liquid-Cooled Rack in the west wing.",
           {
@@ -431,7 +449,7 @@
             "player": "How do I shut it down?"
           },
           "Not one shot at a time. It patches itself between hits. Every bullet just gets logged, and then it recovers.",
-          "Flood it, President. More hits per second than it can patch. Rapid-fire, like a press scrum."
+          "Flood it, President. More hits than it can patch. You want a gun that fires like a press scrum asks questions."
         ]
       },
       {
@@ -461,15 +479,6 @@
             ]
           }
         ]
-      },
-      {
-        "quest": "quest_tutorial",
-        "status": "complete",
-        "lines": [
-          "Back for more Hash? Respect.",
-          "Humming racks need Mining 15. The liquid-cooled racks inside the hall need Mining 30.",
-          "A Steel Pick works from Mining 15, a Quantum Pick from 35. Both on the Terminal. Tell them I sent you. They won't care."
-        ]
       }
     ]
   },
@@ -486,7 +495,7 @@
       {
         "player": "And what do I do with scandals?"
       },
-      "Take them to The Spin Doctor. A raw scandal is useless. A spun one is practically a meal.",
+      "Spin them at the Press Podium. Raw, they're a liability. Spun, they're lunch.",
       "Oh, and every so often a whale pledges a fortune. Smile and nod, darling. Smile and nod."
     ],
     "dialogue": [
@@ -496,18 +505,20 @@
         "step": ["gatecrasher"],
         "lines": [
           "You got the list! But now HIM. The Gatecrasher. He's crashed every party since the Lockdown.",
-          "Bouncers bounce off him. Bullets bounce off him. I threw a canape at him. Nothing.",
+          "Bouncers bounce off him. Bullets bounce off him. I threw a canapé at him. Nothing.",
           {
             "player": "So how do I get him out?"
           },
-          "Darling, nothing clears a dance floor like a fireworks show. The bigger the bang, the better. Something that goes boom on impact."
+          "Darling, nothing clears a dance floor like a fireworks show. Something that goes boom on impact. Load it with Hash, darling."
         ]
       },
       {
         "quest": "quest_gala_night",
         "status": "complete",
         "lines": [
-          "Darling, the disco ball is still spinning. The Power Cell is yours. Whatever Morelight's building, it had better have a dance floor."
+          "Darling, the disco ball is still spinning. The Power Cell is yours. Whatever Morelight's building, it had better have a dance floor.",
+          "At Fundraising 20 you can work a Gala Table. At 40, the Yacht Party Deck. Bring a Rolodex, or better, a Black Book.",
+          "Juicier scandals spin into better Talking Points. Everyone wins. Except the press."
         ],
         "choice": "gala_disco"
       },
@@ -515,7 +526,9 @@
         "quest": "quest_gala_night",
         "status": "complete",
         "lines": [
-          "Darling, the masks were a triumph. Nobody knew who anybody was. The Power Cell is yours; Morelight says it's for 'a door'."
+          "Darling, the masks were a triumph. Nobody knew who anybody was. The Power Cell is yours; Morelight says it's for 'a door'.",
+          "At Fundraising 20 you can work a Gala Table. At 40, the Yacht Party Deck. Bring a Rolodex, or better, a Black Book.",
+          "Juicier scandals spin into better Talking Points. Everyone wins. Except the press."
         ],
         "choice": "gala_masquerade"
       },
@@ -523,7 +536,9 @@
         "quest": "quest_gala_night",
         "status": "complete",
         "lines": [
-          "Darling, a garden party under a sealed sky. Poetic. The Power Cell is yours. Go and find a real sky."
+          "Darling, a garden party under a sealed sky. Poetic. The Power Cell is yours. Go and find a real sky.",
+          "At Fundraising 20 you can work a Gala Table. At 40, the Yacht Party Deck. Bring a Rolodex, or better, a Black Book.",
+          "Juicier scandals spin into better Talking Points. Everyone wins. Except the press."
         ],
         "choice": "gala_garden"
       },
@@ -577,16 +592,7 @@
         "quest": "quest_gala_night",
         "status": "started",
         "step": ["return"],
-        "lines": ["You have the list? Give it here, darling, before anyone else 'borrows' it."]
-      },
-      {
-        "quest": "quest_tutorial",
-        "status": "complete",
-        "lines": [
-          "Darling! The donors still talk about your first dinner. Mostly the chicken.",
-          "At Fundraising 20 you can work the Gala Dinner. At 40, the Yacht Party. Bring a Rolodex, or better, a Black Book.",
-          "Juicier scandals spin into better Talking Points. Everyone wins. Except the press."
-        ]
+        "lines": ["Where's my guest list, darling? Bring it here before anyone else 'borrows' it."]
       }
     ]
   },
@@ -607,6 +613,13 @@
     ],
     "dialogue": [
       {
+        "quest": "quest_way_out",
+        "status": "complete",
+        "lines": [
+          "'President Opens Door, Walks Through It.' Ninth day on the front page. I may frame it."
+        ]
+      },
+      {
         "quest": "quest_press_conference",
         "status": "started",
         "step": ["pundit"],
@@ -624,7 +637,8 @@
         "status": "complete",
         "lines": [
           "Front page, President! 'A DOOR FOR EVERYONE.' I couldn't have written it better. I tried.",
-          "Take the Teleprompter. Read it and you're home. And keep that press release for when you need the people."
+          "Take the Teleprompter. Read it and you're home. And keep that press release for when you need the people.",
+          "Juicy scandals become Zingers at Spin 20. Mega scandals become Mic Drops at 40. Practice, President."
         ]
       },
       {
@@ -647,21 +661,6 @@
             "player": "Pivot to what?"
           },
           "Optimism, President. Always optimism."
-        ]
-      },
-      {
-        "quest": "quest_press_conference",
-        "status": "started",
-        "step": ["debrief"],
-        "lines": ["Well? How did it go? ...Come, sit. Tell me everything."]
-      },
-      {
-        "quest": "quest_tutorial",
-        "status": "complete",
-        "lines": [
-          "My star pupil! Your Soundbites are trending.",
-          "Juicy scandals become Zingers at Spin 20. Mega scandals become Mic Drops at 40.",
-          "Practice enough and nothing ever blows up in your face. Mostly."
         ]
       }
     ]
@@ -687,12 +686,12 @@
         "status": "started",
         "step": ["raider"],
         "lines": [
-          "Word got out about the Broker. Now the Corporate Raider wants the whole Treasury. A hostile takeover.",
+          "Word got out that the Broker signed you an Exit Permit. Now the Corporate Raider figures a President on the way out means a Treasury for sale.",
           {
             "player": "So I shoot him?"
           },
           "Bullets? He's priced those in. He's bought every gun on the market.",
-          "What a man like that can't handle is paperwork. Lots of it. The heavy kind. Beat him with his own filing.",
+          "What a man like that can't handle is paperwork. The heavy kind, in a briefcase, swung hard. Beat him with his own filing.",
           "He's on the east lawn, near the Broker."
         ]
       },
@@ -728,7 +727,7 @@
         "step": ["negatives"],
         "lines": [
           "A photo of you? Classic Broker. Someone took that photo, and they have the negatives.",
-          "Word is he paid the Paper-Hands goblins in the Trenches. They never hold anything for long. Go and take it off them."
+          "Word is he paid the Paper-Hands, past the first barricade in the Trenches. They never hold anything for long. Go and take it off them."
         ]
       },
       {
@@ -749,7 +748,8 @@
               {
                 "text": "Use them on the Broker.",
                 "lines": [
-                  "Ruthless. He'll sign, and he'll pay. Here's your permit. Don't spend it all at once."
+                  "Ruthless. Look at the end of the roll: the Broker, shaking hands with the Corporate Raider.",
+                  "He'll sign, and he'll pay. Here's your permit. Don't spend it all at once."
                 ],
                 "choice": "takeover_leverage"
               }
@@ -762,7 +762,7 @@
         "status": "complete",
         "lines": [
           "You again. Good. The lobbyists like you.",
-          "Veteran lobbyists pay better from Lobbying 20. The Brokers want 40, and they only take Platinum Cards.",
+          "K Street Veterans pay better from Lobbying 20. The Shadow Brokers want 40, and they're worth it.",
           "Keep your photos boring, President. Blackmail is bad for business."
         ]
       }
@@ -771,7 +771,7 @@
   {
     "id": "npc_drill_sergeant",
     "name": "The Drill Sergeant",
-    "examine": "Shouts in capital letters.",
+    "examine": "Has never once used an indoor voice.",
     "model": "npc_drill_sergeant",
     "actions": ["Talk-to"],
     "lines": [
@@ -865,27 +865,32 @@
         ]
       },
       {
-        "quest": "quest_bunker",
-        "status": "started",
-        "step": ["report"],
-        "lines": [
-          "He signed? With a standard-issue pistol pointed at him, I bet he did. Give me a minute with the hatch."
-        ]
-      },
-      {
         "quest": "quest_way_out",
         "status": "started",
-        "step": ["blueprints"],
+        "step": ["install_blueprints"],
         "lines": [
           "Blueprints? For the Chamber? I found these while digging your bunker. Thought they were a pizza menu.",
           "Here. Take them to the Chamber and follow along. Don't touch the red lever. Or do. I'm not your boss."
         ]
       },
       {
+        "quest": "quest_way_out",
+        "status": "started",
+        "step": ["install_drive", "install_cell", "install_permit", "fuel", "warden", "enter"],
+        "lines": ["Chamber lit up yet? If it plays music, somebody pulled the red lever."]
+      },
+      {
+        "quest": "quest_way_out",
+        "status": "complete",
+        "lines": [
+          "Heard the Chamber works. And to think I nearly ordered a pizza off those blueprints."
+        ]
+      },
+      {
         "quest": "quest_bunker",
         "status": "complete",
         "lines": [
-          "The hatch is yours, President. Climb down any time.",
+          "The Inspector signed off. The hatch is yours, President. Climb down any time.",
           "Build spots are marked down there. Click one to see what you can build.",
           "Bigger builds need a Pro or Elite Toolkit, plus Concrete, Steel Beams and Circuit Boards from the Terminal.",
           {
@@ -935,7 +940,7 @@
           {
             "text": "Any advice?",
             "lines": [
-              "If you fall, your pack stays where you dropped. Come back for it quick.",
+              "If you go down, your pack stays where you fell. Come back for it quick.",
               "And Talking Points. Never leave the Treasury without them."
             ]
           }
@@ -958,21 +963,47 @@
       {
         "quest": "quest_way_out",
         "status": "started",
+        "step": ["enter"],
+        "lines": ["The stones went quiet. Go on, President. Someone should get to see it."]
+      },
+      {
+        "quest": "quest_way_out",
+        "status": "started",
         "lines": [
           "Morelight's really doing it? Waking the Chamber?",
           "Careful up there. The old gate stones by the Chamber stood up last night. They keep saying 'NOBODY LEAVES'.",
           "The Captain says bullets just bounce off. He says what that thing fears is a big, loud No.",
           "Go on up. I'll keep the Trenches quiet behind you."
+        ],
+        "step": [
+          "decide",
+          "announce",
+          "blueprints",
+          "install_blueprints",
+          "install_drive",
+          "install_cell",
+          "install_permit",
+          "fuel",
+          "warden"
         ]
       },
       {
         "quest": "quest_motion_denied",
         "status": "complete",
         "lines": [
+          "The Captain's still sitting by the Chamber. First time I've seen him sit.",
+          "Morelight says it needs four parts. I'll keep the Captain company. Somebody has to stop him getting up."
+        ]
+      },
+      {
+        "quest": "quest_motion_denied",
+        "status": "started",
+        "lines": [
           "You stopped him. I heard it. The running. It stopped.",
           "He's sitting by the Chamber now, catching his breath. Says he'll be first in line if it ever wakes up.",
           "Tell Morelight what he told you. And President... thank you."
-        ]
+        ],
+        "step": ["report"]
       },
       {
         "quest": "quest_motion_denied",
@@ -1005,19 +1036,36 @@
       {
         "quest": "quest_name_calling",
         "status": "started",
+        "step": ["report"],
         "lines": [
-          "Wrong-Namers everywhere past the first barricade. My ears are still ringing.",
+          "The shouting stopped mid-word. Go tell Morelight before they find a new megaphone."
+        ]
+      },
+      {
+        "quest": "quest_name_calling",
+        "status": "started",
+        "lines": [
+          "Wrong-Namers everywhere between here and the second barricade. My ears are still ringing.",
           "They weren't always like this. Some of them were Treasury clerks. Got scared of the walls, then got more scared of what's past them.",
           "Their Chief guards the second barricade. Shoot at him and he just shouts louder.",
-          "Somebody needs to call that man to order, President. You've got the hammer for it. Bang, bang."
-        ]
+          "Somebody needs to call that man to order, President. You've got a gavel. Use it."
+        ],
+        "step": ["hecklers", "puppets", "chief"]
       },
       {
         "quest": "quest_sludge_duty",
         "status": "complete",
         "lines": [
           "The first barricade's open. First time in four hundred days. I counted.",
-          "Past it, the Wrong-Namers. They'll tell you there's nothing out there. Don't listen."
+          "Past it, more Trenches, and the Wrong-Namers' Chief. He'll tell you there's nothing out there. Don't listen."
+        ]
+      },
+      {
+        "quest": "quest_sludge_duty",
+        "status": "started",
+        "step": ["report"],
+        "lines": [
+          "That was HER? Go tell Morelight the first barricade's open. I'm starting a new tally."
         ]
       },
       {
@@ -1050,9 +1098,29 @@
     "wanderRadius": 0,
     "lines": [
       "Treasury Times, live. No comment? Everyone has a comment.",
-      "Since the Lockdown, the news is the only thing that gets in or out."
+      "Since the Lockdown, the news is the only thing that gets around."
     ],
     "dialogue": [
+      {
+        "quest": "quest_way_out",
+        "status": "complete",
+        "lines": [
+          "Treasury Times, special edition! THE DOOR IS OPEN. The queue starts at the Trenches. Bring snacks.",
+          "President, a word for the people who stayed?",
+          {
+            "player": "The door works both ways."
+          },
+          "'The door works both ways.' Front page. Again."
+        ]
+      },
+      {
+        "quest": "quest_way_out",
+        "status": "started",
+        "step": ["announce"],
+        "lines": [
+          "President! Big news? Hand it over. Use the press release on me and I'll read it live."
+        ]
+      },
       {
         "quest": "quest_press_conference",
         "status": "started",
@@ -1074,14 +1142,6 @@
         ]
       },
       {
-        "quest": "quest_way_out",
-        "status": "started",
-        "step": ["announce"],
-        "lines": [
-          "President! Big news? Hand it over. Use the press release on me and I'll read it live."
-        ]
-      },
-      {
         "quest": "quest_press_conference",
         "status": "started",
         "step": ["q1"],
@@ -1097,7 +1157,7 @@
                 ]
               },
               {
-                "text": "We bought the RIGHT coin. Everyone else bought the wrong one.",
+                "text": "We didn't buy the wrong coin. We bought the wrong coin early.",
                 "lines": ["...That's going on the front page. Next question!"],
                 "choice": "press_q1"
               },
@@ -1122,8 +1182,8 @@
                 "lines": ["Ouch. That's a headline you don't want. Try again."]
               },
               {
-                "text": "Because we took the Never Sell Vow. We're builders.",
-                "lines": ["Builders! The people love builders. Last question!"],
+                "text": "Because selling would crash the coin and the country. So we took a Vow.",
+                "lines": ["A vow! The people love a vow. Last question!"],
                 "choice": "press_q2"
               },
               {
@@ -1195,7 +1255,9 @@
         "status": "complete",
         "lines": [
           "A wizard academy. Of course there's a wizard academy. And of course its treasurer ran off with the gold.",
-          "Some things are the same everywhere, President. Good to know we're useful out here too."
+          "Some things are the same everywhere, President. Good to know we're useful out here too.",
+          "The Scout brought the Captain through while you were at school. He walked the whole way. He won't stop telling people.",
+          "Two treasuries saved. Which leaves the RoadMap: one arrow, pointing up. The signpost says the rest is unexplored. I say that's the same thing."
         ]
       }
     ]
@@ -1213,7 +1275,7 @@
         "quest": "quest_moonward",
         "status": "complete",
         "lines": [
-          "The rug is unravelled and the gold is back in the vault. Moonward is open again, and every student wants your autograph.",
+          "The rug is unraveled and the gold is back in the vault. Moonward is open again, and every student wants your autograph.",
           {
             "player": "What happens now?"
           },
@@ -1226,17 +1288,17 @@
         "status": "started",
         "step": ["wield"],
         "lines": [
-          "Visitors! Actual visitors, across the lake, in a rowboat! Welcome to the Moonward Academy of Applied Wizardry.",
-          "I am Archmage Hodlwyn, headmaster. And you are... a President? From behind the big wall? We thought that place was sealed.",
+          "Visitors! In a rowboat! Welcome to the Moonward Academy of Applied Wizardry. I am Archmage Hodlwyn, headmaster.",
+          "A President, from behind the big wall? Then you know locked doors, and treasuries. We've lost ours.",
           {
-            "player": "It was. We got out."
+            "player": "Was the rowboat yours?"
           },
-          "Then you know a thing or two about locked doors, and about treasuries. We've lost ours.",
-          "Our Bursar, the man who kept the academy's gold, wove the whole endowment into one magnificent rug. Then he pulled it.",
+          "The crystal ball showed me your Chamber waking. I left a boat. The oars are on loan; we have a budget crisis.",
+          "Our Bursar wove the whole endowment into one magnificent rug. Then he pulled it.",
           {
             "player": "He pulled the rug."
           },
-          "Right out from under us. He calls himself the Rugmancer now. He's holed up in the north tower with our gold, and he's spellbound our Battlemages to keep everyone out.",
+          "Right out from under us. He calls himself the Rugmancer now, and he's spellbound our Battlemages to keep everyone out.",
           "First, you'll want to cast. Here: an Apprentice Staff, and some COOM to fire from it.",
           {
             "player": "COOM?"
@@ -1250,8 +1312,8 @@
         "status": "started",
         "step": ["duel"],
         "lines": [
-          "Good grip! Now practise. The Duelling Grounds are in the east wing. The Apprentices there will duel anyone who stands still.",
-          "Win one duel. Keep your distance; a staff reaches as far as a good rifle."
+          "Good grip! Now practice. The Dueling Grounds are in the east wing. The Apprentices there will duel anyone who stands still.",
+          "Win one duel. Keep your distance; a staff outranges any pistol."
         ]
       },
       {
@@ -1260,14 +1322,8 @@
         "step": ["battlemage"],
         "lines": [
           "Splendid! Now a Battlemage. They were our best teachers before the Rugmancer's spell.",
-          "Two of them guard the way to the north tower, and more patrol the Duelling Grounds. Beat one and the spell on it breaks. Mind their bolts; they hit hard."
+          "Two of them guard the way to the north tower, and more patrol the Dueling Grounds. Beat one and the spell on it breaks. Mind their bolts; they hit hard."
         ]
-      },
-      {
-        "quest": "quest_moonward",
-        "status": "started",
-        "step": ["report"],
-        "lines": ["You beat a Battlemage? Then come here and tell me everything."]
       },
       {
         "quest": "quest_moonward",
@@ -1275,7 +1331,7 @@
         "step": ["rugmancer"],
         "lines": [
           {
-            "player": "The Battlemage woke up. It said the spell comes from the north tower."
+            "player": "The Battlemage woke up and said the spell comes from the north tower."
           },
           "Of course it does. He always did like the view from up there. Unobstructed. Unaudited.",
           "Go up and take back the endowment. He'll call Apprentices to defend him. Spellbound ones. Go easy on them; they're only students.",
@@ -1283,14 +1339,8 @@
             "player": "Any advice?"
           },
           "Ordinary spells just get woven into his rug. It's spun from doubt, President. Every gloomy forecast since he took the gold.",
-          "Only hope unravels doubt. Ask the Staffwright for a staff that only ever looks up."
+          "Only hope unravels doubt. Ask the Staffwright for the staff that runs on it. Not the moon one. Hope."
         ]
-      },
-      {
-        "quest": "quest_moonward",
-        "status": "started",
-        "step": ["finish"],
-        "lines": ["I felt it from here. The rug, unravelling."]
       }
     ]
   },
@@ -1316,7 +1366,7 @@
         "status": "started",
         "step": ["rugmancer"],
         "lines": [
-          "Going after the Rugmancer? Then you'll want hope in your hands. You know the one: the crystal only ever points up.",
+          "Going after the Rugmancer? You want hope in your hands. Not the Moonward Staff; staring at the moon isn't hoping.",
           "Twenty-five Shooting and it's yours. It's on the stall."
         ]
       },
@@ -1324,7 +1374,7 @@
         "quest": "quest_moonward",
         "status": "complete",
         "lines": [
-          "The President who unravelled the Rugmancer! For you, the good COOM. It's the same COOM. Same price, too.",
+          "The President who unraveled the Rugmancer! For you, the good COOM. It's the same COOM. Same price, too.",
           "Business is booming now the gold's back. Everyone wants a staff."
         ]
       }
@@ -1333,12 +1383,12 @@
   {
     "id": "npc_student",
     "name": "Moonward Student",
-    "examine": "Supposed to be studying.",
+    "examine": "A mature student. Third attempt at the same degree.",
     "model": "npc_student",
     "actions": ["Talk-to"],
     "wanderRadius": 3,
     "lines": [
-      "Are you the President from behind the wall? Can I have your autograph? On my homework?",
+      "Are you the President from behind the wall? Can I have your autograph? On my thesis?",
       {
         "player": "Shouldn't you be studying?"
       },
@@ -1371,8 +1421,8 @@
     "actions": ["Talk-to"],
     "wanderRadius": 1,
     "lines": [
-      "Ah, a new student. Of a sort.",
-      "Rule one: keep your distance. A staff fires as far as a good rifle.",
+      "Ah, a new student. Of a sort. Halt, the academy is clo... no. No. I am fighting it.",
+      "Rule one: keep your distance. Apprentices can't hit what they can't reach.",
       "Rule two: Accurate, Rapid or Longrange, same as your guns. Longrange trains Defense as well.",
       "Rule three: COOM in the ammo slot. You'd be amazed how many forget rule three."
     ],
@@ -1383,6 +1433,40 @@
         "lines": [
           "The spell is gone from my head. Like waking from a very long lecture. Thank you, President.",
           "If you want to keep your casting sharp, the Apprentices still duel all day. Teach them some manners."
+        ]
+      }
+    ]
+  },
+  {
+    "id": "npc_captain_seated",
+    "name": "Captain Motion",
+    "examine": "Expedition One's Captain. Sitting down. It's harder than it looks.",
+    "model": "npc_captain_seated",
+    "actions": ["Talk-to"],
+    "wanderRadius": 0,
+    "lines": [
+      "Sitting. It's harder than it looks.",
+      "Eleven people believed me, and I ran laps so they would never see it fail. Don't do that, President.",
+      {
+        "player": "Why did you stay?"
+      },
+      "Somebody had to be first in line if it ever woke up. I just thought it would be me."
+    ],
+    "dialogue": [
+      {
+        "quest": "quest_way_out",
+        "status": "complete",
+        "lines": [
+          "The Scout says I walk through next. Walk. Slowly. Like a normal person.",
+          "Go on ahead, President. I have four hundred days of sitting to catch up on."
+        ]
+      },
+      {
+        "quest": "quest_way_out",
+        "status": "started",
+        "lines": [
+          "The Chamber, waking up? After all those laps?",
+          "The stones out there won't listen to bullets. I tried. For a year. A law needs a big, loud No."
         ]
       }
     ]

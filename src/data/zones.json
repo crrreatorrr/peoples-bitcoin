@@ -482,6 +482,11 @@
           "objectId": "obj_tree",
           "x": 9,
           "y": 37
+        },
+        {
+          "objectId": "obj_treasury_gates",
+          "x": 27,
+          "y": 50
         }
       ],
       "npcs": [
@@ -899,7 +904,7 @@
           "x": 20,
           "y": 11,
           "requires": "boss:enemy_captain_motion",
-          "lockedMessage": "Locked. Behind it, footsteps going round and round. Defeat Captain Motion to pass."
+          "lockedMessage": "Locked. In front of it, the mud is worn into a perfect loop. Defeat Captain Motion to pass."
         },
         {
           "objectId": "obj_teleport_chamber",
@@ -911,7 +916,7 @@
             "y": 11
           },
           "requires": "chamber_ready",
-          "lockedMessage": "The chamber is dark and silent. Morelight will know what it needs."
+          "lockedMessage": "The chamber is sealed. Morelight will know what it needs."
         },
         {
           "objectId": "obj_expedition_sign",
@@ -954,6 +959,11 @@
           "npcId": "npc_scout",
           "x": 17,
           "y": 119
+        },
+        {
+          "npcId": "npc_captain_seated",
+          "x": 23,
+          "y": 9
         }
       ],
       "enemies": [
@@ -1165,7 +1175,11 @@
         {
           "enemyId": "enemy_captain_motion",
           "x": 20,
-          "y": 15
+          "y": 15,
+          "quest": {
+            "quest": "quest_motion_denied",
+            "step": "captain"
+          }
         },
         {
           "enemyId": "enemy_dump_golem",

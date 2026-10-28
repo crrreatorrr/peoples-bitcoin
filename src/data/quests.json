@@ -296,7 +296,7 @@
         }
       }
     ],
-    "summary": "The Treasurer bought the wrong coin, the ticker crashed, and the gates sealed: the Lockdown. Morelight will show you how to earn your way back up."
+    "summary": "Four hundred days ago the Treasurer bought the wrong coin, the ticker crashed, and the gates sealed: the Lockdown. Today you were sworn in. Morelight will show you how to earn your way back up."
   },
   {
     "id": "quest_bunker",
@@ -454,7 +454,7 @@
     "ordered": true,
     "startNpc": "npc_morelight",
     "requires": ["quest_sludge_duty"],
-    "summary": "Past the first barricade, the Wrong-Namers turn back anyone heading north. There is no outside, they say; it's all $BITCON. Morelight disagrees.",
+    "summary": "All along the Trenches, the Wrong-Namers turn back anyone heading north, and their Chief holds the second barricade. There is no outside, they say; it's all $BITCON. Morelight disagrees.",
     "steps": [
       {
         "id": "briefing",
@@ -525,7 +525,7 @@
         }
       ]
     },
-    "completeMessage": "Quest complete: Name Calling! The second barricade is open, and the Trenches are finally quiet."
+    "completeMessage": "Quest complete: Name Calling! The second barricade is open. Past it, someone is still running laps."
   },
   {
     "id": "quest_motion_denied",
@@ -813,7 +813,7 @@
     "points": 2,
     "ordered": true,
     "startNpc": "npc_fixer",
-    "requires": ["quest_tutorial"],
+    "requires": ["quest_tutorial", "quest_sludge_duty"],
     "summary": "Nobody leaves without an Exit Permit, and only the Broker can sign one. The Fixer smells a setup.",
     "steps": [
       {
@@ -849,7 +849,7 @@
       },
       {
         "id": "negatives",
-        "text": "Take the photo negatives off the Paper-Hands goblins in the Trenches.",
+        "text": "Take the photo negatives off the Paper-Hands past the first barricade in the Trenches.",
         "trigger": {
           "type": "obtain",
           "item": "item_photo_negatives"
@@ -883,6 +883,14 @@
           "takeover_leverage": {
             "usd": 6000
           }
+        },
+        "reward": {
+          "items": [
+            {
+              "item": "item_exit_permit",
+              "qty": 1
+            }
+          ]
         }
       },
       {
@@ -904,10 +912,6 @@
       "items": [
         {
           "item": "item_diamond_cards",
-          "qty": 1
-        },
-        {
-          "item": "item_exit_permit",
           "qty": 1
         }
       ]
@@ -1203,7 +1207,7 @@
         }
       ]
     },
-    "completeMessage": "THE WAY OUT: complete! You stepped through the Teleport Chamber into the world out there."
+    "completeMessage": "Quest complete: The Way Out! For the first time since the Lockdown, someone has left the Treasury. On purpose."
   },
   {
     "id": "quest_moonward",
@@ -1248,7 +1252,7 @@
       },
       {
         "id": "duel",
-        "text": "Win a duel against an Apprentice in the Duelling Grounds (east wing).",
+        "text": "Win a duel against an Apprentice in the Dueling Grounds (east wing).",
         "trigger": {
           "type": "kill",
           "enemy": "enemy_apprentice"
@@ -1292,7 +1296,7 @@
       },
       {
         "id": "finish",
-        "text": "Tell the Archmage the rug is unravelled.",
+        "text": "Tell the Archmage the rug is unraveled.",
         "trigger": {
           "type": "talk",
           "npc": "npc_archmage"
@@ -1319,6 +1323,6 @@
         }
       ]
     },
-    "completeMessage": "Quest complete: Moonward Enrollment! The rug is unravelled, the gold is back, and Moonward Academy is open again."
+    "completeMessage": "Quest complete: Moonward Enrollment! The rug is unraveled, the gold is back, and Moonward Academy is open again."
   }
 ]

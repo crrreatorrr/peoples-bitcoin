@@ -153,7 +153,8 @@ describe('quest-aware dialogue, Morelight and the quest list', () => {
     changeZone(state, ctx, 'zone_trenches', { x: 18, y: 119 }, []);
     const scout = content().npcs.get('npc_scout')!;
     const intel = scout.dialogue.find(
-      (d) => d.quest === 'quest_sludge_duty' && d.status === 'started',
+      (d) =>
+        d.quest === 'quest_sludge_duty' && d.status === 'started' && d.step?.includes('mother'),
     )!;
     expect(talk(state, ctx, 'npc_scout')).toBe(intel.lines);
     expect(currentHint(state, ctx)?.enemy).toBe('enemy_sludge_mother');
@@ -238,7 +239,7 @@ describe('Bunker Down and Construction', () => {
     give(state, 'item_scrap_hash', 5);
     give(state, 'item_concrete_bag', 1);
     events = runTick(state, ctx, [{ type: 'build', buildId: 'build_locker' }]);
-    expect(messages(events)).toContain('You build a Storage Locker.');
+    expect(messages(events)).toContain('You build the Storage Locker.');
     expect(state.player.bunker[hotspotKey('zone_bunker', spot)]).toBe('build_locker');
 
     runTick(state, ctx, [{ type: 'interact', targetId: spot.id, action: 'Open' }]);

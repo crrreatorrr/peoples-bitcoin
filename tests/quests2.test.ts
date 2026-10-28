@@ -166,6 +166,9 @@ describe('quest-only drops and branching choices', () => {
     const { state, ctx } = newGame(4);
     state.player.quests.quest_tutorial.complete = true;
     talk(state, ctx, 'npc_fixer');
+    expect(state.player.quests.quest_hostile_takeover).toBeUndefined(); // the Paper-Hands are past the Sludge Mother
+    state.player.quests.quest_sludge_duty = { done: [], complete: true, choices: [] };
+    talk(state, ctx, 'npc_fixer');
     useOn(state, ctx, 'item_sealed_envelope', objectOf(state, 'obj_lobbyist_broker').id);
     expect(countItem(state.player.inventory, 'item_blackmail_photo')).toBe(1);
 
@@ -303,7 +306,7 @@ describe('The Way Out', () => {
           { type: 'interact', targetId: chamber.id, action: 'Enter' },
         ]),
       ).join(' '),
-    ).toMatch(/dark and silent/);
+    ).toMatch(/sealed/);
     for (const id of [
       'item_chamber_blueprints',
       'item_coordinates_drive',

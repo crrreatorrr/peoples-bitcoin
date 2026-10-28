@@ -1905,5 +1905,26 @@
     },
     "path": "models/enemy_dump_golem.glb",
     "scale": 1.2
+  },
+  "treasury_gates": {
+    "placeholder": "gates",
+    "color": "#8a8478",
+    "accent": "#d4a83a"
+  },
+  "npc_captain_seated": {
+    "placeholder": "humanoid",
+    "look": {
+      "top": "#2f4fd8",
+      "pants": "#2f4fd8",
+      "stripes": "#f2f2f2",
+      "shoes": "#f2f2f2",
+      "hair": "#2f4fd8",
+      "hairStyle": "spiky",
+      "skin": "#e8b890",
+      "build": 0.95,
+      "legs": 1.1
+    },
+    "sprite": "sprites/enemy_captain_motion.png",
+    "path": "models/enemy_captain_motion.glb"
   }
 }
