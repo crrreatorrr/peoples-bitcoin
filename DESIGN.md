@@ -8,6 +8,8 @@ Build in phases (section 15). Do not start a phase until the previous one passes
 
 ## Revisions approved by the owner (2026-10-28) — these override the sections below
 
+- **Hard Rule 2 amended:** satirical caricatures inspired by public figures are allowed (see §0); the President is a Black president inspired by Barack Obama. Real names stay out.
+
 - **Skills (10):** Shooting, Melee, Defense, Hitpoints, **Summoning** (was Command), Mining, Fundraising, Lobbying, Spin, Construction. **Removed:** Gunsmithing, Policy, Press Dodging, Painting.
 - **Skill web:** Mining → Hash (sold at the Terminal at the live price; also cannon ammo; Construction material). Fundraising → raw Scandals (+ rare whale payouts). Spin → Scandals into Talking Points (food that heals in combat). **Lobbying pays $BITCOIN for favors; sometimes you're blackmailed and do it unpaid.** Summoning → Sproto allies from contracts. Construction → **locked behind the Bunker Down quest**; better toolkits unlock better bunker upgrades.
 - **No cosmetics in the game; every item is useful.** Gremlin Street painting, the Resort Boutique and cosmetic skins are dropped.
@@ -24,7 +26,7 @@ Build in phases (section 15). Do not start a phase until the previous one passes
 ## 0. Hard rules (never break)
 
 1. **In-game currency only.** No real money, no crypto wallets, no blockchain calls, no cash-out, no real-money trading. "$BITCOIN" and "BTC" are fictional in-game currencies.
-2. **Fictional characters only.** No real person's name, handle, face or likeness anywhere (code, assets, dialogue, filenames). The President is fictional ("President Hope Q. Change"). All characters below are archetypes with invented names.
+2. **Fictional characters; public figures only as satire.** *(Amended by the owner, 2026-10-28.)* Characters have invented names: no real person's name or handle anywhere (code, assets, dialogue, filenames). Stylized satirical caricatures *inspired by* public figures are allowed (the President, "President Hope Q. Change", is a Black president inspired by Barack Obama), as long as they are low-poly cartoons, never photorealistic, never sexual or demeaning, and never imply a real person endorses anything (no real-world endorsements, quotes or slogans attributed to them). Private individuals' faces only with their consent. All other characters are archetypes with invented names.
 3. **No trademarked characters on screen.** No wizard boy, no blue hedgehog, no studio characters. The coin's full name is a configurable string constant `COIN_FULL_NAME` in `src/config/branding.ts`; default it to a parody name `"PresidentWizardHedgehog10Inu"` with ticker `"$BITCOIN"`. The owner may change it later.
 4. **Content rating: teen-friendly satire.** No sexual content, no slurs, no racial or religious jokes, no mutilation threats, no mocking of disabled people. Guns are cartoon, low-poly, chunky, no gore. Enemies "poof" into sludge when defeated.
 5. **Placeholders first.** Every model, sound and texture is a placeholder (primitives or simple GLB) loaded through an asset manifest so final art can be swapped without code changes.
@@ -392,7 +394,7 @@ Reporter ambush (approval gamble), Whistleblower, Lost Intern, Rig Power Outage,
 - `assets.manifest.json` maps logical ids → file path, scale, rotation offset, animation clip names. Code only references ids.
 - Placeholders: Three.js primitives or tiny GLBs generated in code.
 - Final art (later, by the owner): concept images and image→3D GLB from an AI tool (e.g. Higgsfield), then cleaned in Blender: decimate to low-poly (Sprotos ≤ 1.5k tris, bosses ≤ 6k tris), flat-shade, 64×64 palette texture, rig/animate (Mixamo or manual), export GLB, compress with `gltf-transform` (meshopt/draco).
-- Style guide in `ART_GUIDE.md`: palette, poly budgets, silhouette rules, no likeness of real people or trademarked characters.
+- Style guide in `ART_GUIDE.md`: palette, poly budgets, silhouette rules, no trademarked characters, and the satire rules for public-figure caricatures.
 
 ---
 

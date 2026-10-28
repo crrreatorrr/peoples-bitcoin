@@ -3,8 +3,9 @@
 At the start of every session read, in order: `DESIGN.md` (source of truth), `DECISIONS.md`,
 `TODO.md`.
 
-- Hard rules (DESIGN.md §0) override any request: fictional in-game currency only, fictional
-  characters only, no trademarked characters, teen-friendly, placeholders via the asset manifest.
+- Hard rules (DESIGN.md §0) override any request: fictional in-game currency only, invented
+  character names (public figures only as stylized satire caricatures, never by name), no
+  trademarked characters, teen-friendly, placeholders via the asset manifest.
 - Every tunable number goes in `src/config/balance.ts`.
 - `src/sim` stays pure (no DOM/Three). Check with `npm run typecheck` and `npm run lint`.
 - New sim behavior needs Vitest tests in `tests/`.

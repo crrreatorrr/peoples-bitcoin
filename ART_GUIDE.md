@@ -2,8 +2,10 @@
 
 ## Rules
 
-- **No likeness of real people.** No real faces, names, signatures or recognizable outfits of
-  real public figures. The President is a generic suited figure the player will customize.
+- **Real people: caricature only, never their name.** Stylized low-poly caricatures inspired by
+  public figures are allowed for satire (the President is inspired by Barack Obama). Never
+  photorealistic, never their name or signature, nothing that reads as their endorsement.
+  Private individuals only with their consent.
 - **No trademarked characters.** No wizard boys, blue hedgehogs, studio mascots or anything that
   reads as one. The Gremlin mascot and Sprotos are original designs.
 - **Teen-friendly.** Guns are chunky, cartoon and low-poly. No gore; defeated enemies poof into
@@ -73,7 +75,8 @@ icons, portraits and menus, and the 3D looks were made to match them.
 
 Prompt style: "Pixel art game sprite in a chunky retro MMO style, 3/4 front view, centered,
 crisp dark outline, limited palette, transparent background, no text, no logos", plus the
-subject. Human characters always add "fictional, does not resemble any real person".
+subject. Human characters add "fictional, does not resemble any real person" unless they're an
+approved caricature (DESIGN.md §0, rule 2).
 
 ## Pipeline (owner, later)
 
