@@ -36,6 +36,8 @@ export function changeZone(
   if (zoneId !== state.zone.id) {
     const def = ctx.content.zones.get(zoneId);
     if (!def) return;
+    // Enemies left behind forget you.
+    for (const e of state.zone.enemies) e.target = null;
     state.otherZones[state.zone.id] = state.zone;
     state.zone = state.otherZones[zoneId] ?? createZoneState(def, ctx.content);
     delete state.otherZones[zoneId];
@@ -47,7 +49,10 @@ export function changeZone(
   player.action = null;
   player.interface = null;
   player.dialogue = null;
-  if (player.sproto) Object.assign(player.sproto, besidePlayer(state, ctx), { target: null });
+  if (player.sproto) {
+    const spot = besidePlayer(state, ctx);
+    Object.assign(player.sproto, spot, { from: { ...spot }, target: null });
+  }
   progressQuests(state, ctx, { type: 'enterZone', zone: zoneId }, events);
 }
 
@@ -100,14 +105,27 @@ export function passGate(
   events.push({ type: 'message', kind: 'game', text: 'You squeeze through the barricade.' });
 }
 
-/** At 0 HP: drop the inventory where you fell, then wake up in the bunker bed or the Treasury. */
+/** At 0 HP the player falls; enemies lose interest while the death plays out (OSRS). */
+export function startDying(state: GameState, events: SimEvent[]): void {
+  const player = state.player;
+  player.dyingUntil = state.tick + DEATH.respawnDelayTicks;
+  player.path = [];
+  player.action = null;
+  player.interface = null;
+  player.dialogue = null;
+  for (const e of state.zone.enemies) if (e.target !== null) e.target = null;
+  events.push({ type: 'death', entityId: PLAYER_ID });
+  events.push({ type: 'message', kind: 'warning', text: 'Oh dear, you are dead!' });
+}
+
+/** After the fall: drop the inventory where you fell, then wake up in the bunker bed or the Treasury. */
 export function handleDeath(state: GameState, ctx: SimContext, events: SimEvent[]): void {
   const player = state.player;
-  events.push({ type: 'death', entityId: PLAYER_ID });
+  player.dyingUntil = null;
   events.push({
     type: 'message',
     kind: 'warning',
-    text: 'You have been defeated! The Secret Service drags you back to safety.',
+    text: 'The Secret Service drags you back to safety.',
   });
   if (DEATH.dropInventory) {
     const until = state.tick + DEATH.pileDespawnTicks;

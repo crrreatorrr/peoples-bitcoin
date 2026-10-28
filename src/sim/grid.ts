@@ -99,3 +99,27 @@ export function hasLineOfSight(grid: Grid, a: Tile, b: Tile): boolean {
     if ((x !== b.x || y !== b.y) && !isWalkable(grid, x, y)) return false;
   }
 }
+
+/**
+ * One OSRS NPC-style step toward `to`: diagonally if both axes differ and the
+ * corner is clear, else along x, else along y. No pathfinding, so a wall in the
+ * way stops it, which is what makes safespots work. `blocked` rules out tiles
+ * taken by other actors.
+ */
+export function directStep(
+  grid: Grid,
+  from: Tile,
+  to: Tile,
+  blocked: (x: number, y: number) => boolean,
+): Tile | null {
+  const dx = Math.sign(to.x - from.x);
+  const dy = Math.sign(to.y - from.y);
+  const free = (x: number, y: number) => isWalkable(grid, x, y) && !blocked(x, y);
+  const { x, y } = from;
+  if (dx !== 0 && dy !== 0 && free(x + dx, y + dy)) {
+    if (isWalkable(grid, x + dx, y) && isWalkable(grid, x, y + dy)) return { x: x + dx, y: y + dy };
+  }
+  if (dx !== 0 && free(x + dx, y)) return { x: x + dx, y };
+  if (dy !== 0 && free(x, y + dy)) return { x, y: y + dy };
+  return null;
+}

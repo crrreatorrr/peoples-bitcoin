@@ -37,6 +37,7 @@ export type Intent =
   | { type: 'walk'; x: number; y: number }
   | { type: 'interact'; targetId: string; action: string }
   | { type: 'toggleRun' }
+  | { type: 'toggleRetaliate' }
   | { type: 'dropItem'; slot: number }
   | { type: 'moveItem'; from: number; to: number }
   | { type: 'equip'; slot: number }
@@ -50,7 +51,7 @@ export type Intent =
   | { type: 'continueDialogue' }
   | { type: 'deposit'; slot: number; qty: Quantity }
   | { type: 'depositAll' }
-  | { type: 'withdraw'; index: number; qty: Quantity }
+  | { type: 'withdraw'; index: number; qty: Quantity; itemId?: string }
   | { type: 'buy'; itemId: string; qty: number }
   | { type: 'sell'; slot: number; qty: Quantity }
   | { type: 'build'; buildId: string }
@@ -140,6 +141,14 @@ export interface PlayerState {
   summoning: { points: number; cooldownUntil: number };
   /** Rally: +pct damage until the given tick. */
   rally: { untilTick: number; pct: number };
+  /** Fight back automatically when attacked (OSRS Auto Retaliate). */
+  autoRetaliate: boolean;
+  /** Food can't be eaten again before this tick. */
+  nextEatTick: number;
+  /** The last enemy to attack the player, for single-way combat. */
+  lastHitBy: { id: string; tick: number } | null;
+  /** While dying: the tick the player wakes up at the respawn point. */
+  dyingUntil: number | null;
 }
 
 export interface ObjectInstance {
@@ -160,6 +169,8 @@ export interface NpcInstance {
   spawn: Tile;
   /** Position at the start of the last tick, for render interpolation. */
   from: Tile;
+  /** Where it's wandering to. */
+  goal: Tile | null;
 }
 
 export interface EnemyInstance {
@@ -180,6 +191,10 @@ export interface EnemyInstance {
   /** Boss adds don't respawn. */
   temp: boolean;
   nextAddTick: number;
+  /** Last tick it attacked or was attacked; fights are dropped after a quiet spell. */
+  lastCombatTick: number;
+  /** Where it's wandering to. */
+  goal: Tile | null;
 }
 
 export interface GroundItem {
@@ -274,6 +289,7 @@ export function createZoneState(zone: ZoneDef, content: Content): ZoneState {
       y: n.y,
       spawn: { x: n.x, y: n.y },
       from: { x: n.x, y: n.y },
+      goal: null,
     })),
     enemies: zone.enemies.map((e, i) => newEnemy(`e${i}`, e.enemyId, e.x, e.y, content, false)),
     groundItems: [],
@@ -305,6 +321,8 @@ export function newEnemy(
     suppressedUntil: 0,
     temp,
     nextAddTick: 0,
+    lastCombatTick: 0,
+    goal: null,
   };
 }
 
@@ -345,6 +363,10 @@ export function createGameState(content: Content, zoneId: string, seed: number):
       sproto: null,
       summoning: { points: SUMMONING.pointsMax, cooldownUntil: 0 },
       rally: { untilTick: 0, pct: 0 },
+      autoRetaliate: true,
+      nextEatTick: 0,
+      lastHitBy: null,
+      dyingUntil: null,
     },
     zone: createZoneState(zone, content),
     otherZones: {},

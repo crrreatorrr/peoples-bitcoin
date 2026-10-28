@@ -23,7 +23,7 @@ import {
 } from './state';
 import { EQUIP_SLOTS } from './schemas';
 
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 const StackSchema = z.object({ itemId: z.string(), qty: z.number().int().positive() });
 const STYLES = ['accurate', 'rapid', 'longrange', 'bash', 'block'] as const;
@@ -50,6 +50,7 @@ const SaveSchema = z.object({
     bunker: z.record(z.string(), z.string()),
     collected: z.record(z.string(), z.number()),
     summoningPoints: z.number(),
+    autoRetaliate: z.boolean(),
   }),
   economy: z.object({
     priceUsd: z.number().positive(),
@@ -95,6 +96,8 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
       },
     };
   },
+  // v4 added the Auto Retaliate setting.
+  3: (save) => ({ ...save, version: 4, player: { ...asRecord(save.player), autoRetaliate: true } }),
 };
 
 export function serialize(state: GameState, now: number): SaveData {
@@ -128,6 +131,7 @@ export function serialize(state: GameState, now: number): SaveData {
       bunker: { ...p.bunker },
       collected: { ...p.collected },
       summoningPoints: p.summoning.points,
+      autoRetaliate: p.autoRetaliate,
     },
     economy: { ...state.economy, history: [...state.economy.history] },
     objects: state.zone.objects.map((o) => ({ id: o.id, depletedUntil: o.depletedUntil })),
@@ -190,6 +194,7 @@ export function deserialize(raw: unknown, content: Content): GameState | null {
   p.bunker = { ...save.player.bunker };
   p.collected = { ...save.player.collected };
   p.summoning.points = clamp(save.player.summoningPoints, 0, SUMMONING.pointsMax);
+  p.autoRetaliate = save.player.autoRetaliate;
 
   state.economy = {
     ...save.economy,

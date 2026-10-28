@@ -60,6 +60,8 @@ export function tickGathering(
       return stop('Your inventory is too full to carry any more.');
     }
     action.nextAttemptTick = state.tick + GATHERING.attemptIntervalTicks;
+    if (skill.startMessage)
+      events.push({ type: 'message', kind: 'game', text: skill.startMessage });
     return;
   }
 
@@ -132,6 +134,8 @@ export function tickProcessing(
 
   if (action.nextAttemptTick === null) {
     action.nextAttemptTick = state.tick + intervalTicks;
+    if (skill.startMessage)
+      events.push({ type: 'message', kind: 'game', text: skill.startMessage });
     return;
   }
   if (state.tick < action.nextAttemptTick) return;

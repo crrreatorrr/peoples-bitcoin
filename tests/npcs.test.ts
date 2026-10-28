@@ -4,7 +4,7 @@ import { runTick } from '../src/sim/tick';
 import { content, newGame, treasuryGrid } from './helpers';
 
 describe('NPC wandering', () => {
-  it('wanders within its radius on walkable tiles, one step at a time', () => {
+  it('wanders within its radius on walkable tiles, one step (maybe diagonal) at a time', () => {
     const { state, ctx } = newGame(5);
     const npc = state.zone.npcs[0];
     const radius = content().npcs.get(npc.defId)!.wanderRadius;
@@ -14,10 +14,26 @@ describe('NPC wandering', () => {
       expect(Math.abs(npc.x - npc.spawn.x)).toBeLessThanOrEqual(radius);
       expect(Math.abs(npc.y - npc.spawn.y)).toBeLessThanOrEqual(radius);
       expect(isWalkable(treasuryGrid(ctx), npc.x, npc.y)).toBe(true);
-      expect(Math.abs(npc.x - npc.from.x) + Math.abs(npc.y - npc.from.y)).toBeLessThanOrEqual(1);
+      expect(
+        Math.max(Math.abs(npc.x - npc.from.x), Math.abs(npc.y - npc.from.y)),
+      ).toBeLessThanOrEqual(1);
       visited.add(`${npc.x},${npc.y}`);
     }
     expect(visited.size).toBeGreaterThan(3);
+  });
+
+  it('walks to a chosen spot over several ticks instead of one random step', () => {
+    const { state, ctx } = newGame(5);
+    const npc = state.zone.npcs.find((n) => content().npcs.get(n.defId)!.wanderRadius >= 2)!;
+    let longest = 0;
+    let run = 0;
+    for (let i = 0; i < 3000; i++) {
+      runTick(state, ctx, []);
+      const moved = npc.x !== npc.from.x || npc.y !== npc.from.y;
+      run = moved ? run + 1 : 0;
+      longest = Math.max(longest, run);
+    }
+    expect(longest).toBeGreaterThanOrEqual(2);
   });
 
   it('stands still while the player is talking to it', () => {

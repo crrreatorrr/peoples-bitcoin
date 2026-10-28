@@ -78,10 +78,40 @@ export function inAttackRange(
   return chebyshev(from, to) <= range && chebyshev(from, to) > 0 && hasLineOfSight(grid, from, to);
 }
 
-/** Path toward a target until it's in range (re-planned every tick as things move). */
+/**
+ * Path toward a target until it's in range (re-planned every tick as things
+ * move). Standing on the target's tile, even a gun steps off it first.
+ */
 export function pathToward(grid: Grid, from: Tile, to: Tile, melee: boolean): Tile[] {
-  const goals = melee ? interactionTiles(grid, { x: to.x, y: to.y, width: 1, height: 1 }) : [to];
+  const sameTile = from.x === to.x && from.y === to.y;
+  const goals =
+    melee || sameTile ? interactionTiles(grid, { x: to.x, y: to.y, width: 1, height: 1 }) : [to];
   return findPath(grid, from, goals).path;
+}
+
+/** The player's reach with their current weapon and style. */
+function playerReach(state: GameState, ctx: SimContext): { range: number; melee: boolean } {
+  const profile = attackProfile(state.player, ctx);
+  const melee = profile.type === 'melee';
+  const longrange = !melee && state.player.style === 'longrange';
+  return { range: profile.range + (longrange ? COMBAT.longrangeRangeBonus : 0), melee };
+}
+
+/**
+ * Plans the walk toward an enemy until it's in reach. Returns false when it
+ * can't be reached. Called on the click itself, so the player sets off on the
+ * same tick, like OSRS, and again each tick as the enemy moves.
+ */
+export function approachEnemy(state: GameState, ctx: SimContext, enemy: EnemyInstance): boolean {
+  const player = state.player;
+  const grid = gridOf(state, ctx);
+  const { range, melee } = playerReach(state, ctx);
+  if (inAttackRange(grid, player.pos, enemy, range, melee)) {
+    player.path = [];
+    return true;
+  }
+  player.path = pathToward(grid, player.pos, enemy, melee);
+  return player.path.length > 0;
 }
 
 /** One tick of the player fighting `enemy`: close the distance, then shoot or swing on cooldown. */
@@ -93,21 +123,15 @@ export function tickPlayerAttack(
 ): void {
   const player = state.player;
   const def = ctx.content.enemies.get(enemy.defId)!;
-  const grid = gridOf(state, ctx);
   const profile = attackProfile(player, ctx);
   const melee = profile.type === 'melee';
-  const longrange = !melee && player.style === 'longrange';
-  const range = profile.range + (longrange ? COMBAT.longrangeRangeBonus : 0);
 
-  if (!inAttackRange(grid, player.pos, enemy, range, melee)) {
-    player.path = pathToward(grid, player.pos, enemy, melee);
-    if (player.path.length === 0) {
-      events.push({ type: 'message', kind: 'game', text: "I can't reach that!" });
-      player.action = null;
-    }
+  if (!approachEnemy(state, ctx, enemy)) {
+    events.push({ type: 'message', kind: 'game', text: "I can't reach that!" });
+    player.action = null;
     return;
   }
-  player.path = [];
+  if (player.path.length > 0) return;
   if (state.tick < player.nextAttackTick) return;
 
   if (profile.outOfAmmo && player.action?.nextAttemptTick === null) {
@@ -142,6 +166,7 @@ export function tickPlayerAttack(
   });
   awardCombatXp(state, ctx, damage, melee, events);
   if (enemy.target === null) enemy.target = PLAYER_ID;
+  enemy.lastCombatTick = state.tick;
 
   if (profile.explosive) {
     const splash = state.zone.enemies.filter(

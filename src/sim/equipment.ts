@@ -101,7 +101,8 @@ export function eat(state: GameState, ctx: SimContext, slot: number, events: Sim
   const player = state.player;
   const item = player.inventory[slot];
   const def = item && ctx.content.items.get(item.itemId);
-  if (!item || !def?.food) return;
+  if (!item || !def?.food || state.tick < player.nextEatTick) return;
+  player.nextEatTick = state.tick + COMBAT.eatDelayTicks;
   const before = player.hp;
   player.hp = Math.min(maxHp(player), player.hp + def.food.heal);
   item.qty -= 1;

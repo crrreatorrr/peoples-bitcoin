@@ -132,7 +132,8 @@ export function stepSproto(state: GameState, ctx: SimContext, events: SimEvent[]
     return;
   }
   if (chebyshev(sproto, player.pos) > CATCH_UP_DISTANCE) {
-    Object.assign(sproto, besidePlayer(state, ctx));
+    const spot = besidePlayer(state, ctx);
+    Object.assign(sproto, spot, { from: { ...spot } });
   }
 
   if (
@@ -156,7 +157,11 @@ export function stepSproto(state: GameState, ctx: SimContext, events: SimEvent[]
 
   const grid = gridOf(state, ctx);
   if (!target) {
-    if (chebyshev(sproto, player.pos) > 1) step(sproto, pathToward(grid, sproto, player.pos, true));
+    // Keep the player's pace: two steps a tick when they run.
+    const pace = Math.max(1, player.stepsThisTick.length - 1);
+    for (let i = 0; i < pace && chebyshev(sproto, player.pos) > 1; i++) {
+      step(sproto, pathToward(grid, sproto, player.pos, true));
+    }
     return;
   }
   const melee = sdef.range <= 1;

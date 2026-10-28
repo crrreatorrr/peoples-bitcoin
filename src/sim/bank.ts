@@ -65,14 +65,22 @@ export function depositAll(player: PlayerState, events: SimEvent[]): void {
   }
 }
 
-/** Withdraws up to `qty` from bank stack `index`, limited by inventory space. */
+/**
+ * Withdraws up to `qty` from bank stack `index`, limited by inventory space.
+ * With `itemId`, the stack is found by item, so quick clicks can't hit a stack
+ * that shifted into that index after an earlier withdraw emptied one.
+ */
 export function withdraw(
   player: PlayerState,
   content: Content,
   index: number,
   qty: Quantity,
   events: SimEvent[],
+  itemId?: string,
 ): void {
+  if (itemId !== undefined && player.bank[index]?.itemId !== itemId) {
+    index = player.bank.findIndex((s) => s.itemId === itemId);
+  }
   const stack = player.bank[index];
   const limit = wanted(qty);
   const item = stack && content.items.get(stack.itemId);

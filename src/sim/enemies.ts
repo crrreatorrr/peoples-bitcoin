@@ -1,11 +1,13 @@
 /**
- * Enemy AI: respawn, aggro, leash, chase, attack, wander, and boss adds.
- * Enemies fight the player or the player's Sproto, using the same combat math.
+ * Enemy AI, OSRS-style: respawn, slow regen, aggro (in sight), direct-step
+ * chasing that walls can block (safespots), a leash they won't cross, giving
+ * up quiet fights, single-way combat outside boss fights, wandering, and boss
+ * adds. Enemies fight the player or the player's Sproto with the same math.
  */
 import { COMBAT, ENEMIES, SUMMONING } from '../config/balance';
 import { accuracyRoll, combatLevel, inAttackRange, maxHit, pathToward, rollDamage } from './combat';
 import { armorTotals } from './equipment';
-import { chebyshev, isWalkable } from './grid';
+import { chebyshev, directStep, hasLineOfSight, isWalkable } from './grid';
 import { chance, nextInt } from './rng';
 import {
   gridOf,
@@ -30,6 +32,7 @@ const CARDINALS: readonly (readonly [number, number])[] = [
 export function stepEnemies(state: GameState, ctx: SimContext, events: SimEvent[]): void {
   const player = state.player;
   const playerLevel = combatLevel(player.skills);
+  const grid = gridOf(state, ctx);
   for (const enemy of [...state.zone.enemies]) {
     enemy.from = { x: enemy.x, y: enemy.y };
     const def = ctx.content.enemies.get(enemy.defId);
@@ -44,6 +47,8 @@ export function stepEnemies(state: GameState, ctx: SimContext, events: SimEvent[
       }
       continue;
     }
+    // OSRS monsters heal slowly over time, never all at once.
+    if (state.tick % COMBAT.hpRegenEveryTicks === 0 && enemy.hp < def.hp) enemy.hp += 1;
 
     // Choose who to fight. A taunt holds aggro on the Sproto until it wears off.
     if (enemy.target === SPROTO_ID) {
@@ -53,30 +58,27 @@ export function stepEnemies(state: GameState, ctx: SimContext, events: SimEvent[
         enemy.tauntedUntil = 0;
       }
     }
+    // A fight where nobody can land an attack is dropped (e.g. you're safespotting).
+    if (enemy.target !== null && state.tick - enemy.lastCombatTick > ENEMIES.giveUpTicks) {
+      enemy.target = null;
+    }
     const tooStrong = playerLevel > def.level * COMBAT.aggroLevelMultiplier && !def.boss;
     if (
       enemy.target === null &&
       def.aggressive &&
       !tooStrong &&
-      chebyshev(enemy, player.pos) <= def.aggroRange
+      player.dyingUntil === null &&
+      chebyshev(enemy, player.pos) <= def.aggroRange &&
+      hasLineOfSight(grid, enemy, player.pos)
     ) {
       enemy.target = PLAYER_ID;
-    }
-
-    // Leash: walk home and heal if dragged too far.
-    if (chebyshev(enemy, enemy.spawn) > ENEMIES.leashRange) {
-      enemy.target = null;
-      enemy.hp = def.hp;
-      stepTo(state, ctx, enemy, enemy.spawn, false);
-      continue;
+      enemy.lastCombatTick = state.tick;
     }
 
     const targetPos = targetTile(state, enemy);
-    if (targetPos) {
-      fight(state, ctx, enemy, targetPos, events);
-    } else if (chance(state.rng, ENEMIES.wanderChance)) {
-      wander(state, ctx, enemy, def.wanderRadius);
-    }
+    if (targetPos) fight(state, ctx, enemy, targetPos, events);
+    else if (chebyshev(enemy, enemy.spawn) > def.wanderRadius) walkHome(state, ctx, enemy);
+    else wander(state, ctx, enemy, def.wanderRadius);
 
     const adds = def.boss?.adds;
     if (adds && enemy.target && state.tick >= enemy.nextAddTick) {
@@ -116,13 +118,21 @@ function fight(
   const def = ctx.content.enemies.get(enemy.defId)!;
   const grid = gridOf(state, ctx);
   const melee = def.range <= 1;
+  if (enemy.x === target.x && enemy.y === target.y) {
+    // Standing on the target: step off before attacking, as in OSRS.
+    const spot = freeNeighbor(state, ctx, enemy);
+    if (spot) Object.assign(enemy, spot);
+    return;
+  }
   if (!inAttackRange(grid, enemy, target, def.range, melee)) {
-    stepTo(state, ctx, enemy, target, melee);
+    chase(state, ctx, enemy, target);
     return;
   }
   if (state.tick < enemy.nextAttackTick) return;
+  if (enemy.target === PLAYER_ID && singleWayBlocked(state, ctx, enemy)) return;
   const slowed = state.tick < enemy.suppressedUntil ? 2 : 0;
   enemy.nextAttackTick = state.tick + def.speed + slowed;
+  enemy.lastCombatTick = state.tick;
 
   const attRoll = accuracyRoll(def.attack + COMBAT.levelOffset, def.accuracy);
   const max = maxHit(def.strength + COMBAT.levelOffset, def.damage);
@@ -155,6 +165,7 @@ function fight(
   }
 
   const player = state.player;
+  player.lastHitBy = { id: enemy.id, tick: state.tick };
   const defLevel = levelForXp(player.skills.defense ?? 0);
   const styleBonus =
     player.style === 'block' || player.style === 'longrange' ? COMBAT.styleBonus : 0;
@@ -169,50 +180,83 @@ function fight(
     const name = ctx.content.skills.get('defense')?.name ?? 'Defense';
     grantXp(player, 'defense', name, dmg * COMBAT.defenseXpPerDamageTaken, events);
   }
-  // Auto-retaliate when idle.
-  if (!player.action && player.path.length === 0) {
+  // Auto Retaliate: fight back unless walking or already fighting; skilling and menus stop.
+  if (player.autoRetaliate && player.action?.action !== 'Attack' && player.path.length === 0) {
     player.action = { targetId: enemy.id, action: 'Attack', nextAttemptTick: null };
+    player.interface = null;
+    player.dialogue = null;
   }
 }
 
-/** One step toward a goal, not onto another enemy. */
-function stepTo(
-  state: GameState,
-  ctx: SimContext,
-  enemy: EnemyInstance,
-  goal: Tile,
-  melee: boolean,
-): void {
-  const grid = gridOf(state, ctx);
-  const next = pathToward(grid, enemy, goal, melee)[0];
-  if (!next) return;
-  const blocked = state.zone.enemies.some(
-    (e) => e !== enemy && e.respawnAt === null && e.x === next.x && e.y === next.y,
+/** Bosses and their adds fight in multi-way combat; everywhere else is single-way. */
+function multiCombat(ctx: SimContext, enemy: EnemyInstance): boolean {
+  return enemy.temp || ctx.content.enemies.get(enemy.defId)?.boss !== undefined;
+}
+
+/** Single-way combat: another enemy hit the player too recently for this one to join in. */
+function singleWayBlocked(state: GameState, ctx: SimContext, enemy: EnemyInstance): boolean {
+  const last = state.player.lastHitBy;
+  if (!last || last.id === enemy.id || multiCombat(ctx, enemy)) return false;
+  if (state.tick - last.tick >= COMBAT.singleWayTicks) return false;
+  const other = state.zone.enemies.find((e) => e.id === last.id && e.respawnAt === null);
+  return other !== undefined && !multiCombat(ctx, other);
+}
+
+/** Someone other than `enemy` stands on (x, y). */
+function occupied(state: GameState, enemy: EnemyInstance, x: number, y: number): boolean {
+  return state.zone.enemies.some(
+    (e) => e !== enemy && e.respawnAt === null && e.x === x && e.y === y,
   );
-  if (blocked) return;
+}
+
+/** Chases with OSRS-style direct steps, never past the leash. */
+function chase(state: GameState, ctx: SimContext, enemy: EnemyInstance, target: Tile): void {
+  const next = directStep(
+    gridOf(state, ctx),
+    enemy,
+    target,
+    (x, y) => occupied(state, enemy, x, y) || (x === target.x && y === target.y),
+  );
+  if (!next || chebyshev(next, enemy.spawn) > ENEMIES.leashRange) return;
   enemy.x = next.x;
   enemy.y = next.y;
 }
 
+/** Walks back to spawn after a fight, around walls. */
+function walkHome(state: GameState, ctx: SimContext, enemy: EnemyInstance): void {
+  enemy.goal = null;
+  const next = pathToward(gridOf(state, ctx), enemy, enemy.spawn, false)[0];
+  if (next && !occupied(state, enemy, next.x, next.y)) Object.assign(enemy, next);
+}
+
+/** Now and then picks a spot within its wander radius and walks there. */
 function wander(state: GameState, ctx: SimContext, enemy: EnemyInstance, radius: number): void {
-  const [dx, dy] = CARDINALS[nextInt(state.rng, 0, CARDINALS.length - 1)];
-  const x = enemy.x + dx;
-  const y = enemy.y + dy;
-  if (Math.abs(x - enemy.spawn.x) > radius || Math.abs(y - enemy.spawn.y) > radius) return;
-  if (!isWalkable(gridOf(state, ctx), x, y)) return;
-  if (state.zone.enemies.some((e) => e !== enemy && e.respawnAt === null && e.x === x && e.y === y))
-    return;
-  enemy.x = x;
-  enemy.y = y;
+  if (radius === 0) return;
+  if (!enemy.goal) {
+    if (!chance(state.rng, ENEMIES.wanderChance)) return;
+    enemy.goal = {
+      x: enemy.spawn.x + nextInt(state.rng, -radius, radius),
+      y: enemy.spawn.y + nextInt(state.rng, -radius, radius),
+    };
+  }
+  const { pos } = state.player;
+  const next = directStep(
+    gridOf(state, ctx),
+    enemy,
+    enemy.goal,
+    (x, y) => occupied(state, enemy, x, y) || (x === pos.x && y === pos.y),
+  );
+  if (next) Object.assign(enemy, next);
+  if (!next || (enemy.x === enemy.goal.x && enemy.y === enemy.goal.y)) enemy.goal = null;
 }
 
 function freeNeighbor(state: GameState, ctx: SimContext, at: Tile): Tile | null {
   const grid = gridOf(state, ctx);
   for (const [dx, dy] of CARDINALS) {
     const t = { x: at.x + dx, y: at.y + dy };
-    const taken = state.zone.enemies.some(
-      (e) => e.respawnAt === null && e.x === t.x && e.y === t.y,
-    );
+    const taken =
+      state.zone.enemies.some((e) => e.respawnAt === null && e.x === t.x && e.y === t.y) ||
+      (state.player.pos.x === t.x && state.player.pos.y === t.y);
     if (isWalkable(grid, t.x, t.y) && !taken) return t;
   }
   return null;

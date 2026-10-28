@@ -171,6 +171,8 @@ export const SkillDefSchema = z.object({
   startLevel: Level.default(1),
   /** Item-tool name shown when the player has none ("a Hash Pick"). */
   toolName: z.string().optional(),
+  /** Printed when you start, OSRS-style ("You swing your pick at the rack."). */
+  startMessage: z.string().optional(),
   actions: z.array(GatherActionSchema).default([]),
   recipes: z.array(RecipeSchema).default([]),
   /** Gaining XP needs this unlock (Construction is quest-locked). */

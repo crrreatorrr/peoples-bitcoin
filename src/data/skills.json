@@ -76,7 +76,8 @@
           "message": "You find a BTC Shard in the coolant!"
         }
       }
-    ]
+    ],
+    "startMessage": "You swing your pick at the rack."
   },
   {
     "id": "fundraising",
@@ -129,7 +130,8 @@
           "message": "A whale pledges big! You pocket the donation."
         }
       }
-    ]
+    ],
+    "startMessage": "You start working the room."
   },
   {
     "id": "lobbying",
@@ -179,7 +181,8 @@
           "message": "Blackmail! They have photos, so this favor is on the house."
         }
       }
-    ]
+    ],
+    "startMessage": "You offer the lobbyist a favor."
   },
   {
     "id": "spin",
@@ -213,7 +216,8 @@
         "failAtReq": 0.5,
         "safeLevel": 60
       }
-    ]
+    ],
+    "startMessage": "You step up to the podium and clear your throat."
   },
   {
     "id": "construction",

@@ -173,12 +173,17 @@ describe('fighting', () => {
     brute.target = 'player';
     state.zone.enemies.push(brute);
     state.player.hp = 1;
-    const events = runUntil(state, ctx, (ev) =>
+    const dying = runUntil(state, ctx, (ev) =>
       ev.some((e) => e.type === 'death' && e.entityId === 'player'),
     );
-    expect(messages(events)).toContain(
-      'You have been defeated! The Secret Service drags you back to safety.',
-    );
+    expect(messages(dying)).toContain('Oh dear, you are dead!');
+    // The fall plays out where you died; enemies lose interest and inputs are ignored.
+    expect(state.zone.id).toBe('zone_trenches');
+    expect(brute.target).toBeNull();
+    runTick(state, ctx, [{ type: 'walk', x: 20, y: 100 }]);
+    expect(state.player.path).toEqual([]);
+    const events = runUntil(state, ctx, () => state.player.dyingUntil === null);
+    expect(messages(events)).toContain('The Secret Service drags you back to safety.');
     expect(state.zone.id).toBe('zone_treasury');
     expect(state.player.hp).toBe(10);
     expect(countItem(state.player.inventory, 'item_scrap_hash')).toBe(0);

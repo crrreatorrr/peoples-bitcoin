@@ -13,7 +13,7 @@ import {
 } from '../config/balance';
 import { deposit, depositAll, withdraw } from './bank';
 import { build, builtOption, hotspotActions, useStation } from './bunker';
-import { tickPlayerAttack } from './combat';
+import { approachEnemy, tickPlayerAttack } from './combat';
 import { stepEconomy } from './economy';
 import { stepEnemies } from './enemies';
 import { eat, equipFromInventory, setStyle, unequip } from './equipment';
@@ -38,17 +38,24 @@ import {
   type Tile,
 } from './state';
 import { buy, sell } from './terminal';
-import { handleDeath, passGate, usePortal } from './zones';
+import { handleDeath, passGate, startDying, usePortal } from './zones';
 
 export function runTick(state: GameState, ctx: SimContext, intents: readonly Intent[]): SimEvent[] {
   const events: SimEvent[] = [];
   state.tick++;
-  for (const intent of intents) applyIntent(state, ctx, intent, events);
-  stepMovement(state);
-  stepActions(state, ctx, events);
+  const player = state.player;
+  if (player.dyingUntil === null) {
+    for (const intent of intents) applyIntent(state, ctx, intent, events);
+    stepMovement(state);
+    stepActions(state, ctx, events);
+  } else {
+    player.stepsThisTick = [{ ...player.pos }];
+  }
   stepSproto(state, ctx, events);
   stepEnemies(state, ctx, events);
-  if (state.player.hp <= 0) handleDeath(state, ctx, events);
+  if (player.hp <= 0 && player.dyingUntil === null) startDying(state, events);
+  if (player.dyingUntil !== null && state.tick >= player.dyingUntil)
+    handleDeath(state, ctx, events);
   stepNpcs(state, ctx);
   stepTimers(state);
   stepEconomy(state.economy, state.rng, state.tick);
@@ -75,11 +82,12 @@ function applyIntent(state: GameState, ctx: SimContext, intent: Intent, events: 
       const entity = findEntity(state, intent.targetId);
       if (!entity || !entityActions(state, ctx, entity).includes(intent.action)) break;
       interrupt(player);
-      player.path =
-        entity.kind === 'enemy'
-          ? []
-          : findPath(gridOf(state, ctx), player.pos, interactionGoals(state, ctx, entity)).path;
       player.action = { targetId: intent.targetId, action: intent.action, nextAttemptTick: null };
+      if (entity.kind === 'enemy') approachEnemy(state, ctx, entity.instance);
+      else {
+        const goals = interactionGoals(state, ctx, entity);
+        player.path = findPath(gridOf(state, ctx), player.pos, goals).path;
+      }
       break;
     }
     case 'toggleRun':
@@ -92,6 +100,9 @@ function applyIntent(state: GameState, ctx: SimContext, intent: Intent, events: 
         break;
       }
       player.running = !player.running;
+      break;
+    case 'toggleRetaliate':
+      player.autoRetaliate = !player.autoRetaliate;
       break;
     case 'dropItem':
       dropToGround(state, ctx, intent.slot);
@@ -139,7 +150,9 @@ function applyIntent(state: GameState, ctx: SimContext, intent: Intent, events: 
       }
       break;
     case 'withdraw':
-      if (ui?.kind === 'bank') withdraw(player, ctx.content, intent.index, intent.qty, events);
+      if (ui?.kind === 'bank') {
+        withdraw(player, ctx.content, intent.index, intent.qty, events, intent.itemId);
+      }
       break;
     case 'buy':
       if (ui?.kind === 'terminal') buy(state, ctx, intent.itemId, intent.qty, events);

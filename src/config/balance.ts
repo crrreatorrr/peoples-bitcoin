@@ -71,6 +71,8 @@ export const COMBAT = {
   defenseXpPerDamageTaken: 1,
   /** Eating pushes the next attack back this many ticks. */
   eatDelayTicks: 3,
+  /** Single-way combat: after one enemy hits you, others can't for this many ticks (OSRS). */
+  singleWayTicks: 8,
   hpRegenEveryTicks: 100,
   /** Explosions hit enemies within this many tiles of the target for a share of the damage. */
   splashRadius: 1,
@@ -82,8 +84,10 @@ export const COMBAT = {
 } as const;
 
 export const ENEMIES = {
-  /** Enemies give up and walk home beyond this distance from spawn. */
+  /** Enemies never step further than this from spawn; at the edge they hold their ground. */
   leashRange: 10,
+  /** A fight is dropped after this many ticks without an attack either way. */
+  giveUpTicks: 16,
   wanderChance: 0.1,
 } as const;
 
@@ -91,6 +95,8 @@ export const DEATH = {
   /** Unbanked inventory drops where you fell (DESIGN.md §6, configurable). */
   dropInventory: true,
   pileDespawnTicks: 1000,
+  /** Ticks you lie on the ground before waking up at the respawn point (OSRS ~4). */
+  respawnDelayTicks: 4,
 } as const;
 
 export const SUMMONING = {
@@ -143,7 +149,7 @@ export const CHAT = {
 } as const;
 
 export const NPCS = {
-  /** Per-tick chance that an idle NPC steps one tile within its wander radius. */
+  /** Per-tick chance that an idle NPC picks a new spot within its wander radius to walk to. */
   wanderChance: 0.15,
 } as const;
 
