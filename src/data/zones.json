@@ -486,6 +486,11 @@
       ],
       "npcs": [
         {
+          "npcId": "npc_morelight",
+          "x": 29,
+          "y": 30
+        },
+        {
           "npcId": "npc_treasurer",
           "x": 25,
           "y": 10
@@ -812,7 +817,7 @@
           "x": 20,
           "y": 11,
           "requires": "boss:enemy_captain_motion",
-          "lockedMessage": "Locked. Defeat the Captain Motion to pass."
+          "lockedMessage": "Locked. Defeat Captain Motion to pass."
         }
       ],
       "npcs": [

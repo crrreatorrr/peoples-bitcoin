@@ -1,5 +1,258 @@
 [
   {
+    "id": "npc_morelight",
+    "name": "Morelight",
+    "examine": "Chief of Staff. Tall, tireless, and extremely proud of the mustache.",
+    "model": "npc_morelight",
+    "actions": ["Talk-to"],
+    "wanderRadius": 1,
+    "lines": [
+      "President. Morelight, Chief of Staff. The mustache and I are at your service.",
+      "If you're ever lost, follow the yellow arrow. If the arrow is lost, come and find me."
+    ],
+    "dialogue": [
+      {
+        "quest": "quest_motion_denied",
+        "status": "complete",
+        "lines": [
+          "Captain Motion has finally stopped. He sat down, had some water and asked for a nap.",
+          "The Trenches are yours, President. The treasury is filling up. I may even trim the mustache to celebrate.",
+          {
+            "player": "Don't you dare."
+          },
+          "Never. Thank you, President. It's been an honor running your campaign. Er, country."
+        ]
+      },
+      {
+        "quest": "quest_motion_denied",
+        "status": "started",
+        "step": ["scout"],
+        "lines": [
+          "One last job. There's a man at the north end of the Trenches who never stops running. They call him Captain Motion.",
+          {
+            "player": "Running where?"
+          },
+          "Nobody knows. In circles, mostly. He guards the last barricade and he is very, very fast.",
+          "The Scout has been tracking him for weeks. Talk to The Scout first, then go and stop him."
+        ]
+      },
+      {
+        "quest": "quest_motion_denied",
+        "status": "started",
+        "step": ["captain"],
+        "lines": [
+          "The Captain hits fast but tires. Stand your ground and keep your health up.",
+          "And President? Wear your best armor. I've seen what he does to a nice suit."
+        ]
+      },
+      {
+        "quest": "quest_name_calling",
+        "status": "complete",
+        "lines": [
+          "The Chief has gone quiet. For the first time in recorded history, a Wrong-Namer has stopped talking.",
+          "I had a plaque made. It says 'It's $BITCOIN.' You can hang it in the bunker.",
+          {
+            "player": "What's left?"
+          },
+          "Only the one at the very top of the Trenches. Rest up and come back to me. You'll need to be quick."
+        ]
+      },
+      {
+        "quest": "quest_name_calling",
+        "status": "started",
+        "step": ["hecklers"],
+        "lines": [
+          "President, it's the Wrong-Namers. They've dug in past the first barricade and they will not stop shouting.",
+          {
+            "player": "Shouting what?"
+          },
+          "That it's BTC. That it was always BTC. That we should all go home. They brought megaphones.",
+          "Start with a Heckler. Then expose one of their Sockpuppets. That will bring out their Chief at the second barricade.",
+          "Correct them, President. Firmly. With whatever you're holding."
+        ]
+      },
+      {
+        "quest": "quest_name_calling",
+        "status": "started",
+        "step": ["puppets"],
+        "lines": [
+          "One Heckler down! Now the Sockpuppets. They hide behind cardboard and agree with each other.",
+          "Knock one over and the whole act falls apart."
+        ]
+      },
+      {
+        "quest": "quest_name_calling",
+        "status": "started",
+        "step": ["chief"],
+        "lines": [
+          "The Chief guards the second barricade. He calls for Sockpuppets when he's losing, so finish him fast.",
+          "Melee beats shields. Guns, less so. Trust the triangle, President."
+        ]
+      },
+      {
+        "quest": "quest_sludge_duty",
+        "status": "complete",
+        "lines": [
+          "The Sludge Mother is gone? Splendid! I'll have the Trenches hosed down. Twice.",
+          "The first barricade is open, and The Scout says the next stretch belongs to the Wrong-Namers.",
+          {
+            "player": "The ones who keep calling it BTC?"
+          },
+          "The very same. Catch your breath and come back to me. That's our next job."
+        ]
+      },
+      {
+        "quest": "quest_sludge_duty",
+        "status": "started",
+        "step": ["scout"],
+        "lines": [
+          "You made it through training in one piece. The mustache and I are proud.",
+          "Now the bad news. Something is clogging the Trenches. Our people call it the Sludge Mother.",
+          {
+            "player": "That sounds disgusting."
+          },
+          "It is. It sits at the first barricade and keeps spitting out Sludgelings. Nothing gets north while it's there.",
+          "The Scout keeps a camp just inside the Trenches entrance. Talk to The Scout first. They know the ground."
+        ]
+      },
+      {
+        "quest": "quest_sludge_duty",
+        "status": "started",
+        "step": ["mother"],
+        "lines": [
+          "The Mother calls her little ones when she's hurt. Hit hard and keep moving.",
+          "Bring Talking Points. Lots of them. Sludge is very hard to get out of a suit."
+        ]
+      },
+      {
+        "quest": "quest_tutorial",
+        "status": "complete",
+        "lines": [
+          "Welcome back, President. Finish what you're doing and come and see me. I have work for you."
+        ]
+      },
+      {
+        "quest": "quest_tutorial",
+        "status": "started",
+        "step": ["talk_treasurer"],
+        "lines": [
+          "Ah, President! Morelight, your Chief of Staff. Welcome to your first day in office.",
+          {
+            "player": "Where is everyone? And why is the treasury... empty?"
+          },
+          "A small accounting incident. The Treasurer bought the wrong coin. With all of it.",
+          "Don't panic. We can't sell The People's Bitcoin, so we earn it back: Mining, Fundraising, Lobbying.",
+          {
+            "player": "And if that doesn't work?"
+          },
+          "Then we fight. There's a whole Trench full of people who keep calling it by the wrong name.",
+          "First, see The Treasurer in the main hall, just north. Follow the yellow arrow. It has never steered me wrong.",
+          "Come back to me whenever you're lost. I'll be right here, guarding the mustache."
+        ]
+      },
+      {
+        "quest": "quest_tutorial",
+        "status": "started",
+        "step": ["talk_sysadmin", "mine", "sell"],
+        "lines": [
+          "The Treasurer gave you the petty cash? Good. Don't spend it on snacks.",
+          "Now make some real money. The Sysadmin looks after the old server racks on the east lawn.",
+          "Mine some Hash, then sell it at the Trading Terminal in the hall. It pays in $BITCOIN at today's price.",
+          {
+            "player": "And what's today's price?"
+          },
+          "Check the ticker in the corner. It changes. Constantly. That's half the fun and all of the stress."
+        ]
+      },
+      {
+        "quest": "quest_tutorial",
+        "status": "started",
+        "step": ["talk_sergeant", "buy_pistol", "equip", "kill", "melee", "troll"],
+        "lines": [
+          "Money in your pocket and Hash on your shoes. Now, self-defense.",
+          "The Drill Sergeant runs the training yard to the south-west. Spam Bots, Sludgelings, Comment Trolls. All very beatable.",
+          {
+            "player": "Do I really need to fight?"
+          },
+          "Out there? Constantly. In here? Only things that say 'gm' forty times a minute.",
+          "Buy a Campaign Pistol at the Terminal, wield it and clear the yard. Then try your gavel. A President should know both."
+        ]
+      },
+      {
+        "quest": "quest_tutorial",
+        "status": "started",
+        "step": ["talk_planner", "fundraise", "spin", "eat"],
+        "lines": [
+          "You fight like a natural. Now, let's talk about donors.",
+          "The Party Planner hosts dinners in the west garden. Work the room and you'll dig up scandals.",
+          "Take them to The Spin Doctor's podium and spin them into Talking Points. Recite one when you're hurt.",
+          {
+            "player": "I heal by... talking?"
+          },
+          "You're a politician. Talking is the only thing that has ever healed one."
+        ]
+      },
+      {
+        "quest": "quest_tutorial",
+        "status": "started",
+        "step": ["talk_fixer", "lobby"],
+        "lines": [
+          "Next, the lobbyists. Someone has to hand them business cards, and it can't be me. I'm far too tall to be discreet.",
+          "The Fixer lurks on the east lawn. Do favors for the lobbyists and they'll pay you. Usually.",
+          {
+            "player": "Usually?"
+          },
+          "Sometimes they find photos. Then the favor is free. Keep your photos boring, President."
+        ]
+      },
+      {
+        "quest": "quest_tutorial",
+        "status": "started",
+        "step": ["talk_handler", "summon"],
+        "lines": [
+          "Every President needs a security detail. Ours is... small. And blue.",
+          "The Sproto Handler in the main hall has a contract for you. Summon a Sproto and it fights at your side.",
+          {
+            "player": "Are they safe?"
+          },
+          "Perfectly. As long as you never call them gremlins. They hate that."
+        ]
+      },
+      {
+        "quest": "quest_tutorial",
+        "status": "started",
+        "step": ["bank"],
+        "lines": [
+          "You're carrying half the lawn. Use a Bank Booth in the main hall and deposit what you don't need.",
+          "The bank holds four hundred stacks. I've seen Presidents fill it with Scrap Hash. Don't be that President."
+        ]
+      },
+      {
+        "quest": "quest_tutorial",
+        "status": "started",
+        "step": ["talk_contractor"],
+        "lines": [
+          "One more thing. Every leader needs somewhere to hide when the ticker goes red.",
+          "The Contractor in the main hall can build you a bunker. Go and ask about it."
+        ]
+      },
+      {
+        "quest": "quest_tutorial",
+        "status": "started",
+        "step": ["trenches"],
+        "lines": [
+          "You've learned everything I can teach you in a garden. Time for the real thing.",
+          "The Trenches entrance is on the south-east lawn. Sandbags, a lantern, a bad smell. You can't miss it.",
+          "Step inside and your training is done. Then come back to me. I'll have work for you.",
+          {
+            "player": "What kind of work?"
+          },
+          "The important kind."
+        ]
+      }
+    ]
+  },
+  {
     "id": "npc_treasurer",
     "name": "The Treasurer",
     "examine": "Bought the wrong coin. Feels terrible about it.",
@@ -7,19 +260,26 @@
     "actions": ["Talk-to"],
     "wanderRadius": 2,
     "lines": [
-      "ATTENTION ATTENTION. Er, President... about the national reserve. I may have misread the ticker.",
-      "It's not BTC. It's $BITCOIN. The People's Bitcoin. One billion of them, zero percent tax, and all of them ours.",
-      "We can't sell. So we earn. Mine, fundraise, lobby, and sell what you make at the Trading Terminal here in the hall.",
-      "The Terminal pays in $BITCOIN at whatever the ticker says. Watch the price. Here is some petty cash to start."
+      "ATTENTION ATTENTION! Oh. President. Sorry. Habit.",
+      "About the national reserve... I may have misread the ticker. Slightly. Completely.",
+      {
+        "player": "How bad is it?"
+      },
+      "We bought $BITCOIN. The People's Bitcoin. One billion of them. Not the other one.",
+      "And we can't sell it, so we earn. Mine, fundraise, lobby, and sell what we make at the Trading Terminal in this hall.",
+      "Here's what's left of the petty cash. Please spend it wisely. Please."
     ],
     "dialogue": [
       {
         "quest": "quest_tutorial",
         "status": "complete",
         "lines": [
-          "President! The reserve is... less empty. I only checked the ticker eleven times today.",
-          "The Terminal pays whatever the ticker says. Sell your Hash when it's green.",
-          "Steel picks, better guns and armor are all on the Terminal, if you've got the $BITCOIN."
+          "President! The reserve is less empty. I only checked the ticker eleven times today.",
+          "The Terminal pays whatever the ticker says. Sell your Hash when it's green, buy your gear when it's red.",
+          {
+            "player": "Any more accounting incidents I should know about?"
+          },
+          "None! Er. None that have been discovered."
         ]
       }
     ]
@@ -31,9 +291,13 @@
     "model": "npc_sysadmin",
     "actions": ["Talk-to"],
     "lines": [
-      "Those racks still mine Hash. Take this pick. Better picks from the Terminal mine faster.",
-      "Hash sells at the Terminal. It also feeds the Hash Cannon, if you like explosions.",
-      "Inventory full? Bank it in the hall or sell it. Higher Mining unlocks the racks inside."
+      "Oh, hi. Don't touch the blinking ones. Actually, do. That's how mining works.",
+      "These racks still mine Hash. Take my spare pick. It's rusty, but so am I.",
+      {
+        "player": "What do I do with Hash?"
+      },
+      "Sell it at the Terminal. Or load it into a Hash Cannon, if you like explosions. I like explosions.",
+      "Inventory full? Bank it or sell it. Better picks from the Terminal mine faster."
     ],
     "dialogue": [
       {
@@ -41,8 +305,8 @@
         "status": "complete",
         "lines": [
           "Back for more Hash? Respect.",
-          "Humming racks need Mining 15. The liquid-cooled racks in the vault need Mining 30.",
-          "A Steel Pick works from Mining 15, a Quantum Pick from 35. Both on the Terminal."
+          "Humming racks need Mining 15. The liquid-cooled racks inside the hall need Mining 30.",
+          "A Steel Pick works from Mining 15, a Quantum Pick from 35. Both on the Terminal. Tell them I sent you. They won't care."
         ]
       }
     ]
@@ -54,17 +318,22 @@
     "model": "npc_party_planner",
     "actions": ["Talk-to"],
     "lines": [
-      "Donors love a dinner. Work the room and you'll dig up scandals.",
-      "Here is a Donor List. Fancier dinners need a better list and more Fundraising.",
-      "Every so often a whale pledges a fortune. Smile and nod."
+      "Darling! You must be the President. Love the suit. Hate the treasury.",
+      "Donors adore a dinner. Work the room and you'll overhear all sorts of scandals.",
+      "Here's a Donor List. The fancier the dinner, the better the list you'll need.",
+      {
+        "player": "And what do I do with scandals?"
+      },
+      "Take them to The Spin Doctor. A raw scandal is useless. A spun one is practically a meal.",
+      "Oh, and every so often a whale pledges a fortune. Smile and nod, darling. Smile and nod."
     ],
     "dialogue": [
       {
         "quest": "quest_tutorial",
         "status": "complete",
         "lines": [
-          "Darling! The donors still talk about your first dinner.",
-          "At Fundraising 20 you can work the Gala Dinner. At 40, the Yacht Party.",
+          "Darling! The donors still talk about your first dinner. Mostly the chicken.",
+          "At Fundraising 20 you can work the Gala Dinner. At 40, the Yacht Party. Bring a Rolodex, or better, a Black Book.",
           "Juicier scandals spin into better Talking Points. Everyone wins. Except the press."
         ]
       }
@@ -77,9 +346,13 @@
     "model": "npc_spin_doctor",
     "actions": ["Talk-to"],
     "lines": [
-      "A raw scandal is useless. Spin it at the podium into a Talking Point.",
-      "Talking Points heal you in a fight. Recite one when things get rough.",
-      "Spin badly and the story blows up in your face. Practice helps."
+      "Ah, a patient! I mean a client. I mean... the President.",
+      "A raw scandal is useless. Bring it to my podium and spin it into a Talking Point.",
+      {
+        "player": "What does a Talking Point do?"
+      },
+      "Recite one in a fight and you feel better. It's science. Political science.",
+      "Spin badly and the story blows up in your face. Practice, President. Practice."
     ],
     "dialogue": [
       {
@@ -88,7 +361,7 @@
         "lines": [
           "My star pupil! Your Soundbites are trending.",
           "Juicy scandals become Zingers at Spin 20. Mega scandals become Mic Drops at 40.",
-          "Practice enough and nothing blows up in your face. Mostly."
+          "Practice enough and nothing ever blows up in your face. Mostly."
         ]
       }
     ]
@@ -100,9 +373,13 @@
     "model": "npc_fixer",
     "actions": ["Talk-to"],
     "lines": [
-      "Lobbyists pay for favors. Hand out these cards and get to work.",
-      "Fair warning: sometimes they find photos. Then the favor is free.",
-      "Bigger lobbyists pay better, if your Lobbying is up to it."
+      "...You didn't see me. I'm not here. These cards aren't here either. Take them.",
+      "Lobbyists pay for favors. Hand out cards, shake hands, get paid in $BITCOIN.",
+      {
+        "player": "That sounds... legal?"
+      },
+      "Completely. Mostly. Sometimes they find photos. Then the favor's free and you smile anyway.",
+      "Bigger lobbyists pay better, if your Lobbying is up to it. Now walk away slowly."
     ],
     "dialogue": [
       {
@@ -110,7 +387,7 @@
         "status": "complete",
         "lines": [
           "You again. Good. The lobbyists like you.",
-          "Veteran lobbyists pay better from Lobbying 20. The Brokers want 40.",
+          "Veteran lobbyists pay better from Lobbying 20. The Brokers want 40, and they only take Platinum Cards.",
           "Keep your photos boring, President. Blackmail is bad for business."
         ]
       }
@@ -123,19 +400,27 @@
     "model": "npc_drill_sergeant",
     "actions": ["Talk-to"],
     "lines": [
-      "LISTEN UP! Buy a gun at the Terminal. Every gun takes the same Rounds. Here are some on the house.",
-      "Cannons are different. They fire the Hash you mine, and they blow up everything around the target.",
-      "Pick a style in the Equipment tab: Accurate, Rapid or Longrange. Take the gun off and you swing your gavel: that's Melee.",
-      "Practice on the Spam Bots, Sludgelings and Comment Trolls in the training yard. Then the Trenches, south-east of here. They get nastier as you go north."
+      "LISTEN UP, PRESIDENT! You are soft! You are slow! You are, frankly, very well dressed!",
+      "Buy a gun at the Terminal! Every gun takes the same Rounds! Here's a stack, on the house!",
+      {
+        "player": "What about cannons?"
+      },
+      "Cannons fire the Hash you mine and blow up everything around the target! I LOVE CANNONS!",
+      "Pick a style in the Equipment tab: Accurate, Rapid or Longrange! Take the gun off and you swing your gavel! That's Melee!",
+      "Start on the Spam Bots, then the Sludgelings, then the Comment Trolls! DISMISSED!"
     ],
     "dialogue": [
       {
         "quest": "quest_tutorial",
         "status": "complete",
         "lines": [
-          "AT EASE, PRESIDENT! You passed basic.",
-          "The Trenches are through the entrance on the south-east lawn. Every barricade has a boss behind it.",
-          "Rounds run out fast. Buy them by the hundred at the Terminal, and pack Talking Points to heal."
+          "AT EASE, PRESIDENT! You passed basic!",
+          "The Trenches are through the entrance on the south-east lawn! Every barricade has a boss in front of it!",
+          "Rounds run out fast! Buy them by the hundred and pack Talking Points to heal! NOW GIVE ME TWENTY!",
+          {
+            "player": "Twenty push-ups?"
+          },
+          "Twenty Scrap Hash! For the budget! DISMISSED!"
         ]
       }
     ]
@@ -147,16 +432,20 @@
     "model": "npc_sproto_handler",
     "actions": ["Talk-to"],
     "lines": [
+      "Careful, they bite. Only the ones who don't like you. So, careful.",
       "Sprotos are little soldiers who fight beside you. Use a contract to summon one.",
-      "One at a time. Its special costs Summoning points; check the Summoning tab.",
-      "Here is a Recruit contract. Higher Summoning unlocks Medics, Grunts and more."
+      {
+        "player": "What are they, exactly?"
+      },
+      "Loyal, blue and extremely brave. Do NOT call them gremlins.",
+      "One at a time. Specials cost Summoning points; check the Summoning tab. Here's a Recruit contract."
     ],
     "dialogue": [
       {
         "quest": "quest_tutorial",
         "status": "complete",
         "lines": [
-          "Your Recruit won't stop talking about you.",
+          "Your Recruit won't stop talking about you. Well. Squeaking.",
           "Medics at Summoning 10, Grunts at 20, Snipers at 30, Heavies at 45. Contracts are on the Terminal.",
           "Watch your Summoning points. A special at the right moment wins fights."
         ]
@@ -170,9 +459,15 @@
     "model": "npc_contractor",
     "actions": ["Talk-to"],
     "lines": [
-      "Every President needs a bunker. I can build you one under this hall.",
-      "Bring me 10 Scrap Hash and 2 Soundbites and the hatch is yours.",
-      "Down there you build storage, a med bay, server farms... better toolkits, better builds."
+      "Every President needs a bunker. Somewhere to hide when the ticker goes red.",
+      {
+        "player": "Can you build one?"
+      },
+      "Right under this hall. I'll need materials: 10 Scrap Hash and 2 Soundbites.",
+      {
+        "player": "Soundbites? For a bunker?"
+      },
+      "Morale. My crew won't dig without a good speech. Bring both and the hatch is yours."
     ],
     "dialogue": [
       {
@@ -181,7 +476,11 @@
         "lines": [
           "The hatch is yours, President. Climb down any time.",
           "Build spots are marked down there. Click one to see what you can build.",
-          "Bigger builds need a Pro or Elite Toolkit, plus Concrete, Steel Beams and Circuit Boards from the Terminal."
+          "Bigger builds need a Pro or Elite Toolkit, plus Concrete, Steel Beams and Circuit Boards from the Terminal.",
+          {
+            "player": "And if I run out of money?"
+          },
+          "Then you'll have a very nice bunker to be broke in."
         ]
       }
     ]
@@ -193,9 +492,50 @@
     "model": "npc_scout",
     "actions": ["Talk-to"],
     "lines": [
-      "The Trenches get nastier the further north you go.",
-      "Each barricade only opens once you beat the boss guarding it.",
-      "If you fall, your pack stays where you dropped. Come back for it quick."
+      "Welcome to the Trenches. Mind the craters.",
+      "It gets nastier the further north you go. Each barricade opens once you beat the boss in front of it.",
+      "If you fall, your pack stays where you dropped. Come back for it quick.",
+      {
+        "player": "Anything else?"
+      },
+      "Talking Points. Never leave the Treasury without them."
+    ],
+    "dialogue": [
+      {
+        "quest": "quest_sludge_duty",
+        "status": "started",
+        "step": ["mother"],
+        "lines": [
+          "Morelight sent you? Good. I was running out of patience and snacks.",
+          "The Sludge Mother squats at the first barricade, straight north. When she's hurt she calls up Sludgelings.",
+          {
+            "player": "Any advice?"
+          },
+          "Clear the little ones if they swarm you, then go back to Mom. And don't step in anything."
+        ]
+      },
+      {
+        "quest": "quest_name_calling",
+        "status": "started",
+        "step": ["hecklers", "puppets", "chief"],
+        "lines": [
+          "Wrong-Namers everywhere past the first barricade. My ears are still ringing.",
+          "Their Chief guards the second barricade. Bring a hammer. Shields hate hammers."
+        ]
+      },
+      {
+        "quest": "quest_motion_denied",
+        "status": "started",
+        "step": ["captain"],
+        "lines": [
+          "Captain Motion? I've chased him for weeks. He guards the last barricade, at the far north end.",
+          "He moves twice as fast as anyone. Don't chase him. Let him come to you.",
+          {
+            "player": "And then?"
+          },
+          "Then hit him until he sits down."
+        ]
+      }
     ]
   }
 ]

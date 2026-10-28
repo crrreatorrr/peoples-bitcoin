@@ -4,8 +4,8 @@ import { hotspotKey } from '../src/sim/bunker';
 import { interactionTiles } from '../src/sim/grid';
 import { countItem } from '../src/sim/inventory';
 import { findPath } from '../src/sim/pathfinding';
-import { currentHint, npcLines, questPoints } from '../src/sim/quests';
-import { newEnemy } from '../src/sim/state';
+import { currentHint, npcLines, progressQuests, questPoints } from '../src/sim/quests';
+import { newEnemy, type GameState, type SimContext, type SimEvent } from '../src/sim/state';
 import { runTick } from '../src/sim/tick';
 import { changeZone } from '../src/sim/zones';
 import { xpForLevel } from '../src/sim/xp';
@@ -17,19 +17,23 @@ const talkTo = (npcDef: string) => (state: ReturnType<typeof newGame>['state']) 
 };
 
 describe('tutorial', () => {
-  it('starts active, points at The Treasurer, and pays for steps in any order', () => {
+  it('starts active, points at Morelight, and pays for steps in any order', () => {
     const { state, ctx } = newGame();
     expect(currentHint(state, ctx)).toMatchObject({
       questName: 'Empty Treasury',
-      npc: 'npc_treasurer',
+      npc: 'npc_morelight',
     });
 
     // Do a later step first: talk to the Sysadmin, get a pick.
     runUntil(state, ctx, () => state.player.dialogue !== null, talkTo('npc_sysadmin')(state));
     expect(state.player.quests.quest_tutorial.done).toContain('talk_sysadmin');
     expect(countItem(state.player.inventory, 'item_pick_rusty')).toBe(1);
-    expect(currentHint(state, ctx)?.npc).toBe('npc_treasurer');
+    expect(currentHint(state, ctx)?.npc).toBe('npc_morelight');
 
+    state.player.dialogue = null;
+    runUntil(state, ctx, () => state.player.dialogue !== null, talkTo('npc_morelight')(state));
+    expect(currentHint(state, ctx)?.npc).toBe('npc_treasurer');
+    state.player.dialogue = null;
     runUntil(state, ctx, () => state.player.dialogue !== null, talkTo('npc_treasurer')(state));
     expect(state.player.currencies.bitcoin).toBeGreaterThan(0);
     expect(currentHint(state, ctx)?.object).toBe('obj_rack_dusty');
@@ -65,29 +69,84 @@ describe('tutorial', () => {
   });
 });
 
-describe('quest-aware dialogue and the quest list', () => {
+describe('quest-aware dialogue, Morelight and the quest list', () => {
+  const talk = (state: GameState, ctx: SimContext, npcDef: string) => {
+    state.player.dialogue = null;
+    runUntil(state, ctx, () => state.player.dialogue !== null, talkTo(npcDef)(state));
+    return state.player.dialogue!.lines;
+  };
+
   it('NPCs switch to new lines once their quest is complete', () => {
     const { state } = newGame();
     const sergeant = content().npcs.get('npc_drill_sergeant')!;
-    expect(npcLines(state.player, sergeant)).toBe(sergeant.lines);
+    expect(npcLines(state.player, sergeant, content())).toBe(sergeant.lines);
     state.player.quests.quest_tutorial.complete = true;
-    expect(npcLines(state.player, sergeant)).toBe(sergeant.dialogue[0].lines);
+    expect(npcLines(state.player, sergeant, content())).toBe(sergeant.dialogue[0].lines);
     expect(sergeant.dialogue[0].lines).not.toEqual(sergeant.lines);
   });
 
   it('the talk that finishes a quest already uses the after-quest lines', () => {
     const { state, ctx } = newGame();
     const contractor = content().npcs.get('npc_contractor')!;
-    const talk = () => {
-      state.player.dialogue = null;
-      runUntil(state, ctx, () => state.player.dialogue !== null, talkTo('npc_contractor')(state));
-      return state.player.dialogue!.lines;
-    };
-    expect(talk()).toEqual(contractor.lines); // quest started, materials still missing
+    expect(talk(state, ctx, 'npc_contractor')).toEqual(contractor.lines); // materials missing
     give(state, 'item_scrap_hash', 10);
     give(state, 'item_tp_soundbite', 2);
-    expect(talk()).toEqual(contractor.dialogue[0].lines);
+    expect(talk(state, ctx, 'npc_contractor')).toEqual(contractor.dialogue[0].lines);
     expect(state.player.quests.quest_bunker.complete).toBe(true);
+  });
+
+  it("dialogue includes the player's own replies", () => {
+    const { state, ctx } = newGame();
+    const lines = talk(state, ctx, 'npc_morelight');
+    expect(lines.some((l) => typeof l === 'object' && l.player.length > 0)).toBe(true);
+    expect(lines.some((l) => typeof l === 'string')).toBe(true);
+  });
+
+  it('Morelight guides the tutorial: his lines follow the next step', () => {
+    const { state, ctx } = newGame();
+    const first = talk(state, ctx, 'npc_morelight');
+    state.player.quests.quest_tutorial.done.push('talk_treasurer');
+    const second = talk(state, ctx, 'npc_morelight');
+    expect(second).not.toEqual(first);
+    const morelight = content().npcs.get('npc_morelight')!;
+    const variant = morelight.dialogue.find((d) => d.step?.includes('talk_sysadmin'));
+    expect(second).toBe(variant!.lines);
+  });
+
+  it('Morelight only offers the main quests in order, after the tutorial', () => {
+    const { state, ctx } = newGame();
+    talk(state, ctx, 'npc_morelight');
+    expect(state.player.quests.quest_sludge_duty).toBeUndefined();
+
+    state.player.quests.quest_tutorial.complete = true;
+    talk(state, ctx, 'npc_morelight');
+    expect(state.player.quests.quest_sludge_duty).toEqual({ done: ['briefing'], complete: false });
+    expect(state.player.quests.quest_name_calling).toBeUndefined();
+    expect(currentHint(state, ctx)).toMatchObject({ questName: 'Sludge Duty', npc: 'npc_scout' });
+  });
+
+  it('plays Sludge Duty end to end, then opens Name Calling on the next talk', () => {
+    const { state, ctx } = newGame();
+    state.player.quests.quest_tutorial.complete = true;
+    talk(state, ctx, 'npc_morelight');
+
+    changeZone(state, ctx, 'zone_trenches', { x: 18, y: 119 }, []);
+    const scout = content().npcs.get('npc_scout')!;
+    expect(talk(state, ctx, 'npc_scout')).toBe(scout.dialogue[0].lines);
+    expect(currentHint(state, ctx)?.enemy).toBe('enemy_sludge_mother');
+
+    const events: SimEvent[] = [];
+    progressQuests(state, ctx, { type: 'kill', enemy: 'enemy_sludge_mother' }, events);
+    changeZone(state, ctx, 'zone_treasury', { x: 28, y: 30 }, events);
+    const before = state.player.currencies.bitcoin;
+    const lines = talk(state, ctx, 'npc_morelight');
+    expect(state.player.quests.quest_sludge_duty.complete).toBe(true);
+    expect(state.player.currencies.bitcoin).toBeGreaterThan(before);
+    expect(lines.join(' ')).toMatch(/Sludge Mother is gone/);
+    expect(state.player.quests.quest_name_calling).toBeUndefined();
+
+    talk(state, ctx, 'npc_morelight');
+    expect(state.player.quests.quest_name_calling?.done).toEqual(['briefing']);
   });
 
   it('counts quest points like OSRS', () => {

@@ -202,7 +202,7 @@ function stepActions(state: GameState, ctx: SimContext, events: SimEvent[]): voi
     const npcDef = ctx.content.npcs.get(entity.instance.defId);
     // Quests advance first, so an NPC who just finished one already talks about it.
     progressQuests(state, ctx, { type: 'talk', npc: entity.instance.defId }, events);
-    const lines = npcDef ? npcLines(player, npcDef) : [];
+    const lines = npcDef ? npcLines(player, npcDef, ctx.content) : [];
     if (lines.length > 0) player.dialogue = { npcId: entity.instance.id, line: 0, lines };
     return;
   }

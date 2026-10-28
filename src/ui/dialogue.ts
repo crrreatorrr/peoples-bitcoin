@@ -1,12 +1,15 @@
 /**
  * NPC dialogue box, drawn over the chat log: speaker, one line of text and
  * "Click to continue" (Space also continues). Shows whatever state.player.dialogue
- * points at; one click sends one continue intent per line.
+ * points at; one click sends one continue intent per line. The player's own
+ * replies are styled apart from the NPC's lines.
  */
 export interface DialogueLine {
   key: string;
   speaker: string;
   text: string;
+  /** The player is speaking. */
+  player?: boolean;
 }
 
 export class DialogueBox {
@@ -52,6 +55,7 @@ export class DialogueBox {
     this.el.classList.remove('waiting');
     this.el.hidden = !line;
     if (!line) return;
+    this.el.classList.toggle('player', line.player === true);
     this.speaker.textContent = line.speaker;
     this.text.textContent = line.text;
   }

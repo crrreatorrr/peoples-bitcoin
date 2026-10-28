@@ -49,6 +49,23 @@
     },
     "sprite": "sprites/player_president.png"
   },
+  "npc_morelight": {
+    "placeholder": "humanoid",
+    "scale": 1.12,
+    "look": {
+      "skin": "#f2d2bc",
+      "hair": "#2a2018",
+      "hairStyle": "short",
+      "mustache": "#2a2018",
+      "top": "#e8e2d0",
+      "shirt": "#9fc3e8",
+      "tie": "#2f4f8a",
+      "pants": "#3a3f4a",
+      "shoes": "#2a1c10",
+      "legs": 1.12,
+      "left": "clipboard"
+    }
+  },
   "npc_treasurer": {
     "placeholder": "humanoid",
     "look": {

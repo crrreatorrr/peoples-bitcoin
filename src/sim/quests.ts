@@ -7,7 +7,8 @@
 import { payUsd } from './economy';
 import { giveItem } from './ground';
 import { countItem, removeItem } from './inventory';
-import type { NpcDef, QuestDef, QuestTrigger, Reward } from './schemas';
+import type { Content } from './content';
+import type { DialogueLine, NpcDef, QuestDef, QuestTrigger, Reward } from './schemas';
 import type { EquipSlot, GameState, PlayerState, SimContext, SimEvent } from './state';
 import { grantXp } from './xp';
 
@@ -42,7 +43,8 @@ export function progressQuests(
   const player = state.player;
   if (ev.type === 'talk') {
     for (const q of ctx.content.quests.values()) {
-      if (q.startNpc === ev.npc && !player.quests[q.id]) {
+      const ready = q.requires.every((id) => player.quests[id]?.complete);
+      if (q.startNpc === ev.npc && !player.quests[q.id] && ready) {
         player.quests[q.id] = { done: [], complete: false };
         events.push({ type: 'message', kind: 'quest', text: `Quest started: ${q.name}` });
       }
@@ -76,12 +78,22 @@ export function progressQuests(
 }
 
 /** An NPC's lines for the player's quest progress: the first matching variant, else the defaults. */
-export function npcLines(player: PlayerState, npc: NpcDef): string[] {
+export function npcLines(player: PlayerState, npc: NpcDef, content: Content): DialogueLine[] {
   const variant = npc.dialogue.find((d) => {
     const progress = player.quests[d.quest];
-    return d.status === 'complete' ? progress?.complete === true : progress?.complete === false;
+    if (d.status === 'complete') return progress?.complete === true;
+    if (!progress || progress.complete) return false;
+    const quest = content.quests.get(d.quest);
+    return (
+      !d.step || (quest !== undefined && d.step.includes(nextStep(quest, progress.done)?.id ?? ''))
+    );
   });
   return variant?.lines ?? npc.lines;
+}
+
+/** The step the hint points at: the first one not done. */
+export function nextStep(quest: QuestDef, done: string[]): QuestDef['steps'][number] | undefined {
+  return openSteps(quest, done)[0];
 }
 
 /** Quest points earned and available, for the quest list. */
@@ -106,7 +118,7 @@ export function currentHint(state: GameState, ctx: SimContext): QuestHint | null
     .filter((q): q is { quest: QuestDef; done: string[] } => q.quest !== undefined)
     .sort((a, b) => Number(b.quest.autoStart) - Number(a.quest.autoStart));
   for (const { quest, done } of active) {
-    const step = openSteps(quest, done)[0];
+    const step = nextStep(quest, done);
     if (step) return { questName: quest.name, text: step.text, ...step.hint };
   }
   return null;

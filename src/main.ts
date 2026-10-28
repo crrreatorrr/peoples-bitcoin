@@ -307,10 +307,12 @@ async function boot(): Promise<void> {
     if (!d) return null;
     const npc = state.zone.npcs.find((n) => n.id === d.npcId);
     const def = npc ? content.npcs.get(npc.defId) : undefined;
-    const text = d.lines[d.line];
-    return def && text !== undefined
-      ? { key: `${d.npcId}:${d.lines.length}:${d.line}`, speaker: def.name, text }
-      : null;
+    const line = d.lines[d.line];
+    if (!def || line === undefined) return null;
+    const key = `${d.npcId}:${d.lines.length}:${d.line}`;
+    return typeof line === 'string'
+      ? { key, speaker: def.name, text: line }
+      : { key, speaker: state.player.name, text: line.player, player: true };
   };
 
   /** The nearest instance in this zone of whatever the tutorial wants next. */

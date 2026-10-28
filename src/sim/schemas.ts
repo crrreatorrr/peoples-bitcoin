@@ -98,6 +98,9 @@ export const ObjectDefSchema = z.object({
   depleted: z.object({ name: z.string(), examine: z.string(), model: Id }).optional(),
 });
 
+/** A line of dialogue: plain text is the NPC talking; `{ "player": "..." }` is the player's reply. */
+export const DialogueLineSchema = z.union([z.string(), z.object({ player: z.string() })]);
+
 export const NpcDefSchema = z.object({
   id: Id,
   name: z.string(),
@@ -105,14 +108,18 @@ export const NpcDefSchema = z.object({
   model: Id,
   actions: z.array(z.string()),
   /** Shown one at a time on Talk-to until node-graph dialogue lands. */
-  lines: z.array(z.string()).default([]),
-  /** Lines that replace `lines` once a quest is started or complete; the first match wins. */
+  lines: z.array(DialogueLineSchema).default([]),
+  /**
+   * Lines that replace `lines` as quests progress; the first match wins. With
+   * `step`, a started quest matches only while its next step is one of those.
+   */
   dialogue: z
     .array(
       z.object({
         quest: Id,
         status: z.enum(['started', 'complete']),
-        lines: z.array(z.string()).min(1),
+        step: z.array(Id).optional(),
+        lines: z.array(DialogueLineSchema).min(1),
       }),
     )
     .default([]),
@@ -290,6 +297,8 @@ export const QuestDefSchema = z.object({
   /** Active from the start (tutorial), or begun by talking to `startNpc`. */
   autoStart: z.boolean().default(false),
   startNpc: Id.optional(),
+  /** Quests that must be complete before `startNpc` will offer this one. */
+  requires: z.array(Id).default([]),
   steps: z.array(
     z.object({
       id: Id,
@@ -397,3 +406,4 @@ export type TerrainDef = z.output<typeof TerrainDefSchema>;
 export type ZoneDef = z.output<typeof ZoneDefSchema>;
 export type EquipSlot = z.output<typeof EquipSlotSchema>;
 export type CombatType = z.output<typeof CombatTypeSchema>;
+export type DialogueLine = z.output<typeof DialogueLineSchema>;

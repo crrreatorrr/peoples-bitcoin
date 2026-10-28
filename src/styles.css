@@ -424,6 +424,14 @@ body {
   font-size: 20px;
 }
 
+.dialogue.player .dialogue-speaker {
+  color: #0e2a7a;
+}
+
+.dialogue.player .dialogue-text {
+  font-style: italic;
+}
+
 .dialogue-text {
   font-size: 20px;
   line-height: 1.05;

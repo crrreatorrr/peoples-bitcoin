@@ -236,9 +236,19 @@ function checkReferences(c: Content, problems: string[]): void {
     }
   }
 
+  for (const q of c.quests.values()) {
+    for (const id of q.requires) {
+      if (!c.quests.has(id)) problems.push(`quests.json ${q.id}: requires unknown quest '${id}'`);
+    }
+  }
   for (const n of c.npcs.values()) {
     for (const d of n.dialogue) {
-      if (!c.quests.has(d.quest)) problems.push(`npcs.json ${n.id}: unknown quest '${d.quest}'`);
+      const quest = c.quests.get(d.quest);
+      if (!quest) problems.push(`npcs.json ${n.id}: unknown quest '${d.quest}'`);
+      for (const step of d.step ?? []) {
+        if (quest && !quest.steps.some((s) => s.id === step))
+          problems.push(`npcs.json ${n.id}: quest '${d.quest}' has no step '${step}'`);
+      }
     }
   }
 

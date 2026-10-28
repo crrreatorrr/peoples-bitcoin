@@ -4,14 +4,25 @@
     "name": "Empty Treasury",
     "ordered": false,
     "autoStart": true,
-    "completeMessage": "ATTENTION ATTENTION: Inauguration complete! You know every skill. The Trenches await.",
+    "completeMessage": "ATTENTION ATTENTION: Inauguration complete! You've learned every skill. Morelight has work for you.",
     "reward": {
       "usd": 669
     },
     "steps": [
       {
+        "id": "talk_morelight",
+        "text": "Talk to Morelight, your Chief of Staff, by the main path.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_morelight"
+        },
+        "hint": {
+          "npc": "npc_morelight"
+        }
+      },
+      {
         "id": "talk_treasurer",
-        "text": "Talk to The Treasurer in the main hall.",
+        "text": "Ask The Treasurer in the main hall what happened to the money.",
         "trigger": {
           "type": "talk",
           "npc": "npc_treasurer"
@@ -25,7 +36,7 @@
       },
       {
         "id": "talk_sysadmin",
-        "text": "Talk to The Sysadmin by the lawn racks.",
+        "text": "Find The Sysadmin by the server racks on the east lawn.",
         "trigger": {
           "type": "talk",
           "npc": "npc_sysadmin"
@@ -55,7 +66,7 @@
       },
       {
         "id": "sell",
-        "text": "Sell something at the Trading Terminal.",
+        "text": "Sell something at the Trading Terminal in the main hall.",
         "trigger": {
           "type": "sell"
         },
@@ -65,7 +76,7 @@
       },
       {
         "id": "talk_sergeant",
-        "text": "Talk to The Drill Sergeant by the training yard.",
+        "text": "Report to The Drill Sergeant at the training yard (south-west).",
         "trigger": {
           "type": "talk",
           "npc": "npc_drill_sergeant"
@@ -84,7 +95,7 @@
       },
       {
         "id": "buy_pistol",
-        "text": "Buy a Campaign Pistol at the Terminal.",
+        "text": "Buy a Campaign Pistol at the Trading Terminal.",
         "trigger": {
           "type": "buy",
           "item": "gun_campaign_pistol"
@@ -95,7 +106,7 @@
       },
       {
         "id": "equip",
-        "text": "Wield your pistol and Rounds.",
+        "text": "Wield your pistol and your Rounds.",
         "trigger": {
           "type": "equip",
           "slot": "weapon"
@@ -115,7 +126,7 @@
       },
       {
         "id": "melee",
-        "text": "Hit a Sludgeling with your gavel (remove your gun in the Equipment tab first).",
+        "text": "Hit something with your gavel. Take your gun off in the Equipment tab first.",
         "trigger": {
           "type": "xp",
           "skill": "melee"
@@ -126,7 +137,7 @@
       },
       {
         "id": "troll",
-        "text": "Defeat a Comment Troll in the training yard. Recite a Talking Point if you get hurt.",
+        "text": "Defeat a Comment Troll. Recite a Talking Point if it gets heated.",
         "trigger": {
           "type": "kill",
           "enemy": "enemy_comment_troll"
@@ -137,7 +148,7 @@
       },
       {
         "id": "talk_planner",
-        "text": "Talk to The Party Planner in the west garden.",
+        "text": "Meet The Party Planner in the west garden.",
         "trigger": {
           "type": "talk",
           "npc": "npc_party_planner"
@@ -156,7 +167,7 @@
       },
       {
         "id": "fundraise",
-        "text": "Work the room at a Rubber Chicken Dinner.",
+        "text": "Work the room at a Rubber Chicken Dinner to dig up a scandal.",
         "trigger": {
           "type": "obtain",
           "item": "item_raw_minor_scandal"
@@ -178,7 +189,7 @@
       },
       {
         "id": "eat",
-        "text": "Recite a Talking Point.",
+        "text": "Recite a Talking Point to heal.",
         "trigger": {
           "type": "eat"
         },
@@ -186,7 +197,7 @@
       },
       {
         "id": "talk_fixer",
-        "text": "Talk to The Fixer on the east lawn.",
+        "text": "Find The Fixer on the east lawn. Try not to be seen.",
         "trigger": {
           "type": "talk",
           "npc": "npc_fixer"
@@ -216,7 +227,7 @@
       },
       {
         "id": "talk_handler",
-        "text": "Talk to The Sproto Handler in the main hall.",
+        "text": "Meet The Sproto Handler in the main hall.",
         "trigger": {
           "type": "talk",
           "npc": "npc_sproto_handler"
@@ -235,7 +246,7 @@
       },
       {
         "id": "summon",
-        "text": "Summon your Sproto Recruit.",
+        "text": "Summon your Sproto Recruit from its contract.",
         "trigger": {
           "type": "summon"
         },
@@ -253,7 +264,7 @@
       },
       {
         "id": "talk_contractor",
-        "text": "Ask The Contractor about a bunker.",
+        "text": "Ask The Contractor in the main hall about a bunker.",
         "trigger": {
           "type": "talk",
           "npc": "npc_contractor"
@@ -264,7 +275,7 @@
       },
       {
         "id": "trenches",
-        "text": "Enter the Trenches (south-east lawn).",
+        "text": "Enter the Trenches through the entrance on the south-east lawn.",
         "trigger": {
           "type": "enterZone",
           "zone": "zone_trenches"
@@ -274,7 +285,7 @@
         }
       }
     ],
-    "summary": "Learn every skill and start refilling the empty treasury."
+    "summary": "The Treasurer bought the wrong coin. With all of it. Morelight, your Chief of Staff, will show you how to earn it back."
   },
   {
     "id": "quest_bunker",
@@ -301,7 +312,7 @@
     "steps": [
       {
         "id": "agree",
-        "text": "Talk to The Contractor about a bunker.",
+        "text": "Ask The Contractor in the main hall about building a bunker.",
         "trigger": {
           "type": "talk",
           "npc": "npc_contractor"
@@ -332,6 +343,225 @@
         }
       }
     ],
-    "summary": "The Contractor can dig you a bunker under the main hall. For a price."
+    "summary": "Every President needs somewhere to hide when the ticker goes red. The Contractor can dig one under the main hall."
+  },
+  {
+    "id": "quest_sludge_duty",
+    "name": "Sludge Duty",
+    "points": 2,
+    "ordered": true,
+    "startNpc": "npc_morelight",
+    "requires": ["quest_tutorial"],
+    "summary": "Something is clogging the Trenches. Morelight would like it unclogged.",
+    "steps": [
+      {
+        "id": "briefing",
+        "text": "Hear Morelight out about the trouble in the Trenches.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_morelight"
+        },
+        "hint": {
+          "npc": "npc_morelight"
+        }
+      },
+      {
+        "id": "scout",
+        "text": "Find The Scout's camp just inside the Trenches.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_scout"
+        },
+        "hint": {
+          "npc": "npc_scout"
+        }
+      },
+      {
+        "id": "mother",
+        "text": "Defeat the Sludge Mother at the first barricade.",
+        "trigger": {
+          "type": "kill",
+          "enemy": "enemy_sludge_mother"
+        },
+        "hint": {
+          "enemy": "enemy_sludge_mother"
+        }
+      },
+      {
+        "id": "report",
+        "text": "Report back to Morelight in the Treasury.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_morelight"
+        },
+        "hint": {
+          "npc": "npc_morelight"
+        }
+      }
+    ],
+    "reward": {
+      "usd": 1500,
+      "xp": {
+        "shooting": 750,
+        "defense": 500
+      },
+      "items": [
+        {
+          "item": "item_tp_zinger",
+          "qty": 5
+        }
+      ]
+    },
+    "completeMessage": "Quest complete: Sludge Duty! The first barricade is clear, and the Trenches smell slightly better."
+  },
+  {
+    "id": "quest_name_calling",
+    "name": "Name Calling",
+    "points": 2,
+    "ordered": true,
+    "startNpc": "npc_morelight",
+    "requires": ["quest_sludge_duty"],
+    "summary": "The Wrong-Namers insist it's BTC. Loudly. Morelight wants them corrected.",
+    "steps": [
+      {
+        "id": "briefing",
+        "text": "Ask Morelight what the Wrong-Namers are up to.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_morelight"
+        },
+        "hint": {
+          "npc": "npc_morelight"
+        }
+      },
+      {
+        "id": "hecklers",
+        "text": "Silence a Wrong-Namer Heckler.",
+        "trigger": {
+          "type": "kill",
+          "enemy": "enemy_heckler"
+        },
+        "hint": {
+          "enemy": "enemy_heckler"
+        }
+      },
+      {
+        "id": "puppets",
+        "text": "Knock over a Sockpuppet.",
+        "trigger": {
+          "type": "kill",
+          "enemy": "enemy_sockpuppet"
+        },
+        "hint": {
+          "enemy": "enemy_sockpuppet"
+        }
+      },
+      {
+        "id": "chief",
+        "text": "Defeat the Wrong-Namer Chief at the second barricade.",
+        "trigger": {
+          "type": "kill",
+          "enemy": "enemy_wrongnamer_chief"
+        },
+        "hint": {
+          "enemy": "enemy_wrongnamer_chief"
+        }
+      },
+      {
+        "id": "report",
+        "text": "Tell Morelight the Wrong-Namers have gone quiet.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_morelight"
+        },
+        "hint": {
+          "npc": "npc_morelight"
+        }
+      }
+    ],
+    "reward": {
+      "usd": 4000,
+      "xp": {
+        "melee": 2000,
+        "hitpoints": 1000
+      },
+      "items": [
+        {
+          "item": "contract_grunt",
+          "qty": 1
+        }
+      ]
+    },
+    "completeMessage": "Quest complete: Name Calling! The Wrong-Namers have finally gone quiet. It's $BITCOIN."
+  },
+  {
+    "id": "quest_motion_denied",
+    "name": "Motion Denied",
+    "points": 3,
+    "ordered": true,
+    "startNpc": "npc_morelight",
+    "requires": ["quest_name_calling"],
+    "summary": "Captain Motion never stops running. Morelight would like him to stop.",
+    "steps": [
+      {
+        "id": "briefing",
+        "text": "Ask Morelight about the last job.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_morelight"
+        },
+        "hint": {
+          "npc": "npc_morelight"
+        }
+      },
+      {
+        "id": "scout",
+        "text": "Ask The Scout where Captain Motion runs.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_scout"
+        },
+        "hint": {
+          "npc": "npc_scout"
+        }
+      },
+      {
+        "id": "captain",
+        "text": "Defeat Captain Motion at the last barricade.",
+        "trigger": {
+          "type": "kill",
+          "enemy": "enemy_captain_motion"
+        },
+        "hint": {
+          "enemy": "enemy_captain_motion"
+        }
+      },
+      {
+        "id": "report",
+        "text": "Tell Morelight the Captain has stopped.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_morelight"
+        },
+        "hint": {
+          "npc": "npc_morelight"
+        }
+      }
+    ],
+    "reward": {
+      "usd": 10000,
+      "xp": {
+        "shooting": 4000,
+        "melee": 4000,
+        "defense": 3000
+      },
+      "items": [
+        {
+          "item": "item_tp_mic_drop",
+          "qty": 10
+        }
+      ]
+    },
+    "completeMessage": "Quest complete: Motion Denied! Captain Motion has finally sat down. The Trenches are yours."
   }
 ]

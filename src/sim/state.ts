@@ -9,7 +9,7 @@ import { createEconomy } from './economy';
 import type { Grid } from './grid';
 import { createInventory } from './inventory';
 import { createRng, type RngState } from './rng';
-import type { EquipSlot, ZoneDef } from './schemas';
+import type { DialogueLine, EquipSlot, ZoneDef } from './schemas';
 import { levelForXp, xpForLevel } from './xp';
 
 export type { EquipSlot };
@@ -77,7 +77,7 @@ export interface DialogueState {
   /** Index into `lines`. */
   line: number;
   /** The lines picked for the player's quest progress when the talk began. */
-  lines: string[];
+  lines: DialogueLine[];
 }
 
 export interface Overhead {
