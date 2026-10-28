@@ -5,9 +5,11 @@
  * adds. Enemies fight the player or the player's Sproto with the same math.
  */
 import { COMBAT, ENEMIES, SUMMONING } from '../config/balance';
+import { effectiveLevel } from './boosts';
 import { accuracyRoll, combatLevel, inAttackRange, maxHit, pathToward, rollDamage } from './combat';
 import { armorTotals } from './equipment';
 import { chebyshev, directStep, hasLineOfSight, isWalkable } from './grid';
+import { atStep } from './quests';
 import { chance, nextInt } from './rng';
 import {
   gridOf,
@@ -20,7 +22,7 @@ import {
   type SimEvent,
   type Tile,
 } from './state';
-import { grantXp, levelForXp } from './xp';
+import { grantXp } from './xp';
 
 const CARDINALS: readonly (readonly [number, number])[] = [
   [1, 0],
@@ -38,8 +40,13 @@ export function stepEnemies(state: GameState, ctx: SimContext, events: SimEvent[
     const def = ctx.content.enemies.get(enemy.defId);
     if (!def) continue;
 
+    // Quest-only enemies sleep until their quest step comes up, and leave after it.
+    const awake = !enemy.gate || atStep(player, ctx.content, enemy.gate.quest, enemy.gate.step);
+    if (!awake && enemy.respawnAt === null && enemy.target === null) enemy.respawnAt = Infinity;
+    if (awake && enemy.respawnAt === Infinity) enemy.respawnAt = state.tick;
     if (enemy.respawnAt !== null) {
-      if (state.tick >= enemy.respawnAt) {
+      if (!awake) enemy.respawnAt = Infinity;
+      else if (state.tick >= enemy.respawnAt) {
         Object.assign(
           enemy,
           newEnemy(enemy.id, enemy.defId, enemy.spawn.x, enemy.spawn.y, ctx.content, false),
@@ -166,7 +173,7 @@ function fight(
 
   const player = state.player;
   player.lastHitBy = { id: enemy.id, tick: state.tick };
-  const defLevel = levelForXp(player.skills.defense ?? 0);
+  const defLevel = effectiveLevel(player, 'defense', state.tick);
   const styleBonus =
     player.style === 'block' || player.style === 'longrange' ? COMBAT.styleBonus : 0;
   const defRoll = accuracyRoll(

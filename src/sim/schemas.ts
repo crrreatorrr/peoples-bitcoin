@@ -13,7 +13,16 @@ const UsdRange = z.tuple([z.number().nonnegative(), z.number().nonnegative()]);
 export const SkillReqSchema = z.object({ skill: Id, level: Level });
 export const StackSchema = z.object({ item: Id, qty: z.number().int().positive().default(1) });
 
-export const EQUIP_SLOTS = ['head', 'weapon', 'body', 'legs', 'ammo'] as const;
+export const EQUIP_SLOTS = [
+  'head',
+  'neck',
+  'weapon',
+  'body',
+  'legs',
+  'hands',
+  'feet',
+  'ammo',
+] as const;
 export const EquipSlotSchema = z.enum(EQUIP_SLOTS);
 
 /** guns beat melee, melee beats shields, shields beat guns (DESIGN.md §8). */
@@ -44,7 +53,14 @@ export const ItemDefSchema = z.object({
       splash: z.boolean().default(false),
     })
     .optional(),
-  armor: z.object({ defense: z.number(), accuracy: z.number().default(0) }).optional(),
+  armor: z
+    .object({
+      defense: z.number(),
+      accuracy: z.number().default(0),
+      /** Neck and hands pieces can add damage too. */
+      damage: z.number().default(0),
+    })
+    .optional(),
   food: z.object({ heal: z.number().int().positive(), verb: z.string().default('Eat') }).optional(),
   tool: z
     .object({ skill: Id, tier: z.number().int().positive(), bonus: z.number().min(0).max(1) })
@@ -52,6 +68,37 @@ export const ItemDefSchema = z.object({
   /** Damage bonus when fired from an explosive (hash) cannon. */
   shell: z.object({ damage: z.number() }).optional(),
   summon: z.object({ sproto: Id }).optional(),
+  /** A drink: boosts skills for a while (OSRS potions) and/or restores run energy. */
+  drink: z
+    .object({
+      verb: z.string().default('Drink'),
+      boost: z
+        .object({
+          skills: z.array(Id).min(1),
+          levels: z.number().int().nonnegative(),
+          /** Extra boost as a fraction of the base level. */
+          pct: z.number().nonnegative().default(0),
+        })
+        .optional(),
+      ticks: z.number().int().positive().default(300),
+      restoreRun: z.number().nonnegative().default(0),
+    })
+    .optional(),
+  /** Worn skilling outfit piece: +pct XP in one skill. */
+  xpBonus: z.object({ skill: Id, pct: z.number().positive() }).optional(),
+  /** Takes you somewhere. Reusable ones have a cooldown instead of being used up. */
+  teleport: z
+    .object({
+      zone: Id,
+      x: z.number().int().nonnegative(),
+      y: z.number().int().nonnegative(),
+      verb: z.string().default('Teleport'),
+      reusable: z.boolean().default(false),
+      cooldownTicks: z.number().int().nonnegative().default(0),
+      /** An unlock flag needed to use it (e.g. 'bunker'). */
+      requires: z.string().optional(),
+    })
+    .optional(),
 });
 
 export const BuildOptionSchema = z.object({
@@ -98,8 +145,35 @@ export const ObjectDefSchema = z.object({
   depleted: z.object({ name: z.string(), examine: z.string(), model: Id }).optional(),
 });
 
-/** A line of dialogue: plain text is the NPC talking; `{ "player": "..." }` is the player's reply. */
-export const DialogueLineSchema = z.union([z.string(), z.object({ player: z.string() })]);
+/**
+ * A line of dialogue: plain text is the NPC talking; `{ "player": "..." }` is
+ * the player's reply; `{ "options": [...] }` is an OSRS "Select an Option"
+ * where each choice continues with its own lines and may report a quest
+ * `choice` id.
+ */
+export type DialogueLine =
+  | string
+  | { player: string }
+  | { options: { text: string; lines: DialogueLine[]; choice?: string }[] };
+
+export const DialogueLineSchema: z.ZodType<DialogueLine> = z.lazy(() =>
+  z.union([
+    z.string(),
+    z.object({ player: z.string() }),
+    z.object({
+      options: z
+        .array(
+          z.object({
+            text: z.string(),
+            lines: z.array(DialogueLineSchema),
+            choice: Id.optional(),
+          }),
+        )
+        .min(2)
+        .max(5),
+    }),
+  ]),
+);
 
 export const NpcDefSchema = z.object({
   id: Id,
@@ -119,6 +193,8 @@ export const NpcDefSchema = z.object({
         quest: Id,
         status: z.enum(['started', 'complete']),
         step: z.array(Id).optional(),
+        /** Only if this choice was made during the quest. */
+        choice: Id.optional(),
         lines: z.array(DialogueLineSchema).min(1),
       }),
     )
@@ -256,6 +332,32 @@ export const DropTableSchema = z.object({
       weight: z.number().positive(),
     }),
   ),
+  /** Items that only drop while a quest's next step is `step`. */
+  questDrops: z
+    .array(
+      z.object({
+        item: Id,
+        qty: z.number().int().positive().default(1),
+        chance: z.number().min(0).max(1),
+        quest: Id,
+        step: Id,
+      }),
+    )
+    .default([]),
+});
+
+/** Using an inventory item on an object or NPC (uses.json). */
+export const UseDefSchema = z.object({
+  item: Id,
+  /** Object or NPC def id. */
+  target: Id,
+  /** Only works while this quest's next step is `step`. */
+  quest: z.object({ quest: Id, step: Id }).optional(),
+  /** Taken from the inventory. */
+  consume: z.number().int().nonnegative().default(1),
+  give: z.array(StackSchema).default([]),
+  message: z.string(),
+  xp: z.record(Id, z.number().positive()).default({}),
 });
 
 export const ShopSchema = z.object({
@@ -278,6 +380,10 @@ export const QuestTriggerSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('deposit') }),
   z.object({ type: z.literal('enterZone'), zone: Id }),
   z.object({ type: z.literal('build') }),
+  /** Use an inventory item on an object or NPC (by def id). */
+  z.object({ type: z.literal('use'), item: Id, target: Id }),
+  /** Pick one of these dialogue options. */
+  z.object({ type: z.literal('choice'), ids: z.array(Id).min(1) }),
 ]);
 
 export const RewardSchema = z.object({
@@ -311,6 +417,8 @@ export const QuestDefSchema = z.object({
         .object({ npc: Id.optional(), object: Id.optional(), enemy: Id.optional() })
         .default({}),
       reward: RewardSchema.optional(),
+      /** Extra reward depending on which dialogue choice completed the step. */
+      choiceRewards: z.record(Id, RewardSchema).default({}),
     }),
   ),
   reward: RewardSchema.optional(),
@@ -348,7 +456,17 @@ export const ZoneDefSchema = z
       }),
     ),
     npcs: z.array(z.object({ npcId: Id, x: Coord, y: Coord })),
-    enemies: z.array(z.object({ enemyId: Id, x: Coord, y: Coord })).default([]),
+    enemies: z
+      .array(
+        z.object({
+          enemyId: Id,
+          x: Coord,
+          y: Coord,
+          /** Only there while this quest's next step is `step`. */
+          quest: z.object({ quest: Id, step: Id }).optional(),
+        }),
+      )
+      .default([]),
     /** Minimap icons (asset ids), e.g. a bank or mining-site marker. */
     mapIcons: z.array(z.object({ icon: Id, x: Coord, y: Coord })).default([]),
   })
@@ -385,6 +503,7 @@ export const SprotosFileSchema = z.array(SprotoDefSchema);
 export const DropTablesFileSchema = z.array(DropTableSchema);
 export const ShopsFileSchema = z.array(ShopSchema);
 export const QuestsFileSchema = z.array(QuestDefSchema);
+export const UsesFileSchema = z.array(UseDefSchema);
 export const ZonesFileSchema = z.object({
   terrain: z.array(TerrainDefSchema),
   zones: z.array(ZoneDefSchema),
@@ -408,4 +527,4 @@ export type TerrainDef = z.output<typeof TerrainDefSchema>;
 export type ZoneDef = z.output<typeof ZoneDefSchema>;
 export type EquipSlot = z.output<typeof EquipSlotSchema>;
 export type CombatType = z.output<typeof CombatTypeSchema>;
-export type DialogueLine = z.output<typeof DialogueLineSchema>;
+export type UseDef = z.output<typeof UseDefSchema>;

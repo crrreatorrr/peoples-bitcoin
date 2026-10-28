@@ -47,7 +47,8 @@
       "hairStyle": "slick",
       "skin": "#e0b08a"
     },
-    "sprite": "sprites/player_president.png"
+    "sprite": "sprites/player_president.png",
+    "path": "models/player_president.glb"
   },
   "npc_morelight": {
     "placeholder": "humanoid",
@@ -1242,5 +1243,339 @@
   "orb_special": {
     "placeholder": "glyph",
     "label": "⭐"
+  },
+  "npc_reporter": {
+    "placeholder": "humanoid",
+    "look": {
+      "top": "#1f8a8a",
+      "shirt": "#f0f0f0",
+      "pants": "#1b1b1f",
+      "hair": "#8a3a1c",
+      "hairStyle": "bun",
+      "skin": "#e8b890",
+      "right": "microphone",
+      "left": "clipboard"
+    }
+  },
+  "enemy_rogue_process": {
+    "placeholder": "humanoid",
+    "look": {
+      "head": "robot",
+      "top": "#1b1b1f",
+      "sleeves": "#2a1414",
+      "pants": "#1b1b1f",
+      "shoes": "#3a0e0e",
+      "hands": "#3a0e0e",
+      "eyes": "#ff3b2f",
+      "plate": "#c8261e",
+      "right": "pistol"
+    }
+  },
+  "enemy_party_crasher": {
+    "placeholder": "humanoid",
+    "look": {
+      "top": "#d9b44a",
+      "pants": "#d9b44a",
+      "hat": "cap",
+      "hatColor": "#ff5ad1",
+      "glasses": "shades",
+      "skin": "#c98e62",
+      "hair": "#2a2a2a",
+      "shoes": "#f2f2f2"
+    }
+  },
+  "teleport_chamber": {
+    "placeholder": "chamber",
+    "color": "#5c636c",
+    "accent": "#3fd8ff"
+  },
+  "signpost": {
+    "placeholder": "signpost",
+    "color": "#7a5530"
+  },
+  "icon_focus_soda": {
+    "placeholder": "icon",
+    "color": "#5a9a3a",
+    "label": "F"
+  },
+  "icon_protein_shake": {
+    "placeholder": "icon",
+    "color": "#5a9a3a",
+    "label": "P"
+  },
+  "icon_thick_skin_tonic": {
+    "placeholder": "icon",
+    "color": "#5a9a3a",
+    "label": "T"
+  },
+  "icon_victory_smoothie": {
+    "placeholder": "icon",
+    "color": "#5a9a3a",
+    "label": "V"
+  },
+  "icon_miners_espresso": {
+    "placeholder": "icon",
+    "color": "#5a9a3a",
+    "label": "M"
+  },
+  "icon_charm_tea": {
+    "placeholder": "icon",
+    "color": "#5a9a3a",
+    "label": "C"
+  },
+  "icon_networking_mints": {
+    "placeholder": "icon",
+    "color": "#5a9a3a",
+    "label": "N"
+  },
+  "icon_smooth_lozenge": {
+    "placeholder": "icon",
+    "color": "#5a9a3a",
+    "label": "S"
+  },
+  "icon_hopium_soda": {
+    "placeholder": "icon",
+    "color": "#5a9a3a",
+    "label": "H"
+  },
+  "icon_ticket_treasury": {
+    "placeholder": "icon",
+    "color": "#3fa8ff",
+    "label": "T"
+  },
+  "icon_ticket_trenches": {
+    "placeholder": "icon",
+    "color": "#3fa8ff",
+    "label": "T"
+  },
+  "icon_ticket_bunker": {
+    "placeholder": "icon",
+    "color": "#3fa8ff",
+    "label": "B"
+  },
+  "icon_pick_overclocked": {
+    "placeholder": "icon",
+    "color": "#e0b43a",
+    "label": "O"
+  },
+  "icon_golden_rolodex": {
+    "placeholder": "icon",
+    "color": "#e0b43a",
+    "label": "G"
+  },
+  "icon_diamond_cards": {
+    "placeholder": "icon",
+    "color": "#e0b43a",
+    "label": "D"
+  },
+  "icon_toolkit_master": {
+    "placeholder": "icon",
+    "color": "#e0b43a",
+    "label": "M"
+  },
+  "icon_hard_hat": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "H"
+  },
+  "icon_hi_vis_vest": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "H"
+  },
+  "icon_work_trousers": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "W"
+  },
+  "icon_steel_toe_boots": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "S"
+  },
+  "icon_gala_top_hat": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "G"
+  },
+  "icon_gala_tailcoat": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "G"
+  },
+  "icon_gala_trousers": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "G"
+  },
+  "icon_patent_shoes": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "P"
+  },
+  "icon_power_fedora": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "P"
+  },
+  "icon_power_suit": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "P"
+  },
+  "icon_power_trousers": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "P"
+  },
+  "icon_power_loafers": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "P"
+  },
+  "icon_press_headset": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "P"
+  },
+  "icon_press_blazer": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "P"
+  },
+  "icon_press_slacks": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "P"
+  },
+  "icon_press_sneakers": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "P"
+  },
+  "icon_press_lanyard": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "P"
+  },
+  "icon_gavel_pendant": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "G"
+  },
+  "icon_ticker_amulet": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "T"
+  },
+  "icon_grip_gloves": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "G"
+  },
+  "icon_trigger_gloves": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "T"
+  },
+  "icon_diamond_gauntlets": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "D"
+  },
+  "icon_campaign_loafers": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "C"
+  },
+  "icon_combat_boots": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "C"
+  },
+  "icon_diamond_boots": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "D"
+  },
+  "icon_briefcase_bludgeon": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "B"
+  },
+  "icon_ballot_blaster": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "B"
+  },
+  "icon_gavel_of_order": {
+    "placeholder": "icon",
+    "color": "#8a929c",
+    "label": "G"
+  },
+  "icon_teleprompter": {
+    "placeholder": "icon",
+    "color": "#3fa8ff",
+    "label": "T"
+  },
+  "icon_chamber_key": {
+    "placeholder": "icon",
+    "color": "#3fa8ff",
+    "label": "C"
+  },
+  "icon_empty_canister": {
+    "placeholder": "icon",
+    "color": "#d8ccaa",
+    "label": "E"
+  },
+  "icon_coolant_canister": {
+    "placeholder": "icon",
+    "color": "#d8ccaa",
+    "label": "C"
+  },
+  "icon_coordinates_drive": {
+    "placeholder": "icon",
+    "color": "#d8ccaa",
+    "label": "C"
+  },
+  "icon_guest_list": {
+    "placeholder": "icon",
+    "color": "#d8ccaa",
+    "label": "G"
+  },
+  "icon_power_cell": {
+    "placeholder": "icon",
+    "color": "#d8ccaa",
+    "label": "P"
+  },
+  "icon_sealed_envelope": {
+    "placeholder": "icon",
+    "color": "#d8ccaa",
+    "label": "S"
+  },
+  "icon_blackmail_photo": {
+    "placeholder": "icon",
+    "color": "#d8ccaa",
+    "label": "B"
+  },
+  "icon_photo_negatives": {
+    "placeholder": "icon",
+    "color": "#d8ccaa",
+    "label": "P"
+  },
+  "icon_exit_permit": {
+    "placeholder": "icon",
+    "color": "#d8ccaa",
+    "label": "E"
+  },
+  "icon_press_release": {
+    "placeholder": "icon",
+    "color": "#d8ccaa",
+    "label": "S"
+  },
+  "icon_chamber_blueprints": {
+    "placeholder": "icon",
+    "color": "#d8ccaa",
+    "label": "C"
   }
 }

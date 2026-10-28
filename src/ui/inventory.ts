@@ -1,8 +1,9 @@
 /**
  * 28-slot inventory grid. Left-click runs the top option, right-click lists
  * them all, shift-click drops, dragging swaps slots. Options depend on context:
- * normally Wield/Wear/Recite/Summon, Drop, Examine; with the bank open,
- * Deposit-1/5/10/All; at the Terminal, Value and Sell-1/5/10/All.
+ * normally the item's verb (Wield/Wear/Recite/Drink/Teleport/Summon), Use, Drop,
+ * Examine; with the bank open, Deposit-1/5/10/All; at the Terminal, Value and
+ * Sell-1/5/10/All. "Use" selects the item; the next click uses it on something.
  * Changes go out as intents; the grid re-renders from state.
  */
 import type { Content } from '../sim/content';
@@ -15,13 +16,17 @@ import type { Tooltip } from './tooltips';
 
 export type InventoryMode =
   { kind: 'normal' } | { kind: 'bank'; qty: Quantity } | { kind: 'terminal' };
-export type UseKind = 'equip' | 'eat' | 'summon';
+export type UseKind = 'equip' | 'eat' | 'summon' | 'drink' | 'teleport';
 
 export interface InventoryHandlers {
   examine(itemId: string): void;
   drop(slot: number): void;
   move(from: number, to: number): void;
   use(slot: number, kind: UseKind): void;
+  /** OSRS "Use": select this slot (null clears) so the next click uses it on something. */
+  select(slot: number | null): void;
+  /** The slot selected with "Use", if any. */
+  selected(): number | null;
   deposit(slot: number, qty: Quantity): void;
   sell(slot: number, qty: Quantity): void;
   value(itemId: string): void;
@@ -40,6 +45,8 @@ export function primaryUse(def: ItemDef | undefined): { verb: string; kind: UseK
       kind: 'equip',
     };
   if (def.food) return { verb: def.food.verb, kind: 'eat' };
+  if (def.drink) return { verb: def.drink.verb, kind: 'drink' };
+  if (def.teleport) return { verb: def.teleport.verb, kind: 'teleport' };
   if (def.summon) return { verb: 'Summon', kind: 'summon' };
   return null;
 }
@@ -69,6 +76,13 @@ export class InventoryPanel {
     this.el.addEventListener('click', (e) => {
       const index = this.slotOf(e);
       if (index === null) return;
+      const selected = this.h.selected();
+      if (selected !== null) {
+        // Item-on-item uses aren't a thing yet.
+        this.h.select(null);
+        if (selected !== index) this.h.examine('');
+        return;
+      }
       if (e.shiftKey && this.h.mode().kind === 'normal') this.h.drop(index);
       else this.options(index)[0].run?.();
     });
@@ -80,6 +94,17 @@ export class InventoryPanel {
     this.el.addEventListener('mousemove', (e) => {
       const index = this.slotOf(e);
       if (index === null) return this.tooltip.hide();
+      const selected = this.h.selected();
+      if (selected !== null && this.items[selected]) {
+        const using = this.content.items.get(this.items[selected]!.itemId)?.name ?? '';
+        const target = this.content.items.get(this.items[index]!.itemId)?.name ?? '';
+        this.tooltip.show(
+          { action: 'Use', target: `${using} -> ${target}`, targetKind: 'item' },
+          e.clientX,
+          e.clientY,
+        );
+        return;
+      }
       const [top, ...rest] = this.options(index);
       this.tooltip.show({ ...top, moreOptions: rest.length }, e.clientX, e.clientY);
     });
@@ -111,10 +136,12 @@ export class InventoryPanel {
   }
 
   update(inventory: Inventory): void {
-    const key = JSON.stringify(inventory);
+    const selected = this.h.selected();
+    const key = JSON.stringify([inventory, selected]);
     if (key === this.key) return;
     this.key = key;
     this.render(inventory);
+    this.slots.forEach((slot, i) => slot.classList.toggle('selected', i === selected));
   }
 
   private render(inventory: Inventory): void {
@@ -158,11 +185,12 @@ export class InventoryPanel {
         examine,
       ];
     }
-    const use = primaryUse(def);
+    const main = primaryUse(def);
+    const use = opt('Use', () => this.h.select(index));
     const drop = opt('Drop', () => this.h.drop(index));
-    return use
-      ? [opt(use.verb, () => this.h.use(index, use.kind)), drop, examine]
-      : [examine, drop];
+    return main
+      ? [opt(main.verb, () => this.h.use(index, main.kind)), use, drop, examine]
+      : [use, drop, examine];
   }
 
   private slotOf(e: MouseEvent): number | null {

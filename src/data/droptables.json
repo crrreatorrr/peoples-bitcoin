@@ -104,6 +104,10 @@
       },
       {
         "weight": 35
+      },
+      {
+        "item": "item_hopium_soda",
+        "weight": 8
       }
     ]
   },
@@ -170,6 +174,18 @@
       },
       {
         "weight": 40
+      },
+      {
+        "item": "item_protein_shake",
+        "weight": 8
+      }
+    ],
+    "questDrops": [
+      {
+        "item": "item_photo_negatives",
+        "chance": 0.35,
+        "quest": "quest_hostile_takeover",
+        "step": "negatives"
       }
     ]
   },
@@ -209,6 +225,10 @@
       },
       {
         "weight": 33
+      },
+      {
+        "item": "item_thick_skin_tonic",
+        "weight": 8
       }
     ]
   },
@@ -287,6 +307,10 @@
       },
       {
         "weight": 36
+      },
+      {
+        "item": "item_victory_smoothie",
+        "weight": 6
       }
     ]
   },
@@ -539,6 +563,64 @@
         "weight": 30,
         "min": 3,
         "max": 5
+      }
+    ]
+  },
+  {
+    "id": "drops_rogue_process",
+    "usd": [5, 15],
+    "always": [
+      {
+        "item": "item_scrap_hash",
+        "qty": 1
+      }
+    ],
+    "table": [
+      {
+        "item": "item_rounds",
+        "weight": 30,
+        "min": 20,
+        "max": 40
+      },
+      {
+        "item": "item_focus_soda",
+        "weight": 20
+      },
+      {
+        "item": "item_circuit_board",
+        "weight": 20
+      },
+      {
+        "weight": 30
+      }
+    ]
+  },
+  {
+    "id": "drops_party_crasher",
+    "usd": [2, 6],
+    "table": [
+      {
+        "item": "item_tp_soundbite",
+        "weight": 25
+      },
+      {
+        "item": "item_hopium_soda",
+        "weight": 20
+      },
+      {
+        "item": "item_raw_minor_scandal",
+        "weight": 25
+      },
+      {
+        "weight": 30
+      }
+    ],
+    "questDrops": [
+      {
+        "item": "item_guest_list",
+        "chance": 0.4,
+        "quest": "quest_gala_night",
+        "step": "crashers"
       }
     ]
   }

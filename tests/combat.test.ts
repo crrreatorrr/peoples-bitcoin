@@ -109,13 +109,22 @@ describe('fighting', () => {
     });
   });
 
-  it('falls back to the gavel when out of rounds', () => {
+  it('out of rounds, you bash with the gun itself, melee-style', () => {
     const { state, ctx } = newGame();
-    armed(state, 'gun_campaign_pistol', 0);
+    armed(state, 'gun_treasury_rifle', 0);
     const profile = attackProfile(state.player, ctx);
+    const rifle = content().items.get('gun_treasury_rifle')!.weapon!;
     expect(profile.outOfAmmo).toBe(true);
     expect(profile.type).toBe('melee');
-    expect(profile.weapon.id).toBe(COMBAT.fallbackWeaponId);
+    expect(profile.weapon.id).toBe('gun_treasury_rifle');
+    expect(profile.range).toBe(1);
+    expect(profile.damageBonus).toBe(Math.floor(rifle.damage * COMBAT.bashScale));
+    expect(profile.speed).toBeGreaterThanOrEqual(COMBAT.bashMinSpeed);
+  });
+
+  it('with no weapon at all, it is the gavel', () => {
+    const { state, ctx } = newGame();
+    expect(attackProfile(state.player, ctx).weapon.id).toBe(COMBAT.fallbackWeaponId);
   });
 
   it('the Hash Cannon fires mined Hash, best first, and splashes neighbors', () => {

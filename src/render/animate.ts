@@ -65,12 +65,13 @@ export function poseActor(actor: ActorModel, a: AnimInput): void {
   }
   if (a.diedAt > -Infinity) {
     fall(actor, Math.max(0, a.now - a.diedAt));
-    return;
+  } else {
+    actor.root.rotation.x = 0;
+    actor.root.position.y = 0;
+    if (actor.joints) applyPose(actor, humanPose(actor, a), a.dt);
+    else poseBody(actor, a);
   }
-  actor.root.rotation.x = 0;
-  actor.root.position.y = 0;
-  if (actor.joints) applyPose(actor, humanPose(actor, a), a.dt);
-  else poseBody(actor, a);
+  actor.sync?.();
 }
 
 // ── Humanoids ────────────────────────────────────────────────────────────────
@@ -238,7 +239,7 @@ function attack(p: Pose, actor: ActorModel, style: AttackStyle, k: number): void
     return;
   }
   if (actor.right === null) {
-    // A jab: guard, punch out, back to guard.
+    // A jab: guard, punch out, back to guard (a gun bash swings like a club, below).
     holdPose(p, actor, true);
     const e = Math.sin(Math.PI * Math.min(1, k / 0.6));
     p.armRx = -0.7 - 0.9 * e;

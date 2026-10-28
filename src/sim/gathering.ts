@@ -6,14 +6,16 @@
  * and respawn. Node stats come from skills.json.
  */
 import { GATHERING } from '../config/balance';
+import { effectiveLevel } from './boosts';
 import type { GatherNode } from './content';
 import { payUsd } from './economy';
+import { xpMultiplier } from './equipment';
 import { giveItem } from './ground';
 import { bestTool, canAdd } from './inventory';
 import { progressQuests } from './quests';
 import { chance, nextFloat } from './rng';
 import type { GameState, ObjectInstance, SimContext, SimEvent } from './state';
-import { grantXp, levelForXp } from './xp';
+import { grantXp } from './xp';
 
 export function successChance(level: number, levelReq: number, toolBonus: number): number {
   return Math.min(
@@ -46,7 +48,7 @@ export function tickGathering(
   if (!skill) return stop();
   const stats = node.action;
   const output = stats.output ? ctx.content.items.get(stats.output) : undefined;
-  const level = levelForXp(player.skills[node.skillId] ?? 0);
+  const level = effectiveLevel(player, node.skillId, state.tick);
   const tool = bestTool(player.inventory, ctx.content, node.skillId, level);
 
   if (action.nextAttemptTick === null) {
@@ -91,7 +93,13 @@ export function tickGathering(
     if (stats.rare.usd) payUsd(state, rollUsd(stats.rare.usd, nextFloat(state.rng)));
   }
 
-  grantXp(player, node.skillId, skill.name, stats.xp, events);
+  grantXp(
+    player,
+    node.skillId,
+    skill.name,
+    stats.xp * xpMultiplier(player, ctx, node.skillId),
+    events,
+  );
   progressQuests(state, ctx, { type: 'xp', skill: node.skillId }, events);
 
   if (chance(state.rng, stats.depleteChance)) {
@@ -114,7 +122,7 @@ export function tickProcessing(
   const action = player.action;
   const skill = ctx.content.skills.get(skillId);
   if (!action || !skill) return;
-  const level = levelForXp(player.skills[skillId] ?? 0);
+  const level = effectiveLevel(player, skillId, state.tick);
   const recipes = ctx.content.recipesBySkill.get(skillId) ?? [];
   const slot = player.inventory.findIndex((s) =>
     recipes.some((r) => r.input === s?.itemId && r.levelReq <= level),
@@ -159,6 +167,6 @@ export function tickProcessing(
   const out = ctx.content.items.get(recipe.output)!;
   giveItem(state, ctx, out.id, 1, events);
   events.push({ type: 'message', kind: 'game', text: `You spin it into ${out.name}.` });
-  grantXp(player, skillId, skill.name, recipe.xp, events);
+  grantXp(player, skillId, skill.name, recipe.xp * xpMultiplier(player, ctx, skillId), events);
   progressQuests(state, ctx, { type: 'xp', skill: skillId }, events);
 }

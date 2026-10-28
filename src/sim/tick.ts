@@ -16,6 +16,7 @@ import { build, builtOption, hotspotActions, useStation } from './bunker';
 import { approachEnemy, tickPlayerAttack } from './combat';
 import { stepEconomy } from './economy';
 import { stepEnemies } from './enemies';
+import { drink, expireBoosts } from './boosts';
 import { eat, equipFromInventory, setStyle, unequip } from './equipment';
 import { tickGathering, tickProcessing } from './gathering';
 import { interactionTiles, isCardinallyAdjacent, type Footprint } from './grid';
@@ -37,27 +38,30 @@ import {
   type SimEvent,
   type Tile,
 } from './state';
+import { startTeleport, tickTeleport } from './teleport';
 import { buy, sell } from './terminal';
+import { useItemOn } from './uses';
 import { handleDeath, passGate, startDying, usePortal } from './zones';
 
 export function runTick(state: GameState, ctx: SimContext, intents: readonly Intent[]): SimEvent[] {
   const events: SimEvent[] = [];
   state.tick++;
   const player = state.player;
-  if (player.dyingUntil === null) {
+  if (player.dyingUntil === null && player.teleport === null) {
     for (const intent of intents) applyIntent(state, ctx, intent, events);
     stepMovement(state);
     stepActions(state, ctx, events);
   } else {
     player.stepsThisTick = [{ ...player.pos }];
   }
+  tickTeleport(state, ctx, events);
   stepSproto(state, ctx, events);
   stepEnemies(state, ctx, events);
   if (player.hp <= 0 && player.dyingUntil === null) startDying(state, events);
   if (player.dyingUntil !== null && state.tick >= player.dyingUntil)
     handleDeath(state, ctx, events);
   stepNpcs(state, ctx);
-  stepTimers(state);
+  stepTimers(state, ctx, events);
   stepEconomy(state.economy, state.rng, state.tick);
   if (state.tick % AUTOSAVE_EVERY_TICKS === 0) events.push({ type: 'autosave' });
   return events;
@@ -118,6 +122,37 @@ function applyIntent(state: GameState, ctx: SimContext, intent: Intent, events: 
       break;
     case 'eat':
       eat(state, ctx, intent.slot, events);
+      break;
+    case 'drink':
+      drink(state, ctx, intent.slot, events);
+      break;
+    case 'teleport':
+      startTeleport(state, ctx, intent.slot, events);
+      break;
+    case 'useItem': {
+      const item = player.inventory[intent.slot];
+      const target = findEntity(state, intent.targetId);
+      if (!item || !target || (target.kind !== 'object' && target.kind !== 'npc')) {
+        if (item)
+          events.push({ type: 'message', kind: 'game', text: 'Nothing interesting happens.' });
+        break;
+      }
+      interrupt(player);
+      player.action = {
+        targetId: intent.targetId,
+        action: 'Use',
+        nextAttemptTick: null,
+        itemId: item.itemId,
+      };
+      player.path = findPath(
+        gridOf(state, ctx),
+        player.pos,
+        interactionGoals(state, ctx, target),
+      ).path;
+      break;
+    }
+    case 'chooseOption':
+      chooseOption(state, ctx, intent.index, events);
       break;
     case 'summon':
       summonFromInventory(state, ctx, intent.slot, events);
@@ -210,6 +245,11 @@ function stepActions(state: GameState, ctx: SimContext, events: SimEvent[]): voi
     return;
   }
 
+  if (action.action === 'Use' && action.itemId) {
+    player.action = null;
+    useItemOn(state, ctx, action.itemId, entity, events);
+    return;
+  }
   if (entity.kind === 'npc') {
     player.action = null;
     const npcDef = ctx.content.npcs.get(entity.instance.defId);
@@ -263,7 +303,8 @@ function stepActions(state: GameState, ctx: SimContext, events: SimEvent[]): voi
   }
 }
 
-function stepTimers(state: GameState): void {
+function stepTimers(state: GameState, ctx: SimContext, events: SimEvent[]): void {
+  expireBoosts(state, ctx, events);
   const player = state.player;
   for (const obj of state.zone.objects) {
     if (obj.depletedUntil !== null && state.tick >= obj.depletedUntil) obj.depletedUntil = null;
@@ -289,8 +330,29 @@ function sayPublic(state: GameState, text: string, events: SimEvent[]): void {
 function advanceDialogue(state: GameState): void {
   const dialogue = state.player.dialogue;
   if (!dialogue) return;
+  const line = dialogue.lines[dialogue.line];
+  if (typeof line === 'object' && 'options' in line) return; // waiting for a choice
   dialogue.line++;
   if (dialogue.line >= dialogue.lines.length) state.player.dialogue = null;
+}
+
+/**
+ * OSRS "Select an Option": the player says the option, then its own lines play
+ * before the rest of the conversation. A choice can move a quest along.
+ */
+function chooseOption(state: GameState, ctx: SimContext, index: number, events: SimEvent[]): void {
+  const dialogue = state.player.dialogue;
+  const line = dialogue?.lines[dialogue.line];
+  if (!dialogue || typeof line !== 'object' || !('options' in line)) return;
+  const option = line.options[index];
+  if (!option) return;
+  dialogue.lines = [
+    { player: option.text },
+    ...option.lines,
+    ...dialogue.lines.slice(dialogue.line + 1),
+  ];
+  dialogue.line = 0;
+  if (option.choice) progressQuests(state, ctx, { type: 'choice', id: option.choice }, events);
 }
 
 export function entityActions(state: GameState, ctx: SimContext, entity: EntityRef): string[] {

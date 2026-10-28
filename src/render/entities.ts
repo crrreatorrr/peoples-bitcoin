@@ -26,7 +26,6 @@ import { levelForXp } from '../sim/xp';
 import { dressFor, holdRight, type ActorModel } from './actors';
 import { DEATH_MS, poseActor, STRIDE_RAD_PER_TILE, type WorkAnim } from './animate';
 import { HpBar } from './effects';
-import { holdOf } from './gear';
 import type { AssetLoader } from './loader';
 
 export const PLAYER_MODEL = 'player_president';
@@ -273,14 +272,13 @@ export class EntityRenderer {
 
     const work = this.workOf(state, now);
     const fighting = p.action?.action === 'Attack';
+    // An empty gun is swung as a club, so it stays in hand; no weapon means the gavel.
     const weapon = p.equipment.weapon?.itemId ?? null;
-    const swingingWithoutWeapon =
-      this.player.attackStyle === 'melee' &&
-      holdOf(weapon) !== 'melee' &&
-      now - this.player.attackAt < 900;
     let held = weapon;
     if (work) held = work.tool;
-    else if ((fighting && !weapon) || swingingWithoutWeapon) held = COMBAT.fallbackWeaponId;
+    else if (!weapon && (fighting || now - this.player.attackAt < 900)) {
+      held = COMBAT.fallbackWeaponId;
+    }
     holdRight(this.player.actor, held);
 
     const targetId = p.action?.targetId ?? p.dialogue?.npcId;

@@ -118,9 +118,41 @@ async function boot(): Promise<void> {
   };
   const examine = (text: string) => chat.add(text, 'examine');
 
+  /** The inventory slot picked with "Use": the next click uses it on something. */
+  let usingSlot: number | null = null;
+  const useOptions = (infos: EntityInfo[], tile: Tile | null): MenuOption[] => {
+    const slot = usingSlot!;
+    const item = state.player.inventory[slot];
+    const name = item ? (content.items.get(item.itemId)?.name ?? item.itemId) : '';
+    const options: MenuOption[] = infos.map((info) => ({
+      action: 'Use',
+      target: `${name} -> ${info.name}`,
+      targetKind: info.kind,
+      run: () => {
+        usingSlot = null;
+        queue({ type: 'useItem', slot, targetId: info.id });
+        const c = view.entities.entityCenter(state, info.id);
+        if (c) view.marker.show(c.x, c.z, 'action', clockNow());
+      },
+    }));
+    if (tile) {
+      options.push({
+        action: 'Walk here',
+        run: () => {
+          usingSlot = null;
+          walk(tile);
+        },
+      });
+    }
+    return options;
+  };
+
   /** OSRS menu order: every entity's actions, Walk here, then each Examine. */
   const menuOptions = (pick: PickResult): MenuOption[] => {
     const infos = pick.entityIds.map(describe).filter((i): i is EntityInfo => i !== null);
+    if (usingSlot !== null && state.player.inventory[usingSlot])
+      return useOptions(infos, pick.tile);
+    usingSlot = null;
     const yours = combatLevel(state.player.skills);
     const options: MenuOption[] = [];
     for (const info of infos) {
@@ -159,7 +191,10 @@ async function boot(): Promise<void> {
     tooltip.hide();
     menu.open(options, x, y);
   };
-  const itemExamine = (itemId: string) => examine(content.items.get(itemId)?.examine ?? '');
+  const itemExamine = (itemId: string) =>
+    itemId
+      ? examine(content.items.get(itemId)?.examine ?? '')
+      : chat.add('Nothing interesting happens.');
   const closeInterface = () => queue({ type: 'closeInterface' });
 
   const hud = new Hud(
@@ -179,7 +214,11 @@ async function boot(): Promise<void> {
   minimap.setZone(content.zones.get(state.zone.id)!);
   const overhead = new OverheadText($('#overhead'));
   const hitsplats = new Hitsplats($('#hitsplats'));
-  const dialogue = new DialogueBox(chat.dialogueHost, () => queue({ type: 'continueDialogue' }));
+  const dialogue = new DialogueBox(
+    chat.dialogueHost,
+    () => queue({ type: 'continueDialogue' }),
+    (index) => queue({ type: 'chooseOption', index }),
+  );
   const bank = new BankWindow(hudRoot, content, iconUrl, tooltip, {
     withdraw: (index, qty, itemId) => queue({ type: 'withdraw', index, qty, itemId }),
     depositAll: () => queue({ type: 'depositAll' }),
@@ -210,6 +249,8 @@ async function boot(): Promise<void> {
     drop: (slot) => queue({ type: 'dropItem', slot }),
     move: (from, to) => queue({ type: 'moveItem', from, to }),
     use: (slot, kind) => queue({ type: kind, slot }),
+    select: (slot) => (usingSlot = slot),
+    selected: () => usingSlot,
     deposit: (slot, qty) => queue({ type: 'deposit', slot, qty }),
     sell: (slot, qty) => queue({ type: 'sell', slot, qty }),
     value: (itemId) => {
@@ -315,10 +356,12 @@ async function boot(): Promise<void> {
   });
 
   chat.input.addEventListener('keydown', (e) => {
-    // Space on an empty chat line still continues dialogue.
+    // Space on an empty chat line still continues dialogue; 1-5 still pick options.
     if (e.key === ' ' && !chat.input.value && dialogue.isOpen) {
       e.preventDefault();
       dialogue.continue();
+    } else if (/^[1-5]$/.test(e.key) && !chat.input.value && dialogue.choose(Number(e.key) - 1)) {
+      e.preventDefault();
     }
   });
   window.addEventListener('keydown', (e) => {
@@ -328,12 +371,15 @@ async function boot(): Promise<void> {
     }
     if (document.activeElement === chat.input) return;
     if (e.key === 'Escape') {
+      usingSlot = null;
       bank.close();
       terminal.close();
       buildWindow.close();
       guide.close();
       journal.close();
       sidePanel.select('inventory');
+    } else if (/^[1-5]$/.test(e.key) && dialogue.choose(Number(e.key) - 1)) {
+      e.preventDefault();
     } else if (e.key === ' ' && dialogue.isOpen) {
       e.preventDefault();
       dialogue.continue();
@@ -361,6 +407,9 @@ async function boot(): Promise<void> {
     const key = `${d.npcId}:${d.lines.length}:${d.line}`;
     if (typeof line === 'string') {
       return { key, speaker: def.name, text: line, portrait: heads.url(def.model) };
+    }
+    if ('options' in line) {
+      return { key, speaker: '', text: '', options: line.options.map((o) => o.text) };
     }
     const dress = dressFor(dressKeyOf(state.player).split('|'));
     const portrait = heads.url(PLAYER_MODEL, dress, true);
@@ -474,7 +523,9 @@ async function boot(): Promise<void> {
         step(clockNow());
       }
     };
-    Object.assign(window, { __game: { state, queue, content, ctx, view: () => view, advance } });
+    Object.assign(window, {
+      __game: { state, queue, content, ctx, view: () => view, advance, renderer, cam },
+    });
   }
 
   // ── Main loop: fixed 600 ms ticks, rendering every frame ───────────────────

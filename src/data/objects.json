@@ -237,7 +237,7 @@
   },
   {
     "id": "obj_statue_gremlin",
-    "name": "Gremlin Statue",
+    "name": "Gremlin Fountain",
     "examine": "A golden Gremlin. Someone has scratched 'FREE ME' on the base.",
     "model": "statue_gremlin",
     "actions": [],
@@ -568,5 +568,36 @@
         "provides": "recharge"
       }
     ]
+  },
+  {
+    "id": "obj_teleport_chamber",
+    "name": "Teleport Chamber",
+    "examine": "Built before the Lockdown, abandoned after. It hums very, very quietly.",
+    "model": "teleport_chamber",
+    "actions": ["Enter"],
+    "blocks": true,
+    "width": 2,
+    "height": 2,
+    "role": "portal"
+  },
+  {
+    "id": "obj_return_chamber",
+    "name": "Return Chamber",
+    "examine": "The way back to the Treasury. It works both ways.",
+    "model": "teleport_chamber",
+    "actions": ["Enter"],
+    "blocks": true,
+    "width": 2,
+    "height": 2,
+    "role": "portal"
+  },
+  {
+    "id": "obj_signpost",
+    "name": "Signpost",
+    "examine": "WELCOME TO THE WORLD OUT THERE. Population: you. Everything past this hill: unexplored.",
+    "model": "signpost",
+    "actions": [],
+    "blocks": true,
+    "role": "scenery"
   }
 ]

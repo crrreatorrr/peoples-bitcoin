@@ -12,6 +12,7 @@ import questsJson from '../data/quests.json';
 import shopsJson from '../data/shops.json';
 import skillsJson from '../data/skills.json';
 import sprotosJson from '../data/sprotos.json';
+import usesJson from '../data/uses.json';
 import zonesJson from '../data/zones.json';
 import {
   DropTablesFileSchema,
@@ -23,6 +24,7 @@ import {
   ShopsFileSchema,
   SkillsFileSchema,
   SprotosFileSchema,
+  UsesFileSchema,
   ZonesFileSchema,
   type DropTable,
   type EnemyDef,
@@ -34,6 +36,7 @@ import {
   type Recipe,
   type Reward,
   type Shop,
+  type UseDef,
   type SkillDef,
   type SprotoDef,
   type TerrainDef,
@@ -62,6 +65,8 @@ export interface Content {
   gatherByObject: Map<string, GatherNode>;
   /** Processing recipes keyed by skill id. */
   recipesBySkill: Map<string, Recipe[]>;
+  /** What happens when an item is used on an object or NPC. */
+  uses: UseDef[];
 }
 
 export interface RawContent {
@@ -75,6 +80,7 @@ export interface RawContent {
   shops: unknown;
   quests: unknown;
   zones: unknown;
+  uses: unknown;
 }
 
 export const DEFAULT_RAW_CONTENT: RawContent = {
@@ -88,6 +94,7 @@ export const DEFAULT_RAW_CONTENT: RawContent = {
   shops: shopsJson,
   quests: questsJson,
   zones: zonesJson,
+  uses: usesJson,
 };
 
 export class ContentError extends Error {
@@ -109,6 +116,7 @@ export function loadContent(raw: RawContent = DEFAULT_RAW_CONTENT): Content {
   const shops = parse('shops.json', ShopsFileSchema, raw.shops, problems);
   const quests = parse('quests.json', QuestsFileSchema, raw.quests, problems);
   const zones = parse('zones.json', ZonesFileSchema, raw.zones, problems);
+  const uses = parse('uses.json', UsesFileSchema, raw.uses, problems);
   if (
     !items ||
     !objects ||
@@ -119,7 +127,8 @@ export function loadContent(raw: RawContent = DEFAULT_RAW_CONTENT): Content {
     !drops ||
     !shops ||
     !quests ||
-    !zones
+    !zones ||
+    !uses
   ) {
     throw new ContentError(problems);
   }
@@ -138,6 +147,7 @@ export function loadContent(raw: RawContent = DEFAULT_RAW_CONTENT): Content {
     zones: indexById('zones.json', zones.zones, problems),
     gatherByObject: new Map(),
     recipesBySkill: new Map(),
+    uses,
   };
   checkReferences(content, problems);
   if (problems.length > 0) throw new ContentError(problems);

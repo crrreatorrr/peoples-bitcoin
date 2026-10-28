@@ -1,0 +1,119 @@
+[
+  {
+    "item": "item_empty_canister",
+    "target": "obj_statue_gremlin",
+    "message": "You fill the canister at the Gremlin Fountain. The water is neither warm nor cold. The Gremlin seems to wink.",
+    "consume": 1,
+    "quest": {
+      "quest": "quest_server_meltdown",
+      "step": "fill"
+    },
+    "give": [
+      {
+        "item": "item_coolant_canister",
+        "qty": 1
+      }
+    ]
+  },
+  {
+    "item": "item_coolant_canister",
+    "target": "obj_rack_liquid",
+    "message": "The rack hisses and cools down. Then every screen in the wing flashes red: ROGUE PROCESS DETECTED.",
+    "consume": 1,
+    "quest": {
+      "quest": "quest_server_meltdown",
+      "step": "cool"
+    },
+    "xp": {
+      "mining": 250
+    }
+  },
+  {
+    "item": "item_sealed_envelope",
+    "target": "obj_lobbyist_broker",
+    "message": "The Broker opens the envelope, smiles, and hands you a photo. It is a photo of you. Not a good one.",
+    "consume": 1,
+    "quest": {
+      "quest": "quest_hostile_takeover",
+      "step": "deliver"
+    },
+    "give": [
+      {
+        "item": "item_blackmail_photo",
+        "qty": 1
+      }
+    ]
+  },
+  {
+    "item": "item_press_release",
+    "target": "npc_reporter",
+    "message": "The Reporter reads it live: 'THE PRESIDENT IS OPENING A DOOR. FOR EVERYONE.' Somewhere, the Treasury cheers.",
+    "consume": 1,
+    "quest": {
+      "quest": "quest_way_out",
+      "step": "announce"
+    }
+  },
+  {
+    "item": "item_chamber_blueprints",
+    "target": "obj_teleport_chamber",
+    "message": "Following the blueprints, you reconnect three cables and one very confusing lever. Lights flicker on.",
+    "consume": 1,
+    "quest": {
+      "quest": "quest_way_out",
+      "step": "install_blueprints"
+    },
+    "xp": {
+      "construction": 500
+    }
+  },
+  {
+    "item": "item_coordinates_drive",
+    "target": "obj_teleport_chamber",
+    "message": "You slot in the Coordinates Drive. A screen blinks: DESTINATION SET. OUTSIDE.",
+    "consume": 1,
+    "quest": {
+      "quest": "quest_way_out",
+      "step": "install_drive"
+    }
+  },
+  {
+    "item": "item_power_cell",
+    "target": "obj_teleport_chamber",
+    "message": "The Power Cell clicks into place. The chamber starts to hum, then purr.",
+    "consume": 1,
+    "quest": {
+      "quest": "quest_way_out",
+      "step": "install_cell"
+    }
+  },
+  {
+    "item": "item_exit_permit",
+    "target": "obj_teleport_chamber",
+    "message": "You feed the Exit Permit into a slot marked PAPERWORK. The chamber stamps it. Approved.",
+    "consume": 1,
+    "quest": {
+      "quest": "quest_way_out",
+      "step": "install_permit"
+    }
+  },
+  {
+    "item": "item_scrap_hash",
+    "target": "obj_teleport_chamber",
+    "message": "The chamber swallows 20 Scrap Hash and roars to life. The doors slide open. Light pours out.",
+    "consume": 20,
+    "quest": {
+      "quest": "quest_way_out",
+      "step": "fuel"
+    },
+    "xp": {
+      "mining": 500
+    }
+  },
+  {
+    "item": "item_scrap_hash",
+    "target": "obj_statue_gremlin",
+    "message": "You toss some Scrap Hash into the fountain. Nothing happens. The Gremlin looks unimpressed.",
+    "consume": 0
+  }
+]

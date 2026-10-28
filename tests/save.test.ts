@@ -126,7 +126,7 @@ describe('save / load', () => {
     expect(loaded.player.skills.mining).toBe(1234);
     expect(loaded.player.skills.summoning).toBe(500); // Command became Summoning
     expect(loaded.player.hp).toBe(10);
-    expect(loaded.player.quests.quest_tutorial).toEqual({ done: [], complete: false });
+    expect(loaded.player.quests.quest_tutorial).toEqual({ done: [], complete: false, choices: [] });
   });
 
   it('does not save transient movement state', () => {

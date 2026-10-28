@@ -24,7 +24,9 @@ export type QuestEvent =
   | { type: 'summon' }
   | { type: 'deposit' }
   | { type: 'enterZone'; zone: string }
-  | { type: 'build' };
+  | { type: 'build' }
+  | { type: 'use'; item: string; target: string }
+  | { type: 'choice'; id: string };
 
 export interface QuestHint {
   questName: string;
@@ -45,7 +47,7 @@ export function progressQuests(
     for (const q of ctx.content.quests.values()) {
       const ready = q.requires.every((id) => player.quests[id]?.complete);
       if (q.startNpc === ev.npc && !player.quests[q.id] && ready) {
-        player.quests[q.id] = { done: [], complete: false };
+        player.quests[q.id] = { done: [], complete: false, choices: [] };
         events.push({ type: 'message', kind: 'quest', text: `Quest started: ${q.name}` });
       }
     }
@@ -65,6 +67,10 @@ export function progressQuests(
         progress.done.push(step.id);
         events.push({ type: 'message', kind: 'quest', text: `Done: ${step.text}` });
         grantReward(state, ctx, step.reward, events);
+        if (ev.type === 'choice') {
+          progress.choices.push(ev.id);
+          grantReward(state, ctx, step.choiceRewards[ev.id], events);
+        }
         advanced = quest.ordered; // the next ordered step may match the same event
         break;
       }
@@ -81,6 +87,7 @@ export function progressQuests(
 export function npcLines(player: PlayerState, npc: NpcDef, content: Content): DialogueLine[] {
   const variant = npc.dialogue.find((d) => {
     const progress = player.quests[d.quest];
+    if (d.choice && !progress?.choices.includes(d.choice)) return false;
     if (d.status === 'complete') return progress?.complete === true;
     if (!progress || progress.complete) return false;
     const quest = content.quests.get(d.quest);
@@ -89,6 +96,19 @@ export function npcLines(player: PlayerState, npc: NpcDef, content: Content): Di
     );
   });
   return variant?.lines ?? npc.lines;
+}
+
+/** True while the quest is under way and its next step is `step`. */
+export function atStep(
+  player: PlayerState,
+  content: Content,
+  questId: string,
+  step: string,
+): boolean {
+  const progress = player.quests[questId];
+  const quest = content.quests.get(questId);
+  if (!progress || progress.complete || !quest) return false;
+  return nextStep(quest, progress.done)?.id === step;
 }
 
 /** The step the hint points at: the first one not done. */
@@ -151,6 +171,10 @@ function matches(t: QuestTrigger, ev: QuestEvent, player: PlayerState): boolean 
       return ev.type === 'kill' && (!t.enemy || ev.enemy === t.enemy);
     case 'enterZone':
       return ev.type === 'enterZone' && ev.zone === t.zone;
+    case 'use':
+      return ev.type === 'use' && ev.item === t.item && ev.target === t.target;
+    case 'choice':
+      return ev.type === 'choice' && t.ids.includes(ev.id);
     default:
       return ev.type === t.type;
   }

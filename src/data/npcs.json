@@ -12,16 +12,73 @@
     ],
     "dialogue": [
       {
-        "quest": "quest_motion_denied",
+        "quest": "quest_way_out",
         "status": "complete",
         "lines": [
-          "Captain Motion has finally stopped. He sat down, had some water and asked for a nap.",
-          "The Trenches are yours, President. The treasury is filling up. I may even trim the mustache to celebrate.",
+          "You've seen it now, President. The world out there.",
+          "The Chamber works both ways, and the Chamber Key works any time. I commute now. It's lovely.",
           {
-            "player": "Don't you dare."
+            "player": "And the Treasury?"
           },
-          "Never. Thank you, President. It's been an honor running your campaign. Er, country."
+          "Still here. Still ours. But the gates aren't the edge of the world anymore."
         ]
+      },
+      {
+        "quest": "quest_way_out",
+        "status": "started",
+        "step": ["decide"],
+        "lines": [
+          "Everything's ready, President. The Coordinates, the Power Cell, the Permit, the press. Even the blueprints, the Contractor says.",
+          "Once we switch that Chamber on, we go somewhere nobody has been since the Lockdown. Are you sure?",
+          {
+            "options": [
+              {
+                "text": "Let's get out of here.",
+                "lines": ["Then let's go. Carefully. And with snacks."],
+                "choice": "wayout_ready"
+              },
+              {
+                "text": "Give me a minute.",
+                "lines": [
+                  "Take all the time you need. The walls aren't going anywhere. That's the problem."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "quest": "quest_way_out",
+        "status": "started",
+        "step": ["announce"],
+        "lines": [
+          "First, the people. Read the Signed Press Release to the Reporter by the podiums. Use it on her.",
+          "Nobody should wake up to find their President gone without a word."
+        ]
+      },
+      {
+        "quest": "quest_way_out",
+        "status": "started",
+        "step": ["blueprints"],
+        "lines": [
+          "The Contractor says the bunker dig turned up old blueprints. For the Chamber. Ask him for them."
+        ]
+      },
+      {
+        "quest": "quest_way_out",
+        "status": "started",
+        "step": ["install_blueprints", "install_drive", "install_cell", "install_permit", "fuel"],
+        "lines": [
+          "The Chamber is at the far north end of the Trenches, past Captain Motion's barricade.",
+          "Use each part on it: the blueprints, the Coordinates Drive, the Power Cell, the Exit Permit. Then feed it 20 Scrap Hash.",
+          "When the doors open, step through. I'll be right behind you."
+        ]
+      },
+      {
+        "quest": "quest_way_out",
+        "status": "started",
+        "step": ["enter"],
+        "lines": ["The doors are open? Then go, President. I'll be right behind you. Probably."]
       },
       {
         "quest": "quest_motion_denied",
@@ -43,6 +100,17 @@
         "lines": [
           "The Captain hits fast but tires. Stand your ground and keep your health up.",
           "And President? Wear your best armor. I've seen what he does to a nice suit."
+        ]
+      },
+      {
+        "quest": "quest_motion_denied",
+        "status": "complete",
+        "lines": [
+          "The Scout found it, past the last barricade: the old Teleport Chamber. Built before the Lockdown. Dead, but whole.",
+          "That's our way out, President. Not just for us. For everyone stuck behind these walls.",
+          "To wake it we need four things. The Sysadmin's missing coordinates. A Power Cell, which the Party Planner's gala could pay for.",
+          "An Exit Permit, which only the Broker can sign; the Fixer knows him. And the public on our side, which is the Spin Doctor's department.",
+          "Bring me all four, and I'll tell you the rest."
         ]
       },
       {
@@ -128,7 +196,7 @@
         "quest": "quest_tutorial",
         "status": "complete",
         "lines": [
-          "Welcome back, President. Finish what you're doing and come and see me. I have work for you."
+          "Welcome back, President. Finish what you're doing and come and see me. We have walls to get past."
         ]
       },
       {
@@ -141,12 +209,12 @@
             "player": "Where is everyone? And why is the treasury... empty?"
           },
           "A small accounting incident. The Treasurer bought the wrong coin. With all of it.",
-          "Don't panic. We can't sell The People's Bitcoin, so we earn it back: Mining, Fundraising, Lobbying.",
+          "The ticker crashed, and the gates sealed themselves. We call it the Lockdown. Nobody has left the Treasury since.",
           {
-            "player": "And if that doesn't work?"
+            "player": "Nobody? Ever?"
           },
-          "Then we fight. There's a whole Trench full of people who keep calling it by the wrong name.",
-          "First, see The Treasurer in the main hall, just north. Follow the yellow arrow. It has never steered me wrong.",
+          "Not yet. I have a plan for that. But first, the basics: Mining, Fundraising, Lobbying. You can't escape on an empty stomach.",
+          "See The Treasurer in the main hall, just north. Follow the yellow arrow. It has never steered me wrong.",
           "Come back to me whenever you're lost. I'll be right here, guarding the mustache."
         ]
       },
@@ -242,12 +310,12 @@
         "step": ["trenches"],
         "lines": [
           "You've learned everything I can teach you in a garden. Time for the real thing.",
-          "The Trenches entrance is on the south-east lawn. Sandbags, a lantern, a bad smell. You can't miss it.",
+          "The Trenches run north from the south-east lawn. Somewhere past the far end is the only part of the wall nobody's checked.",
           "Step inside and your training is done. Then come back to me. I'll have work for you.",
           {
             "player": "What kind of work?"
           },
-          "The important kind."
+          "The kind that gets us out of here."
         ]
       }
     ]
@@ -265,8 +333,8 @@
       {
         "player": "How bad is it?"
       },
-      "We bought $BITCOIN. The People's Bitcoin. One billion of them. Not the other one.",
-      "And we can't sell it, so we earn. Mine, fundraise, lobby, and sell what we make at the Trading Terminal in this hall.",
+      "We bought $BITCOIN. The People's Bitcoin. One billion of them. Not the other one. The ticker crashed, and the gates sealed: the Lockdown.",
+      "We can't sell, and we can't leave, so we earn. Mine, fundraise, lobby, and sell what we make at the Trading Terminal in this hall.",
       "Here's what's left of the petty cash. Please spend it wisely. Please."
     ],
     "dialogue": [
@@ -279,7 +347,7 @@
           {
             "player": "Any more accounting incidents I should know about?"
           },
-          "None! Er. None that have been discovered."
+          "None! Er. Well. The Lockdown. But that one is technically a security incident."
         ]
       }
     ]
@@ -300,6 +368,66 @@
       "Inventory full? Bank it or sell it. Better picks from the Terminal mine faster."
     ],
     "dialogue": [
+      {
+        "quest": "quest_server_meltdown",
+        "status": "complete",
+        "lines": [
+          "You did it. The racks are cool, the Rogue Process is gone, and OUTSIDE.TXT is safe.",
+          "Take the Coordinates Drive to Morelight. Whatever's out there, it has an address.",
+          "And keep the Overclocked Pick. It runs hot. Like me, after that fight."
+        ]
+      },
+      {
+        "quest": "quest_server_meltdown",
+        "status": "started",
+        "step": ["fill", "cool"],
+        "lines": [
+          "Bad news. The liquid-cooled racks in the west wing are cooking themselves, and something on the network is fighting me.",
+          "It's guarding a file. OUTSIDE.TXT. From before the Lockdown. Nobody's opened it in years.",
+          "First, coolant. Fill this canister at the Gremlin Fountain. That water has never frozen and never boiled. Use the canister on the statue.",
+          "Then use the coolant on a Liquid-Cooled Rack in the west wing.",
+          {
+            "player": "Anything else I should know?"
+          },
+          "If anything asks for my password, it's my cat's name. Lord Fluffington the Third. Don't tell anyone."
+        ]
+      },
+      {
+        "quest": "quest_server_meltdown",
+        "status": "started",
+        "step": ["rogue"],
+        "lines": [
+          "That red window! A Rogue Process. It's loose in the west wing, guarding OUTSIDE.TXT. Shut it down, President!"
+        ]
+      },
+      {
+        "quest": "quest_server_meltdown",
+        "status": "started",
+        "step": ["password"],
+        "lines": [
+          "It's down! Now I just need the admin password to recover the file. Which was it? You heard me say it.",
+          {
+            "options": [
+              {
+                "text": "password123",
+                "lines": ["No, that's the Treasurer's. Think, President."]
+              },
+              {
+                "text": "Lord Fluffington the Third",
+                "lines": [
+                  "YES. Logging in... recovering OUTSIDE.TXT...",
+                  "It's coordinates. Coordinates to somewhere that isn't here."
+                ],
+                "choice": "meltdown_password"
+              },
+              {
+                "text": "BTC",
+                "lines": ["It's never BTC. We've been over this."]
+              }
+            ]
+          }
+        ]
+      },
       {
         "quest": "quest_tutorial",
         "status": "complete",
@@ -329,6 +457,82 @@
     ],
     "dialogue": [
       {
+        "quest": "quest_gala_night",
+        "status": "complete",
+        "lines": [
+          "Darling, the disco ball is still spinning. The Power Cell is yours. Whatever Morelight's building, it had better have a dance floor."
+        ],
+        "choice": "gala_disco"
+      },
+      {
+        "quest": "quest_gala_night",
+        "status": "complete",
+        "lines": [
+          "Darling, the masks were a triumph. Nobody knew who anybody was. The Power Cell is yours; Morelight says it's for 'a door'."
+        ],
+        "choice": "gala_masquerade"
+      },
+      {
+        "quest": "quest_gala_night",
+        "status": "complete",
+        "lines": [
+          "Darling, a garden party under a sealed sky. Poetic. The Power Cell is yours. Go and find a real sky."
+        ],
+        "choice": "gala_garden"
+      },
+      {
+        "quest": "quest_gala_night",
+        "status": "started",
+        "step": ["theme"],
+        "lines": [
+          "Darling! The gala of the year. Morelight needs a Power Cell for some 'little project', and power cells are not cheap.",
+          "So we throw a party, the donors pay, and you, President, are the host. First things first: the theme.",
+          {
+            "options": [
+              {
+                "text": "Masquerade.",
+                "lines": ["Masks! Mystery! Nobody will recognize the Treasurer. Perfect."],
+                "choice": "gala_masquerade"
+              },
+              {
+                "text": "Disco.",
+                "lines": ["A disco ball! I already own four. Wonderful."],
+                "choice": "gala_disco"
+              },
+              {
+                "text": "Garden party.",
+                "lines": ["Outdoors, under a sealed sky. Bold. I love it."],
+                "choice": "gala_garden"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "quest": "quest_gala_night",
+        "status": "started",
+        "step": ["catering"],
+        "lines": [
+          "Catering! Bring me 5 Minor Scandals for the gossip table and 3 Soundbites for the toasts.",
+          "A gala without gossip is just dinner, darling."
+        ]
+      },
+      {
+        "quest": "quest_gala_night",
+        "status": "started",
+        "step": ["crashers"],
+        "lines": [
+          "CRASHERS! Party Crashers in my garden! And one of them stole the guest list!",
+          "Throw them out, President. Firmly. Bring me back that list."
+        ]
+      },
+      {
+        "quest": "quest_gala_night",
+        "status": "started",
+        "step": ["return"],
+        "lines": ["You have the list? Give it here, darling, before anyone else 'borrows' it."]
+      },
+      {
         "quest": "quest_tutorial",
         "status": "complete",
         "lines": [
@@ -356,6 +560,42 @@
     ],
     "dialogue": [
       {
+        "quest": "quest_press_conference",
+        "status": "complete",
+        "lines": [
+          "Front page, President! 'A DOOR FOR EVERYONE.' I couldn't have written it better. I tried.",
+          "Take the Teleprompter. Read it and you're home. And keep that press release for when you need the people."
+        ]
+      },
+      {
+        "quest": "quest_press_conference",
+        "status": "started",
+        "step": ["prep"],
+        "lines": [
+          "If the President vanishes, the Treasury will panic. If the President explains, the Treasury will cheer.",
+          "So: a press conference. The Reporter is waiting by the podiums. But first, practice.",
+          "Bring me 3 Soundbites. We'll warm up your voice."
+        ]
+      },
+      {
+        "quest": "quest_press_conference",
+        "status": "started",
+        "step": ["q1", "q2", "q3"],
+        "lines": [
+          "The Reporter is by the podiums. Remember: never confirm, never deny, always pivot.",
+          {
+            "player": "Pivot to what?"
+          },
+          "Optimism, President. Always optimism."
+        ]
+      },
+      {
+        "quest": "quest_press_conference",
+        "status": "started",
+        "step": ["debrief"],
+        "lines": ["Well? How did it go? ...Come, sit. Tell me everything."]
+      },
+      {
         "quest": "quest_tutorial",
         "status": "complete",
         "lines": [
@@ -382,6 +622,67 @@
       "Bigger lobbyists pay better, if your Lobbying is up to it. Now walk away slowly."
     ],
     "dialogue": [
+      {
+        "quest": "quest_hostile_takeover",
+        "status": "complete",
+        "lines": [
+          "You burned them. Clean hands. The Broker signed anyway; he respects that. I think it scared him."
+        ],
+        "choice": "takeover_burn"
+      },
+      {
+        "quest": "quest_hostile_takeover",
+        "status": "complete",
+        "lines": [
+          "You used them. The Broker signed so fast he broke the pen. Remind me never to get on your bad side."
+        ],
+        "choice": "takeover_leverage"
+      },
+      {
+        "quest": "quest_hostile_takeover",
+        "status": "started",
+        "step": ["deliver"],
+        "lines": [
+          "...You want out. Everyone wants out. The Lockdown Act says nobody leaves without an Exit Permit.",
+          "Only the Broker can stamp one. He wants this envelope delivered first. Don't open it.",
+          "He stands by the lobbyists on the east lawn. Use the envelope on him."
+        ]
+      },
+      {
+        "quest": "quest_hostile_takeover",
+        "status": "started",
+        "step": ["negatives"],
+        "lines": [
+          "A photo of you? Classic Broker. Someone took that photo, and they have the negatives.",
+          "Word is he paid the Paper-Hands goblins in the Trenches. They never hold anything for long. Go and take it off them."
+        ]
+      },
+      {
+        "quest": "quest_hostile_takeover",
+        "status": "started",
+        "step": ["decision"],
+        "lines": [
+          "You got the negatives. Now you've got options.",
+          {
+            "options": [
+              {
+                "text": "Burn the negatives.",
+                "lines": [
+                  "Clean. The Broker will sign; he won't want a fight. Here's your permit, and something for your trouble."
+                ],
+                "choice": "takeover_burn"
+              },
+              {
+                "text": "Use them on the Broker.",
+                "lines": [
+                  "Ruthless. He'll sign, and he'll pay. Here's your permit. Don't spend it all at once."
+                ],
+                "choice": "takeover_leverage"
+              }
+            ]
+          }
+        ]
+      },
       {
         "quest": "quest_tutorial",
         "status": "complete",
@@ -471,6 +772,15 @@
     ],
     "dialogue": [
       {
+        "quest": "quest_way_out",
+        "status": "started",
+        "step": ["blueprints"],
+        "lines": [
+          "Blueprints? For the Chamber? I found these while digging your bunker. Thought they were a pizza menu.",
+          "Here. Take them to the Chamber and follow along. Don't touch the red lever. Or do. I'm not your boss."
+        ]
+      },
+      {
         "quest": "quest_bunker",
         "status": "complete",
         "lines": [
@@ -478,9 +788,9 @@
           "Build spots are marked down there. Click one to see what you can build.",
           "Bigger builds need a Pro or Elite Toolkit, plus Concrete, Steel Beams and Circuit Boards from the Terminal.",
           {
-            "player": "And if I run out of money?"
+            "player": "Find anything interesting while digging?"
           },
-          "Then you'll have a very nice bunker to be broke in."
+          "Old papers. Drawings of some big machine. Probably nothing. I'll hang on to them."
         ]
       }
     ]
@@ -501,6 +811,14 @@
       "Talking Points. Never leave the Treasury without them."
     ],
     "dialogue": [
+      {
+        "quest": "quest_motion_denied",
+        "status": "complete",
+        "lines": [
+          "You beat the Captain! Then you've seen it: the machine past the last barricade. The old Teleport Chamber.",
+          "It hums at night. I've been listening for years. Go and tell Morelight."
+        ]
+      },
       {
         "quest": "quest_sludge_duty",
         "status": "started",
@@ -537,5 +855,145 @@
         ]
       }
     ]
+  },
+  {
+    "id": "npc_reporter",
+    "name": "The Reporter",
+    "examine": "Treasury Times, live. Always live.",
+    "model": "npc_reporter",
+    "actions": ["Talk-to"],
+    "wanderRadius": 0,
+    "lines": [
+      "Treasury Times, live. No comment? Everyone has a comment.",
+      "Since the Lockdown, the news is the only thing that gets in or out."
+    ],
+    "dialogue": [
+      {
+        "quest": "quest_press_conference",
+        "status": "complete",
+        "lines": [
+          "President! Any plans to leave the Treasury? ...Off the record?",
+          {
+            "player": "Off the record: watch the north end of the Trenches."
+          },
+          "I KNEW it. I'll keep it quiet. Mostly."
+        ]
+      },
+      {
+        "quest": "quest_way_out",
+        "status": "started",
+        "step": ["announce"],
+        "lines": [
+          "President! Big news? Hand it over. Use the press release on me and I'll read it live."
+        ]
+      },
+      {
+        "quest": "quest_press_conference",
+        "status": "started",
+        "step": ["q1"],
+        "lines": [
+          "We're live! President, first question: is it true the Treasury bought the wrong coin?",
+          {
+            "options": [
+              {
+                "text": "Yes. Completely.",
+                "lines": [
+                  "Honesty! In politics! I need to sit down.",
+                  "(Somewhere, the Spin Doctor faints. Try again.)"
+                ]
+              },
+              {
+                "text": "We bought the RIGHT coin. Everyone else bought the wrong one.",
+                "lines": ["...That's going on the front page. Next question!"],
+                "choice": "press_q1"
+              },
+              {
+                "text": "What's a coin?",
+                "lines": ["I'll... print that, I guess. Let's try again."]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "quest": "quest_press_conference",
+        "status": "started",
+        "step": ["q2"],
+        "lines": [
+          "Second question: why can't the Treasury just sell its $BITCOIN?",
+          {
+            "options": [
+              {
+                "text": "Because nobody would buy it.",
+                "lines": ["Ouch. That's a headline you don't want. Try again."]
+              },
+              {
+                "text": "Because we took the Never Sell Vow. We're builders.",
+                "lines": ["Builders! The people love builders. Last question!"],
+                "choice": "press_q2"
+              },
+              {
+                "text": "Because the sell button is broken.",
+                "lines": ["Is it? ...It is, isn't it. Try again."]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "quest": "quest_press_conference",
+        "status": "started",
+        "step": ["q3"],
+        "lines": [
+          "Final question: rumor says you're planning to leave the Treasury. Is that true?",
+          {
+            "options": [
+              {
+                "text": "No comment.",
+                "lines": ["'No comment' is a comment, President. Try again."]
+              },
+              {
+                "text": "Yes, and you can't come.",
+                "lines": ["Noted. Bitterly. Try again."]
+              },
+              {
+                "text": "Leave? I'm opening a door. For everyone.",
+                "lines": [
+                  "A door for everyone. The Treasury is going to love that. That's a wrap!"
+                ],
+                "choice": "press_q3"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "quest": "quest_press_conference",
+        "status": "started",
+        "step": ["debrief"],
+        "lines": ["That's a wrap. You were... surprisingly good. Go see your Spin Doctor."]
+      }
+    ]
+  },
+  {
+    "id": "npc_morelight_outside",
+    "name": "Morelight",
+    "examine": "Chief of Staff. Somehow already here.",
+    "model": "npc_morelight",
+    "actions": ["Talk-to"],
+    "wanderRadius": 0,
+    "lines": [
+      "...We made it. Look at that, President. No walls.",
+      {
+        "player": "Where are we?"
+      },
+      "Somewhere new. The coordinates only got us this far. Everything past that hill is unexplored.",
+      "The Chamber works both ways. Go home whenever you like; the Treasury will want to hear about this.",
+      {
+        "player": "And you?"
+      },
+      "I'm going to stand here a while. Guarding the mustache. From a much better view."
+    ],
+    "dialogue": []
   }
 ]

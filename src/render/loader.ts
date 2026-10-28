@@ -12,6 +12,7 @@ import { z } from 'zod';
 import manifestJson from '../config/assets.manifest.json';
 import { buildActor, LookSchema, staticActor, type ActorModel, type Look } from './actors';
 import { share } from './kit';
+import { isRigged, riggedActor } from './rigged';
 import { buildPlaceholder, iconCanvas, terrainPart, type TerrainPart } from './placeholders';
 
 const AssetEntrySchema = z
@@ -83,7 +84,7 @@ export class AssetLoader {
   private async preloadModels(): Promise<void> {
     const gltf = new GLTFLoader();
     const jobs = [...this.entries]
-      .filter(([, e]) => e.path && !e.sprite)
+      .filter(([, e]) => e.path)
       .map(async ([id, e]) => {
         const url = MODEL_URLS[`../assets/${e.path}`] ?? e.path!;
         this.models.set(id, (await gltf.loadAsync(url)).scene);
@@ -130,7 +131,12 @@ export class AssetLoader {
   create(id: string): THREE.Group {
     const entry = this.entry(id);
     const root = new THREE.Group();
-    const actor = this.models.has(id) ? null : buildActor(entry);
+    const source = this.models.get(id);
+    const actor = source
+      ? isRigged(source)
+        ? riggedActor(source, entry.scale)
+        : null
+      : buildActor(entry);
     if (actor) {
       root.add(actor.root);
       root.userData.actor = actor;
@@ -143,7 +149,9 @@ export class AssetLoader {
   /** A character model; `dress` changes its look (worn armor, held gear). */
   actor(id: string, dress: Partial<Look> = {}): ActorModel {
     const entry = this.entry(id);
-    if (this.models.has(id)) return staticActor(this.model(id, entry));
+    const source = this.models.get(id);
+    if (source && isRigged(source)) return riggedActor(source, entry.scale, dress);
+    if (source) return staticActor(this.model(id, entry));
     return buildActor(entry, dress) ?? staticActor(this.model(id, entry));
   }
 

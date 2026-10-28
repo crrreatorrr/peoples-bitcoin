@@ -1394,3 +1394,34 @@ body {
   line-height: 1.1;
   color: #c8bca0;
 }
+
+.dialogue.choosing {
+  cursor: default;
+}
+
+.dialogue-options {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dialogue-option {
+  padding: 1px 8px;
+  font: inherit;
+  font-size: 19px;
+  color: #000000;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.dialogue-option:hover {
+  color: #ffffff;
+  text-shadow: 1px 1px 0 #000;
+}
+
+/* OSRS "Use": the selected item gets a white outline. */
+.inv-slot.selected img {
+  outline: 1px solid #ffffff;
+  outline-offset: -1px;
+}

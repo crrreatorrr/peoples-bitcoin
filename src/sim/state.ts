@@ -43,6 +43,12 @@ export type Intent =
   | { type: 'equip'; slot: number }
   | { type: 'unequip'; slot: EquipSlot }
   | { type: 'eat'; slot: number }
+  | { type: 'drink'; slot: number }
+  | { type: 'teleport'; slot: number }
+  /** Use an inventory item on an object or NPC. */
+  | { type: 'useItem'; slot: number; targetId: string }
+  /** Pick an option in a "Select an Option" dialogue. */
+  | { type: 'chooseOption'; index: number }
   | { type: 'summon'; slot: number }
   | { type: 'dismiss' }
   | { type: 'special' }
@@ -62,6 +68,8 @@ export interface ActiveAction {
   action: string;
   /** Tick of the next skilling attempt; null until the player arrives and starts. */
   nextAttemptTick: number | null;
+  /** For 'Use': the inventory item being used on the target. */
+  itemId?: string;
 }
 
 export type OpenInterface =
@@ -90,6 +98,8 @@ export interface QuestProgress {
   /** Completed step ids. */
   done: string[];
   complete: boolean;
+  /** Dialogue choices that completed steps (they can change rewards and later lines). */
+  choices: string[];
 }
 
 export interface SprotoInstance {
@@ -149,6 +159,12 @@ export interface PlayerState {
   lastHitBy: { id: string; tick: number } | null;
   /** While dying: the tick the player wakes up at the respawn point. */
   dyingUntil: number | null;
+  /** Active drink boosts: skill id → extra levels until a tick. */
+  boosts: Record<string, { amount: number; until: number }>;
+  /** A teleport in progress: where to, and the tick you arrive. */
+  teleport: { at: number; zone: string; x: number; y: number } | null;
+  /** Reusable items (teleports) → the tick they can be used again. */
+  cooldowns: Record<string, number>;
 }
 
 export interface ObjectInstance {
@@ -195,6 +211,8 @@ export interface EnemyInstance {
   lastCombatTick: number;
   /** Where it's wandering to. */
   goal: Tile | null;
+  /** Quest-only enemies: only around while that quest's next step is `step`. */
+  gate?: { quest: string; step: string };
 }
 
 export interface GroundItem {
@@ -257,6 +275,8 @@ export type SimEvent =
   | { type: 'attack'; attackerId: string; targetId: string; style: AttackStyle }
   | { type: 'death'; entityId: string }
   | { type: 'zoneChanged'; zoneId: string }
+  /** The player started teleporting (for the sparkle). */
+  | { type: 'teleport' }
   | { type: 'autosave' };
 
 export type EntityRef =
@@ -269,7 +289,16 @@ export const PLAYER_ID = 'player';
 export const SPROTO_ID = 'sproto';
 
 export function emptyEquipment(): Equipment {
-  return { head: null, weapon: null, body: null, legs: null, ammo: null };
+  return {
+    head: null,
+    neck: null,
+    weapon: null,
+    body: null,
+    legs: null,
+    hands: null,
+    feet: null,
+    ammo: null,
+  };
 }
 
 export function createZoneState(zone: ZoneDef, content: Content): ZoneState {
@@ -291,7 +320,14 @@ export function createZoneState(zone: ZoneDef, content: Content): ZoneState {
       from: { x: n.x, y: n.y },
       goal: null,
     })),
-    enemies: zone.enemies.map((e, i) => newEnemy(`e${i}`, e.enemyId, e.x, e.y, content, false)),
+    enemies: zone.enemies.map((e, i) => {
+      const enemy = newEnemy(`e${i}`, e.enemyId, e.x, e.y, content, false);
+      if (e.quest) {
+        enemy.gate = { ...e.quest };
+        enemy.respawnAt = Infinity; // dormant until its quest step comes up
+      }
+      return enemy;
+    }),
     groundItems: [],
     nextGroundItemId: 0,
     nextEnemyId: zone.enemies.length,
@@ -333,7 +369,7 @@ export function createGameState(content: Content, zoneId: string, seed: number):
   for (const skill of content.skills.values()) skills[skill.id] = xpForLevel(skill.startLevel);
   const quests: Record<string, QuestProgress> = {};
   for (const q of content.quests.values())
-    if (q.autoStart) quests[q.id] = { done: [], complete: false };
+    if (q.autoStart) quests[q.id] = { done: [], complete: false, choices: [] };
   return {
     tick: 0,
     rng: createRng(seed),
@@ -367,6 +403,9 @@ export function createGameState(content: Content, zoneId: string, seed: number):
       nextEatTick: 0,
       lastHitBy: null,
       dyingUntil: null,
+      boosts: {},
+      teleport: null,
+      cooldowns: {},
     },
     zone: createZoneState(zone, content),
     otherZones: {},

@@ -79,6 +79,9 @@ export const COMBAT = {
   splashShare: 0.5,
   /** Fallback when the weapon slot is empty or a gun is out of ammo. */
   fallbackWeaponId: 'item_gavel',
+  /** Out of ammo, you bash with the gun itself: its bonuses scaled down, never faster than this. */
+  bashScale: 0.5,
+  bashMinSpeed: 4,
   /** Enemies ignore players whose combat level is above this multiple of theirs. */
   aggroLevelMultiplier: 2,
 } as const;
@@ -89,6 +92,17 @@ export const ENEMIES = {
   /** A fight is dropped after this many ticks without an attack either way. */
   giveUpTicks: 16,
   wanderChance: 0.1,
+} as const;
+
+export const TELEPORT = {
+  /** Ticks between using a teleport and arriving (OSRS ~3). */
+  delayTicks: 3,
+} as const;
+
+export const OUTFITS = {
+  /** Extra XP % for wearing every piece of one skill's outfit (head, body, legs, feet). */
+  setBonusPct: 1,
+  setPieces: 4,
 } as const;
 
 export const DEATH = {

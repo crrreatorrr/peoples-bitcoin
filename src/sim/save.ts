@@ -23,7 +23,7 @@ import {
 } from './state';
 import { EQUIP_SLOTS } from './schemas';
 
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
 const StackSchema = z.object({ itemId: z.string(), qty: z.number().int().positive() });
 const STYLES = ['accurate', 'rapid', 'longrange', 'bash', 'block'] as const;
@@ -45,7 +45,10 @@ const SaveSchema = z.object({
     bank: z.array(StackSchema),
     skills: z.record(z.string(), z.number().nonnegative()),
     currencies: z.object({ bitcoin: z.number(), btc: z.number() }),
-    quests: z.record(z.string(), z.object({ done: z.array(z.string()), complete: z.boolean() })),
+    quests: z.record(
+      z.string(),
+      z.object({ done: z.array(z.string()), complete: z.boolean(), choices: z.array(z.string()) }),
+    ),
     unlocks: z.array(z.string()),
     bunker: z.record(z.string(), z.string()),
     collected: z.record(z.string(), z.number()),
@@ -98,6 +101,17 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
   },
   // v4 added the Auto Retaliate setting.
   3: (save) => ({ ...save, version: 4, player: { ...asRecord(save.player), autoRetaliate: true } }),
+  // v5 records quest dialogue choices (neck/hands/feet slots just start empty).
+  4: (save) => {
+    const player = asRecord(save.player);
+    const quests = Object.fromEntries(
+      Object.entries(asRecord(player.quests)).map(([id, q]) => [
+        id,
+        { ...asRecord(q), choices: [] },
+      ]),
+    );
+    return { ...save, version: 5, player: { ...player, quests } };
+  },
 };
 
 export function serialize(state: GameState, now: number): SaveData {
@@ -124,7 +138,7 @@ export function serialize(state: GameState, now: number): SaveData {
       quests: Object.fromEntries(
         Object.entries(p.quests).map(([id, q]) => [
           id,
-          { done: [...q.done], complete: q.complete },
+          { done: [...q.done], complete: q.complete, choices: [...q.choices] },
         ]),
       ),
       unlocks: [...p.unlocks],
@@ -188,7 +202,9 @@ export function deserialize(raw: unknown, content: Content): GameState | null {
   p.style = save.player.style as CombatStyle;
   p.currencies = { ...save.player.currencies };
   for (const [id, q] of Object.entries(save.player.quests)) {
-    if (content.quests.has(id)) p.quests[id] = { done: [...q.done], complete: q.complete };
+    if (content.quests.has(id)) {
+      p.quests[id] = { done: [...q.done], complete: q.complete, choices: [...q.choices] };
+    }
   }
   p.unlocks = [...save.player.unlocks];
   p.bunker = { ...save.player.bunker };

@@ -202,6 +202,170 @@
       {
         "item": "item_circuit_board",
         "priceUsd": 469
+      },
+      {
+        "item": "item_focus_soda",
+        "priceUsd": 69
+      },
+      {
+        "item": "item_protein_shake",
+        "priceUsd": 69
+      },
+      {
+        "item": "item_thick_skin_tonic",
+        "priceUsd": 69
+      },
+      {
+        "item": "item_victory_smoothie",
+        "priceUsd": 469
+      },
+      {
+        "item": "item_miners_espresso",
+        "priceUsd": 169
+      },
+      {
+        "item": "item_charm_tea",
+        "priceUsd": 169
+      },
+      {
+        "item": "item_networking_mints",
+        "priceUsd": 169
+      },
+      {
+        "item": "item_smooth_lozenge",
+        "priceUsd": 169
+      },
+      {
+        "item": "item_hopium_soda",
+        "priceUsd": 29.69
+      },
+      {
+        "item": "item_ticket_treasury",
+        "priceUsd": 69
+      },
+      {
+        "item": "item_ticket_trenches",
+        "priceUsd": 69
+      },
+      {
+        "item": "item_ticket_bunker",
+        "priceUsd": 69
+      },
+      {
+        "item": "item_toolkit_master",
+        "priceUsd": 26669
+      },
+      {
+        "item": "item_hard_hat",
+        "priceUsd": 1669
+      },
+      {
+        "item": "item_hi_vis_vest",
+        "priceUsd": 2669
+      },
+      {
+        "item": "item_work_trousers",
+        "priceUsd": 1669
+      },
+      {
+        "item": "item_steel_toe_boots",
+        "priceUsd": 1669
+      },
+      {
+        "item": "item_gala_top_hat",
+        "priceUsd": 1669
+      },
+      {
+        "item": "item_gala_tailcoat",
+        "priceUsd": 2669
+      },
+      {
+        "item": "item_gala_trousers",
+        "priceUsd": 1669
+      },
+      {
+        "item": "item_patent_shoes",
+        "priceUsd": 1669
+      },
+      {
+        "item": "item_power_fedora",
+        "priceUsd": 1669
+      },
+      {
+        "item": "item_power_suit",
+        "priceUsd": 2669
+      },
+      {
+        "item": "item_power_trousers",
+        "priceUsd": 1669
+      },
+      {
+        "item": "item_power_loafers",
+        "priceUsd": 1669
+      },
+      {
+        "item": "item_press_headset",
+        "priceUsd": 1669
+      },
+      {
+        "item": "item_press_blazer",
+        "priceUsd": 2669
+      },
+      {
+        "item": "item_press_slacks",
+        "priceUsd": 1669
+      },
+      {
+        "item": "item_press_sneakers",
+        "priceUsd": 1669
+      },
+      {
+        "item": "item_press_lanyard",
+        "priceUsd": 669
+      },
+      {
+        "item": "item_gavel_pendant",
+        "priceUsd": 1669
+      },
+      {
+        "item": "item_ticker_amulet",
+        "priceUsd": 16669
+      },
+      {
+        "item": "item_grip_gloves",
+        "priceUsd": 269
+      },
+      {
+        "item": "item_trigger_gloves",
+        "priceUsd": 2669
+      },
+      {
+        "item": "item_diamond_gauntlets",
+        "priceUsd": 11669
+      },
+      {
+        "item": "item_campaign_loafers",
+        "priceUsd": 169
+      },
+      {
+        "item": "item_combat_boots",
+        "priceUsd": 1269
+      },
+      {
+        "item": "item_diamond_boots",
+        "priceUsd": 11669
+      },
+      {
+        "item": "item_briefcase_bludgeon",
+        "priceUsd": 2669
+      },
+      {
+        "item": "gun_ballot_blaster",
+        "priceUsd": 2669
+      },
+      {
+        "item": "item_gavel_of_order",
+        "priceUsd": 36669
       }
     ]
   }

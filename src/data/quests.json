@@ -285,7 +285,7 @@
         }
       }
     ],
-    "summary": "The Treasurer bought the wrong coin. With all of it. Morelight, your Chief of Staff, will show you how to earn it back."
+    "summary": "The Treasurer bought the wrong coin, the ticker crashed, and the gates sealed: the Lockdown. Morelight will show you how to earn your way back up."
   },
   {
     "id": "quest_bunker",
@@ -343,7 +343,7 @@
         }
       }
     ],
-    "summary": "Every President needs somewhere to hide when the ticker goes red. The Contractor can dig one under the main hall."
+    "summary": "Every President needs somewhere to hide when the ticker goes red. The Contractor can dig one under the main hall. Who knows what's down there."
   },
   {
     "id": "quest_sludge_duty",
@@ -352,7 +352,7 @@
     "ordered": true,
     "startNpc": "npc_morelight",
     "requires": ["quest_tutorial"],
-    "summary": "Something is clogging the Trenches. Morelight would like it unclogged.",
+    "summary": "The Trenches are the only way toward the north end of the wall, and something is clogging them. Morelight would like it unclogged.",
     "steps": [
       {
         "id": "briefing",
@@ -421,7 +421,7 @@
     "ordered": true,
     "startNpc": "npc_morelight",
     "requires": ["quest_sludge_duty"],
-    "summary": "The Wrong-Namers insist it's BTC. Loudly. Morelight wants them corrected.",
+    "summary": "The Wrong-Namers hold the middle of the Trenches and insist it's BTC. Loudly. Morelight wants them corrected so you can push north.",
     "steps": [
       {
         "id": "briefing",
@@ -501,7 +501,7 @@
     "ordered": true,
     "startNpc": "npc_morelight",
     "requires": ["quest_name_calling"],
-    "summary": "Captain Motion never stops running. Morelight would like him to stop.",
+    "summary": "Captain Motion guards the last barricade before the north end, where nobody has looked since the Lockdown. Morelight would like him to stop.",
     "steps": [
       {
         "id": "briefing",
@@ -563,5 +563,569 @@
       ]
     },
     "completeMessage": "Quest complete: Motion Denied! Captain Motion has finally sat down. The Trenches are yours."
+  },
+  {
+    "id": "quest_server_meltdown",
+    "name": "Server Meltdown",
+    "points": 2,
+    "ordered": true,
+    "startNpc": "npc_sysadmin",
+    "requires": ["quest_tutorial"],
+    "summary": "The liquid-cooled racks are overheating, and something on the network is guarding a file from before the Lockdown: OUTSIDE.TXT.",
+    "steps": [
+      {
+        "id": "briefing",
+        "text": "Ask The Sysadmin what is wrong with the racks.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_sysadmin"
+        },
+        "hint": {
+          "npc": "npc_sysadmin"
+        },
+        "reward": {
+          "items": [
+            {
+              "item": "item_empty_canister",
+              "qty": 1
+            }
+          ]
+        }
+      },
+      {
+        "id": "fill",
+        "text": "Fill the Empty Canister at the Gremlin Fountain (use it on the statue).",
+        "trigger": {
+          "type": "obtain",
+          "item": "item_coolant_canister"
+        },
+        "hint": {
+          "object": "obj_statue_gremlin"
+        }
+      },
+      {
+        "id": "cool",
+        "text": "Use the Coolant Canister on a Liquid-Cooled Rack in the west wing.",
+        "trigger": {
+          "type": "use",
+          "item": "item_coolant_canister",
+          "target": "obj_rack_liquid"
+        },
+        "hint": {
+          "object": "obj_rack_liquid"
+        }
+      },
+      {
+        "id": "rogue",
+        "text": "Defeat the Rogue Process in the west wing.",
+        "trigger": {
+          "type": "kill",
+          "enemy": "enemy_rogue_process"
+        },
+        "hint": {
+          "enemy": "enemy_rogue_process"
+        }
+      },
+      {
+        "id": "password",
+        "text": "Help The Sysadmin remember the admin password.",
+        "trigger": {
+          "type": "choice",
+          "ids": ["meltdown_password"]
+        },
+        "hint": {
+          "npc": "npc_sysadmin"
+        }
+      }
+    ],
+    "reward": {
+      "usd": 1500,
+      "xp": {
+        "mining": 3000
+      },
+      "items": [
+        {
+          "item": "item_pick_overclocked",
+          "qty": 1
+        },
+        {
+          "item": "item_coordinates_drive",
+          "qty": 1
+        },
+        {
+          "item": "item_hard_hat",
+          "qty": 1
+        }
+      ]
+    },
+    "completeMessage": "Quest complete: Server Meltdown! The Sysadmin recovered OUTSIDE.TXT: coordinates to the world out there."
+  },
+  {
+    "id": "quest_gala_night",
+    "name": "Gala Night",
+    "points": 2,
+    "ordered": true,
+    "startNpc": "npc_party_planner",
+    "requires": ["quest_tutorial"],
+    "summary": "The Party Planner is throwing the gala of the year to buy Morelight a Power Cell. You're the host. Nothing can go wrong.",
+    "steps": [
+      {
+        "id": "briefing",
+        "text": "Hear The Party Planner out about the gala.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_party_planner"
+        },
+        "hint": {
+          "npc": "npc_party_planner"
+        }
+      },
+      {
+        "id": "theme",
+        "text": "Pick a theme for the gala.",
+        "trigger": {
+          "type": "choice",
+          "ids": ["gala_masquerade", "gala_disco", "gala_garden"]
+        },
+        "hint": {
+          "npc": "npc_party_planner"
+        }
+      },
+      {
+        "id": "catering",
+        "text": "Bring The Party Planner 5 Minor Scandals and 3 Soundbites.",
+        "trigger": {
+          "type": "deliver",
+          "npc": "npc_party_planner",
+          "items": [
+            {
+              "item": "item_raw_minor_scandal",
+              "qty": 5
+            },
+            {
+              "item": "item_tp_soundbite",
+              "qty": 3
+            }
+          ]
+        },
+        "hint": {
+          "npc": "npc_party_planner"
+        }
+      },
+      {
+        "id": "crashers",
+        "text": "Throw the Party Crashers out of the west garden and get the guest list back.",
+        "trigger": {
+          "type": "obtain",
+          "item": "item_guest_list"
+        },
+        "hint": {
+          "enemy": "enemy_party_crasher"
+        }
+      },
+      {
+        "id": "return",
+        "text": "Return the Guest List to The Party Planner.",
+        "trigger": {
+          "type": "deliver",
+          "npc": "npc_party_planner",
+          "items": [
+            {
+              "item": "item_guest_list",
+              "qty": 1
+            }
+          ]
+        },
+        "hint": {
+          "npc": "npc_party_planner"
+        }
+      }
+    ],
+    "reward": {
+      "usd": 2500,
+      "xp": {
+        "fundraising": 3000
+      },
+      "items": [
+        {
+          "item": "item_golden_rolodex",
+          "qty": 1
+        },
+        {
+          "item": "item_power_cell",
+          "qty": 1
+        },
+        {
+          "item": "item_gala_top_hat",
+          "qty": 1
+        }
+      ]
+    },
+    "completeMessage": "Quest complete: Gala Night! The donors paid for a Power Cell. It hums like it wants to go somewhere."
+  },
+  {
+    "id": "quest_hostile_takeover",
+    "name": "Hostile Takeover",
+    "points": 2,
+    "ordered": true,
+    "startNpc": "npc_fixer",
+    "requires": ["quest_tutorial"],
+    "summary": "Nobody leaves without an Exit Permit, and only the Broker can sign one. The Fixer smells a setup.",
+    "steps": [
+      {
+        "id": "briefing",
+        "text": "Ask The Fixer about Exit Permits.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_fixer"
+        },
+        "hint": {
+          "npc": "npc_fixer"
+        },
+        "reward": {
+          "items": [
+            {
+              "item": "item_sealed_envelope",
+              "qty": 1
+            }
+          ]
+        }
+      },
+      {
+        "id": "deliver",
+        "text": "Give the Broker the Sealed Envelope (use it on him).",
+        "trigger": {
+          "type": "use",
+          "item": "item_sealed_envelope",
+          "target": "obj_lobbyist_broker"
+        },
+        "hint": {
+          "object": "obj_lobbyist_broker"
+        }
+      },
+      {
+        "id": "negatives",
+        "text": "Take the photo negatives off the Paper-Hands goblins in the Trenches.",
+        "trigger": {
+          "type": "obtain",
+          "item": "item_photo_negatives"
+        },
+        "hint": {
+          "enemy": "enemy_paper_hands"
+        }
+      },
+      {
+        "id": "decision",
+        "text": "Decide what to do with the negatives.",
+        "trigger": {
+          "type": "choice",
+          "ids": ["takeover_burn", "takeover_leverage"]
+        },
+        "hint": {
+          "npc": "npc_fixer"
+        },
+        "choiceRewards": {
+          "takeover_burn": {
+            "xp": {
+              "lobbying": 2000
+            },
+            "items": [
+              {
+                "item": "item_power_fedora",
+                "qty": 1
+              }
+            ]
+          },
+          "takeover_leverage": {
+            "usd": 6000
+          }
+        }
+      }
+    ],
+    "reward": {
+      "xp": {
+        "lobbying": 2500
+      },
+      "items": [
+        {
+          "item": "item_diamond_cards",
+          "qty": 1
+        },
+        {
+          "item": "item_exit_permit",
+          "qty": 1
+        }
+      ]
+    },
+    "completeMessage": "Quest complete: Hostile Takeover! The Broker signed your Exit Permit. Nobody is quite sure how."
+  },
+  {
+    "id": "quest_press_conference",
+    "name": "Press Conference",
+    "points": 2,
+    "ordered": true,
+    "startNpc": "npc_spin_doctor",
+    "requires": ["quest_tutorial"],
+    "summary": "If the President vanishes, the Treasury will panic. The Spin Doctor wants you to face the press first.",
+    "steps": [
+      {
+        "id": "briefing",
+        "text": "Ask The Spin Doctor about the press conference.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_spin_doctor"
+        },
+        "hint": {
+          "npc": "npc_spin_doctor"
+        }
+      },
+      {
+        "id": "prep",
+        "text": "Bring The Spin Doctor 3 Soundbites to practice with.",
+        "trigger": {
+          "type": "deliver",
+          "npc": "npc_spin_doctor",
+          "items": [
+            {
+              "item": "item_tp_soundbite",
+              "qty": 3
+            }
+          ]
+        },
+        "hint": {
+          "npc": "npc_spin_doctor"
+        }
+      },
+      {
+        "id": "q1",
+        "text": "Answer the Reporter's first question (by the podiums).",
+        "trigger": {
+          "type": "choice",
+          "ids": ["press_q1"]
+        },
+        "hint": {
+          "npc": "npc_reporter"
+        }
+      },
+      {
+        "id": "q2",
+        "text": "Answer the Reporter's second question.",
+        "trigger": {
+          "type": "choice",
+          "ids": ["press_q2"]
+        },
+        "hint": {
+          "npc": "npc_reporter"
+        }
+      },
+      {
+        "id": "q3",
+        "text": "Answer the Reporter's final question.",
+        "trigger": {
+          "type": "choice",
+          "ids": ["press_q3"]
+        },
+        "hint": {
+          "npc": "npc_reporter"
+        }
+      },
+      {
+        "id": "debrief",
+        "text": "Tell The Spin Doctor how it went.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_spin_doctor"
+        },
+        "hint": {
+          "npc": "npc_spin_doctor"
+        }
+      }
+    ],
+    "reward": {
+      "usd": 1500,
+      "xp": {
+        "spin": 3000
+      },
+      "items": [
+        {
+          "item": "item_teleprompter",
+          "qty": 1
+        },
+        {
+          "item": "item_press_release",
+          "qty": 1
+        },
+        {
+          "item": "item_press_headset",
+          "qty": 1
+        }
+      ]
+    },
+    "completeMessage": "Quest complete: Press Conference! 'A DOOR FOR EVERYONE' is on every front page."
+  },
+  {
+    "id": "quest_way_out",
+    "name": "The Way Out",
+    "points": 5,
+    "ordered": true,
+    "startNpc": "npc_morelight",
+    "requires": [
+      "quest_bunker",
+      "quest_motion_denied",
+      "quest_server_meltdown",
+      "quest_gala_night",
+      "quest_hostile_takeover",
+      "quest_press_conference"
+    ],
+    "summary": "Since the Lockdown, nobody has left the Treasury. Morelight has a Teleport Chamber, four parts and a plan.",
+    "steps": [
+      {
+        "id": "briefing",
+        "text": "Tell Morelight you have everything he asked for.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_morelight"
+        },
+        "hint": {
+          "npc": "npc_morelight"
+        }
+      },
+      {
+        "id": "decide",
+        "text": "Tell Morelight you are ready to leave.",
+        "trigger": {
+          "type": "choice",
+          "ids": ["wayout_ready"]
+        },
+        "hint": {
+          "npc": "npc_morelight"
+        }
+      },
+      {
+        "id": "announce",
+        "text": "Read the Signed Press Release to the Reporter (use it on her).",
+        "trigger": {
+          "type": "use",
+          "item": "item_press_release",
+          "target": "npc_reporter"
+        },
+        "hint": {
+          "npc": "npc_reporter"
+        }
+      },
+      {
+        "id": "blueprints",
+        "text": "Ask The Contractor about the old blueprints.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_contractor"
+        },
+        "hint": {
+          "npc": "npc_contractor"
+        },
+        "reward": {
+          "items": [
+            {
+              "item": "item_chamber_blueprints",
+              "qty": 1
+            }
+          ]
+        }
+      },
+      {
+        "id": "install_blueprints",
+        "text": "Use the Chamber Blueprints on the Teleport Chamber (far north of the Trenches).",
+        "trigger": {
+          "type": "use",
+          "item": "item_chamber_blueprints",
+          "target": "obj_teleport_chamber"
+        },
+        "hint": {
+          "object": "obj_teleport_chamber"
+        }
+      },
+      {
+        "id": "install_drive",
+        "text": "Use the Coordinates Drive on the Teleport Chamber.",
+        "trigger": {
+          "type": "use",
+          "item": "item_coordinates_drive",
+          "target": "obj_teleport_chamber"
+        },
+        "hint": {
+          "object": "obj_teleport_chamber"
+        }
+      },
+      {
+        "id": "install_cell",
+        "text": "Use the Power Cell on the Teleport Chamber.",
+        "trigger": {
+          "type": "use",
+          "item": "item_power_cell",
+          "target": "obj_teleport_chamber"
+        },
+        "hint": {
+          "object": "obj_teleport_chamber"
+        }
+      },
+      {
+        "id": "install_permit",
+        "text": "Use the Exit Permit on the Teleport Chamber.",
+        "trigger": {
+          "type": "use",
+          "item": "item_exit_permit",
+          "target": "obj_teleport_chamber"
+        },
+        "hint": {
+          "object": "obj_teleport_chamber"
+        }
+      },
+      {
+        "id": "fuel",
+        "text": "Feed the Teleport Chamber 20 Scrap Hash.",
+        "trigger": {
+          "type": "use",
+          "item": "item_scrap_hash",
+          "target": "obj_teleport_chamber"
+        },
+        "hint": {
+          "object": "obj_teleport_chamber"
+        },
+        "reward": {
+          "unlock": "chamber_ready"
+        }
+      },
+      {
+        "id": "enter",
+        "text": "Step into the Teleport Chamber.",
+        "trigger": {
+          "type": "enterZone",
+          "zone": "zone_outside"
+        },
+        "hint": {
+          "object": "obj_teleport_chamber"
+        }
+      }
+    ],
+    "reward": {
+      "usd": 25000,
+      "unlock": "outside",
+      "xp": {
+        "shooting": 2000,
+        "melee": 2000,
+        "mining": 2000,
+        "fundraising": 2000,
+        "lobbying": 2000,
+        "spin": 2000,
+        "construction": 2000
+      },
+      "items": [
+        {
+          "item": "item_chamber_key",
+          "qty": 1
+        }
+      ]
+    },
+    "completeMessage": "THE WAY OUT: complete! You stepped through the Teleport Chamber into the world out there."
   }
 ]

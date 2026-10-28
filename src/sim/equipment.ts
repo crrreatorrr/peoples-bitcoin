@@ -1,10 +1,10 @@
 /**
  * Equipment, combat styles, eating, and the attack profile the combat code
  * uses. Guns fire common rounds from the ammo slot; explosive cannons fire
- * mined Hash straight from the inventory. With no usable weapon or ammo the
- * President falls back to the gavel.
+ * mined Hash straight from the inventory. A gun with nothing to fire is
+ * swung as a club; with no weapon at all the President uses the gavel.
  */
-import { COMBAT } from '../config/balance';
+import { COMBAT, OUTFITS } from '../config/balance';
 import { addItem } from './inventory';
 import { progressQuests } from './quests';
 import type { ItemDef } from './schemas';
@@ -136,8 +136,6 @@ export function weaponOf(player: PlayerState, ctx: SimContext): ItemDef {
 
 export function attackProfile(player: PlayerState, ctx: SimContext): AttackProfile {
   const equipped = weaponOf(player, ctx);
-  const gavel = ctx.content.items.get(COMBAT.fallbackWeaponId)!;
-  let weapon = equipped;
   let shellSlot: number | null = null;
   let shellDamage = 0;
   let outOfAmmo = false;
@@ -155,19 +153,32 @@ export function attackProfile(player: PlayerState, ctx: SimContext): AttackProfi
       });
       if (shellSlot === null) outOfAmmo = true;
     }
-    if (outOfAmmo) weapon = gavel;
   }
 
-  const stats = weapon.weapon!;
+  const armor = armorTotals(player, ctx);
+  if (outOfAmmo) {
+    // Nothing to fire: bash with the gun itself, melee-style.
+    return {
+      type: 'melee',
+      weapon: equipped,
+      speed: Math.max(COMBAT.bashMinSpeed, w.speed),
+      range: 1,
+      accuracyBonus: Math.floor(w.accuracy * COMBAT.bashScale) + armor.accuracy,
+      damageBonus: Math.floor(w.damage * COMBAT.bashScale) + armor.damage,
+      explosive: false,
+      shellSlot: null,
+      outOfAmmo,
+    };
+  }
   return {
-    type: stats.type,
-    weapon,
-    speed: stats.speed,
-    range: stats.range,
-    accuracyBonus: stats.accuracy + armorTotals(player, ctx).accuracy,
-    damageBonus: stats.damage + (weapon === equipped ? shellDamage : 0),
-    explosive: weapon === equipped && w.ammo === 'hash',
-    shellSlot: weapon === equipped ? shellSlot : null,
+    type: w.type,
+    weapon: equipped,
+    speed: w.speed,
+    range: w.range,
+    accuracyBonus: w.accuracy + armor.accuracy,
+    damageBonus: w.damage + shellDamage + armor.damage,
+    explosive: w.ammo === 'hash',
+    shellSlot,
     outOfAmmo,
   };
 }
@@ -193,15 +204,34 @@ export function consumeAmmo(player: PlayerState, profile: AttackProfile): void {
 export function armorTotals(
   player: PlayerState,
   ctx: SimContext,
-): { defense: number; accuracy: number } {
+): { defense: number; accuracy: number; damage: number } {
   let defense = 0;
   let accuracy = 0;
+  let damage = 0;
   for (const slot of Object.values(player.equipment)) {
     const armor = slot && ctx.content.items.get(slot.itemId)?.armor;
     if (armor) {
       defense += armor.defense;
       accuracy += armor.accuracy;
+      damage += armor.damage;
     }
   }
-  return { defense, accuracy };
+  return { defense, accuracy, damage };
+}
+
+/**
+ * XP multiplier from worn skilling outfit pieces (OSRS prospector-kit style):
+ * each piece adds its %, and the full set adds a bonus on top.
+ */
+export function xpMultiplier(player: PlayerState, ctx: SimContext, skillId: string): number {
+  let pct = 0;
+  let pieces = 0;
+  for (const slot of Object.values(player.equipment)) {
+    const bonus = slot && ctx.content.items.get(slot.itemId)?.xpBonus;
+    if (bonus?.skill !== skillId) continue;
+    pct += bonus.pct;
+    pieces += 1;
+  }
+  if (pieces >= OUTFITS.setPieces) pct += OUTFITS.setBonusPct;
+  return 1 + pct / 100;
 }

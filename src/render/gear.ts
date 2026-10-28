@@ -235,9 +235,9 @@ function cards(color: string): THREE.Group {
   return g;
 }
 
-function rolodex(): THREE.Group {
+function rolodex(card = '#d8d2c4'): THREE.Group {
   const g = group([
-    alongX(tube(0.07, 0.07, 0.16, lambert('#d8d2c4'), 0, 0.08, 0.05, 8)),
+    alongX(tube(0.07, 0.07, 0.16, lambert(card), 0, 0.08, 0.05, 8)),
     box(0.2, 0.03, 0.12, lambert(BLACK), 0, 0, 0.05),
   ]);
   return g;
@@ -377,6 +377,24 @@ export const GEAR: Record<string, GearDef> = {
   item_toolkit_basic: { hold: 'melee', build: () => hammer(STEEL) },
   item_toolkit_pro: { hold: 'melee', build: () => drill() },
   item_toolkit_elite: { hold: 'melee', build: () => wrench(GOLD) },
+  item_pick_overclocked: { hold: 'melee', build: () => pickaxe('#b85aff', true) },
+  item_golden_rolodex: { hold: 'item', build: () => rolodex(GOLD) },
+  item_diamond_cards: { hold: 'item', build: () => cards(DIAMOND) },
+  item_toolkit_master: { hold: 'melee', build: () => wrench(DIAMOND) },
+  item_briefcase_bludgeon: {
+    hold: 'melee',
+    build: () =>
+      group([
+        box(0.04, 0.34, 0.04, lambert(BLACK), 0, 0.1, 0),
+        box(0.08, 0.24, 0.3, lambert('#6b3f22'), 0, 0.36, 0.04),
+        box(0.085, 0.04, 0.05, lambert(GOLD), 0, 0.36, 0.2),
+      ]),
+  },
+  gun_ballot_blaster: {
+    hold: 'rifle',
+    build: () => rifle('#2f4fa8', '#f2f2f2', { length: 0.35, bore: 0.035, barrel: '#d62828' }),
+  },
+  item_gavel_of_order: { hold: 'melee', build: () => gavel('#141418', GOLD, 1.5, '#b3262e') },
   // NPC and monster props
   pistol: { hold: 'pistol', build: () => pistol(BLACK, '#3a3a40') },
   sniper: {
@@ -431,4 +449,31 @@ export const ARMOR_LOOKS: Record<string, Record<string, string>> = {
   item_flak_pants: { pants: '#4b5a2e', pads: '#2b2b2b' },
   item_kevlar_trousers: { pants: '#1c1c22' },
   item_diamond_greaves: { greaves: DIAMOND },
+  // Skilling outfits
+  item_hard_hat: { hat: 'hardhat', hatColor: '#f2c11e' },
+  item_hi_vis_vest: { vest: '#e8e030' },
+  item_work_trousers: { pants: '#8a6a42' },
+  item_steel_toe_boots: { feet: '#5a3a1c' },
+  item_gala_top_hat: { hat: 'tophat', hatColor: '#141418' },
+  item_gala_tailcoat: { vest: '#141418' },
+  item_gala_trousers: { pants: '#141418' },
+  item_patent_shoes: { feet: '#0a0a0a' },
+  item_power_fedora: { hat: 'fedora', hatColor: '#3a3a44' },
+  item_power_suit: { vest: '#3a3a44' },
+  item_power_trousers: { pants: '#3a3a44' },
+  item_power_loafers: { feet: '#6b3f22' },
+  item_press_headset: { hat: 'headset', hatColor: '#202024' },
+  item_press_blazer: { vest: '#1f8a8a' },
+  item_press_slacks: { pants: '#2b2b33' },
+  item_press_sneakers: { feet: '#f2f2f2' },
+  // Neck, hands, feet
+  item_press_lanyard: { neck: '#1f8a8a' },
+  item_gavel_pendant: { neck: '#8a5a2b' },
+  item_ticker_amulet: { neck: '#3fdc5a' },
+  item_grip_gloves: { hands: '#6b4a2b' },
+  item_trigger_gloves: { hands: '#141418' },
+  item_diamond_gauntlets: { hands: DIAMOND },
+  item_campaign_loafers: { feet: '#6b3f22' },
+  item_combat_boots: { feet: '#3a3a2a' },
+  item_diamond_boots: { feet: DIAMOND },
 };

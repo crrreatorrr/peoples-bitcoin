@@ -50,6 +50,7 @@ export const LookSchema = z.object({
       'officer',
       'headset',
       'helm',
+      'tophat',
     ])
     .optional(),
   hatColor: Color.optional(),
@@ -64,6 +65,10 @@ export const LookSchema = z.object({
   hands: Color.optional(),
   vest: Color.optional(),
   plate: Color.optional(),
+  /** A pendant or lanyard on the chest. */
+  neck: Color.optional(),
+  /** Boots over the shoes. */
+  feet: Color.optional(),
   pads: Color.optional(),
   greaves: Color.optional(),
   /** Gear ids (see gear.ts) held in each hand. */
@@ -124,6 +129,8 @@ export interface ActorModel {
   right: HoldKind | null;
   left: HoldKind | null;
   muzzle: THREE.Object3D | null;
+  /** Rigged GLBs copy the posed joints onto their bones after each pose. */
+  sync?: () => void;
 }
 
 export const ACTOR_KINDS = new Set(['humanoid', 'sludge', 'wraith', 'sock']);
@@ -205,7 +212,7 @@ function humanoid(look: Look): ActorModel {
   const outer = look.coat ?? look.top;
   const sleeve = lambert(look.sleeves ?? outer);
   const pants = lambert(look.pants);
-  const shoe = lambert(look.shoes);
+  const shoe = lambert(look.feet ?? look.shoes);
   const hand = lambert(look.hands ?? look.skin);
 
   const body = joint(0, hipY, 0);
@@ -270,6 +277,8 @@ function humanoid(look: Look): ActorModel {
     for (const side of [1, -1])
       torso.add(box(0.17, 0.08, 0.2, plate, side * (torsoW / 2 + 0.06), torsoH, 0));
   }
+  if (look.neck)
+    torso.add(box(0.07, 0.09, 0.03, lambert(look.neck), 0, torsoH - 0.24, front + 0.02));
   if (look.hood)
     torso.add(box(0.34 * W, 0.16, 0.12, lambert(look.top), 0, torsoH + 0.01, -front + 0.02));
   if (look.back) torso.add(backItem(look.back, torsoH, front, W));
@@ -547,7 +556,8 @@ function faceExtras(neck: THREE.Group, look: Look, eyeY: number, w: number): voi
     neck.add(box(0.16, 0.035, 0.012, lambert(look.mustache), 0, eyeY - 0.075, z + 0.01));
 }
 
-function hat(
+/** Builds a hat on a head joint (also used on rigged GLB heads). */
+export function hat(
   neck: THREE.Group,
   kind: NonNullable<Look['hat']>,
   color: string,
@@ -629,6 +639,13 @@ function hat(
         box(0.05, 0.1, 0.1, lambert('#202024'), w / 2 + 0.03, top - 0.12, 0),
         box(0.05, 0.1, 0.1, lambert('#202024'), -w / 2 - 0.03, top - 0.12, 0),
         box(0.02, 0.02, 0.14, lambert('#202024'), w / 2 + 0.02, top - 0.2, 0.08),
+      );
+      break;
+    case 'tophat':
+      neck.add(
+        tube(w * 0.8, w * 0.8, 0.025, mat, 0, top - 0.01, 0, 10),
+        tube(w * 0.42, w * 0.42, 0.3, mat, 0, top + 0.14, 0, 10),
+        tube(w * 0.43, w * 0.43, 0.05, lambert('#b3262e'), 0, top + 0.03, 0, 10),
       );
       break;
     case 'helm':

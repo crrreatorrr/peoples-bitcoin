@@ -57,6 +57,10 @@ export function buildProp(e: AssetEntry): THREE.Object3D | null {
       return armory(e);
     case 'circle':
       return summoningCircle(e);
+    case 'chamber':
+      return teleportChamber(e);
+    case 'signpost':
+      return signpost(e);
     default:
       return null;
   }
@@ -451,4 +455,41 @@ function summoningCircle(e: AssetEntry): THREE.Group {
     );
   }
   return g;
+}
+
+/** A 2×2 booth of riveted steel with glowing doors: the way out. */
+function teleportChamber(e: AssetEntry): THREE.Group {
+  const steel = lambert(e.color);
+  const trim = lambert(shade(e.color, 0.7));
+  const light = glow(e.accent ?? '#3fd8ff');
+  const g = group([
+    box(1.8, 0.16, 1.8, trim, 0, 0.08, 0),
+    box(1.5, 2.3, 1.4, steel, 0, 1.31, -0.1),
+    box(1.6, 0.18, 1.5, trim, 0, 2.55, -0.1),
+    box(0.62, 1.7, 0.04, light, -0.32, 1.05, 0.61),
+    box(0.62, 1.7, 0.04, light, 0.32, 1.05, 0.61),
+    box(0.04, 1.8, 0.06, trim, 0, 1.05, 0.63),
+    ring(0.5, 0.05, light, 0, 2.7, -0.1),
+  ]);
+  for (const x of [-0.8, 0.8]) g.add(box(0.12, 2.4, 0.12, trim, x, 1.2, 0.55));
+  for (let i = 0; i < 4; i++)
+    g.add(box(0.1, 0.1, 0.02, glow(i % 2 ? '#ff3b2f' : '#3fdc5a'), -0.5 + i * 0.33, 2.25, 0.61));
+  return g;
+}
+
+function signpost(e: AssetEntry): THREE.Group {
+  const wood = lambert(e.color);
+  const board = canvasTexture('signpost', 64, 32, (ctx) => {
+    ctx.fillStyle = '#c9a66b';
+    ctx.fillRect(0, 0, 64, 32);
+    ctx.fillStyle = '#3a2a1c';
+    ctx.font = 'bold 9px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('THE WORLD', 32, 13);
+    ctx.fillText('OUT THERE', 32, 25);
+  });
+  return group([
+    box(0.1, 1.5, 0.1, wood, 0, 0.75, 0),
+    box(0.9, 0.45, 0.05, lambert('#ffffff', { map: board }), 0, 1.3, 0.06),
+  ]);
 }

@@ -1043,5 +1043,909 @@
     "stackable": false,
     "model": "icon_circuit_board",
     "value": 170
+  },
+  {
+    "id": "item_focus_soda",
+    "name": "Focus Soda",
+    "examine": "Fizzy, bitter, and very good for aiming. +Shooting for 3 minutes.",
+    "stackable": false,
+    "model": "icon_focus_soda",
+    "value": 24.15,
+    "drink": {
+      "boost": {
+        "skills": ["shooting"],
+        "levels": 2,
+        "pct": 0.1
+      }
+    }
+  },
+  {
+    "id": "item_protein_shake",
+    "name": "Protein Shake",
+    "examine": "Tastes like chalk and ambition. +Melee for 3 minutes.",
+    "stackable": false,
+    "model": "icon_protein_shake",
+    "value": 24.15,
+    "drink": {
+      "boost": {
+        "skills": ["melee"],
+        "levels": 2,
+        "pct": 0.1
+      }
+    }
+  },
+  {
+    "id": "item_thick_skin_tonic",
+    "name": "Thick Skin Tonic",
+    "examine": "For when the comments get personal. +Defense for 3 minutes.",
+    "stackable": false,
+    "model": "icon_thick_skin_tonic",
+    "value": 24.15,
+    "drink": {
+      "boost": {
+        "skills": ["defense"],
+        "levels": 2,
+        "pct": 0.1
+      }
+    }
+  },
+  {
+    "id": "item_victory_smoothie",
+    "name": "Victory Smoothie",
+    "examine": "Everything good, blended. +Shooting, Melee and Defense.",
+    "stackable": false,
+    "model": "icon_victory_smoothie",
+    "value": 164.15,
+    "drink": {
+      "boost": {
+        "skills": ["shooting", "melee", "defense"],
+        "levels": 4,
+        "pct": 0.15
+      }
+    }
+  },
+  {
+    "id": "item_miners_espresso",
+    "name": "Miner's Espresso",
+    "examine": "Triple shot. Your pick swings itself. +3 Mining for 3 minutes.",
+    "stackable": false,
+    "model": "icon_miners_espresso",
+    "value": 59.15,
+    "drink": {
+      "boost": {
+        "skills": ["mining"],
+        "levels": 3,
+        "pct": 0.0
+      }
+    }
+  },
+  {
+    "id": "item_charm_tea",
+    "name": "Charm Tea",
+    "examine": "Smells like money. +3 Fundraising for 3 minutes.",
+    "stackable": false,
+    "model": "icon_charm_tea",
+    "value": 59.15,
+    "drink": {
+      "boost": {
+        "skills": ["fundraising"],
+        "levels": 3,
+        "pct": 0.0
+      }
+    }
+  },
+  {
+    "id": "item_networking_mints",
+    "name": "Networking Mints",
+    "examine": "Fresh breath opens doors. +3 Lobbying for 3 minutes.",
+    "stackable": false,
+    "model": "icon_networking_mints",
+    "value": 59.15,
+    "drink": {
+      "verb": "Pop",
+      "boost": {
+        "skills": ["lobbying"],
+        "levels": 3,
+        "pct": 0.0
+      }
+    }
+  },
+  {
+    "id": "item_smooth_lozenge",
+    "name": "Smooth-Talk Lozenge",
+    "examine": "Coats the throat. And the truth. +3 Spin for 3 minutes.",
+    "stackable": false,
+    "model": "icon_smooth_lozenge",
+    "value": 59.15,
+    "drink": {
+      "verb": "Pop",
+      "boost": {
+        "skills": ["spin"],
+        "levels": 3,
+        "pct": 0.0
+      }
+    }
+  },
+  {
+    "id": "item_hopium_soda",
+    "name": "Hopium Soda",
+    "examine": "It tastes like tomorrow. Restores some Motion (run energy).",
+    "stackable": false,
+    "model": "icon_hopium_soda",
+    "value": 10.39,
+    "drink": {
+      "restoreRun": 40
+    }
+  },
+  {
+    "id": "item_ticket_treasury",
+    "name": "Treasury Ticket",
+    "examine": "One trip home to the main path. Teleport takes a moment.",
+    "stackable": true,
+    "model": "icon_ticket_treasury",
+    "value": 24.15,
+    "teleport": {
+      "zone": "zone_treasury",
+      "x": 27,
+      "y": 31
+    }
+  },
+  {
+    "id": "item_ticket_trenches",
+    "name": "Trenches Camp Ticket",
+    "examine": "One trip to the Scout's camp in the Trenches.",
+    "stackable": true,
+    "model": "icon_ticket_trenches",
+    "value": 24.15,
+    "teleport": {
+      "zone": "zone_trenches",
+      "x": 19,
+      "y": 119
+    }
+  },
+  {
+    "id": "item_ticket_bunker",
+    "name": "Bunker Ticket",
+    "examine": "One trip to your bunker. Needs a bunker.",
+    "stackable": true,
+    "model": "icon_ticket_bunker",
+    "value": 24.15,
+    "teleport": {
+      "zone": "zone_bunker",
+      "x": 10,
+      "y": 11,
+      "requires": "bunker"
+    }
+  },
+  {
+    "id": "item_pick_overclocked",
+    "name": "Overclocked Pick",
+    "examine": "Runs hot. Mines faster than anything legal. (Server Meltdown reward)",
+    "stackable": false,
+    "model": "icon_pick_overclocked",
+    "value": 0,
+    "requires": [
+      {
+        "skill": "mining",
+        "level": 50
+      }
+    ],
+    "tool": {
+      "skill": "mining",
+      "tier": 4,
+      "bonus": 0.24
+    }
+  },
+  {
+    "id": "item_golden_rolodex",
+    "name": "Golden Rolodex",
+    "examine": "Every number in it picks up on the first ring. (Gala Night reward)",
+    "stackable": false,
+    "model": "icon_golden_rolodex",
+    "value": 0,
+    "requires": [
+      {
+        "skill": "fundraising",
+        "level": 50
+      }
+    ],
+    "tool": {
+      "skill": "fundraising",
+      "tier": 4,
+      "bonus": 0.24
+    }
+  },
+  {
+    "id": "item_diamond_cards",
+    "name": "Diamond Business Cards",
+    "examine": "Nobody has ever thrown one away. (Hostile Takeover reward)",
+    "stackable": false,
+    "model": "icon_diamond_cards",
+    "value": 0,
+    "requires": [
+      {
+        "skill": "lobbying",
+        "level": 50
+      }
+    ],
+    "tool": {
+      "skill": "lobbying",
+      "tier": 4,
+      "bonus": 0.24
+    }
+  },
+  {
+    "id": "item_toolkit_master",
+    "name": "Master Toolkit",
+    "examine": "Every tool you need, and a few you will never understand.",
+    "stackable": false,
+    "model": "icon_toolkit_master",
+    "value": 9334.15,
+    "requires": [
+      {
+        "skill": "construction",
+        "level": 50
+      }
+    ],
+    "tool": {
+      "skill": "construction",
+      "tier": 4,
+      "bonus": 0
+    }
+  },
+  {
+    "id": "item_hard_hat",
+    "name": "Hard Hat",
+    "examine": "+1% Mining XP while worn. Wear all four pieces for +1% more.",
+    "stackable": false,
+    "model": "icon_hard_hat",
+    "value": 584.15,
+    "equip": {
+      "slot": "head"
+    },
+    "xpBonus": {
+      "skill": "mining",
+      "pct": 1
+    },
+    "armor": {
+      "defense": 1
+    }
+  },
+  {
+    "id": "item_hi_vis_vest",
+    "name": "Hi-Vis Vest",
+    "examine": "+1.5% Mining XP while worn. Wear all four pieces for +1% more.",
+    "stackable": false,
+    "model": "icon_hi_vis_vest",
+    "value": 934.15,
+    "equip": {
+      "slot": "body"
+    },
+    "xpBonus": {
+      "skill": "mining",
+      "pct": 1.5
+    },
+    "armor": {
+      "defense": 1
+    }
+  },
+  {
+    "id": "item_work_trousers",
+    "name": "Work Trousers",
+    "examine": "+1% Mining XP while worn. Wear all four pieces for +1% more.",
+    "stackable": false,
+    "model": "icon_work_trousers",
+    "value": 584.15,
+    "equip": {
+      "slot": "legs"
+    },
+    "xpBonus": {
+      "skill": "mining",
+      "pct": 1
+    },
+    "armor": {
+      "defense": 1
+    }
+  },
+  {
+    "id": "item_steel_toe_boots",
+    "name": "Steel-Toe Boots",
+    "examine": "+0.5% Mining XP while worn. Wear all four pieces for +1% more.",
+    "stackable": false,
+    "model": "icon_steel_toe_boots",
+    "value": 584.15,
+    "equip": {
+      "slot": "feet"
+    },
+    "xpBonus": {
+      "skill": "mining",
+      "pct": 0.5
+    },
+    "armor": {
+      "defense": 1
+    }
+  },
+  {
+    "id": "item_gala_top_hat",
+    "name": "Gala Top Hat",
+    "examine": "+1% Fundraising XP while worn. Wear all four pieces for +1% more.",
+    "stackable": false,
+    "model": "icon_gala_top_hat",
+    "value": 584.15,
+    "equip": {
+      "slot": "head"
+    },
+    "xpBonus": {
+      "skill": "fundraising",
+      "pct": 1
+    },
+    "armor": {
+      "defense": 1
+    }
+  },
+  {
+    "id": "item_gala_tailcoat",
+    "name": "Gala Tailcoat",
+    "examine": "+1.5% Fundraising XP while worn. Wear all four pieces for +1% more.",
+    "stackable": false,
+    "model": "icon_gala_tailcoat",
+    "value": 934.15,
+    "equip": {
+      "slot": "body"
+    },
+    "xpBonus": {
+      "skill": "fundraising",
+      "pct": 1.5
+    },
+    "armor": {
+      "defense": 1
+    }
+  },
+  {
+    "id": "item_gala_trousers",
+    "name": "Gala Trousers",
+    "examine": "+1% Fundraising XP while worn. Wear all four pieces for +1% more.",
+    "stackable": false,
+    "model": "icon_gala_trousers",
+    "value": 584.15,
+    "equip": {
+      "slot": "legs"
+    },
+    "xpBonus": {
+      "skill": "fundraising",
+      "pct": 1
+    },
+    "armor": {
+      "defense": 1
+    }
+  },
+  {
+    "id": "item_patent_shoes",
+    "name": "Patent Shoes",
+    "examine": "+0.5% Fundraising XP while worn. Wear all four pieces for +1% more.",
+    "stackable": false,
+    "model": "icon_patent_shoes",
+    "value": 584.15,
+    "equip": {
+      "slot": "feet"
+    },
+    "xpBonus": {
+      "skill": "fundraising",
+      "pct": 0.5
+    },
+    "armor": {
+      "defense": 1
+    }
+  },
+  {
+    "id": "item_power_fedora",
+    "name": "Power Fedora",
+    "examine": "+1% Lobbying XP while worn. Wear all four pieces for +1% more.",
+    "stackable": false,
+    "model": "icon_power_fedora",
+    "value": 584.15,
+    "equip": {
+      "slot": "head"
+    },
+    "xpBonus": {
+      "skill": "lobbying",
+      "pct": 1
+    },
+    "armor": {
+      "defense": 1
+    }
+  },
+  {
+    "id": "item_power_suit",
+    "name": "Power Suit Jacket",
+    "examine": "+1.5% Lobbying XP while worn. Wear all four pieces for +1% more.",
+    "stackable": false,
+    "model": "icon_power_suit",
+    "value": 934.15,
+    "equip": {
+      "slot": "body"
+    },
+    "xpBonus": {
+      "skill": "lobbying",
+      "pct": 1.5
+    },
+    "armor": {
+      "defense": 1
+    }
+  },
+  {
+    "id": "item_power_trousers",
+    "name": "Power Suit Trousers",
+    "examine": "+1% Lobbying XP while worn. Wear all four pieces for +1% more.",
+    "stackable": false,
+    "model": "icon_power_trousers",
+    "value": 584.15,
+    "equip": {
+      "slot": "legs"
+    },
+    "xpBonus": {
+      "skill": "lobbying",
+      "pct": 1
+    },
+    "armor": {
+      "defense": 1
+    }
+  },
+  {
+    "id": "item_power_loafers",
+    "name": "Power Loafers",
+    "examine": "+0.5% Lobbying XP while worn. Wear all four pieces for +1% more.",
+    "stackable": false,
+    "model": "icon_power_loafers",
+    "value": 584.15,
+    "equip": {
+      "slot": "feet"
+    },
+    "xpBonus": {
+      "skill": "lobbying",
+      "pct": 0.5
+    },
+    "armor": {
+      "defense": 1
+    }
+  },
+  {
+    "id": "item_press_headset",
+    "name": "Press Headset",
+    "examine": "+1% Spin XP while worn. Wear all four pieces for +1% more.",
+    "stackable": false,
+    "model": "icon_press_headset",
+    "value": 584.15,
+    "equip": {
+      "slot": "head"
+    },
+    "xpBonus": {
+      "skill": "spin",
+      "pct": 1
+    },
+    "armor": {
+      "defense": 1
+    }
+  },
+  {
+    "id": "item_press_blazer",
+    "name": "Press Blazer",
+    "examine": "+1.5% Spin XP while worn. Wear all four pieces for +1% more.",
+    "stackable": false,
+    "model": "icon_press_blazer",
+    "value": 934.15,
+    "equip": {
+      "slot": "body"
+    },
+    "xpBonus": {
+      "skill": "spin",
+      "pct": 1.5
+    },
+    "armor": {
+      "defense": 1
+    }
+  },
+  {
+    "id": "item_press_slacks",
+    "name": "Press Slacks",
+    "examine": "+1% Spin XP while worn. Wear all four pieces for +1% more.",
+    "stackable": false,
+    "model": "icon_press_slacks",
+    "value": 584.15,
+    "equip": {
+      "slot": "legs"
+    },
+    "xpBonus": {
+      "skill": "spin",
+      "pct": 1
+    },
+    "armor": {
+      "defense": 1
+    }
+  },
+  {
+    "id": "item_press_sneakers",
+    "name": "Press Sneakers",
+    "examine": "+0.5% Spin XP while worn. Wear all four pieces for +1% more.",
+    "stackable": false,
+    "model": "icon_press_sneakers",
+    "value": 584.15,
+    "equip": {
+      "slot": "feet"
+    },
+    "xpBonus": {
+      "skill": "spin",
+      "pct": 0.5
+    },
+    "armor": {
+      "defense": 1
+    }
+  },
+  {
+    "id": "item_press_lanyard",
+    "name": "Press Pass Lanyard",
+    "examine": "Gets you in anywhere. Steadies your aim, too.",
+    "stackable": false,
+    "model": "icon_press_lanyard",
+    "value": 234.15,
+    "equip": {
+      "slot": "neck"
+    },
+    "armor": {
+      "defense": 0,
+      "accuracy": 6
+    }
+  },
+  {
+    "id": "item_gavel_pendant",
+    "name": "Gavel Pendant",
+    "examine": "A tiny gavel on a chain. Hits harder than it looks.",
+    "stackable": false,
+    "model": "icon_gavel_pendant",
+    "value": 584.15,
+    "requires": [
+      {
+        "skill": "melee",
+        "level": 20
+      }
+    ],
+    "equip": {
+      "slot": "neck"
+    },
+    "armor": {
+      "defense": 1,
+      "damage": 4
+    }
+  },
+  {
+    "id": "item_ticker_amulet",
+    "name": "Ticker Amulet",
+    "examine": "A green candle in a golden frame. It only goes up.",
+    "stackable": false,
+    "model": "icon_ticker_amulet",
+    "value": 5834.15,
+    "requires": [
+      {
+        "skill": "defense",
+        "level": 60
+      }
+    ],
+    "equip": {
+      "slot": "neck"
+    },
+    "armor": {
+      "defense": 6,
+      "accuracy": 10,
+      "damage": 8
+    }
+  },
+  {
+    "id": "item_grip_gloves",
+    "name": "Grip Gloves",
+    "examine": "For a firm handshake and a firmer swing.",
+    "stackable": false,
+    "model": "icon_grip_gloves",
+    "value": 94.15,
+    "equip": {
+      "slot": "hands"
+    },
+    "armor": {
+      "defense": 2,
+      "accuracy": 3
+    }
+  },
+  {
+    "id": "item_trigger_gloves",
+    "name": "Trigger Gloves",
+    "examine": "Fingerless. Very serious. Very accurate.",
+    "stackable": false,
+    "model": "icon_trigger_gloves",
+    "value": 934.15,
+    "requires": [
+      {
+        "skill": "shooting",
+        "level": 40
+      }
+    ],
+    "equip": {
+      "slot": "hands"
+    },
+    "armor": {
+      "defense": 3,
+      "accuracy": 8,
+      "damage": 3
+    }
+  },
+  {
+    "id": "item_diamond_gauntlets",
+    "name": "Diamond Gauntlets",
+    "examine": "Diamond hands, literally.",
+    "stackable": false,
+    "model": "icon_diamond_gauntlets",
+    "value": 4084.15,
+    "requires": [
+      {
+        "skill": "defense",
+        "level": 60
+      }
+    ],
+    "equip": {
+      "slot": "hands"
+    },
+    "armor": {
+      "defense": 12,
+      "accuracy": 6,
+      "damage": 5
+    }
+  },
+  {
+    "id": "item_campaign_loafers",
+    "name": "Campaign Loafers",
+    "examine": "Comfortable enough for a long campaign.",
+    "stackable": false,
+    "model": "icon_campaign_loafers",
+    "value": 59.15,
+    "equip": {
+      "slot": "feet"
+    },
+    "armor": {
+      "defense": 2
+    }
+  },
+  {
+    "id": "item_combat_boots",
+    "name": "Combat Boots",
+    "examine": "Laced for the Trenches.",
+    "stackable": false,
+    "model": "icon_combat_boots",
+    "value": 444.15,
+    "requires": [
+      {
+        "skill": "defense",
+        "level": 20
+      }
+    ],
+    "equip": {
+      "slot": "feet"
+    },
+    "armor": {
+      "defense": 7
+    }
+  },
+  {
+    "id": "item_diamond_boots",
+    "name": "Diamond Boots",
+    "examine": "Heavy, shiny, unbudging.",
+    "stackable": false,
+    "model": "icon_diamond_boots",
+    "value": 4084.15,
+    "requires": [
+      {
+        "skill": "defense",
+        "level": 60
+      }
+    ],
+    "equip": {
+      "slot": "feet"
+    },
+    "armor": {
+      "defense": 14
+    }
+  },
+  {
+    "id": "item_briefcase_bludgeon",
+    "name": "Briefcase Bludgeon",
+    "examine": "Full of very heavy paperwork.",
+    "stackable": false,
+    "model": "icon_briefcase_bludgeon",
+    "value": 934.15,
+    "requires": [
+      {
+        "skill": "melee",
+        "level": 30
+      }
+    ],
+    "equip": {
+      "slot": "weapon"
+    },
+    "weapon": {
+      "type": "melee",
+      "ammo": "none",
+      "speed": 4,
+      "range": 1,
+      "accuracy": 34,
+      "damage": 30
+    }
+  },
+  {
+    "id": "gun_ballot_blaster",
+    "name": "Ballot Blaster",
+    "examine": "Fires Rounds. Counts every one.",
+    "stackable": false,
+    "model": "icon_ballot_blaster",
+    "value": 934.15,
+    "requires": [
+      {
+        "skill": "shooting",
+        "level": 35
+      }
+    ],
+    "equip": {
+      "slot": "weapon"
+    },
+    "weapon": {
+      "type": "gun",
+      "ammo": "rounds",
+      "speed": 4,
+      "range": 6,
+      "accuracy": 38,
+      "damage": 30
+    }
+  },
+  {
+    "id": "item_gavel_of_order",
+    "name": "Gavel of Order",
+    "examine": "ORDER. ORDER. ORDER.",
+    "stackable": false,
+    "model": "icon_gavel_of_order",
+    "value": 12834.15,
+    "requires": [
+      {
+        "skill": "melee",
+        "level": 70
+      }
+    ],
+    "equip": {
+      "slot": "weapon"
+    },
+    "weapon": {
+      "type": "melee",
+      "ammo": "none",
+      "speed": 4,
+      "range": 1,
+      "accuracy": 82,
+      "damage": 74
+    }
+  },
+  {
+    "id": "item_teleprompter",
+    "name": "Teleprompter",
+    "examine": "Reads you straight home to the Treasury. Recharges in 5 minutes. (Press Conference reward)",
+    "stackable": false,
+    "model": "icon_teleprompter",
+    "value": 0,
+    "teleport": {
+      "zone": "zone_treasury",
+      "x": 27,
+      "y": 31,
+      "verb": "Read",
+      "reusable": true,
+      "cooldownTicks": 500
+    }
+  },
+  {
+    "id": "item_chamber_key",
+    "name": "Chamber Key",
+    "examine": "Opens the way out, any time. Recharges in 10 minutes. (The Way Out reward)",
+    "stackable": false,
+    "model": "icon_chamber_key",
+    "value": 0,
+    "teleport": {
+      "zone": "zone_outside",
+      "x": 12,
+      "y": 11,
+      "verb": "Turn",
+      "reusable": true,
+      "cooldownTicks": 1000,
+      "requires": "outside"
+    }
+  },
+  {
+    "id": "item_empty_canister",
+    "name": "Empty Canister",
+    "examine": "A coolant canister. Empty. The Sysadmin wants it filled at the Gremlin Fountain.",
+    "stackable": false,
+    "model": "icon_empty_canister",
+    "value": 0
+  },
+  {
+    "id": "item_coolant_canister",
+    "name": "Coolant Canister",
+    "examine": "Fountain water. It has never frozen and never boiled. Perfect coolant.",
+    "stackable": false,
+    "model": "icon_coolant_canister",
+    "value": 0
+  },
+  {
+    "id": "item_coordinates_drive",
+    "name": "Coordinates Drive",
+    "examine": "OUTSIDE.TXT: a set of coordinates to somewhere that is not the Treasury.",
+    "stackable": false,
+    "model": "icon_coordinates_drive",
+    "value": 0
+  },
+  {
+    "id": "item_guest_list",
+    "name": "Guest List",
+    "examine": "The gala guest list. Crumpled. Slightly sticky.",
+    "stackable": false,
+    "model": "icon_guest_list",
+    "value": 0
+  },
+  {
+    "id": "item_power_cell",
+    "name": "Power Cell",
+    "examine": "Bought with the gala money. Hums with enough juice to wake a sleeping machine.",
+    "stackable": false,
+    "model": "icon_power_cell",
+    "value": 0
+  },
+  {
+    "id": "item_sealed_envelope",
+    "name": "Sealed Envelope",
+    "examine": "The Broker's envelope. The Fixer said not to open it.",
+    "stackable": false,
+    "model": "icon_sealed_envelope",
+    "value": 0
+  },
+  {
+    "id": "item_blackmail_photo",
+    "name": "Blackmail Photo",
+    "examine": "A very unflattering photo of you. Someone has the negatives.",
+    "stackable": false,
+    "model": "icon_blackmail_photo",
+    "value": 0
+  },
+  {
+    "id": "item_photo_negatives",
+    "name": "Photo Negatives",
+    "examine": "The negatives of the blackmail photos. Burn them, or use them.",
+    "stackable": false,
+    "model": "icon_photo_negatives",
+    "value": 0
+  },
+  {
+    "id": "item_exit_permit",
+    "name": "Exit Permit",
+    "examine": "Signed and stamped by the Broker. The Lockdown Act says nobody leaves without one.",
+    "stackable": false,
+    "model": "icon_exit_permit",
+    "value": 0
+  },
+  {
+    "id": "item_press_release",
+    "name": "Signed Press Release",
+    "examine": "THE PRESIDENT IS OPENING A DOOR. FOR EVERYONE. (Read it to the Reporter.)",
+    "stackable": false,
+    "model": "icon_press_release",
+    "value": 0
+  },
+  {
+    "id": "item_chamber_blueprints",
+    "name": "Chamber Blueprints",
+    "examine": "Plans for a Teleport Chamber, drawn before the Lockdown.",
+    "stackable": false,
+    "model": "icon_chamber_blueprints",
+    "value": 0
   }
 ]

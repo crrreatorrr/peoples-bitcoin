@@ -24,9 +24,12 @@ const STYLE_INFO: Record<CombatStyle, string> = {
 
 const SLOT_LABEL: Record<EquipSlot, string> = {
   head: 'Head',
+  neck: 'Neck',
   weapon: 'Weapon',
   body: 'Body',
   legs: 'Legs',
+  hands: 'Hands',
+  feet: 'Feet',
   ammo: 'Ammo',
 };
 

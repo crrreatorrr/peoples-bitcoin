@@ -91,14 +91,15 @@ describe('quest-aware dialogue, Morelight and the quest list', () => {
     expect(talk(state, ctx, 'npc_contractor')).toEqual(contractor.lines); // materials missing
     give(state, 'item_scrap_hash', 10);
     give(state, 'item_tp_soundbite', 2);
-    expect(talk(state, ctx, 'npc_contractor')).toEqual(contractor.dialogue[0].lines);
+    const after = contractor.dialogue.find((d) => d.quest === 'quest_bunker')!;
+    expect(talk(state, ctx, 'npc_contractor')).toEqual(after.lines);
     expect(state.player.quests.quest_bunker.complete).toBe(true);
   });
 
   it("dialogue includes the player's own replies", () => {
     const { state, ctx } = newGame();
     const lines = talk(state, ctx, 'npc_morelight');
-    expect(lines.some((l) => typeof l === 'object' && l.player.length > 0)).toBe(true);
+    expect(lines.some((l) => typeof l === 'object' && 'player' in l)).toBe(true);
     expect(lines.some((l) => typeof l === 'string')).toBe(true);
   });
 
@@ -120,7 +121,11 @@ describe('quest-aware dialogue, Morelight and the quest list', () => {
 
     state.player.quests.quest_tutorial.complete = true;
     talk(state, ctx, 'npc_morelight');
-    expect(state.player.quests.quest_sludge_duty).toEqual({ done: ['briefing'], complete: false });
+    expect(state.player.quests.quest_sludge_duty).toEqual({
+      done: ['briefing'],
+      complete: false,
+      choices: [],
+    });
     expect(state.player.quests.quest_name_calling).toBeUndefined();
     expect(currentHint(state, ctx)).toMatchObject({ questName: 'Sludge Duty', npc: 'npc_scout' });
   });
@@ -132,7 +137,8 @@ describe('quest-aware dialogue, Morelight and the quest list', () => {
 
     changeZone(state, ctx, 'zone_trenches', { x: 18, y: 119 }, []);
     const scout = content().npcs.get('npc_scout')!;
-    expect(talk(state, ctx, 'npc_scout')).toBe(scout.dialogue[0].lines);
+    const intel = scout.dialogue.find((d) => d.quest === 'quest_sludge_duty')!;
+    expect(talk(state, ctx, 'npc_scout')).toBe(intel.lines);
     expect(currentHint(state, ctx)?.enemy).toBe('enemy_sludge_mother');
 
     const events: SimEvent[] = [];
@@ -153,7 +159,7 @@ describe('quest-aware dialogue, Morelight and the quest list', () => {
     const { state, ctx } = newGame();
     const total = [...content().quests.values()].reduce((sum, q) => sum + q.points, 0);
     expect(questPoints(state.player, ctx)).toEqual({ earned: 0, total });
-    state.player.quests.quest_bunker = { done: [], complete: true };
+    state.player.quests.quest_bunker = { done: [], complete: true, choices: [] };
     expect(questPoints(state.player, ctx).earned).toBe(
       content().quests.get('quest_bunker')!.points,
     );

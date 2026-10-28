@@ -4,6 +4,7 @@
  * Hit chance uses the OSRS comparison; damage on a hit is 0..maxHit.
  */
 import { COMBAT, GROUND_ITEMS } from '../config/balance';
+import { effectiveLevel } from './boosts';
 import { payUsd } from './economy';
 import { attackProfile, consumeAmmo } from './equipment';
 import {
@@ -15,7 +16,8 @@ import {
 } from './grid';
 import { spawnGroundItem } from './ground';
 import { findPath } from './pathfinding';
-import { progressQuests } from './quests';
+import { countItem } from './inventory';
+import { atStep, progressQuests } from './quests';
 import { chance, nextFloat, nextInt, type RngState } from './rng';
 import type { CombatType, EnemyDef } from './schemas';
 import {
@@ -135,7 +137,11 @@ export function tickPlayerAttack(
   if (state.tick < player.nextAttackTick) return;
 
   if (profile.outOfAmmo && player.action?.nextAttemptTick === null) {
-    events.push({ type: 'message', kind: 'warning', text: 'Out of ammo! You grab your gavel.' });
+    events.push({
+      type: 'message',
+      kind: 'warning',
+      text: `Out of ammo! You bash with your ${profile.weapon.name}.`,
+    });
   }
   if (player.action) player.action.nextAttemptTick = state.tick;
 
@@ -148,7 +154,7 @@ export function tickPlayerAttack(
   }
 
   const skillId = melee ? 'melee' : 'shooting';
-  const level = levelForXp(player.skills[skillId] ?? 0);
+  const level = effectiveLevel(player, skillId, state.tick);
   const styleBonus = player.style === 'accurate' || player.style === 'bash' ? COMBAT.styleBonus : 0;
   const effective = level + COMBAT.levelOffset + styleBonus;
   const attRoll =
@@ -277,6 +283,12 @@ function dropLoot(
     if (item) spawnGroundItem(state.zone, itemId, qty, at.x, at.y, despawn, item.stackable);
   };
   for (const s of table.always) drop(s.item, s.qty);
+  // Quest items only drop while the quest needs them, and not if you already have one.
+  for (const q of table.questDrops) {
+    if (!atStep(state.player, ctx.content, q.quest, q.step)) continue;
+    if (countItem(state.player.inventory, q.item) > 0) continue;
+    if (chance(state.rng, q.chance)) drop(q.item, q.qty);
+  }
   const total = table.table.reduce((sum, row) => sum + row.weight, 0);
   for (let r = 0; r < table.rolls && total > 0; r++) {
     let pick = nextFloat(state.rng) * total;

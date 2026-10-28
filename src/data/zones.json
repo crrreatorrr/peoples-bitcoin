@@ -120,7 +120,7 @@
         "%..........................,,..........................%",
         "%..........................,,..........................%",
         "%.................~~~......,,..........................%",
-        "%.................~~~......,,..........................%",
+        "%.................~~.......,,..........................%",
         "%.................~~~......,,..........................%",
         "%..........................,,..........................%",
         "%..........................,,..........................%",
@@ -529,6 +529,11 @@
           "npcId": "npc_drill_sergeant",
           "x": 11,
           "y": 39
+        },
+        {
+          "npcId": "npc_reporter",
+          "x": 14,
+          "y": 31
         }
       ],
       "enemies": [
@@ -591,6 +596,42 @@
           "enemyId": "enemy_comment_troll",
           "x": 21,
           "y": 48
+        },
+        {
+          "enemyId": "enemy_rogue_process",
+          "x": 18,
+          "y": 11,
+          "quest": {
+            "quest": "quest_server_meltdown",
+            "step": "rogue"
+          }
+        },
+        {
+          "enemyId": "enemy_party_crasher",
+          "x": 4,
+          "y": 22,
+          "quest": {
+            "quest": "quest_gala_night",
+            "step": "crashers"
+          }
+        },
+        {
+          "enemyId": "enemy_party_crasher",
+          "x": 8,
+          "y": 26,
+          "quest": {
+            "quest": "quest_gala_night",
+            "step": "crashers"
+          }
+        },
+        {
+          "enemyId": "enemy_party_crasher",
+          "x": 11,
+          "y": 22,
+          "quest": {
+            "quest": "quest_gala_night",
+            "step": "crashers"
+          }
         }
       ],
       "mapIcons": [
@@ -818,6 +859,18 @@
           "y": 11,
           "requires": "boss:enemy_captain_motion",
           "lockedMessage": "Locked. Defeat Captain Motion to pass."
+        },
+        {
+          "objectId": "obj_teleport_chamber",
+          "x": 19,
+          "y": 3,
+          "to": {
+            "zone": "zone_outside",
+            "x": 12,
+            "y": 11
+          },
+          "requires": "chamber_ready",
+          "lockedMessage": "The chamber is dark and silent. Morelight will know what it needs."
         }
       ],
       "npcs": [
@@ -1060,8 +1113,8 @@
         },
         {
           "enemyId": "enemy_margin_caller",
-          "x": 20,
-          "y": 3
+          "x": 28,
+          "y": 2
         },
         {
           "enemyId": "enemy_margin_caller",
@@ -1164,6 +1217,88 @@
         }
       ],
       "npcs": [],
+      "enemies": [],
+      "mapIcons": []
+    },
+    {
+      "id": "zone_outside",
+      "name": "The World Out There",
+      "width": 24,
+      "height": 18,
+      "spawn": {
+        "x": 12,
+        "y": 11
+      },
+      "legend": {
+        ".": "grass",
+        ",": "path",
+        "%": "hedge",
+        "~": "water"
+      },
+      "tiles": [
+        "%%%%%%%%%%%%%%%%%%%%%%%%",
+        "%~~~~~~~~~~~~~~~~~~~~~~%",
+        "%~~~~~~~~~~~~~~~~~~~~~~%",
+        "%~~~~~~~~~~~~~~~~~~~~~~%",
+        "%..........,,..........%",
+        "%..........,,..........%",
+        "%..........,,..........%",
+        "%..........,,..........%",
+        "%..........,,..........%",
+        "%..........,,..........%",
+        "%..........,,..........%",
+        "%..........,,..........%",
+        "%..........,,..........%",
+        "%..........,,..........%",
+        "%..........,,..........%",
+        "%..........,,..........%",
+        "%..........,,..........%",
+        "%%%%%%%%%%%%%%%%%%%%%%%%"
+      ],
+      "objects": [
+        {
+          "objectId": "obj_return_chamber",
+          "x": 11,
+          "y": 13,
+          "to": {
+            "zone": "zone_treasury",
+            "x": 27,
+            "y": 31
+          }
+        },
+        {
+          "objectId": "obj_signpost",
+          "x": 14,
+          "y": 6
+        },
+        {
+          "objectId": "obj_tree",
+          "x": 4,
+          "y": 8
+        },
+        {
+          "objectId": "obj_tree",
+          "x": 19,
+          "y": 9
+        },
+        {
+          "objectId": "obj_tree",
+          "x": 6,
+          "y": 14
+        },
+        {
+          "objectId": "obj_bench",
+          "x": 9,
+          "y": 6
+        }
+      ],
+      "npcs": [
+        {
+          "npcId": "npc_morelight_outside",
+          "x": 13,
+          "y": 8
+        }
+      ],
       "enemies": [],
       "mapIcons": []
     }
