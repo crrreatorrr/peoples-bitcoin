@@ -301,9 +301,9 @@ async function boot(): Promise<void> {
     if (!d) return null;
     const npc = state.zone.npcs.find((n) => n.id === d.npcId);
     const def = npc ? content.npcs.get(npc.defId) : undefined;
-    const text = def?.lines[d.line];
+    const text = d.lines[d.line];
     return def && text !== undefined
-      ? { key: `${d.npcId}:${d.line}`, speaker: def.name, text }
+      ? { key: `${d.npcId}:${d.lines.length}:${d.line}`, speaker: def.name, text }
       : null;
   };
 
@@ -344,12 +344,14 @@ async function boot(): Promise<void> {
           hitsplats.spawn(e.targetId, e.damage, now);
           view.entities.markHit(e.targetId, now);
           break;
-        case 'projectile': {
-          const from = view.entities.positionOf(e.fromId);
-          const to = view.entities.positionOf(e.toId);
+        case 'attack': {
+          if (e.style === 'melee') break;
+          const explosive = e.style === 'explosive';
+          const from = view.entities.positionOf(e.attackerId);
+          const to = view.entities.positionOf(e.targetId);
           if (from && to) {
-            view.tracers.fire(from, to, e.explosive, now);
-            if (e.explosive)
+            view.tracers.fire(from, to, explosive, now);
+            if (explosive)
               view.bursts.spawn(to, PALETTES.explosion, now, {
                 count: 30,
                 speed: 2.6,

@@ -23,7 +23,7 @@ import { despawnGroundItems, dropToGround, takeGroundItem } from './ground';
 import { swapSlots } from './inventory';
 import { stepNpcs } from './npcs';
 import { findPath } from './pathfinding';
-import { progressQuests } from './quests';
+import { npcLines, progressQuests } from './quests';
 import { dismiss, stepSproto, summonFromInventory, useSpecial } from './sprotos';
 import {
   findEntity,
@@ -124,7 +124,7 @@ function applyIntent(state: GameState, ctx: SimContext, intent: Intent, events: 
       sayPublic(state, intent.text, events);
       break;
     case 'continueDialogue':
-      advanceDialogue(state, ctx);
+      advanceDialogue(state);
       break;
     case 'deposit':
       if (ui?.kind === 'bank') {
@@ -200,8 +200,10 @@ function stepActions(state: GameState, ctx: SimContext, events: SimEvent[]): voi
   if (entity.kind === 'npc') {
     player.action = null;
     const npcDef = ctx.content.npcs.get(entity.instance.defId);
-    if (npcDef && npcDef.lines.length > 0) player.dialogue = { npcId: entity.instance.id, line: 0 };
+    // Quests advance first, so an NPC who just finished one already talks about it.
     progressQuests(state, ctx, { type: 'talk', npc: entity.instance.defId }, events);
+    const lines = npcDef ? npcLines(player, npcDef) : [];
+    if (lines.length > 0) player.dialogue = { npcId: entity.instance.id, line: 0, lines };
     return;
   }
   if (entity.kind === 'ground') {
@@ -271,13 +273,11 @@ function sayPublic(state: GameState, text: string, events: SimEvent[]): void {
   events.push({ type: 'message', kind: 'public', speaker: player.name, text: clean });
 }
 
-function advanceDialogue(state: GameState, ctx: SimContext): void {
+function advanceDialogue(state: GameState): void {
   const dialogue = state.player.dialogue;
   if (!dialogue) return;
-  const npc = state.zone.npcs.find((n) => n.id === dialogue.npcId);
-  const lines = (npc && ctx.content.npcs.get(npc.defId)?.lines) || [];
   dialogue.line++;
-  if (dialogue.line >= lines.length) state.player.dialogue = null;
+  if (dialogue.line >= dialogue.lines.length) state.player.dialogue = null;
 }
 
 export function entityActions(state: GameState, ctx: SimContext, entity: EntityRef): string[] {

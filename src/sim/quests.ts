@@ -7,7 +7,7 @@
 import { payUsd } from './economy';
 import { giveItem } from './ground';
 import { countItem, removeItem } from './inventory';
-import type { QuestDef, QuestTrigger, Reward } from './schemas';
+import type { NpcDef, QuestDef, QuestTrigger, Reward } from './schemas';
 import type { EquipSlot, GameState, PlayerState, SimContext, SimEvent } from './state';
 import { grantXp } from './xp';
 
@@ -73,6 +73,29 @@ export function progressQuests(
       events.push({ type: 'message', kind: 'quest', text: quest.completeMessage });
     }
   }
+}
+
+/** An NPC's lines for the player's quest progress: the first matching variant, else the defaults. */
+export function npcLines(player: PlayerState, npc: NpcDef): string[] {
+  const variant = npc.dialogue.find((d) => {
+    const progress = player.quests[d.quest];
+    return d.status === 'complete' ? progress?.complete === true : progress?.complete === false;
+  });
+  return variant?.lines ?? npc.lines;
+}
+
+/** Quest points earned and available, for the quest list. */
+export function questPoints(
+  player: PlayerState,
+  ctx: SimContext,
+): { earned: number; total: number } {
+  let earned = 0;
+  let total = 0;
+  for (const q of ctx.content.quests.values()) {
+    total += q.points;
+    if (player.quests[q.id]?.complete) earned += q.points;
+  }
+  return { earned, total };
 }
 
 /** The next thing to do: the tutorial first, then any active quest. */

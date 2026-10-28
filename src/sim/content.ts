@@ -236,6 +236,12 @@ function checkReferences(c: Content, problems: string[]): void {
     }
   }
 
+  for (const n of c.npcs.values()) {
+    for (const d of n.dialogue) {
+      if (!c.quests.has(d.quest)) problems.push(`npcs.json ${n.id}: unknown quest '${d.quest}'`);
+    }
+  }
+
   for (const zone of c.zones.values()) checkZone(zone, c, problems);
 }
 

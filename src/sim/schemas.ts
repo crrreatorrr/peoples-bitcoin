@@ -106,6 +106,16 @@ export const NpcDefSchema = z.object({
   actions: z.array(z.string()),
   /** Shown one at a time on Talk-to until node-graph dialogue lands. */
   lines: z.array(z.string()).default([]),
+  /** Lines that replace `lines` once a quest is started or complete; the first match wins. */
+  dialogue: z
+    .array(
+      z.object({
+        quest: Id,
+        status: z.enum(['started', 'complete']),
+        lines: z.array(z.string()).min(1),
+      }),
+    )
+    .default([]),
   /** Tiles the NPC may wander from its spawn; 0 = stands still. */
   wanderRadius: z.number().int().nonnegative().default(0),
 });
@@ -271,6 +281,10 @@ export const RewardSchema = z.object({
 export const QuestDefSchema = z.object({
   id: Id,
   name: z.string(),
+  /** Quest points for finishing it, as in OSRS. */
+  points: z.number().int().nonnegative().default(1),
+  /** One-line pitch shown in the quest journal. */
+  summary: z.string().default(''),
   /** Tutorial steps can be done in any order; quest steps go in order. */
   ordered: z.boolean(),
   /** Active from the start (tutorial), or begun by talking to `startNpc`. */

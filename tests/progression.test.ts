@@ -1,13 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { SUMMONING } from '../src/config/balance';
 import { hotspotKey } from '../src/sim/bunker';
+import { interactionTiles } from '../src/sim/grid';
 import { countItem } from '../src/sim/inventory';
-import { currentHint } from '../src/sim/quests';
+import { findPath } from '../src/sim/pathfinding';
+import { currentHint, npcLines, questPoints } from '../src/sim/quests';
 import { newEnemy } from '../src/sim/state';
 import { runTick } from '../src/sim/tick';
 import { changeZone } from '../src/sim/zones';
 import { xpForLevel } from '../src/sim/xp';
-import { content, give, messages, newGame, objectOf, runUntil } from './helpers';
+import { content, give, messages, newGame, objectOf, runUntil, treasuryGrid } from './helpers';
 
 const talkTo = (npcDef: string) => (state: ReturnType<typeof newGame>['state']) => {
   const npc = state.zone.npcs.find((n) => n.defId === npcDef)!;
@@ -33,6 +35,22 @@ describe('tutorial', () => {
     expect(currentHint(state, ctx)?.object).toBe('obj_rack_dusty');
   });
 
+  it('the training yard has weak, passive monsters you can walk up to', () => {
+    const { state, ctx } = newGame();
+    const grid = treasuryGrid(ctx);
+    for (const id of ['enemy_spam_bot', 'enemy_sludgeling', 'enemy_comment_troll']) {
+      const def = content().enemies.get(id)!;
+      expect(def.aggressive).toBe(false);
+      expect(def.level).toBeLessThanOrEqual(4);
+      const spawned = state.zone.enemies.filter((e) => e.defId === id);
+      expect(spawned.length).toBeGreaterThanOrEqual(3);
+      for (const e of spawned) {
+        const goals = interactionTiles(grid, { x: e.x, y: e.y, width: 1, height: 1 });
+        expect(findPath(grid, state.player.pos, goals).complete).toBe(true);
+      }
+    }
+  });
+
   it('completes when every step is done and pays the completion reward', () => {
     const { state, ctx } = newGame();
     const quest = content().quests.get('quest_tutorial')!;
@@ -44,6 +62,42 @@ describe('tutorial', () => {
     changeZone(state, ctx, 'zone_trenches', { x: 20, y: 120 }, events);
     expect(state.player.quests.quest_tutorial.complete).toBe(true);
     expect(state.player.currencies.bitcoin).toBeGreaterThan(before);
+  });
+});
+
+describe('quest-aware dialogue and the quest list', () => {
+  it('NPCs switch to new lines once their quest is complete', () => {
+    const { state } = newGame();
+    const sergeant = content().npcs.get('npc_drill_sergeant')!;
+    expect(npcLines(state.player, sergeant)).toBe(sergeant.lines);
+    state.player.quests.quest_tutorial.complete = true;
+    expect(npcLines(state.player, sergeant)).toBe(sergeant.dialogue[0].lines);
+    expect(sergeant.dialogue[0].lines).not.toEqual(sergeant.lines);
+  });
+
+  it('the talk that finishes a quest already uses the after-quest lines', () => {
+    const { state, ctx } = newGame();
+    const contractor = content().npcs.get('npc_contractor')!;
+    const talk = () => {
+      state.player.dialogue = null;
+      runUntil(state, ctx, () => state.player.dialogue !== null, talkTo('npc_contractor')(state));
+      return state.player.dialogue!.lines;
+    };
+    expect(talk()).toEqual(contractor.lines); // quest started, materials still missing
+    give(state, 'item_scrap_hash', 10);
+    give(state, 'item_tp_soundbite', 2);
+    expect(talk()).toEqual(contractor.dialogue[0].lines);
+    expect(state.player.quests.quest_bunker.complete).toBe(true);
+  });
+
+  it('counts quest points like OSRS', () => {
+    const { state, ctx } = newGame();
+    const total = [...content().quests.values()].reduce((sum, q) => sum + q.points, 0);
+    expect(questPoints(state.player, ctx)).toEqual({ earned: 0, total });
+    state.player.quests.quest_bunker = { done: [], complete: true };
+    expect(questPoints(state.player, ctx).earned).toBe(
+      content().quests.get('quest_bunker')!.points,
+    );
   });
 });
 
@@ -153,7 +207,9 @@ describe('Summoning', () => {
         ctx,
         i === 0 ? [{ type: 'interact', targetId: target.id, action: 'Attack' }] : [],
       );
-      sprotoShot = ev.some((e) => e.type === 'projectile' && e.fromId === 'sproto');
+      sprotoShot = ev.some(
+        (e) => e.type === 'attack' && e.attackerId === 'sproto' && e.style === 'gun',
+      );
     }
     expect(sprotoShot).toBe(true);
     expect(state.player.skills.summoning).toBeGreaterThanOrEqual(xpBefore);

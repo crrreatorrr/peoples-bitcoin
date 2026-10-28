@@ -23,7 +23,7 @@ describe('NPC wandering', () => {
   it('stands still while the player is talking to it', () => {
     const { state, ctx } = newGame(5);
     const npc = state.zone.npcs[0];
-    state.player.dialogue = { npcId: npc.id, line: 0 };
+    state.player.dialogue = { npcId: npc.id, line: 0, lines: ['Hi.'] };
     const start = { x: npc.x, y: npc.y };
     for (let i = 0; i < 200; i++) runTick(state, ctx, []);
     expect({ x: npc.x, y: npc.y }).toEqual(start);

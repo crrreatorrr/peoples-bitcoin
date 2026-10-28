@@ -134,14 +134,12 @@ export function tickPlayerAttack(
   const max = Math.floor(maxHit(effective, profile.damageBonus) * rally);
   const damage = rollDamage(state.rng, attRoll, defRoll, max);
 
-  if (!melee) {
-    events.push({
-      type: 'projectile',
-      fromId: PLAYER_ID,
-      toId: enemy.id,
-      explosive: profile.explosive,
-    });
-  }
+  events.push({
+    type: 'attack',
+    attackerId: PLAYER_ID,
+    targetId: enemy.id,
+    style: melee ? 'melee' : profile.explosive ? 'explosive' : 'gun',
+  });
   awardCombatXp(state, ctx, damage, melee, events);
   if (enemy.target === null) enemy.target = PLAYER_ID;
 

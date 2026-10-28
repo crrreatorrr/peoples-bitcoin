@@ -72,12 +72,41 @@ describe('fighting', () => {
       (ev) => ev.some((e) => e.type === 'death' && e.entityId === target.id),
       [{ type: 'interact', targetId: target.id, action: 'Attack' }],
     );
-    expect(events.some((e) => e.type === 'projectile')).toBe(true);
+    expect(events).toContainEqual({
+      type: 'attack',
+      attackerId: 'player',
+      targetId: target.id,
+      style: 'gun',
+    });
     expect(state.player.equipment.ammo!.qty).toBeLessThan(200);
     expect(state.player.skills.shooting).toBeGreaterThan(0);
     expect(state.player.skills.hitpoints).toBeGreaterThan(xpForLevel(10));
     expect(target.respawnAt).not.toBeNull();
     expect(state.player.currencies.bitcoin).toBeGreaterThan(0);
+  });
+
+  it('melee swings are attack events too, for the player and for enemies', () => {
+    const { state, ctx } = newGame(3);
+    const target = sludgeling(state);
+    state.player.pos = { x: target.x, y: target.y - 1 };
+    const events = runUntil(
+      state,
+      ctx,
+      (ev) => ev.some((e) => e.type === 'attack' && e.attackerId === target.id),
+      [{ type: 'interact', targetId: target.id, action: 'Attack' }],
+    );
+    expect(events).toContainEqual({
+      type: 'attack',
+      attackerId: 'player',
+      targetId: target.id,
+      style: 'melee',
+    });
+    expect(events).toContainEqual({
+      type: 'attack',
+      attackerId: target.id,
+      targetId: 'player',
+      style: 'melee',
+    });
   });
 
   it('falls back to the gavel when out of rounds', () => {

@@ -11,6 +11,17 @@
       "It's not BTC. It's $BITCOIN. The People's Bitcoin. One billion of them, zero percent tax, and all of them ours.",
       "We can't sell. So we earn. Mine, fundraise, lobby, and sell what you make at the Trading Terminal here in the hall.",
       "The Terminal pays in $BITCOIN at whatever the ticker says. Watch the price. Here is some petty cash to start."
+    ],
+    "dialogue": [
+      {
+        "quest": "quest_tutorial",
+        "status": "complete",
+        "lines": [
+          "President! The reserve is... less empty. I only checked the ticker eleven times today.",
+          "The Terminal pays whatever the ticker says. Sell your Hash when it's green.",
+          "Steel picks, better guns and armor are all on the Terminal, if you've got the $BITCOIN."
+        ]
+      }
     ]
   },
   {
@@ -23,6 +34,17 @@
       "Those racks still mine Hash. Take this pick. Better picks from the Terminal mine faster.",
       "Hash sells at the Terminal. It also feeds the Hash Cannon, if you like explosions.",
       "Inventory full? Bank it in the hall or sell it. Higher Mining unlocks the racks inside."
+    ],
+    "dialogue": [
+      {
+        "quest": "quest_tutorial",
+        "status": "complete",
+        "lines": [
+          "Back for more Hash? Respect.",
+          "Humming racks need Mining 15. The liquid-cooled racks in the vault need Mining 30.",
+          "A Steel Pick works from Mining 15, a Quantum Pick from 35. Both on the Terminal."
+        ]
+      }
     ]
   },
   {
@@ -35,6 +57,17 @@
       "Donors love a dinner. Work the room and you'll dig up scandals.",
       "Here is a Donor List. Fancier dinners need a better list and more Fundraising.",
       "Every so often a whale pledges a fortune. Smile and nod."
+    ],
+    "dialogue": [
+      {
+        "quest": "quest_tutorial",
+        "status": "complete",
+        "lines": [
+          "Darling! The donors still talk about your first dinner.",
+          "At Fundraising 20 you can work the Gala Dinner. At 40, the Yacht Party.",
+          "Juicier scandals spin into better Talking Points. Everyone wins. Except the press."
+        ]
+      }
     ]
   },
   {
@@ -47,6 +80,17 @@
       "A raw scandal is useless. Spin it at the podium into a Talking Point.",
       "Talking Points heal you in a fight. Recite one when things get rough.",
       "Spin badly and the story blows up in your face. Practice helps."
+    ],
+    "dialogue": [
+      {
+        "quest": "quest_tutorial",
+        "status": "complete",
+        "lines": [
+          "My star pupil! Your Soundbites are trending.",
+          "Juicy scandals become Zingers at Spin 20. Mega scandals become Mic Drops at 40.",
+          "Practice enough and nothing blows up in your face. Mostly."
+        ]
+      }
     ]
   },
   {
@@ -59,6 +103,17 @@
       "Lobbyists pay for favors. Hand out these cards and get to work.",
       "Fair warning: sometimes they find photos. Then the favor is free.",
       "Bigger lobbyists pay better, if your Lobbying is up to it."
+    ],
+    "dialogue": [
+      {
+        "quest": "quest_tutorial",
+        "status": "complete",
+        "lines": [
+          "You again. Good. The lobbyists like you.",
+          "Veteran lobbyists pay better from Lobbying 20. The Brokers want 40.",
+          "Keep your photos boring, President. Blackmail is bad for business."
+        ]
+      }
     ]
   },
   {
@@ -71,7 +126,18 @@
       "LISTEN UP! Buy a gun at the Terminal. Every gun takes the same Rounds. Here are some on the house.",
       "Cannons are different. They fire the Hash you mine, and they blow up everything around the target.",
       "Pick a style in the Equipment tab: Accurate, Rapid or Longrange. Take the gun off and you swing your gavel: that's Melee.",
-      "Practice on the Sludgelings in the pen. Then the Trenches, south-east of here. They get nastier as you go north."
+      "Practice on the Spam Bots, Sludgelings and Comment Trolls in the training yard. Then the Trenches, south-east of here. They get nastier as you go north."
+    ],
+    "dialogue": [
+      {
+        "quest": "quest_tutorial",
+        "status": "complete",
+        "lines": [
+          "AT EASE, PRESIDENT! You passed basic.",
+          "The Trenches are through the entrance on the south-east lawn. Every barricade has a boss behind it.",
+          "Rounds run out fast. Buy them by the hundred at the Terminal, and pack Talking Points to heal."
+        ]
+      }
     ]
   },
   {
@@ -84,6 +150,17 @@
       "Sprotos are little soldiers who fight beside you. Use a contract to summon one.",
       "One at a time. Its special costs Summoning points; check the Summoning tab.",
       "Here is a Recruit contract. Higher Summoning unlocks Medics, Grunts and more."
+    ],
+    "dialogue": [
+      {
+        "quest": "quest_tutorial",
+        "status": "complete",
+        "lines": [
+          "Your Recruit won't stop talking about you.",
+          "Medics at Summoning 10, Grunts at 20, Snipers at 30, Heavies at 45. Contracts are on the Terminal.",
+          "Watch your Summoning points. A special at the right moment wins fights."
+        ]
+      }
     ]
   },
   {
@@ -96,6 +173,17 @@
       "Every President needs a bunker. I can build you one under this hall.",
       "Bring me 10 Scrap Hash and 2 Soundbites and the hatch is yours.",
       "Down there you build storage, a med bay, server farms... better toolkits, better builds."
+    ],
+    "dialogue": [
+      {
+        "quest": "quest_bunker",
+        "status": "complete",
+        "lines": [
+          "The hatch is yours, President. Climb down any time.",
+          "Build spots are marked down there. Click one to see what you can build.",
+          "Bigger builds need a Pro or Elite Toolkit, plus Concrete, Steel Beams and Circuit Boards from the Terminal."
+        ]
+      }
     ]
   },
   {

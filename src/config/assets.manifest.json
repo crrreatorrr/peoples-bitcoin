@@ -823,6 +823,16 @@
     "sprite": "sprites/enemy_sludgeling.png",
     "spriteHeight": 0.9
   },
+  "enemy_spam_bot": {
+    "placeholder": "prop",
+    "color": "#9aa3ad",
+    "height": 0.8
+  },
+  "enemy_comment_troll": {
+    "placeholder": "humanoid",
+    "color": "#5a7a3a",
+    "skin": "#7a9a4a"
+  },
   "enemy_heckler": {
     "placeholder": "humanoid",
     "color": "#6a2e2e",

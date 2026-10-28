@@ -126,8 +126,12 @@ function fight(
 
   const attRoll = accuracyRoll(def.attack + COMBAT.levelOffset, def.accuracy);
   const max = maxHit(def.strength + COMBAT.levelOffset, def.damage);
-  if (!melee)
-    events.push({ type: 'projectile', fromId: enemy.id, toId: enemy.target!, explosive: false });
+  events.push({
+    type: 'attack',
+    attackerId: enemy.id,
+    targetId: enemy.target!,
+    style: melee ? 'melee' : 'gun',
+  });
 
   if (enemy.target === SPROTO_ID && state.player.sproto) {
     const sproto = state.player.sproto;

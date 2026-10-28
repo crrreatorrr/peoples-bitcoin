@@ -27,6 +27,54 @@
     ]
   },
   {
+    "id": "drops_spam_bot",
+    "usd": [0.3, 1],
+    "table": [
+      {
+        "item": "item_rounds",
+        "weight": 30,
+        "min": 5,
+        "max": 10
+      },
+      {
+        "item": "item_scrap_hash",
+        "weight": 20,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "weight": 50
+      }
+    ]
+  },
+  {
+    "id": "drops_comment_troll",
+    "usd": [1, 3],
+    "table": [
+      {
+        "item": "item_rounds",
+        "weight": 25,
+        "min": 10,
+        "max": 20
+      },
+      {
+        "item": "item_tp_soundbite",
+        "weight": 20,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_raw_minor_scandal",
+        "weight": 25,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "weight": 30
+      }
+    ]
+  },
+  {
     "id": "drops_heckler",
     "usd": [1, 4],
     "table": [

@@ -178,8 +178,12 @@ export function stepSproto(state: GameState, ctx: SimContext, events: SimEvent[]
     const defRoll = accuracyRoll(edef.defense + COMBAT.levelOffset, edef.armor);
     damage = rollDamage(state.rng, attRoll, defRoll, max);
   }
-  if (!melee)
-    events.push({ type: 'projectile', fromId: SPROTO_ID, toId: target.id, explosive: false });
+  events.push({
+    type: 'attack',
+    attackerId: SPROTO_ID,
+    targetId: target.id,
+    style: melee ? 'melee' : 'gun',
+  });
   if (target.target === null) target.target = SPROTO_ID;
   if (damage > 0) {
     const name = ctx.content.skills.get('summoning')?.name ?? 'Summoning';

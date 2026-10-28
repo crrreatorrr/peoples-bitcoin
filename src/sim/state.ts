@@ -74,8 +74,10 @@ export interface Currencies {
 export interface DialogueState {
   /** NPC instance id. */
   npcId: string;
-  /** Index into the NPC's lines. */
+  /** Index into `lines`. */
   line: number;
+  /** The lines picked for the player's quest progress when the talk began. */
+  lines: string[];
 }
 
 export interface Overhead {
@@ -229,12 +231,15 @@ export interface SimContext {
 
 export type MessageKind = 'game' | 'npc' | 'public' | 'levelup' | 'warning' | 'quest';
 
+/** How an attack looks: a swing, a shot, or an explosive shell. */
+export type AttackStyle = 'melee' | 'gun' | 'explosive';
+
 export type SimEvent =
   | { type: 'message'; kind: MessageKind; text: string; speaker?: string }
   | { type: 'xp'; skillId: string; amount: number }
   | { type: 'levelUp'; skillId: string; level: number }
   | { type: 'hitsplat'; targetId: string; damage: number }
-  | { type: 'projectile'; fromId: string; toId: string; explosive: boolean }
+  | { type: 'attack'; attackerId: string; targetId: string; style: AttackStyle }
   | { type: 'death'; entityId: string }
   | { type: 'zoneChanged'; zoneId: string }
   | { type: 'autosave' };

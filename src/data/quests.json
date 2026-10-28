@@ -65,7 +65,7 @@
       },
       {
         "id": "talk_sergeant",
-        "text": "Talk to The Drill Sergeant by the Sludge pen.",
+        "text": "Talk to The Drill Sergeant by the training yard.",
         "trigger": {
           "type": "talk",
           "npc": "npc_drill_sergeant"
@@ -104,7 +104,7 @@
       },
       {
         "id": "kill",
-        "text": "Defeat a Sludgeling in the pen.",
+        "text": "Defeat a Sludgeling in the training yard.",
         "trigger": {
           "type": "kill",
           "enemy": "enemy_sludgeling"
@@ -122,6 +122,17 @@
         },
         "hint": {
           "enemy": "enemy_sludgeling"
+        }
+      },
+      {
+        "id": "troll",
+        "text": "Defeat a Comment Troll in the training yard. Recite a Talking Point if you get hurt.",
+        "trigger": {
+          "type": "kill",
+          "enemy": "enemy_comment_troll"
+        },
+        "hint": {
+          "enemy": "enemy_comment_troll"
         }
       },
       {
@@ -262,7 +273,8 @@
           "object": "obj_trench_entrance"
         }
       }
-    ]
+    ],
+    "summary": "Learn every skill and start refilling the empty treasury."
   },
   {
     "id": "quest_bunker",
@@ -319,6 +331,7 @@
           "npc": "npc_contractor"
         }
       }
-    ]
+    ],
+    "summary": "The Contractor can dig you a bunker under the main hall. For a price."
   }
 ]

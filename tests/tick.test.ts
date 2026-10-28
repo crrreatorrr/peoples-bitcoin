@@ -110,8 +110,9 @@ describe('tick loop', () => {
     runUntil(state, ctx, () => state.player.dialogue !== null, [
       { type: 'interact', targetId: treasurer.id, action: 'Talk-to' },
     ]);
-    expect(state.player.dialogue).toEqual({ npcId: treasurer.id, line: 0 });
-    const lineCount = content().npcs.get('npc_treasurer')!.lines.length;
+    const lines = content().npcs.get('npc_treasurer')!.lines;
+    expect(state.player.dialogue).toEqual({ npcId: treasurer.id, line: 0, lines });
+    const lineCount = lines.length;
     for (let line = 1; line < lineCount; line++) {
       runTick(state, ctx, [{ type: 'continueDialogue' }]);
       expect(state.player.dialogue?.line).toBe(line);
@@ -122,7 +123,7 @@ describe('tick loop', () => {
 
   it('walking away closes the dialogue', () => {
     const { state, ctx } = newGame();
-    state.player.dialogue = { npcId: state.zone.npcs[0].id, line: 0 };
+    state.player.dialogue = { npcId: state.zone.npcs[0].id, line: 0, lines: ['Hi.'] };
     runTick(state, ctx, [{ type: 'walk', x: 27, y: 34 }]);
     expect(state.player.dialogue).toBeNull();
   });
