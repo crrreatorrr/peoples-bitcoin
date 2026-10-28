@@ -100,8 +100,8 @@
   {
     "item": "item_scrap_hash",
     "target": "obj_teleport_chamber",
-    "message": "The chamber swallows 20 Scrap Hash and roars to life. Then the old gate stones beside it grind upright, and the doors slam shut: NOBODY LEAVES.",
-    "consume": 20,
+    "message": "The chamber swallows 5 Scrap Hash and roars to life. Then the old gate stones beside it grind upright, and the doors slam shut: NOBODY LEAVES.",
+    "consume": 5,
     "quest": {
       "quest": "quest_way_out",
       "step": "fuel"

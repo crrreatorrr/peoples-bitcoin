@@ -1,11 +1,12 @@
 /**
  * Bosses that fear only certain weapons (EnemyDef.weakTo). Their quest's
  * dialogue hints at what works; anything else, a Sproto included, does a
- * sliver of its damage (BOSSES.offWeaponScale), and the boss says so once per
- * weapon.
+ * sliver of its damage (BOSSES.offWeaponScale, on average), and the boss says
+ * so once per weapon.
  */
 import { BOSSES } from '../config/balance';
 import { bark } from './barks';
+import { chance } from './rng';
 import type { ItemDef } from './schemas';
 import type { AttackStyle, EnemyInstance, GameState, SimContext, SimEvent } from './state';
 
@@ -35,5 +36,8 @@ export function damageAfterWeakness(
     });
     bark(state, ctx, enemy, 'resist', events);
   }
-  return Math.floor(damage * BOSSES.offWeaponScale);
+  // Rounded at random, so small hits still add up to a tenth on average instead of flooring to 0.
+  const scaled = damage * BOSSES.offWeaponScale;
+  const whole = Math.floor(scaled);
+  return whole + (chance(state.rng, scaled - whole) ? 1 : 0);
 }

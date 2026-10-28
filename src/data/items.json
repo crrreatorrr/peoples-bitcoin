@@ -518,7 +518,7 @@
     "weapon": {
       "type": "gun",
       "ammo": "rounds",
-      "speed": 2,
+      "speed": 3,
       "range": 5,
       "accuracy": 30,
       "damage": 14,
@@ -625,7 +625,7 @@
       "speed": 1,
       "range": 6,
       "accuracy": 70,
-      "damage": 26,
+      "damage": 16,
       "splash": false
     }
   },

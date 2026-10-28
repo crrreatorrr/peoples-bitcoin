@@ -31,11 +31,24 @@ export function loadSavedGame(content: Content): LoadResult {
   if (state) return { status: 'loaded', state };
 
   try {
-    localStorage.setItem(BACKUP_KEY, raw);
+    // Keep whichever unreadable save got further: a second failure in a row is usually the
+    // fresh game that replaced the first, and must not overwrite the real one.
+    const kept = localStorage.getItem(BACKUP_KEY);
+    if (!kept || ticksPlayed(raw) >= ticksPlayed(kept)) localStorage.setItem(BACKUP_KEY, raw);
   } catch {
     // Nothing else we can do; the game still starts fresh.
   }
   return { status: 'unreadable', state: null };
+}
+
+/** How far a raw save got (its tick), or 0 if it can't be read at all. */
+function ticksPlayed(raw: string): number {
+  try {
+    const tick: unknown = (JSON.parse(raw) as { tick?: unknown }).tick;
+    return typeof tick === 'number' ? tick : 0;
+  } catch {
+    return 0;
+  }
 }
 
 export function saveGame(state: GameState): boolean {

@@ -303,13 +303,13 @@ An audit compared movement and interface with OSRS; these choices came out of it
 
 - **Every quest has a boss** (owner) that fears one weapon (or a style), and the quest's dialogue
   hints at it without naming it. `EnemyDef.weakTo` lists the weapon ids or attack styles; anything
-  else does `BOSSES.offWeaponScale` (10%) of its damage (owner: "others do little damage", so a
-  stubborn player can still grind it). The boss says so once per weapon (a `resist` bark and a
+  else does `BOSSES.offWeaponScale` (10%) of its damage on average (owner: "others do little
+  damage"; rounded at random, since flooring turned every small hit into 0). The boss says so once per weapon (a `resist` bark and a
   warning), and Sprotos barely scratch it, so the puzzle can't be skipped.
 - **The bosses and their weapons** (hint in brackets): Sergeant Sandbag, tutorial, any ranged
   weapon ("gavels bounce off"); the Building Inspector, Bunker Down, Campaign Pistol ("standard
   issue"); the Sludge Mother, Confetti Shotgun ("hits everywhere at once, she hates a party");
-  the Wrong-Namer Chief, a gavel ("call the room to order"); Captain Motion, Treasury Rifle ("reach
+  the Wrong-Namer Chief, a gavel or the Veto Hammer ("call the room to order"); Captain Motion, Treasury Rifle ("reach
   across the trench; long range, longer paperwork"); the Rogue Process, Press Pass SMG or
   Minigun ("flood it"); the Gatecrasher, explosive cannons ("fireworks"); the Corporate Raider,
   Briefcase Bludgeon ("heavy paperwork"); the Pundit, Ballot Blaster ("count every vote"); the
@@ -322,4 +322,40 @@ An audit compared movement and interface with OSRS; these choices came out of it
   Contractor; Hostile Takeover ends on the Raider). The Chamber unlocks when the Warden falls,
   not when it's fueled, so nobody walks past him.
 - **"The way forward is open"** now only shows for bosses that guard a barricade.
-- **Sergeant Sandbag** is a gentle dummy: 8 HP, never hits back, always in the training yard.
+- **Sergeant Sandbag** is a gentle dummy: 8 HP, hits for at most 1, always in the training yard.
+  He isn't a `boss` (farming him moved the market).
+
+## Gameplay, dialogue and story QA (0.6.1)
+
+Three audits (gameplay duels in the real sim, every NPC variant, the story as a player meets it).
+
+- **Market:** only a boss's _first_ win counts toward `recentBossWins`; respawning bosses can't
+  be farmed to pump the price.
+- **Bosses tuned to the level their weapon unlocks** (duels, auto-eating): the Lockdown Warden
+  (420 → 240 HP) at Melee 40, the Wrong-Namer Chief (220 → 160 HP, defense 30) at Melee 25–30
+  with the Iron Gavel, Captain Motion (300 → 220 HP, slower) at Shooting 45, the Gatecrasher
+  (170 → 70 HP; a cannon fires one non-stackable Hash per shot, so one inventory must be enough).
+  The Margin Callers and a Dump Golem moved off the path to the Chamber. The Press Pass SMG is
+  speed 3 (on Rapid it fired every tick and matched the Railgun).
+- **Trench bosses sleep until their step,** like the quest-gated bosses: the Sludge Mother,
+  the Wrong-Namer Chief and Captain Motion. Beaten, they stay beaten; the Captain sits by the
+  Chamber as an NPC (zone NPCs can now `require` an unlock; they appear on your next arrival).
+- **Quest items can't be lost for good** (OSRS-style): untradeables (`value` 0) stay with you on
+  death, and whoever gave you a quest item hands you another if your next step needs it and you
+  have none in the inventory, bank or equipment. Quest drops (the Guest List) come back from the
+  quest giver.
+- **Chamber fuel:** 5 Scrap Hash (was 20), to leave room for about 19 food before the Warden, who wakes the moment it is fueled; Morelight says to pack Talking Points first. Gatecrasher strength 34 → 26 (with cannon ammo filling the pack, the player died first), Diamond Hands Minigun damage 26 → 16 (it fires every tick and was 2.5× the Railgun).
+- **Dialogue variants are first-match**, and talking starts the NPC's next quest before lines are
+  picked. Tests now fail on a variant hidden behind an earlier one, a "quest complete" variant the
+  next quest always talks over, and a variant keyed only to a "talk to me" step.
+- **One timeline:** the Lockdown is about 412 days old and the President was elected inside it
+  ("an election in the canteen"). A few of Expedition One came back; the Wrong-Namer Chief was
+  their map-reader. The Lockdown Act is written on the sealed Treasury Gates at the south end of
+  the main path.
+- **Hostile Takeover** waits for Sludge Duty (the Paper-Hands live past the first barricade) and
+  hands over the Exit Permit with the decision; the negatives show the Broker with the Corporate
+  Raider, which is why the Raider comes.
+- **Moonward's students are adults** ("mature students", postgrads), so COOM jokes never sit
+  next to anything that reads as school-age. The press-conference answers are jokes rather than
+  investing slogans in the President's voice.
+- **American spelling** everywhere (Defense, Enrollment, Dueling, practice, unraveled).

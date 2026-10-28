@@ -22,6 +22,7 @@ import {
   type InventorySlot,
 } from './state';
 import { EQUIP_SLOTS } from './schemas';
+import { showUnlockedNpcs } from './zones';
 
 export const SAVE_VERSION = 6;
 
@@ -241,6 +242,7 @@ export function deserialize(raw: unknown, content: Content): GameState | null {
 
   const savedObjects = new Map(save.objects.map((o) => [o.id, o.depletedUntil]));
   for (const obj of state.zone.objects) obj.depletedUntil = savedObjects.get(obj.id) ?? null;
+  showUnlockedNpcs(state, content);
 
   return state;
 }

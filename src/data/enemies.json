@@ -311,7 +311,7 @@
     "level": 25,
     "hp": 120,
     "attack": 20,
-    "strength": 22,
+    "strength": 18,
     "defense": 18,
     "accuracy": 16,
     "damage": 12,
@@ -349,13 +349,13 @@
     "examine": "Expedition One's map-reader, once. Came back down, picked up a megaphone, and now insists there is no outside and it's all $BITCON.",
     "model": "enemy_wrongnamer_chief",
     "level": 45,
-    "hp": 220,
+    "hp": 160,
     "attack": 40,
     "strength": 38,
-    "defense": 45,
+    "defense": 30,
     "accuracy": 36,
     "damage": 28,
-    "armor": 50,
+    "armor": 30,
     "speed": 4,
     "range": 1,
     "type": "shield",
@@ -377,7 +377,13 @@
       "resist": ["HA! Nobody's called ME to order in a year!"]
     },
     "weakTo": {
-      "weapons": ["item_gavel", "item_oak_gavel", "item_iron_gavel", "item_gavel_of_order"]
+      "weapons": [
+        "item_gavel",
+        "item_oak_gavel",
+        "item_iron_gavel",
+        "item_gavel_of_order",
+        "item_veto_hammer"
+      ]
     }
   },
   {
@@ -386,14 +392,14 @@
     "examine": "Led Expedition One north on the first day of the Lockdown. Hasn't stopped running since.",
     "model": "enemy_captain_motion",
     "level": 65,
-    "hp": 300,
+    "hp": 220,
     "attack": 60,
-    "strength": 55,
+    "strength": 45,
     "defense": 50,
     "accuracy": 56,
     "damage": 40,
     "armor": 48,
-    "speed": 2,
+    "speed": 3,
     "range": 1,
     "type": "melee",
     "aggressive": true,
@@ -595,8 +601,7 @@
       "aggro": ["ON YOUR FEET, RECRUIT!"],
       "resist": ["HA! That TICKLES, recruit!"],
       "defeat": ["...good... shooting... recruit..."]
-    },
-    "boss": {}
+    }
   },
   {
     "id": "enemy_building_inspector",
@@ -636,9 +641,9 @@
     "examine": "Has crashed every party since the Lockdown. Bouncers bounce off him.",
     "model": "enemy_gatecrasher",
     "level": 40,
-    "hp": 170,
+    "hp": 70,
     "attack": 36,
-    "strength": 34,
+    "strength": 26,
     "defense": 34,
     "accuracy": 30,
     "damage": 22,
@@ -741,11 +746,11 @@
     "examine": "The Lockdown Act, given legs. Built from the stones of the sealed gates.",
     "model": "enemy_lockdown_warden",
     "level": 72,
-    "hp": 420,
-    "attack": 62,
-    "strength": 58,
+    "hp": 240,
+    "attack": 50,
+    "strength": 45,
     "defense": 60,
-    "accuracy": 56,
+    "accuracy": 46,
     "damage": 40,
     "armor": 64,
     "speed": 5,

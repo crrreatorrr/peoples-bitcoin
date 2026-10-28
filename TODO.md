@@ -10,6 +10,19 @@
 - [ ] Moonward Academy: library and potions content (spellbooks, brewing) beyond decoration
 - [ ] Balance pass: XP rates, drop values, Terminal prices, enemy stats (all in data/balance.ts)
 
+## QA leftovers (0.6.1 audit)
+
+- [ ] Lines that hand you something ("Here's a stack, on the house!", "Here's a Donor List")
+      replay on every talk. Fix: remember seen variants per player, with an optional `repeat` line set.
+- [ ] The coin price is a pure random walk (nothing moves `hopium`; `recentDumps` is never
+      incremented), about ±50% an hour. Add a pull back toward a normal price.
+- [ ] A wielded Hash Cannon fires any Hash in the inventory, including the Scrap Hash you're
+      carrying for Bunker Down or the Chamber.
+- [ ] Spent quest leftovers (Photo Negatives, Blackmail Photo) sit in the inventory; let them be
+      destroyed or used up.
+- [ ] DESIGN.md §4, §5, §10 and §12 still describe the older Ranch / Quest to $100bn story; the
+      Lockdown → Trenches → Way Out → Moonward story lives in DECISIONS.md. Owner to decide.
+
 ## OSRS QA leftovers (0.4.0 audit)
 
 - [ ] Inventory drag with pointer events and a drag delay (now native drag and drop)

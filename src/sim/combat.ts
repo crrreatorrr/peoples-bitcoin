@@ -270,8 +270,9 @@ function killEnemy(
         kind: 'levelup',
         text: `${def.name} is defeated!${opens ? ' The way forward is open.' : ''}`,
       });
+      // Only a first win moves the market; a respawning boss can't be farmed for it.
+      state.economy.recentBossWins += 1;
     }
-    state.economy.recentBossWins += 1;
     // Its adds lose their mother.
     state.zone.enemies = state.zone.enemies.filter((e) => !e.temp);
   }

@@ -51,6 +51,7 @@ export function progressQuests(
         events.push({ type: 'message', kind: 'quest', text: `Quest started: ${q.name}` });
       }
     }
+    reissueLostItems(state, ctx, ev.npc, events);
   }
 
   for (const [questId, progress] of Object.entries(player.quests)) {
@@ -81,6 +82,61 @@ export function progressQuests(
       events.push({ type: 'message', kind: 'quest', text: quest.completeMessage });
     }
   }
+}
+
+/**
+ * OSRS-style reclaim: talking to whoever gave you a quest item (worth nothing,
+ * so it can't be bought back) hands you another if your next step needs it
+ * and you've lost it.
+ */
+function reissueLostItems(
+  state: GameState,
+  ctx: SimContext,
+  npcId: string,
+  events: SimEvent[],
+): void {
+  const player = state.player;
+  for (const [questId, progress] of Object.entries(player.quests)) {
+    const quest = ctx.content.quests.get(questId);
+    if (!quest || progress.complete) continue;
+    const t = nextStep(quest, progress.done)?.trigger;
+    const needed =
+      t?.type === 'use' ? [t.item] : t?.type === 'deliver' ? t.items.map((s) => s.item) : [];
+    for (const itemId of needed) {
+      const def = ctx.content.items.get(itemId);
+      if (!def || def.value > 0 || giverOf(ctx.content, quest, itemId) !== npcId) continue;
+      const owned =
+        countItem(player.inventory, itemId) +
+        countItem(player.bank, itemId) +
+        Object.values(player.equipment).filter((s) => s?.itemId === itemId).length;
+      if (owned > 0) continue;
+      giveItem(state, ctx, itemId, 1, events);
+      const name = ctx.content.npcs.get(npcId)?.name ?? 'Someone';
+      events.push({
+        type: 'message',
+        kind: 'quest',
+        text: `${name} hands you another ${def.name}. Try not to lose this one.`,
+      });
+    }
+  }
+}
+
+/** Who hands out `itemId`: the NPC of the step that rewards it, or the quest giver for a quest reward or an earlier 'obtain' step of `quest`. */
+function giverOf(content: Content, quest: QuestDef, itemId: string): string | undefined {
+  const has = (r: Reward | undefined) => r?.items.some((s) => s.item === itemId) ?? false;
+  for (const q of content.quests.values()) {
+    if (has(q.reward)) return q.startNpc;
+    for (const s of q.steps) {
+      if (has(s.reward) || Object.values(s.choiceRewards).some(has)) {
+        return s.trigger.type === 'talk' || s.trigger.type === 'deliver'
+          ? s.trigger.npc
+          : q.startNpc;
+      }
+    }
+  }
+  return quest.steps.some((s) => s.trigger.type === 'obtain' && s.trigger.item === itemId)
+    ? quest.startNpc
+    : undefined;
 }
 
 /** An NPC's lines for the player's quest progress: the first matching variant, else the defaults. */

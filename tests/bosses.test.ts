@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { BOSSES, COMBAT } from '../src/config/balance';
 import { newEnemy, type SimEvent } from '../src/sim/state';
+import { damageEnemy } from '../src/sim/combat';
 import { damageAfterWeakness } from '../src/sim/weakness';
 import { content, newGame } from './helpers';
 
@@ -54,6 +55,32 @@ describe('weapon-locked bosses', () => {
     expect(damageAfterWeakness(state, ctx, enemy, item('gun_press_pass_smg'), 'gun', 40, [])).toBe(
       4,
     );
+  });
+
+  it('still take a tenth of small hits on average, instead of rounding them all to 0', () => {
+    const { state, ctx, enemy } = boss('enemy_lockdown_warden');
+    const rifle = item('gun_treasury_rifle');
+    let total = 0;
+    for (let i = 0; i < 1000; i++)
+      total += damageAfterWeakness(state, ctx, enemy, rifle, 'gun', 5, []);
+    expect(total / 1000).toBeGreaterThan(0.4);
+    expect(total / 1000).toBeLessThan(0.6);
+  });
+
+  it('move the market once, not every time they respawn', () => {
+    const { state, ctx, enemy } = boss('enemy_sludge_mother');
+    damageEnemy(state, ctx, enemy, 9999, []);
+    expect(state.economy.recentBossWins).toBe(1);
+    enemy.hp = content().enemies.get('enemy_sludge_mother')!.hp;
+    enemy.respawnAt = null;
+    damageEnemy(state, ctx, enemy, 9999, []);
+    expect(state.economy.recentBossWins).toBe(1);
+  });
+
+  it("the tutorial's Sergeant Sandbag is a dummy, not a boss", () => {
+    const { state, ctx, enemy } = boss('enemy_sergeant_sandbag');
+    damageEnemy(state, ctx, enemy, 9999, []);
+    expect(state.economy.recentBossWins).toBe(0);
   });
 
   it('barely notice Sprotos', () => {

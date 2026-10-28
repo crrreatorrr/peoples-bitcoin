@@ -1152,7 +1152,7 @@
       },
       {
         "id": "fuel",
-        "text": "Feed the Teleport Chamber 20 Scrap Hash.",
+        "text": "Feed the Teleport Chamber 5 Scrap Hash.",
         "trigger": {
           "type": "use",
           "item": "item_scrap_hash",

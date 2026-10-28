@@ -309,6 +309,20 @@ export function emptyEquipment(): Equipment {
   };
 }
 
+/** The NPC placed `index`-th in `zone`, standing on its spawn tile. */
+export function npcInstance(zone: ZoneDef, index: number): NpcInstance {
+  const n = zone.npcs[index];
+  return {
+    id: `n${index}`,
+    defId: n.npcId,
+    x: n.x,
+    y: n.y,
+    spawn: { x: n.x, y: n.y },
+    from: { x: n.x, y: n.y },
+    goal: null,
+  };
+}
+
 export function createZoneState(zone: ZoneDef, content: Content): ZoneState {
   return {
     id: zone.id,
@@ -319,15 +333,7 @@ export function createZoneState(zone: ZoneDef, content: Content): ZoneState {
       y: o.y,
       depletedUntil: null,
     })),
-    npcs: zone.npcs.map((n, i) => ({
-      id: `n${i}`,
-      defId: n.npcId,
-      x: n.x,
-      y: n.y,
-      spawn: { x: n.x, y: n.y },
-      from: { x: n.x, y: n.y },
-      goal: null,
-    })),
+    npcs: zone.npcs.flatMap((n, i) => (n.requires ? [] : [npcInstance(zone, i)])),
     enemies: zone.enemies.map((e, i) => {
       const enemy = newEnemy(`e${i}`, e.enemyId, e.x, e.y, content, false);
       if (e.quest) {

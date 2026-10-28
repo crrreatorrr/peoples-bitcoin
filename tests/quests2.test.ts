@@ -278,7 +278,7 @@ describe('The Way Out', () => {
       'item_press_release',
     ])
       give(state, id);
-    give(state, 'item_scrap_hash', 20);
+    give(state, 'item_scrap_hash', 5);
     talk(state, ctx, 'npc_morelight');
     expect(state.player.quests.quest_way_out.done).toEqual(['briefing']);
     answer(state, ctx, 0); // "Let's get out of here."

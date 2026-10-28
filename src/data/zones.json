@@ -963,7 +963,8 @@
         {
           "npcId": "npc_captain_seated",
           "x": 23,
-          "y": 9
+          "y": 9,
+          "requires": "boss:enemy_captain_motion"
         }
       ],
       "enemies": [
@@ -1045,7 +1046,11 @@
         {
           "enemyId": "enemy_sludge_mother",
           "x": 20,
-          "y": 87
+          "y": 87,
+          "quest": {
+            "quest": "quest_sludge_duty",
+            "step": "mother"
+          }
         },
         {
           "enemyId": "enemy_paper_hands",
@@ -1120,7 +1125,11 @@
         {
           "enemyId": "enemy_wrongnamer_chief",
           "x": 20,
-          "y": 49
+          "y": 49,
+          "quest": {
+            "quest": "quest_name_calling",
+            "step": "chief"
+          }
         },
         {
           "enemyId": "enemy_bear_raider",
@@ -1183,7 +1192,7 @@
         },
         {
           "enemyId": "enemy_dump_golem",
-          "x": 21,
+          "x": 34,
           "y": 9
         },
         {
@@ -1198,18 +1207,18 @@
         },
         {
           "enemyId": "enemy_margin_caller",
-          "x": 13,
+          "x": 35,
           "y": 2
         },
         {
           "enemyId": "enemy_margin_caller",
-          "x": 28,
-          "y": 2
+          "x": 37,
+          "y": 4
         },
         {
           "enemyId": "enemy_margin_caller",
-          "x": 11,
-          "y": 5
+          "x": 36,
+          "y": 7
         },
         {
           "enemyId": "enemy_lockdown_warden",

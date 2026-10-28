@@ -79,12 +79,13 @@
         "step": ["install_blueprints", "install_drive", "install_cell", "install_permit", "fuel"],
         "lines": [
           "The Chamber is at the far north end of the Trenches, past Captain Motion's barricade.",
-          "Use each part on it: the blueprints, the Coordinates Drive, the Power Cell, the Exit Permit. Then feed it 20 Scrap Hash.",
+          "Use each part on it: the blueprints, the Coordinates Drive, the Power Cell, the Exit Permit. Then feed it 5 Scrap Hash.",
           "And President, one more thing. The Scout says the stones by the Chamber have started to move. The old gates, standing up.",
           {
             "player": "The Lockdown?"
           },
           "The Lockdown Act itself. Laws don't fall to bullets, President. They fall to a veto.",
+          "Fill every spare pocket with Talking Points before you feed it. Whatever wakes up will not wait for you to pack.",
           "When the doors open, step through. I'll be right behind you."
         ]
       },
@@ -116,7 +117,7 @@
         "status": "started",
         "step": ["captain"],
         "lines": [
-          "The Captain hits fast but tires. Stand your ground and keep your health up.",
+          "The Captain hits fast and never stops moving. Don't trade blows with him; catch him from across the trench.",
           "The Treasury keeps a rifle for exactly this sort of man. Long range. Longer paperwork. You'll find it at the Terminal.",
           "And President? Bring him down gently if you can. He was one of ours."
         ]
@@ -222,7 +223,7 @@
         "step": ["mother"],
         "lines": [
           "The Mother calls her little ones when she's hurt. Hit hard and keep moving.",
-          "Sludge feeds on gloom, President. Bring something festive. And bring Talking Points; sludge is very hard to get out of a suit."
+          "Sludge feeds on gloom, President. Bring something festive. And bring your best Talking Points, Zingers if you can spin them; sludge is very hard to get out of a suit."
         ]
       },
       {
@@ -491,7 +492,7 @@
     "lines": [
       "Darling! You must be the President. Love the suit. Hate the treasury.",
       "Donors adore a dinner. Work the room and you'll overhear all sorts of scandals.",
-      "Here's a Donor List. The fancier the dinner, the better the list you'll need.",
+      "Here's a Donor List. A better list works the room faster.",
       {
         "player": "And what do I do with scandals?"
       },

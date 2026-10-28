@@ -214,6 +214,12 @@ describe('fighting', () => {
 
   it('killing a boss unlocks its barricade, and the boss calls adds', () => {
     const { state, ctx } = newGame(21);
+    // She sleeps until Sludge Duty sends you to her.
+    state.player.quests.quest_sludge_duty = {
+      done: ['briefing', 'scout'],
+      complete: false,
+      choices: [],
+    };
     changeZone(state, ctx, 'zone_trenches', { x: 20, y: 89 }, []);
     const mother = state.zone.enemies.find((e) => e.defId === 'enemy_sludge_mother')!;
     state.player.skills.shooting = xpForLevel(70);

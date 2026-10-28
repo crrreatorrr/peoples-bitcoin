@@ -11,6 +11,7 @@ import {
   gridOf,
   hasUnlock,
   maxHp,
+  npcInstance,
   PLAYER_ID,
   type GameState,
   type ObjectInstance,
@@ -18,6 +19,7 @@ import {
   type SimEvent,
   type Tile,
 } from './state';
+import type { Content } from './content';
 import { besidePlayer } from './sprotos';
 
 /** The zone-file placement an object instance came from. */
@@ -53,7 +55,19 @@ export function changeZone(
     const spot = besidePlayer(state, ctx);
     Object.assign(player.sproto, spot, { from: { ...spot }, target: null });
   }
+  showUnlockedNpcs(state, ctx.content);
   progressQuests(state, ctx, { type: 'enterZone', zone: zoneId }, events);
+}
+
+/** Adds the zone's NPCs whose `requires` the player now has; they turn up the next time you arrive. */
+export function showUnlockedNpcs(state: GameState, content: Content): void {
+  const def = content.zones.get(state.zone.id);
+  if (!def) return;
+  def.npcs.forEach((n, i) => {
+    if (!n.requires || !hasUnlock(state.player, n.requires)) return;
+    if (state.zone.npcs.some((npc) => npc.id === `n${i}`)) return;
+    state.zone.npcs.push(npcInstance(def, i));
+  });
 }
 
 function locked(state: GameState, requires: string | undefined): boolean {
@@ -131,7 +145,9 @@ export function handleDeath(state: GameState, ctx: SimContext, events: SimEvent[
     const until = state.tick + DEATH.pileDespawnTicks;
     player.inventory.forEach((s, i) => {
       if (!s) return;
-      const stackable = ctx.content.items.get(s.itemId)?.stackable ?? false;
+      const def = ctx.content.items.get(s.itemId);
+      if (def?.value === 0) return; // untradeables (quest items) stay with you, as in OSRS
+      const stackable = def?.stackable ?? false;
       spawnGroundItem(state.zone, s.itemId, s.qty, player.pos.x, player.pos.y, until, stackable);
       player.inventory[i] = null;
     });

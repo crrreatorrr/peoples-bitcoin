@@ -484,7 +484,15 @@ export const ZoneDefSchema = z
         lockedMessage: z.string().optional(),
       }),
     ),
-    npcs: z.array(z.object({ npcId: Id, x: Coord, y: Coord })),
+    npcs: z.array(
+      z.object({
+        npcId: Id,
+        x: Coord,
+        y: Coord,
+        /** Only there once the player has this unlock (e.g. a boss who has since sat down). */
+        requires: z.string().optional(),
+      }),
+    ),
     enemies: z
       .array(
         z.object({

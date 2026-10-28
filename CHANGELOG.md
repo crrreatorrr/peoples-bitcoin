@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.6.1 — Gameplay, dialogue and story QA (2026-10-28)
+
+- **Fixed blockers:** wrong-weapon hits on bosses rounded down to 0 (now a tenth on average);
+  farming Sergeant Sandbag or respawning bosses pumped the coin price; losing a quest item (death,
+  dropping it) could block The Way Out for good. Quest items now stay with you when you die, and
+  the NPC who gave you one hands out another.
+- **Bosses beatable at their weapon's level:** the Lockdown Warden, the Wrong-Namer Chief (who
+  also respects the Veto Hammer), Captain Motion and the Gatecrasher were retuned; the Chamber
+  room is no longer a Margin Caller crossfire; the Chamber takes 5 Scrap Hash; the Press Pass SMG and Diamond Hands Minigun
+  no longer outclass the Railgun.
+- **Bosses stay beaten:** the Sludge Mother, the Wrong-Namer Chief and Captain Motion wake only at
+  their quest step. Captain Motion then sits by the Chamber and talks.
+- **Story:** one timeline (you were elected in the canteen, 412 days into the Lockdown), the
+  sealed Treasury Gates, Expedition One survivors, the Raider's motive, pointers to the side
+  quests and the bunker, and epilogues from the Treasurer, the Reporter, the Spin Doctor, the
+  Captain and Morelight.
+- **Dialogue:** lines that could never show or went stale now show at the right time (the
+  Reporter's press-release hint, the Contractor's blueprints, the Scout at every report step);
+  boss hints point at the weapon that works; repeated tutorial jokes rewritten; a shorter
+  Archmage intro; Moonward's students are adults; barks for the training-yard enemies.
+- **Tests:** 195, including dialogue checks that fail on lines nobody can see.
+
 ## 0.6.0 — The Trenches story and Moonward Academy (2026-10-28)
 
 - **The Trenches escape story:** Expedition One dug the Trenches on the first day of the
