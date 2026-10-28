@@ -8,7 +8,7 @@ Build in phases (section 15). Do not start a phase until the previous one passes
 
 ## Revisions approved by the owner (2026-10-28) — these override the sections below
 
-- **Hard Rule 2 amended:** satirical caricatures inspired by public figures are allowed (see §0); the President is a Black president inspired by Barack Obama. Real names stay out.
+- **Hard Rule 2 amended:** the player character is **President Obama**, a satirical low-poly caricature (see §0), with a parody notice in game. No other real names.
 
 - **Skills (10):** Shooting, Melee, Defense, Hitpoints, **Summoning** (was Command), Mining, Fundraising, Lobbying, Spin, Construction. **Removed:** Gunsmithing, Policy, Press Dodging, Painting.
 - **Skill web:** Mining → Hash (sold at the Terminal at the live price; also cannon ammo; Construction material). Fundraising → raw Scandals (+ rare whale payouts). Spin → Scandals into Talking Points (food that heals in combat). **Lobbying pays $BITCOIN for favors; sometimes you're blackmailed and do it unpaid.** Summoning → Sproto allies from contracts. Construction → **locked behind the Bunker Down quest**; better toolkits unlock better bunker upgrades.
@@ -26,7 +26,7 @@ Build in phases (section 15). Do not start a phase until the previous one passes
 ## 0. Hard rules (never break)
 
 1. **In-game currency only.** No real money, no crypto wallets, no blockchain calls, no cash-out, no real-money trading. "$BITCOIN" and "BTC" are fictional in-game currencies.
-2. **Fictional characters; public figures only as satire.** *(Amended by the owner, 2026-10-28.)* Characters have invented names: no real person's name or handle anywhere (code, assets, dialogue, filenames). Stylized satirical caricatures *inspired by* public figures are allowed (the President, "President Hope Q. Change", is a Black president inspired by Barack Obama), as long as they are low-poly cartoons, never photorealistic, never sexual or demeaning, and never imply a real person endorses anything (no real-world endorsements, quotes or slogans attributed to them). Private individuals' faces only with their consent. All other characters are archetypes with invented names.
+2. **Fictional characters; public figures only as satire.** *(Amended by the owner, 2026-10-28.)* Characters have invented names, with one owner-approved satirical exception: the player character is **President Obama**, a stylized low-poly caricature inspired by Barack Obama. Caricatures of public figures must be low-poly cartoons, never photorealistic, never sexual or demeaning, and must never imply a real person endorses anything (no real-world endorsements, quotes or slogans attributed to them, nothing about real coins or investing in their voice). The game shows a parody notice (`PARODY_NOTICE` in `src/config/branding.ts`). No other real names or handles. Private individuals' faces only with their consent. All other characters are archetypes with invented names.
 3. **No trademarked characters on screen.** No wizard boy, no blue hedgehog, no studio characters. The coin's full name is a configurable string constant `COIN_FULL_NAME` in `src/config/branding.ts`; default it to a parody name `"PresidentWizardHedgehog10Inu"` with ticker `"$BITCOIN"`. The owner may change it later.
 4. **Content rating: teen-friendly satire.** No sexual content, no slurs, no racial or religious jokes, no mutilation threats, no mocking of disabled people. Guns are cartoon, low-poly, chunky, no gore. Enemies "poof" into sludge when defeated.
 5. **Placeholders first.** Every model, sound and texture is a placeholder (primitives or simple GLB) loaded through an asset manifest so final art can be swapped without code changes.
@@ -97,7 +97,7 @@ All randomness goes through `rng.ts` (seeded) so tests and server replays are de
 
 The game parodies a real meme coin community. Keep only the safe, funny parts listed here.
 
-**Premise.** President Hope Q. Change takes office and opens the national reserve. It is supposed to hold BTC. It holds **$BITCOIN** ("The People's Bitcoin"), a meme coin with a 1,000,000,000 supply and 0% tax, because the Treasurer misread the ticker. Selling would crash the coin and the country, so the President takes the **Never Sell Vow** and begins **the Quest**: pump the People's Bitcoin to the mythical **$100 billion** and fund the nation on the way.
+**Premise.** President Obama takes office and opens the national reserve. It is supposed to hold BTC. It holds **$BITCOIN** ("The People's Bitcoin"), a meme coin with a 1,000,000,000 supply and 0% tax, because the Treasurer misread the ticker. Selling would crash the coin and the country, so the President takes the **Never Sell Vow** and begins **the Quest**: pump the People's Bitcoin to the mythical **$100 billion** and fund the nation on the way.
 
 **Mythology (from the coin's straight-faced "white paper"):**
 - **The Quest (of Hallows):** a cosmic event where the universe created a "store of value".
@@ -127,7 +127,7 @@ The game parodies a real meme coin community. Keep only the safe, funny parts li
 
 | ID | Name | Role | Personality / bits |
 |---|---|---|---|
-| npc_president | **President Hope Q. Change** | Player character (customizable) | — |
+| npc_president | **President Obama** | Player character (customizable) | — |
 | npc_treasurer | **The Treasurer** | Tutorial quest-giver | Bought the wrong coin, nervous, apologetic |
 | npc_pa_ranchero | **Pa Ranchero** | Hub leader at The Ranch | Calls you "son". Hosts the Sunday Ranch Show. Fires you when quests fail, rehires you next day |
 | npc_kingmaker | **The Kingmaker** | Podcast guild master | Funds your fame, books interviews; main patron |

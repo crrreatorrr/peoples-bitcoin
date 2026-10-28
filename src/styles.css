@@ -1387,3 +1387,10 @@ body {
   content: ' 🔒';
   font-size: 12px;
 }
+
+.parody-notice {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.1;
+  color: #c8bca0;
+}

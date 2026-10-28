@@ -5,7 +5,7 @@
  */
 import * as THREE from 'three';
 import { INVENTORY_SIZE, MAX_CATCHUP_TICKS, START_ZONE_ID, TICK_MS, UI } from './config/balance';
-import { GAME_TITLE, PRESIDENT_NAME } from './config/branding';
+import { GAME_TITLE, PARODY_NOTICE, PRESIDENT_NAME } from './config/branding';
 import { Keyboard } from './input/keyboard';
 import { attachMouse } from './input/mouse';
 import { clearSavedGame, loadSavedGame, saveGame } from './persist';
@@ -614,6 +614,7 @@ function greet(chat: Chat, status: 'loaded' | 'none' | 'unreadable'): void {
       'warning',
     );
   }
+  chat.add(PARODY_NOTICE, 'examine');
   chat.add(`Welcome to The Treasury, ${PRESIDENT_NAME}.`);
   chat.add(
     'ATTENTION ATTENTION: Follow the yellow arrow and the Quests tab. Morelight, your Chief of Staff, is waiting by the main path.',

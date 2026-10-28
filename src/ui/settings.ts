@@ -1,3 +1,4 @@
+import { PARODY_NOTICE } from '../config/branding';
 /** Settings tab: manual save, reset progress, and a controls cheat sheet. */
 export function buildSettingsPanel(onSave: () => void, onReset: () => void): HTMLElement {
   const el = document.createElement('div');
@@ -20,7 +21,7 @@ export function buildSettingsPanel(onSave: () => void, onReset: () => void): HTM
   for (const line of [
     'Left-click: walk / default action',
     'Right-click: all options',
-    'Right- or middle-drag, arrow keys: camera',
+    'Middle-drag, arrow keys, sideways swipe: camera',
     'Mouse wheel: zoom',
     'Shift-click item: drop',
     'Run orb (top right): toggle run',
@@ -30,6 +31,10 @@ export function buildSettingsPanel(onSave: () => void, onReset: () => void): HTM
     help.append(li);
   }
 
-  el.append(save, reset, help);
+  const notice = document.createElement('p');
+  notice.className = 'parody-notice';
+  notice.textContent = PARODY_NOTICE;
+
+  el.append(save, reset, help, notice);
   return el;
 }

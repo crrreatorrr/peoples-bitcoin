@@ -2,10 +2,10 @@
 
 ## Rules
 
-- **Real people: caricature only, never their name.** Stylized low-poly caricatures inspired by
-  public figures are allowed for satire (the President is inspired by Barack Obama). Never
-  photorealistic, never their name or signature, nothing that reads as their endorsement.
-  Private individuals only with their consent.
+- **Real people: satire only.** The President is a stylized low-poly caricature inspired by Barack
+  Obama (owner-approved, named "President Obama" with a parody notice). Never photorealistic,
+  never a signature, nothing that reads as a real endorsement. No other real people; private
+  individuals only with their consent.
 - **No trademarked characters.** No wizard boys, blue hedgehogs, studio mascots or anything that
   reads as one. The Gremlin mascot and Sprotos are original designs.
 - **Teen-friendly.** Guns are chunky, cartoon and low-poly. No gore; defeated enemies poof into
