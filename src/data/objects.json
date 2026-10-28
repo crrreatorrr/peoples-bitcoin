@@ -39,6 +39,14 @@
     }
   },
   {
+    "id": "obj_bank_booth",
+    "name": "Bank Booth",
+    "examine": "The Treasury's bank. Your deposits are safe, and definitely not BTC.",
+    "model": "bank_booth",
+    "actions": ["Bank"],
+    "blocks": true
+  },
+  {
     "id": "obj_roadmap_board",
     "name": "RoadMap to $100bn",
     "examine": "RoadMap to $100bn (+ ∞%). It has one step. The step is an arrow.",

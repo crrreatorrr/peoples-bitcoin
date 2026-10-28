@@ -23,12 +23,22 @@ export interface InventorySlot {
 }
 export type Inventory = (InventorySlot | null)[];
 
+/** A count, or every one available. */
+export type Quantity = number | 'all';
+
 /** What a client asks for. The sim validates every intent before acting on it. */
 export type Intent =
   | { type: 'walk'; x: number; y: number }
   | { type: 'interact'; targetId: string; action: string }
   | { type: 'toggleRun' }
-  | { type: 'dropItem'; slot: number };
+  | { type: 'dropItem'; slot: number }
+  | { type: 'moveItem'; from: number; to: number }
+  | { type: 'chat'; text: string }
+  | { type: 'continueDialogue' }
+  | { type: 'deposit'; slot: number; qty: Quantity }
+  | { type: 'depositAll' }
+  | { type: 'withdraw'; index: number; qty: Quantity }
+  | { type: 'closeBank' };
 
 export interface ActiveAction {
   targetId: string;
@@ -42,6 +52,18 @@ export interface Currencies {
   btc: number;
 }
 
+export interface DialogueState {
+  /** NPC instance id. */
+  npcId: string;
+  /** Index into the NPC's lines. */
+  line: number;
+}
+
+export interface Overhead {
+  text: string;
+  untilTick: number;
+}
+
 export interface PlayerState {
   name: string;
   pos: Tile;
@@ -52,6 +74,12 @@ export interface PlayerState {
   runEnergy: number;
   action: ActiveAction | null;
   inventory: Inventory;
+  /** Bank stacks in display order. Every item stacks in the bank. */
+  bank: InventorySlot[];
+  bankOpen: boolean;
+  dialogue: DialogueState | null;
+  /** Public chat shown above the player's head. */
+  overhead: Overhead | null;
   /** Skill id → total XP. */
   skills: Record<string, number>;
   currencies: Currencies;
@@ -71,12 +99,27 @@ export interface NpcInstance {
   defId: string;
   x: number;
   y: number;
+  /** Wander radius is measured from here. */
+  spawn: Tile;
+  /** Position at the start of the last tick, for render interpolation. */
+  from: Tile;
+}
+
+export interface GroundItem {
+  id: string;
+  itemId: string;
+  qty: number;
+  x: number;
+  y: number;
+  despawnTick: number;
 }
 
 export interface ZoneState {
   id: string;
   objects: ObjectInstance[];
   npcs: NpcInstance[];
+  groundItems: GroundItem[];
+  nextGroundItemId: number;
 }
 
 export interface EconomyState {
@@ -103,7 +146,7 @@ export interface SimContext {
   grid: Grid;
 }
 
-export type MessageKind = 'game' | 'npc' | 'levelup' | 'warning';
+export type MessageKind = 'game' | 'npc' | 'public' | 'levelup' | 'warning';
 
 export type SimEvent =
   | { type: 'message'; kind: MessageKind; text: string; speaker?: string }
@@ -112,7 +155,9 @@ export type SimEvent =
   | { type: 'autosave' };
 
 export type EntityRef =
-  { kind: 'object'; instance: ObjectInstance } | { kind: 'npc'; instance: NpcInstance };
+  | { kind: 'object'; instance: ObjectInstance }
+  | { kind: 'npc'; instance: NpcInstance }
+  | { kind: 'ground'; instance: GroundItem };
 
 export function createZoneState(zone: ZoneDef): ZoneState {
   return {
@@ -124,7 +169,16 @@ export function createZoneState(zone: ZoneDef): ZoneState {
       y: o.y,
       depletedUntil: null,
     })),
-    npcs: zone.npcs.map((n, i) => ({ id: `n${i}`, defId: n.npcId, x: n.x, y: n.y })),
+    npcs: zone.npcs.map((n, i) => ({
+      id: `n${i}`,
+      defId: n.npcId,
+      x: n.x,
+      y: n.y,
+      spawn: { x: n.x, y: n.y },
+      from: { x: n.x, y: n.y },
+    })),
+    groundItems: [],
+    nextGroundItemId: 0,
   };
 }
 
@@ -145,6 +199,10 @@ export function createGameState(content: Content, zoneId: string, seed: number):
       runEnergy: MOVEMENT.runEnergyMax,
       action: null,
       inventory: createInventory(),
+      bank: [],
+      bankOpen: false,
+      dialogue: null,
+      overhead: null,
       skills,
       currencies: { ...START_CURRENCIES },
     },
@@ -158,5 +216,7 @@ export function findEntity(state: GameState, id: string): EntityRef | null {
   if (obj) return { kind: 'object', instance: obj };
   const npc = state.zone.npcs.find((n) => n.id === id);
   if (npc) return { kind: 'npc', instance: npc };
+  const ground = state.zone.groundItems.find((g) => g.id === id);
+  if (ground) return { kind: 'ground', instance: ground };
   return null;
 }

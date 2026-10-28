@@ -1,23 +1,52 @@
 {
-  "tile_grass": { "placeholder": "tile", "color": "#4e7a31", "pattern": "noise" },
-  "tile_path": { "placeholder": "tile", "color": "#8d7e63", "pattern": "cobble" },
-  "tile_floor": { "placeholder": "tile", "color": "#d3cab7", "pattern": "tiles" },
+  "tile_grass": {
+    "placeholder": "tile",
+    "color": "#4e7a31",
+    "pattern": "noise"
+  },
+  "tile_path": {
+    "placeholder": "tile",
+    "color": "#8d7e63",
+    "pattern": "cobble"
+  },
+  "tile_floor": {
+    "placeholder": "tile",
+    "color": "#d3cab7",
+    "pattern": "tiles"
+  },
   "tile_carpet": {
     "placeholder": "tile",
     "color": "#8a1d2a",
     "accent": "#d2a63a",
     "pattern": "carpet"
   },
-  "tile_wall": { "placeholder": "wall", "color": "#b8b0a0", "pattern": "brick", "height": 1.8 },
-  "tile_hedge": { "placeholder": "wall", "color": "#2e5a23", "pattern": "noise", "height": 1.1 },
-  "tile_water": { "placeholder": "water", "color": "#2f6f9e" },
+  "tile_wall": {
+    "placeholder": "wall",
+    "color": "#b8b0a0",
+    "pattern": "brick",
+    "height": 1.8
+  },
+  "tile_hedge": {
+    "placeholder": "wall",
+    "color": "#2e5a23",
+    "pattern": "noise",
+    "height": 1.1
+  },
+  "tile_water": {
+    "placeholder": "water",
+    "color": "#2f6f9e"
+  },
   "player_president": {
     "placeholder": "humanoid",
     "color": "#1f2a44",
     "accent": "#b3262e",
     "skin": "#d9a57a",
     "hair": "#9c9c9c",
-    "clips": { "idle": "idle", "walk": "walk", "mine": "mine" }
+    "clips": {
+      "idle": "idle",
+      "walk": "walk",
+      "mine": "mine"
+    }
   },
   "npc_treasurer": {
     "placeholder": "humanoid",
@@ -26,45 +55,176 @@
     "skin": "#b77d55",
     "hair": "#3a2a1c",
     "glasses": true,
-    "clips": { "idle": "idle" }
+    "clips": {
+      "idle": "idle"
+    }
   },
-  "rack_dusty": { "placeholder": "rack", "color": "#625d55", "accent": "#7cff6b" },
-  "rack_humming": { "placeholder": "rack", "color": "#3c4350", "accent": "#ffd23f" },
-  "rack_liquid": { "placeholder": "rack", "color": "#22303f", "accent": "#3fd8ff" },
+  "rack_dusty": {
+    "placeholder": "rack",
+    "color": "#625d55",
+    "accent": "#7cff6b"
+  },
+  "rack_humming": {
+    "placeholder": "rack",
+    "color": "#3c4350",
+    "accent": "#ffd23f"
+  },
+  "rack_liquid": {
+    "placeholder": "rack",
+    "color": "#22303f",
+    "accent": "#3fd8ff"
+  },
   "rack_overheated": {
     "placeholder": "rack",
     "color": "#3a3330",
     "accent": "#ff3b2f",
     "smoke": true
   },
-  "board_roadmap": { "placeholder": "board", "color": "#1b1b1b", "accent": "#3fdc5a" },
-  "pillar_marble": { "placeholder": "pillar", "color": "#e8e2d4" },
-  "flagpole": { "placeholder": "flagpole", "color": "#c9c9c9", "accent": "#2f9e44" },
-  "bench_park": { "placeholder": "bench", "color": "#6b4a2b" },
-  "statue_gremlin": { "placeholder": "gremlin", "color": "#d4a83a" },
-  "tree_oak": { "placeholder": "tree", "color": "#3f7a2c", "accent": "#5b3b22" },
-  "icon_scrap_hash": { "placeholder": "icon", "color": "#8c8c8c", "label": "SH" },
-  "icon_warm_hash": { "placeholder": "icon", "color": "#e0a030", "label": "WH" },
-  "icon_molten_hash": { "placeholder": "icon", "color": "#3fd8ff", "label": "MH" },
-  "tab_inventory": { "placeholder": "glyph", "label": "🎒" },
-  "tab_equipment": { "placeholder": "glyph", "label": "👔" },
-  "tab_skills": { "placeholder": "glyph", "label": "📊" },
-  "tab_military": { "placeholder": "glyph", "label": "🪖" },
-  "tab_quests": { "placeholder": "glyph", "label": "📜" },
-  "tab_settings": { "placeholder": "glyph", "label": "⚙️" },
-  "orb_run": { "placeholder": "glyph", "label": "🏃" },
-  "skill_shooting": { "placeholder": "glyph", "label": "🎯" },
-  "skill_melee": { "placeholder": "glyph", "label": "🔨" },
-  "skill_defense": { "placeholder": "glyph", "label": "🛡️" },
-  "skill_hitpoints": { "placeholder": "glyph", "label": "❤️" },
-  "skill_command": { "placeholder": "glyph", "label": "🎖️" },
-  "skill_mining": { "placeholder": "glyph", "label": "⛏️" },
-  "skill_fundraising": { "placeholder": "glyph", "label": "🍽️" },
-  "skill_lobbying": { "placeholder": "glyph", "label": "🤝" },
-  "skill_spin": { "placeholder": "glyph", "label": "🌀" },
-  "skill_policy": { "placeholder": "glyph", "label": "📜" },
-  "skill_press_dodging": { "placeholder": "glyph", "label": "🏃" },
-  "skill_construction": { "placeholder": "glyph", "label": "🏛️" },
-  "skill_painting": { "placeholder": "glyph", "label": "🎨" },
-  "skill_gunsmithing": { "placeholder": "glyph", "label": "🔧" }
+  "board_roadmap": {
+    "placeholder": "board",
+    "color": "#1b1b1b",
+    "accent": "#3fdc5a"
+  },
+  "bank_booth": {
+    "placeholder": "booth",
+    "color": "#6b4a2b",
+    "accent": "#d2a63a"
+  },
+  "pillar_marble": {
+    "placeholder": "pillar",
+    "color": "#e8e2d4"
+  },
+  "flagpole": {
+    "placeholder": "flagpole",
+    "color": "#c9c9c9",
+    "accent": "#2f9e44"
+  },
+  "bench_park": {
+    "placeholder": "bench",
+    "color": "#6b4a2b"
+  },
+  "statue_gremlin": {
+    "placeholder": "gremlin",
+    "color": "#d4a83a"
+  },
+  "tree_oak": {
+    "placeholder": "tree",
+    "color": "#3f7a2c",
+    "accent": "#5b3b22"
+  },
+  "icon_scrap_hash": {
+    "placeholder": "icon",
+    "color": "#8c8c8c",
+    "label": "SH"
+  },
+  "icon_warm_hash": {
+    "placeholder": "icon",
+    "color": "#e0a030",
+    "label": "WH"
+  },
+  "icon_molten_hash": {
+    "placeholder": "icon",
+    "color": "#3fd8ff",
+    "label": "MH"
+  },
+  "tab_inventory": {
+    "placeholder": "glyph",
+    "label": "🎒"
+  },
+  "tab_equipment": {
+    "placeholder": "glyph",
+    "label": "👔"
+  },
+  "tab_skills": {
+    "placeholder": "glyph",
+    "label": "📊"
+  },
+  "tab_military": {
+    "placeholder": "glyph",
+    "label": "🪖"
+  },
+  "tab_quests": {
+    "placeholder": "glyph",
+    "label": "📜"
+  },
+  "tab_settings": {
+    "placeholder": "glyph",
+    "label": "⚙️"
+  },
+  "orb_run": {
+    "placeholder": "glyph",
+    "label": "🏃"
+  },
+  "skill_shooting": {
+    "placeholder": "glyph",
+    "label": "🎯"
+  },
+  "skill_melee": {
+    "placeholder": "glyph",
+    "label": "🔨"
+  },
+  "skill_defense": {
+    "placeholder": "glyph",
+    "label": "🛡️"
+  },
+  "skill_hitpoints": {
+    "placeholder": "glyph",
+    "label": "❤️"
+  },
+  "skill_command": {
+    "placeholder": "glyph",
+    "label": "🎖️"
+  },
+  "skill_mining": {
+    "placeholder": "glyph",
+    "label": "⛏️"
+  },
+  "skill_fundraising": {
+    "placeholder": "glyph",
+    "label": "🍽️"
+  },
+  "skill_lobbying": {
+    "placeholder": "glyph",
+    "label": "🤝"
+  },
+  "skill_spin": {
+    "placeholder": "glyph",
+    "label": "🌀"
+  },
+  "skill_policy": {
+    "placeholder": "glyph",
+    "label": "📜"
+  },
+  "skill_press_dodging": {
+    "placeholder": "glyph",
+    "label": "🏃"
+  },
+  "skill_construction": {
+    "placeholder": "glyph",
+    "label": "🏛️"
+  },
+  "skill_painting": {
+    "placeholder": "glyph",
+    "label": "🎨"
+  },
+  "skill_gunsmithing": {
+    "placeholder": "glyph",
+    "label": "🔧"
+  },
+  "mapicon_bank": {
+    "placeholder": "glyph",
+    "label": "🏦"
+  },
+  "mapicon_mining": {
+    "placeholder": "glyph",
+    "label": "⛏️"
+  },
+  "orb_hp": {
+    "placeholder": "glyph",
+    "label": "❤️"
+  },
+  "orb_xp": {
+    "placeholder": "glyph",
+    "label": "XP"
+  }
 }

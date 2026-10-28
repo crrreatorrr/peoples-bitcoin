@@ -65,6 +65,28 @@ export const ECONOMY = {
 
 export const START_CURRENCIES = { bitcoin: 0, btc: 0 } as const;
 
+// ── Bank, ground items, chat, NPCs ───────────────────────────────────────────
+export const BANK = {
+  /** Distinct item stacks the bank can hold. */
+  slots: 400,
+} as const;
+
+export const GROUND_ITEMS = {
+  /** Dropped items vanish after this many ticks (3 minutes). */
+  despawnTicks: 300,
+} as const;
+
+export const CHAT = {
+  maxLength: 80,
+  /** How long public chat stays above the speaker's head. */
+  overheadTicks: 5,
+} as const;
+
+export const NPCS = {
+  /** Per-tick chance that an idle NPC steps one tile within its wander radius. */
+  wanderChance: 0.15,
+} as const;
+
 // ── Camera & rendering ───────────────────────────────────────────────────────
 export const CAMERA = {
   fovDeg: 50,
@@ -103,4 +125,16 @@ export const UI = {
   chatMaxLines: 150,
   xpDropMs: 1600,
   bannerMs: 2600,
+  /** Minimap scale and diameter in CSS pixels. */
+  minimapPxPerTile: 4,
+  minimapSize: 152,
+  /** Overhead chat sits this high above the player's feet (world units). */
+  overheadHeight: 1.95,
+} as const;
+
+export const FIREWORKS = {
+  particles: 48,
+  durationMs: 1600,
+  speed: 2.2,
+  gravity: 2.5,
 } as const;

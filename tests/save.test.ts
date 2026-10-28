@@ -94,4 +94,26 @@ describe('save / load', () => {
     expect(loaded.player.path).toEqual([]);
     expect(loaded.player.action).toBeNull();
   });
+
+  it('round-trips the bank', () => {
+    const { state } = newGame();
+    state.player.bank = [
+      { itemId: 'item_scrap_hash', qty: 120 },
+      { itemId: 'item_retired', qty: 3 },
+    ];
+    const loaded = deserialize(roundTrip(serialize(state, 1)), content())!;
+    expect(loaded.player.bank).toEqual([{ itemId: 'item_scrap_hash', qty: 120 }]);
+  });
+
+  it('upgrades a version 1 save (no bank) to the current version', () => {
+    const { state } = newGame();
+    state.player.skills.mining = 1234;
+    const v1 = roundTrip(serialize(state, 1));
+    v1.version = 1;
+    delete v1.player.bank;
+    const loaded = deserialize(v1, content())!;
+    expect(loaded).not.toBeNull();
+    expect(loaded.player.bank).toEqual([]);
+    expect(loaded.player.skills.mining).toBe(1234);
+  });
 });

@@ -1,20 +1,24 @@
 /**
  * Save format: a versioned, Zod-validated snapshot of the persistent parts of
- * GameState. Transient data (paths, current action) is not saved.
+ * GameState. Transient data (paths, current action, open interfaces, ground
+ * items, NPC positions) is not saved.
  *
- * To change the format: bump SAVE_VERSION, add a schema for the new version and
- * register a step in MIGRATIONS that upgrades the previous version by one.
+ * To change the format: bump SAVE_VERSION, update the schema to the new
+ * version and register a step in MIGRATIONS that upgrades the previous
+ * version by one.
  */
 import { z } from 'zod';
 import { ECONOMY, INVENTORY_SIZE, MOVEMENT } from '../config/balance';
 import type { Content } from './content';
 import { buildZoneGrid, isWalkable } from './grid';
-import { createGameState, type GameState, type Inventory } from './state';
+import { createGameState, type GameState, type Inventory, type InventorySlot } from './state';
 
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 
-const SaveV1Schema = z.object({
-  version: z.literal(1),
+const StackSchema = z.object({ itemId: z.string(), qty: z.number().int().positive() });
+
+const SaveSchema = z.object({
+  version: z.literal(SAVE_VERSION),
   savedAt: z.number(),
   tick: z.number().int().nonnegative(),
   rngState: z.number().int(),
@@ -23,9 +27,8 @@ const SaveV1Schema = z.object({
     pos: z.object({ x: z.number().int(), y: z.number().int() }),
     running: z.boolean(),
     runEnergy: z.number(),
-    inventory: z.array(
-      z.object({ itemId: z.string(), qty: z.number().int().positive() }).nullable(),
-    ),
+    inventory: z.array(StackSchema.nullable()),
+    bank: z.array(StackSchema),
     skills: z.record(z.string(), z.number().nonnegative()),
     currencies: z.object({ bitcoin: z.number(), btc: z.number() }),
   }),
@@ -39,12 +42,18 @@ const SaveV1Schema = z.object({
   objects: z.array(z.object({ id: z.string(), depletedUntil: z.number().int().nullable() })),
 });
 
-export type SaveData = z.output<typeof SaveV1Schema>;
+export type SaveData = z.output<typeof SaveSchema>;
 
 type RawSave = Record<string, unknown> & { version: number };
 
 /** Each entry upgrades a save from version N to N + 1. */
-const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {};
+const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
+  // v2 added the bank.
+  1: (save) => {
+    const player = typeof save.player === 'object' && save.player !== null ? save.player : {};
+    return { ...save, version: 2, player: { ...player, bank: [] } };
+  },
+};
 
 export function serialize(state: GameState, now: number): SaveData {
   const p = state.player;
@@ -59,6 +68,7 @@ export function serialize(state: GameState, now: number): SaveData {
       running: p.running,
       runEnergy: p.runEnergy,
       inventory: p.inventory.map((s) => (s ? { ...s } : null)),
+      bank: p.bank.map((s) => ({ ...s })),
       skills: { ...p.skills },
       currencies: { ...p.currencies },
     },
@@ -86,7 +96,7 @@ export function migrate(raw: unknown): unknown {
  * a position that is no longer walkable falls back to the zone spawn.
  */
 export function deserialize(raw: unknown, content: Content): GameState | null {
-  const parsed = SaveV1Schema.safeParse(migrate(raw));
+  const parsed = SaveSchema.safeParse(migrate(raw));
   if (!parsed.success) return null;
   const save = parsed.data;
   const zone = content.zones.get(save.zoneId);
@@ -102,6 +112,7 @@ export function deserialize(raw: unknown, content: Content): GameState | null {
   p.running = save.player.running;
   p.runEnergy = clamp(save.player.runEnergy, 0, MOVEMENT.runEnergyMax);
   p.inventory = restoreInventory(save.player.inventory, content);
+  p.bank = save.player.bank.filter((s) => content.items.has(s.itemId)).map((s) => ({ ...s }));
   for (const skillId of Object.keys(p.skills)) {
     const xp = save.player.skills[skillId];
     if (xp !== undefined) p.skills[skillId] = xp;
@@ -121,12 +132,11 @@ export function deserialize(raw: unknown, content: Content): GameState | null {
   return state;
 }
 
-function restoreInventory(saved: SaveData['player']['inventory'], content: Content): Inventory {
-  const inv: Inventory = Array.from({ length: INVENTORY_SIZE }, (_, i) => {
+function restoreInventory(saved: (InventorySlot | null)[], content: Content): Inventory {
+  return Array.from({ length: INVENTORY_SIZE }, (_, i) => {
     const slot = saved[i];
     return slot && content.items.has(slot.itemId) ? { ...slot } : null;
   });
-  return inv;
 }
 
 function clamp(v: number, min: number, max: number): number {

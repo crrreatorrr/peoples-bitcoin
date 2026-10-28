@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AUTOSAVE_EVERY_TICKS, MOVEMENT } from '../src/config/balance';
+import { AUTOSAVE_EVERY_TICKS, CHAT, MOVEMENT } from '../src/config/balance';
 import { addItem } from '../src/sim/inventory';
 import { runTick } from '../src/sim/tick';
 import { content, messages, newGame, runUntil } from './helpers';
@@ -109,26 +109,70 @@ describe('tick loop', () => {
     expect(state.player.action).toBeNull();
   });
 
-  it('talks to an NPC after walking over', () => {
+  it('opens a one-line-at-a-time dialogue with an NPC, then closes it', () => {
     const { state, ctx } = newGame();
     const treasurer = state.zone.npcs[0];
-    const events = runUntil(
-      state,
-      ctx,
-      (ev) => ev.some((e) => e.type === 'message' && e.kind === 'npc'),
-      [{ type: 'interact', targetId: treasurer.id, action: 'Talk-to' }],
-    );
-    const lines = events.filter((e) => e.type === 'message' && e.kind === 'npc');
-    expect(lines).toHaveLength(content().npcs.get('npc_treasurer')!.lines.length);
-    expect(lines[0]).toMatchObject({ speaker: 'The Treasurer' });
+    runUntil(state, ctx, () => state.player.dialogue !== null, [
+      { type: 'interact', targetId: treasurer.id, action: 'Talk-to' },
+    ]);
+    expect(state.player.dialogue).toEqual({ npcId: treasurer.id, line: 0 });
     expect(state.player.action).toBeNull();
+
+    const lineCount = content().npcs.get('npc_treasurer')!.lines.length;
+    for (let line = 1; line < lineCount; line++) {
+      runTick(state, ctx, [{ type: 'continueDialogue' }]);
+      expect(state.player.dialogue?.line).toBe(line);
+    }
+    runTick(state, ctx, [{ type: 'continueDialogue' }]);
+    expect(state.player.dialogue).toBeNull();
   });
 
-  it('drops an inventory item', () => {
+  it('walking away closes the dialogue', () => {
+    const { state, ctx } = newGame();
+    state.player.dialogue = { npcId: state.zone.npcs[0].id, line: 0 };
+    runTick(state, ctx, [{ type: 'walk', x: 19, y: 35 }]);
+    expect(state.player.dialogue).toBeNull();
+  });
+
+  it('drops an inventory item onto the ground', () => {
     const { state, ctx } = newGame();
     addItem(state.player.inventory, content().items.get('item_scrap_hash')!);
     runTick(state, ctx, [{ type: 'dropItem', slot: 0 }]);
     expect(state.player.inventory[0]).toBeNull();
+    expect(state.zone.groundItems).toMatchObject([
+      { itemId: 'item_scrap_hash', qty: 1, x: 19, y: 31 },
+    ]);
+  });
+
+  it('swaps inventory slots', () => {
+    const { state, ctx } = newGame();
+    addItem(state.player.inventory, content().items.get('item_scrap_hash')!);
+    runTick(state, ctx, [{ type: 'moveItem', from: 0, to: 5 }]);
+    expect(state.player.inventory[0]).toBeNull();
+    expect(state.player.inventory[5]).toEqual({ itemId: 'item_scrap_hash', qty: 1 });
+    runTick(state, ctx, [{ type: 'moveItem', from: 5, to: 99 }]);
+    expect(state.player.inventory[5]).not.toBeNull();
+  });
+
+  it('public chat goes to the chatbox and above the head, then fades', () => {
+    const { state, ctx } = newGame();
+    const events = runTick(state, ctx, [{ type: 'chat', text: '  it is   not BTC  ' }]);
+    expect(events).toContainEqual({
+      type: 'message',
+      kind: 'public',
+      speaker: state.player.name,
+      text: 'it is not BTC',
+    });
+    expect(state.player.overhead?.text).toBe('it is not BTC');
+    for (let i = 0; i < CHAT.overheadTicks; i++) runTick(state, ctx, []);
+    expect(state.player.overhead).toBeNull();
+  });
+
+  it('ignores empty chat and truncates long chat', () => {
+    const { state, ctx } = newGame();
+    expect(runTick(state, ctx, [{ type: 'chat', text: '   ' }])).toEqual([]);
+    runTick(state, ctx, [{ type: 'chat', text: 'x'.repeat(500) }]);
+    expect(state.player.overhead?.text).toHaveLength(CHAT.maxLength);
   });
 
   it('is deterministic: same seed + same intents = same state', () => {

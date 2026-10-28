@@ -37,8 +37,10 @@ export const NpcDefSchema = z.object({
   examine: z.string(),
   model: Id,
   actions: z.array(z.string()),
-  /** Spoken in order on Talk-to until the dialogue system lands (phase 3). */
+  /** Shown one at a time on Talk-to until node-graph dialogue lands (phase 3). */
   lines: z.array(z.string()).default([]),
+  /** Tiles the NPC may wander from its spawn; 0 = stands still. */
+  wanderRadius: z.number().int().nonnegative().default(0),
 });
 
 /** A gathering node: perform the skill on an object to receive an item. */
@@ -82,6 +84,8 @@ export const ZoneDefSchema = z
     portals: z
       .array(z.object({ x: Coord, y: Coord, toZone: Id, toX: Coord, toY: Coord }))
       .default([]),
+    /** Minimap icons (asset ids), e.g. a bank or mining-site marker. */
+    mapIcons: z.array(z.object({ icon: Id, x: Coord, y: Coord })).default([]),
   })
   .superRefine((zone, ctx) => {
     if (zone.tiles.length !== zone.height) {

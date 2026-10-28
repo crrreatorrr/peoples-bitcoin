@@ -37,3 +37,10 @@ export function removeSlot(inv: Inventory, slot: number): InventorySlot | null {
 export function countItem(inv: Inventory, itemId: string): number {
   return inv.reduce((sum, s) => sum + (s?.itemId === itemId ? s.qty : 0), 0);
 }
+
+/** Swaps two inventory slots (OSRS "swap" drag mode). Out-of-range slots are ignored. */
+export function swapSlots(inv: Inventory, a: number, b: number): void {
+  const valid = (i: number) => Number.isInteger(i) && i >= 0 && i < inv.length;
+  if (!valid(a) || !valid(b) || a === b) return;
+  [inv[a], inv[b]] = [inv[b], inv[a]];
+}

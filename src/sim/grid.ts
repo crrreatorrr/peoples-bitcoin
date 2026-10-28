@@ -1,6 +1,6 @@
 /**
- * Collision grid for a zone. Built once from terrain, blocking objects and
- * static NPCs; it does not change while the zone is loaded.
+ * Collision grid for a zone. Built once from terrain and blocking objects; it
+ * does not change while the zone is loaded. NPCs and players never block paths.
  */
 import type { Content } from './content';
 import type { ZoneDef } from './schemas';
@@ -36,8 +36,6 @@ export function buildZoneGrid(zone: ZoneDef, content: Content): Grid {
       for (let dx = 0; dx < def.width; dx++) blocked[(o.y + dy) * width + o.x + dx] = 1;
     }
   }
-  // NPCs are static until they get AI, so they occupy their tile.
-  for (const n of zone.npcs) blocked[n.y * width + n.x] = 1;
   return { width, height, blocked };
 }
 
