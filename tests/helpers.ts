@@ -1,6 +1,7 @@
 import { START_ZONE_ID } from '../src/config/balance';
 import { loadContent, type Content } from '../src/sim/content';
-import { buildZoneGrid, type Grid } from '../src/sim/grid';
+import { addItem } from '../src/sim/inventory';
+import { buildGrids, type Grid } from '../src/sim/grid';
 import {
   createGameState,
   type GameState,
@@ -29,11 +30,27 @@ export function content(): Content {
 
 export function newGame(seed = 1234): { state: GameState; ctx: SimContext } {
   const c = content();
-  const zone = c.zones.get(START_ZONE_ID)!;
   return {
     state: createGameState(c, START_ZONE_ID, seed),
-    ctx: { content: c, grid: buildZoneGrid(zone, c) },
+    ctx: { content: c, grids: buildGrids(c) },
   };
+}
+
+export function treasuryGrid(ctx: SimContext): Grid {
+  return ctx.grids.get(START_ZONE_ID)!;
+}
+
+export function give(state: GameState, itemId: string, qty = 1): void {
+  addItem(state.player.inventory, content().items.get(itemId)!, qty);
+}
+
+/** First object instance of a def in the current zone (optionally at a position). */
+export function objectOf(state: GameState, defId: string, x?: number, y?: number) {
+  const o = state.zone.objects.find(
+    (obj) => obj.defId === defId && (x === undefined || (obj.x === x && obj.y === y)),
+  );
+  if (!o) throw new Error(`no ${defId}`);
+  return o;
 }
 
 /** Runs ticks until `done` returns true; returns all events. Throws if it takes too long. */

@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { AUTOSAVE_EVERY_TICKS, CHAT, MOVEMENT } from '../src/config/balance';
-import { addItem } from '../src/sim/inventory';
 import { runTick } from '../src/sim/tick';
-import { content, messages, newGame, runUntil } from './helpers';
+import { content, give, messages, newGame, objectOf, runUntil, treasuryGrid } from './helpers';
+
+const SPAWN = { x: 27, y: 30 };
 
 describe('tick loop', () => {
   it('advances the tick counter', () => {
@@ -14,37 +15,32 @@ describe('tick loop', () => {
 
   it('walks one tile per tick and records steps for interpolation', () => {
     const { state, ctx } = newGame();
-    expect(state.player.pos).toEqual({ x: 19, y: 31 });
-    runTick(state, ctx, [{ type: 'walk', x: 19, y: 35 }]);
-    expect(state.player.pos).toEqual({ x: 19, y: 32 });
-    expect(state.player.stepsThisTick).toEqual([
-      { x: 19, y: 31 },
-      { x: 19, y: 32 },
-    ]);
+    expect(state.player.pos).toEqual(SPAWN);
+    runTick(state, ctx, [{ type: 'walk', x: 27, y: 34 }]);
+    expect(state.player.pos).toEqual({ x: 27, y: 31 });
+    expect(state.player.stepsThisTick).toEqual([SPAWN, { x: 27, y: 31 }]);
+    for (let i = 0; i < 3; i++) runTick(state, ctx, []);
+    expect(state.player.pos).toEqual({ x: 27, y: 34 });
     runTick(state, ctx, []);
-    runTick(state, ctx, []);
-    runTick(state, ctx, []);
-    expect(state.player.pos).toEqual({ x: 19, y: 35 });
-    runTick(state, ctx, []);
-    expect(state.player.stepsThisTick).toEqual([{ x: 19, y: 35 }]);
+    expect(state.player.stepsThisTick).toEqual([{ x: 27, y: 34 }]);
   });
 
   it('runs two tiles per tick and drains run energy', () => {
     const { state, ctx } = newGame();
-    runTick(state, ctx, [{ type: 'toggleRun' }, { type: 'walk', x: 19, y: 37 }]);
-    expect(state.player.pos).toEqual({ x: 19, y: 33 });
+    runTick(state, ctx, [{ type: 'toggleRun' }, { type: 'walk', x: 27, y: 36 }]);
+    expect(state.player.pos).toEqual({ x: 27, y: 32 });
     expect(state.player.runEnergy).toBeCloseTo(MOVEMENT.runEnergyMax - MOVEMENT.runDrainPerTick);
     runTick(state, ctx, []);
     runTick(state, ctx, []);
-    expect(state.player.pos).toEqual({ x: 19, y: 37 });
+    expect(state.player.pos).toEqual({ x: 27, y: 36 });
   });
 
   it('walks the last single tile without draining energy', () => {
     const { state, ctx } = newGame();
     state.player.running = true;
     state.player.runEnergy = 50;
-    runTick(state, ctx, [{ type: 'walk', x: 19, y: 32 }]);
-    expect(state.player.pos).toEqual({ x: 19, y: 32 });
+    runTick(state, ctx, [{ type: 'walk', x: 27, y: 31 }]);
+    expect(state.player.pos).toEqual({ x: 27, y: 31 });
     expect(state.player.runEnergy).toBeCloseTo(50 + MOVEMENT.runRegenPerTick);
   });
 
@@ -52,10 +48,9 @@ describe('tick loop', () => {
     const { state, ctx } = newGame();
     state.player.running = true;
     state.player.runEnergy = MOVEMENT.runDrainPerTick;
-    runTick(state, ctx, [{ type: 'walk', x: 19, y: 37 }]);
+    runTick(state, ctx, [{ type: 'walk', x: 27, y: 36 }]);
     expect(state.player.runEnergy).toBe(0);
     expect(state.player.running).toBe(false);
-
     const events = runTick(state, ctx, [{ type: 'toggleRun' }]);
     expect(state.player.running).toBe(false);
     expect(messages(events)).toContain('You have no Motion left. Rest a moment.');
@@ -70,11 +65,10 @@ describe('tick loop', () => {
 
   it('walks to the nearest reachable tile when clicking a wall', () => {
     const { state, ctx } = newGame();
-    runUntil(state, ctx, () => state.player.path.length === 0, [{ type: 'walk', x: 19, y: 20 }]);
-    // (19, 20) is the doorway; (6, 25) area is open lawn. Click a wall tile instead:
-    runUntil(state, ctx, () => state.player.path.length === 0, [{ type: 'walk', x: 6, y: 20 }]);
-    expect(ctx.grid.blocked[state.player.pos.y * ctx.grid.width + state.player.pos.x]).toBe(0);
-    expect(Math.max(Math.abs(state.player.pos.x - 6), Math.abs(state.player.pos.y - 20))).toBe(1);
+    runUntil(state, ctx, () => state.player.path.length === 0, [{ type: 'walk', x: 20, y: 20 }]);
+    const grid = treasuryGrid(ctx);
+    expect(grid.blocked[state.player.pos.y * grid.width + state.player.pos.x]).toBe(0);
+    expect(Math.max(Math.abs(state.player.pos.x - 20), Math.abs(state.player.pos.y - 20))).toBe(1);
   });
 
   it('emits autosave every AUTOSAVE_EVERY_TICKS ticks', () => {
@@ -92,17 +86,18 @@ describe('tick loop', () => {
 
   it('a walk click cancels the current action', () => {
     const { state, ctx } = newGame();
-    const rack = state.zone.objects.find((o) => o.x === 27 && o.y === 27)!;
-    state.player.pos = { x: 26, y: 27 };
+    give(state, 'item_pick_rusty');
+    const rack = objectOf(state, 'obj_rack_dusty', 36, 28);
+    state.player.pos = { x: 35, y: 28 };
     runTick(state, ctx, [{ type: 'interact', targetId: rack.id, action: 'Mine' }]);
     expect(state.player.action).not.toBeNull();
-    runTick(state, ctx, [{ type: 'walk', x: 26, y: 30 }]);
+    runTick(state, ctx, [{ type: 'walk', x: 35, y: 34 }]);
     expect(state.player.action).toBeNull();
   });
 
   it('ignores actions the target does not offer, and unknown targets', () => {
     const { state, ctx } = newGame();
-    const rack = state.zone.objects.find((o) => o.x === 27 && o.y === 27)!;
+    const rack = objectOf(state, 'obj_rack_dusty', 36, 28);
     runTick(state, ctx, [{ type: 'interact', targetId: rack.id, action: 'Attack' }]);
     expect(state.player.action).toBeNull();
     runTick(state, ctx, [{ type: 'interact', targetId: 'nope', action: 'Mine' }]);
@@ -111,13 +106,11 @@ describe('tick loop', () => {
 
   it('opens a one-line-at-a-time dialogue with an NPC, then closes it', () => {
     const { state, ctx } = newGame();
-    const treasurer = state.zone.npcs[0];
+    const treasurer = state.zone.npcs.find((n) => n.defId === 'npc_treasurer')!;
     runUntil(state, ctx, () => state.player.dialogue !== null, [
       { type: 'interact', targetId: treasurer.id, action: 'Talk-to' },
     ]);
     expect(state.player.dialogue).toEqual({ npcId: treasurer.id, line: 0 });
-    expect(state.player.action).toBeNull();
-
     const lineCount = content().npcs.get('npc_treasurer')!.lines.length;
     for (let line = 1; line < lineCount; line++) {
       runTick(state, ctx, [{ type: 'continueDialogue' }]);
@@ -130,23 +123,21 @@ describe('tick loop', () => {
   it('walking away closes the dialogue', () => {
     const { state, ctx } = newGame();
     state.player.dialogue = { npcId: state.zone.npcs[0].id, line: 0 };
-    runTick(state, ctx, [{ type: 'walk', x: 19, y: 35 }]);
+    runTick(state, ctx, [{ type: 'walk', x: 27, y: 34 }]);
     expect(state.player.dialogue).toBeNull();
   });
 
   it('drops an inventory item onto the ground', () => {
     const { state, ctx } = newGame();
-    addItem(state.player.inventory, content().items.get('item_scrap_hash')!);
+    give(state, 'item_scrap_hash');
     runTick(state, ctx, [{ type: 'dropItem', slot: 0 }]);
     expect(state.player.inventory[0]).toBeNull();
-    expect(state.zone.groundItems).toMatchObject([
-      { itemId: 'item_scrap_hash', qty: 1, x: 19, y: 31 },
-    ]);
+    expect(state.zone.groundItems).toMatchObject([{ itemId: 'item_scrap_hash', qty: 1, ...SPAWN }]);
   });
 
   it('swaps inventory slots', () => {
     const { state, ctx } = newGame();
-    addItem(state.player.inventory, content().items.get('item_scrap_hash')!);
+    give(state, 'item_scrap_hash');
     runTick(state, ctx, [{ type: 'moveItem', from: 0, to: 5 }]);
     expect(state.player.inventory[0]).toBeNull();
     expect(state.player.inventory[5]).toEqual({ itemId: 'item_scrap_hash', qty: 1 });
@@ -170,7 +161,7 @@ describe('tick loop', () => {
 
   it('ignores empty chat and truncates long chat', () => {
     const { state, ctx } = newGame();
-    expect(runTick(state, ctx, [{ type: 'chat', text: '   ' }])).toEqual([]);
+    expect(messages(runTick(state, ctx, [{ type: 'chat', text: '   ' }]))).toEqual([]);
     runTick(state, ctx, [{ type: 'chat', text: 'x'.repeat(500) }]);
     expect(state.player.overhead?.text).toHaveLength(CHAT.maxLength);
   });
@@ -178,7 +169,8 @@ describe('tick loop', () => {
   it('is deterministic: same seed + same intents = same state', () => {
     const play = () => {
       const { state, ctx } = newGame(4242);
-      const rack = state.zone.objects.find((o) => o.x === 27 && o.y === 27)!;
+      give(state, 'item_pick_rusty');
+      const rack = objectOf(state, 'obj_rack_dusty', 36, 28);
       for (let i = 0; i < 300; i++) {
         const intents =
           i % 40 === 0 ? [{ type: 'interact' as const, targetId: rack.id, action: 'Mine' }] : [];

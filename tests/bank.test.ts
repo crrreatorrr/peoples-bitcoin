@@ -8,7 +8,15 @@ import { runTick } from '../src/sim/tick';
 import { content, messages, newGame, runUntil } from './helpers';
 
 const hash = () => content().items.get('item_scrap_hash')!;
-const coins: ItemDef = { id: 'coins', name: 'Coins', examine: '', stackable: true, model: 'm' };
+const coins: ItemDef = {
+  id: 'coins',
+  name: 'Coins',
+  examine: '',
+  stackable: true,
+  model: 'm',
+  value: 0,
+  requires: [],
+};
 
 function playerWith(n: number) {
   const { state, ctx } = newGame();
@@ -20,12 +28,12 @@ describe('bank', () => {
   it('opens from a bank booth and closes when the player walks', () => {
     const { state, ctx } = newGame();
     const booth = state.zone.objects.find((o) => o.defId === 'obj_bank_booth')!;
-    runUntil(state, ctx, () => state.player.bankOpen, [
+    runUntil(state, ctx, () => state.player.interface?.kind === 'bank', [
       { type: 'interact', targetId: booth.id, action: 'Bank' },
     ]);
-    expect(state.player.bankOpen).toBe(true);
-    runTick(state, ctx, [{ type: 'walk', x: 19, y: 15 }]);
-    expect(state.player.bankOpen).toBe(false);
+    expect(state.player.interface).toEqual({ kind: 'bank' });
+    runTick(state, ctx, [{ type: 'walk', x: 27, y: 15 }]);
+    expect(state.player.interface).toBeNull();
   });
 
   it('ignores bank intents while the bank is closed', () => {

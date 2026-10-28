@@ -1,0 +1,313 @@
+[
+  {
+    "id": "quest_tutorial",
+    "name": "Empty Treasury",
+    "ordered": false,
+    "autoStart": true,
+    "completeMessage": "ATTENTION ATTENTION: Inauguration complete! You know every skill. The Trenches await.",
+    "reward": {
+      "usd": 669
+    },
+    "steps": [
+      {
+        "id": "talk_treasurer",
+        "text": "Talk to The Treasurer in the main hall.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_treasurer"
+        },
+        "hint": {
+          "npc": "npc_treasurer"
+        },
+        "reward": {
+          "usd": 100
+        }
+      },
+      {
+        "id": "talk_sysadmin",
+        "text": "Talk to The Sysadmin by the lawn racks.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_sysadmin"
+        },
+        "hint": {
+          "npc": "npc_sysadmin"
+        },
+        "reward": {
+          "items": [
+            {
+              "item": "item_pick_rusty",
+              "qty": 1
+            }
+          ]
+        }
+      },
+      {
+        "id": "mine",
+        "text": "Mine Scrap Hash from a Dusty Server Rack.",
+        "trigger": {
+          "type": "obtain",
+          "item": "item_scrap_hash"
+        },
+        "hint": {
+          "object": "obj_rack_dusty"
+        }
+      },
+      {
+        "id": "sell",
+        "text": "Sell something at the Trading Terminal.",
+        "trigger": {
+          "type": "sell"
+        },
+        "hint": {
+          "object": "obj_terminal"
+        }
+      },
+      {
+        "id": "talk_sergeant",
+        "text": "Talk to The Drill Sergeant by the Sludge pen.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_drill_sergeant"
+        },
+        "hint": {
+          "npc": "npc_drill_sergeant"
+        },
+        "reward": {
+          "items": [
+            {
+              "item": "item_rounds",
+              "qty": 150
+            }
+          ]
+        }
+      },
+      {
+        "id": "buy_pistol",
+        "text": "Buy a Campaign Pistol at the Terminal.",
+        "trigger": {
+          "type": "buy",
+          "item": "gun_campaign_pistol"
+        },
+        "hint": {
+          "object": "obj_terminal"
+        }
+      },
+      {
+        "id": "equip",
+        "text": "Wield your pistol and Rounds.",
+        "trigger": {
+          "type": "equip",
+          "slot": "weapon"
+        },
+        "hint": {}
+      },
+      {
+        "id": "kill",
+        "text": "Defeat a Sludgeling in the pen.",
+        "trigger": {
+          "type": "kill",
+          "enemy": "enemy_sludgeling"
+        },
+        "hint": {
+          "enemy": "enemy_sludgeling"
+        }
+      },
+      {
+        "id": "talk_planner",
+        "text": "Talk to The Party Planner in the west garden.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_party_planner"
+        },
+        "hint": {
+          "npc": "npc_party_planner"
+        },
+        "reward": {
+          "items": [
+            {
+              "item": "item_donor_list",
+              "qty": 1
+            }
+          ]
+        }
+      },
+      {
+        "id": "fundraise",
+        "text": "Work the room at a Rubber Chicken Dinner.",
+        "trigger": {
+          "type": "obtain",
+          "item": "item_raw_minor_scandal"
+        },
+        "hint": {
+          "object": "obj_donor_chicken"
+        }
+      },
+      {
+        "id": "spin",
+        "text": "Spin a scandal into a Soundbite at the Press Podium.",
+        "trigger": {
+          "type": "obtain",
+          "item": "item_tp_soundbite"
+        },
+        "hint": {
+          "object": "obj_press_podium"
+        }
+      },
+      {
+        "id": "eat",
+        "text": "Recite a Talking Point.",
+        "trigger": {
+          "type": "eat"
+        },
+        "hint": {}
+      },
+      {
+        "id": "talk_fixer",
+        "text": "Talk to The Fixer on the east lawn.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_fixer"
+        },
+        "hint": {
+          "npc": "npc_fixer"
+        },
+        "reward": {
+          "items": [
+            {
+              "item": "item_business_cards",
+              "qty": 1
+            }
+          ]
+        }
+      },
+      {
+        "id": "lobby",
+        "text": "Do a favor for a Junior Lobbyist.",
+        "trigger": {
+          "type": "xp",
+          "skill": "lobbying"
+        },
+        "hint": {
+          "object": "obj_lobbyist_junior"
+        }
+      },
+      {
+        "id": "talk_handler",
+        "text": "Talk to The Sproto Handler in the main hall.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_sproto_handler"
+        },
+        "hint": {
+          "npc": "npc_sproto_handler"
+        },
+        "reward": {
+          "items": [
+            {
+              "item": "contract_recruit",
+              "qty": 1
+            }
+          ]
+        }
+      },
+      {
+        "id": "summon",
+        "text": "Summon your Sproto Recruit.",
+        "trigger": {
+          "type": "summon"
+        },
+        "hint": {}
+      },
+      {
+        "id": "bank",
+        "text": "Deposit something at a Bank Booth.",
+        "trigger": {
+          "type": "deposit"
+        },
+        "hint": {
+          "object": "obj_bank_booth"
+        }
+      },
+      {
+        "id": "talk_contractor",
+        "text": "Ask The Contractor about a bunker.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_contractor"
+        },
+        "hint": {
+          "npc": "npc_contractor"
+        }
+      },
+      {
+        "id": "trenches",
+        "text": "Enter the Trenches (south-east lawn).",
+        "trigger": {
+          "type": "enterZone",
+          "zone": "zone_trenches"
+        },
+        "hint": {
+          "object": "obj_trench_entrance"
+        }
+      }
+    ]
+  },
+  {
+    "id": "quest_bunker",
+    "name": "Bunker Down",
+    "ordered": true,
+    "startNpc": "npc_contractor",
+    "completeMessage": "Quest complete: Bunker Down! The hatch in the main hall is yours. Construction unlocked.",
+    "reward": {
+      "unlock": "bunker",
+      "items": [
+        {
+          "item": "item_toolkit_basic",
+          "qty": 1
+        },
+        {
+          "item": "item_concrete_bag",
+          "qty": 3
+        }
+      ],
+      "xp": {
+        "construction": 100
+      }
+    },
+    "steps": [
+      {
+        "id": "agree",
+        "text": "Talk to The Contractor about a bunker.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_contractor"
+        },
+        "hint": {
+          "npc": "npc_contractor"
+        }
+      },
+      {
+        "id": "materials",
+        "text": "Bring The Contractor 10 Scrap Hash and 2 Soundbites.",
+        "trigger": {
+          "type": "deliver",
+          "npc": "npc_contractor",
+          "items": [
+            {
+              "item": "item_scrap_hash",
+              "qty": 10
+            },
+            {
+              "item": "item_tp_soundbite",
+              "qty": 2
+            }
+          ]
+        },
+        "hint": {
+          "npc": "npc_contractor"
+        }
+      }
+    ]
+  }
+]

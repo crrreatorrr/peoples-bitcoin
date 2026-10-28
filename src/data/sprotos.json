@@ -1,0 +1,132 @@
+[
+  {
+    "id": "sp_recruit",
+    "name": "Sproto Recruit",
+    "examine": "Small, keen, and armed with a tiny pistol.",
+    "model": "sp_recruit",
+    "levelReq": 1,
+    "xp": 25,
+    "hp": 12,
+    "attack": 5,
+    "strength": 5,
+    "defense": 3,
+    "accuracy": 8,
+    "damage": 6,
+    "armor": 4,
+    "speed": 4,
+    "range": 5,
+    "type": "gun",
+    "special": {
+      "name": "Rally",
+      "cost": 30,
+      "kind": "rally",
+      "value": 0.05,
+      "ticks": 10
+    }
+  },
+  {
+    "id": "sp_medic",
+    "name": "Sproto Medic",
+    "examine": "Carries more bandages than it can lift.",
+    "model": "sp_medic",
+    "levelReq": 10,
+    "xp": 60,
+    "hp": 18,
+    "attack": 1,
+    "strength": 1,
+    "defense": 8,
+    "accuracy": 0,
+    "damage": 0,
+    "armor": 8,
+    "speed": 4,
+    "range": 1,
+    "type": "melee",
+    "heals": {
+      "amount": 3,
+      "everyTicks": 10,
+      "belowPct": 0.7
+    },
+    "special": {
+      "name": "Patch Up",
+      "cost": 40,
+      "kind": "heal",
+      "value": 20,
+      "ticks": 0
+    }
+  },
+  {
+    "id": "sp_grunt",
+    "name": "Sproto Grunt",
+    "examine": "Built like a fire hydrant. Loves a scrap.",
+    "model": "sp_grunt",
+    "levelReq": 20,
+    "xp": 120,
+    "hp": 40,
+    "attack": 18,
+    "strength": 20,
+    "defense": 22,
+    "accuracy": 20,
+    "damage": 18,
+    "armor": 30,
+    "speed": 4,
+    "range": 1,
+    "type": "melee",
+    "special": {
+      "name": "Taunt",
+      "cost": 30,
+      "kind": "taunt",
+      "value": 0,
+      "ticks": 5
+    }
+  },
+  {
+    "id": "sp_sniper",
+    "name": "Sproto Sniper",
+    "examine": "Patient. Squints a lot.",
+    "model": "sp_sniper",
+    "levelReq": 30,
+    "xp": 200,
+    "hp": 22,
+    "attack": 32,
+    "strength": 34,
+    "defense": 12,
+    "accuracy": 45,
+    "damage": 40,
+    "armor": 10,
+    "speed": 6,
+    "range": 10,
+    "type": "gun",
+    "special": {
+      "name": "Headshot",
+      "cost": 50,
+      "kind": "headshot",
+      "value": 0,
+      "ticks": 0
+    }
+  },
+  {
+    "id": "sp_heavy",
+    "name": "Sproto Heavy",
+    "examine": "Its minigun is bigger than it is.",
+    "model": "sp_heavy",
+    "levelReq": 45,
+    "xp": 320,
+    "hp": 50,
+    "attack": 40,
+    "strength": 40,
+    "defense": 30,
+    "accuracy": 40,
+    "damage": 20,
+    "armor": 30,
+    "speed": 2,
+    "range": 6,
+    "type": "gun",
+    "special": {
+      "name": "Suppress",
+      "cost": 40,
+      "kind": "suppress",
+      "value": 0,
+      "ticks": 10
+    }
+  }
+]

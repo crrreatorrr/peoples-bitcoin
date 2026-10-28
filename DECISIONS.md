@@ -101,3 +101,40 @@ OSRS conventions". Newest at the bottom of each section.
   DOM types, and ESLint forbids `three`, `render`, `ui` and `input` imports there.
 - **Dev preview port.** `.claude/launch.json` uses port 5181 because 5173 was taken by another
   local project. `npm run dev` still defaults to 5173.
+
+## Skill web, combat, tutorial (2026-10-28)
+
+The owner's revisions are recorded at the top of DESIGN.md. Choices made while building them:
+
+- **Multiple zones.** `GameState.zone` is the zone you're in; zones you've left stay in
+  `otherZones` for the session, so loot and death piles persist while you're away. Only the
+  current zone simulates. Zones, enemies, ground items and the active Sproto aren't saved.
+- **Portals and gates are objects.** Portals (`role: portal`) carry a `to` in the zone placement;
+  barricades (`role: gate`) sit in a wall and move you to the mirrored tile on the other side.
+  Both can require an unlock flag (`boss:<enemyId>`, `bunker`).
+- **Combat math** follows DESIGN.md §8 with OSRS formulas: effective level = level + 8 + style
+  bonus; accuracy roll × triangle modifier; max hit = floor(0.5 + eff × (damage + 64) / 640);
+  damage 0..max on a hit. Defense trains both from Block/Longrange and from damage taken.
+  Enemies use the same math; they ignore players above 2× their level unless they're bosses.
+- **Common ammo** is one item (Rounds) in the ammo slot. Explosive cannons take no ammo slot; they
+  fire the best Hash in the inventory (Molten > Warm > Scrap) and splash enemies within 1 tile for
+  up to half the max hit. Out of ammo means the gavel.
+- **Death** drops the whole inventory where you fell (DESIGN.md says configurable:
+  `DEATH.dropInventory`); equipment is kept. You wake at the bunker bed if built, else the
+  Treasury.
+- **Combat level** = 0.25 × (Defense + Hitpoints + Summoning/2) + max(0.65 × Melee,
+  0.325 × floor(1.5 × Shooting)); starts at 3 like OSRS.
+- **Prices** are USD in shops.json; the Terminal charges ceil(USD / price) $BITCOIN and pays
+  floor(value / price). Item `value` is what the Terminal pays (gear ≈ 40% of its price).
+- **Lobbying** pays USD-denominated $BITCOIN per success; 20% of successes are blackmail.
+- **Spin** failures destroy the scandal (no junk items, per "everything is useful").
+- **Tutorial** steps complete in any order; each tutor gives the tool for their skill. New saves
+  start with it active; upgraded saves get it too. Bunker Down is ordered: talk, then deliver.
+- **Sprotos** use DESIGN.md §9's priorities (assist > defend > follow); one at a time; a fallen
+  Sproto has a short cooldown; specials cost Summoning points that regenerate.
+- **Bunker production** counts game ticks, so farms fill only while you play (offline progress
+  is Opal charging, Phase 3).
+- **Sprites** are camera-facing billboards; they flip by screen direction and bob instead of
+  having walk cycles. Terrain stays procedural 3D.
+- **Save v3** renames `command` XP to `summoning` and adds HP, equipment, quests, unlocks and the
+  bunker.

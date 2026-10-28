@@ -1,17 +1,14 @@
 # TODO
 
-## Next: Phase 2 — Combat + military (DESIGN.md §15)
+## Next
 
-- [ ] `guns.json`, `ammo.json`, `armor.json` + schemas; Campaign Pistol, Confetti Shotgun, Treasury Rifle
-- [ ] `combat.ts`: accuracy/defence rolls, max hit, attack speed, range, Bresenham LOS (unit-tested)
-- [ ] Ammo consumption and gavel melee fallback; combat triangle modifier
-- [ ] Equipment tab (head/body/legs + weapon), armor values
-- [ ] Hitpoints, death → respawn, hitsplats, tracer/projectile visuals, sludge "poof"
-- [ ] Sludgeling training enemies (spawns, aggro, simple AI)
-- [ ] Command skill, Barracks, Enlistment Papers, `sprotos.json`
-- [ ] `sprotos.ts` state machine (FOLLOW / ASSIST / DEFEND / RETURN / SPECIAL), Recruit + Medic + Grunt
-- [ ] Shared gremlin placeholder for Sprotos (see the owner's Sproto look in `SPROTO_SCRIPTS.md`)
-- [ ] Boss: Sludge Mother (Treasury basement) in `bosses.json` + `sim/bosses/sludgeMother.ts`
+- [ ] Gun specials from DESIGN.md §8: shotgun 3-tile cone, minigun spin-up, railgun Hopium scaling
+- [ ] Boss mechanics beyond adds: Sludge Mother floor sludge, Wrong-Namer Chief ticker typing,
+      Captain Motion rage-quit run
+- [ ] Sprotos 6–12 (Engineer, Scout, Shield, Commander, Paratrooper, Golden Sproto)
+- [ ] More quests (DESIGN.md §12) and node-graph dialogue with options
+- [ ] Balance pass: XP rates, drop values, Terminal prices, enemy stats (all in data/balance.ts)
+- [ ] Walk/attack animation frames for sprites (currently flip + bob)
 
 ## Known gaps from Phase 1
 
@@ -20,15 +17,14 @@
 - [ ] GLB animation clips: the manifest has `clips`, but only procedural placeholder animation
       plays. Wire an `AnimationMixer` when real art lands (Phase 6).
 - [ ] Mobile: long-press menu, one-finger camera drag, bottom-drawer panels (Phase 6). Taps already work.
-- [ ] Hash → BTC conversion (Treasury terminal, Phase 3). The bank now stores hash.
-- [ ] Draw calls rose slightly with bank booths and ground-item sprites; same merge fix applies.
+- [ ] The BTC wallet currency is still unused (BTC Shards are items that sell at the Terminal).
+- [ ] Draw calls: sprites are cheap, but terrain walls and remaining placeholders still add up.
 - [ ] Bundle is ~760 KB (mostly Three.js); Vite warns at 500 KB. Split vendor chunk or raise the limit.
 - [ ] Treasury exit portal once a second zone exists.
 
 ## OSRS features deferred to their phase
 
-- Phase 2: combat options tab, HP bars, hitsplats, combat level in tooltips, Equipment tab
-- Phase 3: quest list, shops, random events, emotes (the Painter boss needs one), dialogue options
+- Phase 3: random events, dialogue options, emotes
 - Phase 5: Grand Exchange (Swamp Exchange), friends/clan chat, world switching
 - Phase 6: music player, F-key tab hotkeys, roof toggle
 - Not planned in DESIGN.md: prayer, spellbook, special attack (Command/Sprotos fill that role),

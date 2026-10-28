@@ -1,4 +1,5 @@
 import { INVENTORY_SIZE } from '../config/balance';
+import type { Content } from './content';
 import type { ItemDef } from './schemas';
 import type { Inventory, InventorySlot } from './state';
 
@@ -43,4 +44,35 @@ export function swapSlots(inv: Inventory, a: number, b: number): void {
   const valid = (i: number) => Number.isInteger(i) && i >= 0 && i < inv.length;
   if (!valid(a) || !valid(b) || a === b) return;
   [inv[a], inv[b]] = [inv[b], inv[a]];
+}
+
+/** Removes up to `qty` of an item across slots; returns how many were removed. */
+export function removeItem(inv: Inventory, itemId: string, qty: number): number {
+  let removed = 0;
+  for (let i = 0; i < inv.length && removed < qty; i++) {
+    const s = inv[i];
+    if (!s || s.itemId !== itemId) continue;
+    const take = Math.min(s.qty, qty - removed);
+    s.qty -= take;
+    removed += take;
+    if (s.qty === 0) inv[i] = null;
+  }
+  return removed;
+}
+
+/** The best tool for a skill in the inventory that the player can use, or null. */
+export function bestTool(
+  inv: Inventory,
+  content: Content,
+  skillId: string,
+  level: number,
+): ItemDef | null {
+  let best: ItemDef | null = null;
+  for (const slot of inv) {
+    const def = slot && content.items.get(slot.itemId);
+    if (!def?.tool || def.tool.skill !== skillId) continue;
+    if (def.requires.some((r) => r.skill === skillId && r.level > level)) continue;
+    if (!best || def.tool.tier > best.tool!.tier) best = def;
+  }
+  return best;
 }

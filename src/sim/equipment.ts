@@ -1,0 +1,206 @@
+/**
+ * Equipment, combat styles, eating, and the attack profile the combat code
+ * uses. Guns fire common rounds from the ammo slot; explosive cannons fire
+ * mined Hash straight from the inventory. With no usable weapon or ammo the
+ * President falls back to the gavel.
+ */
+import { COMBAT } from '../config/balance';
+import { addItem } from './inventory';
+import { progressQuests } from './quests';
+import type { ItemDef } from './schemas';
+import {
+  maxHp,
+  type CombatStyle,
+  type EquipSlot,
+  type GameState,
+  type PlayerState,
+  type SimContext,
+  type SimEvent,
+} from './state';
+import { levelForXp } from './xp';
+
+export const GUN_STYLES: CombatStyle[] = ['accurate', 'rapid', 'longrange'];
+export const MELEE_STYLES: CombatStyle[] = ['bash', 'block'];
+
+export interface AttackProfile {
+  type: 'gun' | 'melee';
+  weapon: ItemDef;
+  speed: number;
+  range: number;
+  accuracyBonus: number;
+  damageBonus: number;
+  explosive: boolean;
+  /** Inventory slot of the Hash shell a cannon will fire. */
+  shellSlot: number | null;
+  /** A gun is equipped but has nothing to fire. */
+  outOfAmmo: boolean;
+}
+
+/** null if the player meets the item's requirements, otherwise the reason. */
+export function unmetRequirement(
+  player: PlayerState,
+  def: ItemDef,
+  ctx: SimContext,
+): string | null {
+  for (const req of def.requires) {
+    if (levelForXp(player.skills[req.skill] ?? 0) < req.level) {
+      const name = ctx.content.skills.get(req.skill)?.name ?? req.skill;
+      return `You need a ${name} level of ${req.level} to use the ${def.name}.`;
+    }
+  }
+  return null;
+}
+
+export function equipFromInventory(
+  state: GameState,
+  ctx: SimContext,
+  slot: number,
+  events: SimEvent[],
+): void {
+  const player = state.player;
+  const item = player.inventory[slot];
+  const def = item && ctx.content.items.get(item.itemId);
+  if (!item || !def?.equip) return;
+  const problem = unmetRequirement(player, def, ctx);
+  if (problem) {
+    events.push({ type: 'message', kind: 'game', text: problem });
+    return;
+  }
+  const target = def.equip.slot;
+  const current = player.equipment[target];
+  if (current && current.itemId === item.itemId && def.stackable) {
+    current.qty += item.qty;
+    player.inventory[slot] = null;
+  } else {
+    player.inventory[slot] = current;
+    player.equipment[target] = { ...item };
+  }
+  if (target === 'weapon') fixStyle(player, ctx);
+  progressQuests(state, ctx, { type: 'equip', slot: target }, events);
+}
+
+export function unequip(
+  state: GameState,
+  ctx: SimContext,
+  slot: EquipSlot,
+  events: SimEvent[],
+): void {
+  const player = state.player;
+  const item = player.equipment[slot];
+  const def = item && ctx.content.items.get(item.itemId);
+  if (!item || !def) return;
+  if (!addItem(player.inventory, def, item.qty)) {
+    events.push({ type: 'message', kind: 'game', text: 'You need a free inventory slot.' });
+    return;
+  }
+  player.equipment[slot] = null;
+  if (slot === 'weapon') fixStyle(player, ctx);
+}
+
+export function eat(state: GameState, ctx: SimContext, slot: number, events: SimEvent[]): void {
+  const player = state.player;
+  const item = player.inventory[slot];
+  const def = item && ctx.content.items.get(item.itemId);
+  if (!item || !def?.food) return;
+  const before = player.hp;
+  player.hp = Math.min(maxHp(player), player.hp + def.food.heal);
+  item.qty -= 1;
+  if (item.qty === 0) player.inventory[slot] = null;
+  player.nextAttackTick = Math.max(player.nextAttackTick, state.tick + COMBAT.eatDelayTicks);
+  events.push({
+    type: 'message',
+    kind: 'game',
+    text: `You ${def.food.verb.toLowerCase()} the ${def.name}. (+${player.hp - before} HP)`,
+  });
+  progressQuests(state, ctx, { type: 'eat' }, events);
+}
+
+export function setStyle(player: PlayerState, ctx: SimContext, style: CombatStyle): void {
+  const styles = weaponOf(player, ctx).weapon!.type === 'gun' ? GUN_STYLES : MELEE_STYLES;
+  if (styles.includes(style)) player.style = style;
+}
+
+/** Keep the chosen style valid for the equipped weapon type. */
+function fixStyle(player: PlayerState, ctx: SimContext): void {
+  const gun = weaponOf(player, ctx).weapon!.type === 'gun';
+  if (gun && !GUN_STYLES.includes(player.style)) player.style = 'accurate';
+  if (!gun && !MELEE_STYLES.includes(player.style)) player.style = 'bash';
+}
+
+/** The equipped weapon definition, or the gavel when the slot is empty. */
+export function weaponOf(player: PlayerState, ctx: SimContext): ItemDef {
+  const id = player.equipment.weapon?.itemId ?? COMBAT.fallbackWeaponId;
+  return ctx.content.items.get(id) ?? ctx.content.items.get(COMBAT.fallbackWeaponId)!;
+}
+
+export function attackProfile(player: PlayerState, ctx: SimContext): AttackProfile {
+  const equipped = weaponOf(player, ctx);
+  const gavel = ctx.content.items.get(COMBAT.fallbackWeaponId)!;
+  let weapon = equipped;
+  let shellSlot: number | null = null;
+  let shellDamage = 0;
+  let outOfAmmo = false;
+
+  const w = equipped.weapon!;
+  if (w.type === 'gun') {
+    if (w.ammo === 'rounds' && !((player.equipment.ammo?.qty ?? 0) > 0)) outOfAmmo = true;
+    if (w.ammo === 'hash') {
+      player.inventory.forEach((s, i) => {
+        const shell = s && ctx.content.items.get(s.itemId)?.shell;
+        if (shell && (shellSlot === null || shell.damage > shellDamage)) {
+          shellSlot = i;
+          shellDamage = shell.damage;
+        }
+      });
+      if (shellSlot === null) outOfAmmo = true;
+    }
+    if (outOfAmmo) weapon = gavel;
+  }
+
+  const stats = weapon.weapon!;
+  return {
+    type: stats.type,
+    weapon,
+    speed: stats.speed,
+    range: stats.range,
+    accuracyBonus: stats.accuracy + armorTotals(player, ctx).accuracy,
+    damageBonus: stats.damage + (weapon === equipped ? shellDamage : 0),
+    explosive: weapon === equipped && w.ammo === 'hash',
+    shellSlot: weapon === equipped ? shellSlot : null,
+    outOfAmmo,
+  };
+}
+
+/** Spends one round or one Hash shell for a shot. */
+export function consumeAmmo(player: PlayerState, profile: AttackProfile): void {
+  if (profile.type !== 'gun') return;
+  if (profile.shellSlot !== null) {
+    const shell = player.inventory[profile.shellSlot];
+    if (shell) {
+      shell.qty -= 1;
+      if (shell.qty === 0) player.inventory[profile.shellSlot] = null;
+    }
+    return;
+  }
+  const ammo = player.equipment.ammo;
+  if (ammo) {
+    ammo.qty -= 1;
+    if (ammo.qty === 0) player.equipment.ammo = null;
+  }
+}
+
+export function armorTotals(
+  player: PlayerState,
+  ctx: SimContext,
+): { defense: number; accuracy: number } {
+  let defense = 0;
+  let accuracy = 0;
+  for (const slot of Object.values(player.equipment)) {
+    const armor = slot && ctx.content.items.get(slot.itemId)?.armor;
+    if (armor) {
+      defense += armor.defense;
+      accuracy += armor.accuracy;
+    }
+  }
+  return { defense, accuracy };
+}

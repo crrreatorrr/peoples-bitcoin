@@ -175,6 +175,10 @@ export function buildPlaceholder(e: AssetEntry): THREE.Object3D {
       return roadmapBoard(e);
     case 'booth':
       return bankBooth(e);
+    case 'prop':
+      return prop(e);
+    case 'sludge':
+      return sludge(e);
     default:
       return box(0.8, 0.8, 0.8, lambert(e.color), 0, 0.4, 0);
   }
@@ -356,6 +360,27 @@ function roadmapBoard(e: AssetEntry): THREE.Group {
     0,
   );
   g.add(screen);
+  return g;
+}
+
+function prop(e: AssetEntry): THREE.Group {
+  const g = new THREE.Group();
+  const h = e.height ?? 1;
+  g.add(box(0.8, h, 0.8, lambert(e.color), 0, h / 2, 0));
+  g.add(box(0.84, 0.08, 0.84, lambert(shade(e.color, 1.3)), 0, h, 0));
+  return g;
+}
+
+function sludge(e: AssetEntry): THREE.Group {
+  const g = new THREE.Group();
+  const goo = lambert(e.color);
+  const eye = lambert('#111111', { emissive: e.accent ?? '#e0c040' });
+  g.add(
+    blob(0.42, goo, 0, 0.35, 0),
+    blob(0.3, goo, 0.18, 0.2, 0.12),
+    blob(0.26, goo, -0.2, 0.18, -0.08),
+  );
+  g.add(box(0.08, 0.08, 0.02, eye, -0.12, 0.5, 0.38), box(0.08, 0.08, 0.02, eye, 0.12, 0.5, 0.38));
   return g;
 }
 

@@ -11,9 +11,21 @@ const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v));
 describe('content', () => {
   it('loads and validates the shipped data files', () => {
     const c = content();
-    expect(c.skills.size).toBe(14);
-    expect(c.skills.get('mining')!.actions).toHaveLength(3);
+    expect([...c.skills.keys()]).toEqual([
+      'shooting',
+      'melee',
+      'defense',
+      'hitpoints',
+      'summoning',
+      'mining',
+      'fundraising',
+      'lobbying',
+      'spin',
+      'construction',
+    ]);
     expect(c.zones.has(START_ZONE_ID)).toBe(true);
+    expect(c.zones.has('zone_trenches')).toBe(true);
+    expect(c.zones.has('zone_bunker')).toBe(true);
   });
 
   it('references only asset ids that exist in the manifest', () => {
@@ -23,28 +35,61 @@ describe('content', () => {
       'player_president',
       ...[...c.items.values()].map((i) => i.model),
       ...[...c.npcs.values()].map((n) => n.model),
+      ...[...c.enemies.values()].map((e) => e.model),
+      ...[...c.sprotos.values()].map((s) => s.model),
       ...[...c.terrain.values()].map((t) => t.model),
-      ...[...c.objects.values()].flatMap((o) => [o.model, o.depleted?.model ?? o.model]),
+      ...[...c.objects.values()].flatMap((o) => [
+        o.model,
+        o.depleted?.model ?? o.model,
+        ...o.builds.map((b) => b.model),
+      ]),
       ...[...c.skills.keys()].map((id) => `skill_${id}`),
       ...[...c.zones.values()].flatMap((z) => z.mapIcons.map((i) => i.icon)),
     ];
     for (const id of referenced) expect(ids, `missing asset '${id}'`).toContain(id);
   });
 
-  it('makes every interactive entity in each zone reachable from spawn', () => {
+  it('every gun uses common rounds unless it is an explosive cannon that fires Hash', () => {
+    for (const item of content().items.values()) {
+      if (item.weapon?.type !== 'gun') continue;
+      expect(item.weapon.ammo === 'hash', item.id).toBe(item.weapon.splash);
+      if (item.weapon.ammo !== 'hash') expect(item.weapon.ammo, item.id).toBe('rounds');
+    }
+  });
+
+  it('everything the Terminal sells has a price ending in 69', () => {
+    for (const s of content().shops.get('shop_terminal')!.stock) {
+      const shown = Number.isInteger(s.priceUsd) ? String(s.priceUsd) : s.priceUsd.toFixed(2);
+      expect(shown, s.item).toMatch(/69$/);
+    }
+  });
+
+  it('makes every interactive entity reachable from spawn (with boss gates open)', () => {
     const c = content();
     for (const zone of c.zones.values()) {
       const grid = buildZoneGrid(zone, c);
-      expect(isWalkable(grid, zone.spawn.x, zone.spawn.y)).toBe(true);
+      for (const o of zone.objects) {
+        if (c.objects.get(o.objectId)?.role === 'gate') grid.blocked[o.y * grid.width + o.x] = 0;
+      }
+      expect(isWalkable(grid, zone.spawn.x, zone.spawn.y), zone.id).toBe(true);
       const targets = [
         ...zone.objects
-          .filter((o) => c.objects.get(o.objectId)!.actions.length > 0)
+          .filter((o) => {
+            const def = c.objects.get(o.objectId)!;
+            return def.actions.length > 0 || def.role === 'hotspot';
+          })
+          .filter((o) => c.objects.get(o.objectId)!.role !== 'gate')
           .map((o) => ({ x: o.x, y: o.y, width: c.objects.get(o.objectId)!.width, height: 1 })),
         ...zone.npcs.map((n) => ({ x: n.x, y: n.y, width: 1, height: 1 })),
       ];
       for (const fp of targets) {
         const r = findPath(grid, zone.spawn, interactionTiles(grid, fp));
         expect(r.complete, `${zone.id}: entity at ${fp.x},${fp.y} unreachable`).toBe(true);
+      }
+      for (const e of zone.enemies) {
+        expect(isWalkable(grid, e.x, e.y), `${zone.id}: enemy at ${e.x},${e.y}`).toBe(true);
+        const r = findPath(grid, zone.spawn, [{ x: e.x, y: e.y }]);
+        expect(r.complete, `${zone.id}: enemy at ${e.x},${e.y} unreachable`).toBe(true);
       }
     }
   });
@@ -71,5 +116,13 @@ describe('content', () => {
     const raw = clone(DEFAULT_RAW_CONTENT) as { items: { stackable: unknown }[] };
     raw.items[0].stackable = 'yes';
     expect(() => loadContent(raw as never)).toThrowError(/items\.json/);
+  });
+
+  it('reports quest steps that point at unknown things', () => {
+    const raw = clone(DEFAULT_RAW_CONTENT) as {
+      quests: { steps: { trigger: Record<string, unknown> }[] }[];
+    };
+    raw.quests[0].steps[0].trigger = { type: 'talk', npc: 'npc_nobody' };
+    expect(() => loadContent(raw as never)).toThrowError(/unknown npc 'npc_nobody'/);
   });
 });

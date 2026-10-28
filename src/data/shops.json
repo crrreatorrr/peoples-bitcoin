@@ -1,0 +1,208 @@
+[
+  {
+    "id": "shop_terminal",
+    "name": "Trading Terminal",
+    "stock": [
+      {
+        "item": "item_tp_soundbite",
+        "priceUsd": 9.69
+      },
+      {
+        "item": "item_tp_zinger",
+        "priceUsd": 26.69
+      },
+      {
+        "item": "item_tp_mic_drop",
+        "priceUsd": 69
+      },
+      {
+        "item": "item_pick_rusty",
+        "priceUsd": 69
+      },
+      {
+        "item": "item_pick_steel",
+        "priceUsd": 669
+      },
+      {
+        "item": "item_pick_quantum",
+        "priceUsd": 2669
+      },
+      {
+        "item": "item_donor_list",
+        "priceUsd": 69
+      },
+      {
+        "item": "item_rolodex",
+        "priceUsd": 669
+      },
+      {
+        "item": "item_black_book",
+        "priceUsd": 2669
+      },
+      {
+        "item": "item_business_cards",
+        "priceUsd": 69
+      },
+      {
+        "item": "item_gold_cards",
+        "priceUsd": 669
+      },
+      {
+        "item": "item_platinum_cards",
+        "priceUsd": 2669
+      },
+      {
+        "item": "item_toolkit_basic",
+        "priceUsd": 169
+      },
+      {
+        "item": "item_toolkit_pro",
+        "priceUsd": 1669
+      },
+      {
+        "item": "item_toolkit_elite",
+        "priceUsd": 6669
+      },
+      {
+        "item": "item_oak_gavel",
+        "priceUsd": 69
+      },
+      {
+        "item": "item_iron_gavel",
+        "priceUsd": 869
+      },
+      {
+        "item": "item_veto_hammer",
+        "priceUsd": 4669
+      },
+      {
+        "item": "item_filibuster_mace",
+        "priceUsd": 16669
+      },
+      {
+        "item": "gun_campaign_pistol",
+        "priceUsd": 69
+      },
+      {
+        "item": "gun_confetti_shotgun",
+        "priceUsd": 469
+      },
+      {
+        "item": "gun_press_pass_smg",
+        "priceUsd": 1469
+      },
+      {
+        "item": "gun_hash_cannon",
+        "priceUsd": 2669
+      },
+      {
+        "item": "gun_treasury_rifle",
+        "priceUsd": 3669
+      },
+      {
+        "item": "gun_gremlin_blaster",
+        "priceUsd": 9669
+      },
+      {
+        "item": "gun_diamond_minigun",
+        "priceUsd": 24669
+      },
+      {
+        "item": "gun_golden_veto",
+        "priceUsd": 69669
+      },
+      {
+        "item": "gun_flippening_railgun",
+        "priceUsd": 169669
+      },
+      {
+        "item": "item_rounds",
+        "priceUsd": 0.69
+      },
+      {
+        "item": "item_campaign_hat",
+        "priceUsd": 69
+      },
+      {
+        "item": "item_campaign_slacks",
+        "priceUsd": 169
+      },
+      {
+        "item": "item_campaign_jacket",
+        "priceUsd": 269
+      },
+      {
+        "item": "item_aviators",
+        "priceUsd": 669
+      },
+      {
+        "item": "item_flak_helmet",
+        "priceUsd": 669
+      },
+      {
+        "item": "item_flak_pants",
+        "priceUsd": 869
+      },
+      {
+        "item": "item_flak_vest",
+        "priceUsd": 1269
+      },
+      {
+        "item": "item_kevlar_fedora",
+        "priceUsd": 2669
+      },
+      {
+        "item": "item_kevlar_trousers",
+        "priceUsd": 3669
+      },
+      {
+        "item": "item_kevlar_suit",
+        "priceUsd": 5669
+      },
+      {
+        "item": "item_diamond_helm",
+        "priceUsd": 8669
+      },
+      {
+        "item": "item_diamond_greaves",
+        "priceUsd": 11669
+      },
+      {
+        "item": "item_diamond_plate",
+        "priceUsd": 16669
+      },
+      {
+        "item": "contract_recruit",
+        "priceUsd": 69
+      },
+      {
+        "item": "contract_medic",
+        "priceUsd": 269
+      },
+      {
+        "item": "contract_grunt",
+        "priceUsd": 669
+      },
+      {
+        "item": "contract_sniper",
+        "priceUsd": 1669
+      },
+      {
+        "item": "contract_heavy",
+        "priceUsd": 4669
+      },
+      {
+        "item": "item_concrete_bag",
+        "priceUsd": 69
+      },
+      {
+        "item": "item_steel_beam",
+        "priceUsd": 169
+      },
+      {
+        "item": "item_circuit_board",
+        "priceUsd": 469
+      }
+    ]
+  }
+]

@@ -29,6 +29,7 @@
 
 | Field                                                                               | Meaning                                                                                                                                     |
 | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sprite`, `spriteHeight`                                                            | PNG under `src/assets/` shown as a billboard (or icon); height in tiles. Overrides `path` and `placeholder`                                 |
 | `placeholder`                                                                       | Built-in primitive: `tile`, `wall`, `water`, `humanoid`, `rack`, `tree`, `pillar`, `bench`, `flagpole`, `gremlin`, `board`, `icon`, `glyph` |
 | `path`                                                                              | GLB/GLTF under `src/assets/`. Overrides `placeholder`                                                                                       |
 | `scale`, `rotationYDeg`                                                             | Applied to the model after loading                                                                                                          |
@@ -46,6 +47,20 @@
 | Stone wall           | `#b8b0a0`             |
 | UI gold              | `#f2c14e`             |
 | Price up / down      | `#3fdc5a` / `#ff5a4d` |
+
+## Sprites (current art, from Higgsfield)
+
+Characters, enemies, Sprotos, props and item icons are 2D pixel-art sprites generated with
+Higgsfield (`gpt_image_2_5`, transparent background, medium quality for sprites, low for icons),
+then cropped to their alpha bounds and downscaled: world sprites to at most 192 px
+(`src/assets/sprites/`), icons to 64 × 64 (`src/assets/icons/`). The world itself stays low-poly
+3D. In the manifest an entry's `sprite` (path under `src/assets/`) wins over `path` and
+`placeholder`; `spriteHeight` is its height in tiles. Sprites stand on the ground as camera-facing
+billboards, flip to face their direction of travel and bob while walking.
+
+Prompt style: "Pixel art game sprite in a chunky retro MMO style, 3/4 front view, centered,
+crisp dark outline, limited palette, transparent background, no text, no logos", plus the
+subject. Human characters always add "fictional, does not resemble any real person".
 
 ## Pipeline (owner, later)
 

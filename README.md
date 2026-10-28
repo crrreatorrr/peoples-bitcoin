@@ -3,7 +3,7 @@
 A satirical, OSRS-inspired browser MMO-lite built with Three.js, TypeScript and Vite.
 All currencies are fictional and in-game only. See [DESIGN.md](DESIGN.md) for the full design.
 
-**Status:** Phase 1 (core sandbox) complete, plus an OSRS interface pass (minimap, bank, chat, dialogue, ground items). See [CHANGELOG.md](CHANGELOG.md) and [TODO.md](TODO.md).
+**Status:** Phase 1 sandbox plus the owner's skill-web revamp: 10 interconnected skills, the Trading Terminal, combat in The Trenches, Sproto summons, the bunker, and an OSRS-style tutorial. See `DESIGN.md` → Revisions. See [CHANGELOG.md](CHANGELOG.md) and [TODO.md](TODO.md).
 
 ## Run it
 
@@ -27,16 +27,19 @@ Then open the URL Vite prints (default http://localhost:5173).
 
 ## Controls
 
-- **Left-click:** walk, or the default action (Mine, Talk-to, Bank, Take)
+- **Left-click:** walk, or the default action (Mine, Attack, Talk-to, Bank, Take...)
 - **Right-click:** every option for everything under the cursor
 - **Right- or middle-drag, arrow keys:** rotate and tilt the camera
 - **Mouse wheel:** zoom
 - **Minimap:** click to walk; click the compass to face north
 - **Chat:** start typing (or press Enter), Enter to send. Space continues NPC dialogue.
-- **Inventory:** left-click examines, shift-click drops, drag to rearrange, right-click for options
+- **Inventory:** left-click uses (Wield, Wear, Recite, Summon), shift-click drops, drag to rearrange, right-click for options
+- **Trading Terminal** (main hall): click to buy; with it open, inventory clicks sell
+- **Equipment tab:** combat style buttons; click a slot to remove gear
+- **Quests tab:** the tutorial checklist; follow the yellow arrow
 - **Bank:** use a bank booth in the Treasury hall. 1/5/10/All set the left-click amount.
 - **Skills:** click a skill for its guide
-- **Orbs** (beside the minimap): XP counter toggle, Hitpoints, run
+- **Orbs** (beside the minimap): XP counter toggle, Hitpoints, run, Sproto special
 - **Esc:** close windows and return to the Inventory tab
 
 Progress autosaves to `localStorage` every 10 ticks and when the tab is hidden or closed.

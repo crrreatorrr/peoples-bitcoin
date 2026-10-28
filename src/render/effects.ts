@@ -1,6 +1,7 @@
 /**
- * Visual-only effects. The click marker is the OSRS-style cross that shows
- * where a click landed: yellow for walking, red for an action.
+ * Visual-only effects: the click marker, particle bursts (level-up fireworks,
+ * sludge poofs, explosions), shot tracers, the tutorial hint arrow and HP bars.
+ * Nothing here touches game state.
  */
 import * as THREE from 'three';
 import { FIREWORKS, RENDER } from '../config/balance';
@@ -61,63 +62,192 @@ function crossMaterial(color: string): THREE.MeshBasicMaterial {
   return new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false });
 }
 
-const FIREWORK_COLORS = ['#f2c14e', '#3fdc5a', '#ff5a4d', '#4fd8ea', '#ffffff'];
+export const PALETTES = {
+  fireworks: ['#f2c14e', '#3fdc5a', '#ff5a4d', '#4fd8ea', '#ffffff'],
+  sludge: ['#2f3b22', '#4a5a2e', '#6b7a3a', '#1e2616'],
+  explosion: ['#ffcf3f', '#ff7a1a', '#ff3b2f', '#fff1b0'],
+} as const;
 
-/** Level-up burst of sparks around the player. */
-export class Fireworks {
-  private readonly points: THREE.Points;
-  private readonly velocities: Float32Array;
-  private readonly origin = new THREE.Vector3();
-  private startedAt = -Infinity;
+interface Burst {
+  points: THREE.Points;
+  velocities: Float32Array;
+  origin: THREE.Vector3;
+  startedAt: number;
+  durationMs: number;
+}
 
-  constructor(scene: THREE.Scene) {
-    const n = FIREWORKS.particles;
+/** Short-lived particle bursts: level-up fireworks, sludge poofs, explosions. */
+export class Bursts {
+  private readonly active: Burst[] = [];
+
+  constructor(private readonly scene: THREE.Scene) {}
+
+  spawn(
+    at: THREE.Vector3,
+    palette: readonly string[],
+    now: number,
+    opts: { count?: number; speed?: number; lift?: number; durationMs?: number } = {},
+  ): void {
+    const n = opts.count ?? FIREWORKS.particles;
+    const speed = opts.speed ?? FIREWORKS.speed;
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
     const colors = new Float32Array(n * 3);
     const c = new THREE.Color();
-    for (let i = 0; i < n; i++) {
-      c.set(FIREWORK_COLORS[i % FIREWORK_COLORS.length]).toArray(colors, i * 3);
-    }
+    for (let i = 0; i < n; i++) c.set(palette[i % palette.length]).toArray(colors, i * 3);
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    this.velocities = new Float32Array(n * 3);
-    this.points = new THREE.Points(
+    const velocities = new Float32Array(n * 3);
+    for (let i = 0; i < velocities.length; i += 3) {
+      const theta = Math.random() * Math.PI * 2;
+      const s = speed * (0.4 + Math.random() * 0.6);
+      velocities[i] = Math.cos(theta) * s;
+      velocities[i + 1] = (0.3 + Math.random() * 0.9) * s;
+      velocities[i + 2] = Math.sin(theta) * s;
+    }
+    const points = new THREE.Points(
       geometry,
       new THREE.PointsMaterial({ size: 0.14, vertexColors: true, transparent: true }),
     );
-    this.points.visible = false;
-    this.points.frustumCulled = false;
-    scene.add(this.points);
-  }
-
-  burst(at: THREE.Vector3, now: number): void {
-    this.origin.copy(at);
-    this.origin.y += 1.2;
-    const v = this.velocities;
-    for (let i = 0; i < v.length; i += 3) {
-      const theta = Math.random() * Math.PI * 2;
-      const up = 0.4 + Math.random() * 0.8;
-      const speed = FIREWORKS.speed * (0.5 + Math.random() * 0.5);
-      v[i] = Math.cos(theta) * speed;
-      v[i + 1] = up * speed;
-      v[i + 2] = Math.sin(theta) * speed;
-    }
-    this.startedAt = now;
+    points.frustumCulled = false;
+    this.scene.add(points);
+    const origin = at.clone();
+    origin.y += opts.lift ?? 0.6;
+    this.active.push({
+      points,
+      velocities,
+      origin,
+      startedAt: now,
+      durationMs: opts.durationMs ?? FIREWORKS.durationMs,
+    });
   }
 
   update(now: number): void {
-    const elapsed = now - this.startedAt;
-    this.points.visible = elapsed >= 0 && elapsed < FIREWORKS.durationMs;
-    if (!this.points.visible) return;
-    const t = elapsed / 1000;
-    const pos = this.points.geometry.getAttribute('position') as THREE.BufferAttribute;
-    const v = this.velocities;
-    for (let i = 0; i < v.length; i += 3) {
-      pos.array[i] = this.origin.x + v[i] * t;
-      pos.array[i + 1] = this.origin.y + v[i + 1] * t - FIREWORKS.gravity * t * t;
-      pos.array[i + 2] = this.origin.z + v[i + 2] * t;
+    for (let i = this.active.length - 1; i >= 0; i--) {
+      const b = this.active[i];
+      const elapsed = now - b.startedAt;
+      if (elapsed >= b.durationMs) {
+        this.scene.remove(b.points);
+        b.points.geometry.dispose();
+        (b.points.material as THREE.Material).dispose();
+        this.active.splice(i, 1);
+        continue;
+      }
+      const t = elapsed / 1000;
+      const pos = b.points.geometry.getAttribute('position') as THREE.BufferAttribute;
+      const v = b.velocities;
+      for (let j = 0; j < v.length; j += 3) {
+        pos.array[j] = b.origin.x + v[j] * t;
+        pos.array[j + 1] = Math.max(0.02, b.origin.y + v[j + 1] * t - FIREWORKS.gravity * t * t);
+        pos.array[j + 2] = b.origin.z + v[j + 2] * t;
+      }
+      pos.needsUpdate = true;
+      (b.points.material as THREE.PointsMaterial).opacity = 1 - elapsed / b.durationMs;
     }
-    pos.needsUpdate = true;
-    (this.points.material as THREE.PointsMaterial).opacity = 1 - elapsed / FIREWORKS.durationMs;
+  }
+}
+
+interface Tracer {
+  line: THREE.Line;
+  startedAt: number;
+}
+
+const TRACER_MS = 220;
+
+/** Shots: a brief line from shooter to target. Hits resolve on the tick; this is only visual. */
+export class Tracers {
+  private readonly active: Tracer[] = [];
+  private readonly materials = {
+    shot: new THREE.LineBasicMaterial({ color: '#fff1a8', transparent: true }),
+    explosive: new THREE.LineBasicMaterial({ color: '#ff8a1a', transparent: true }),
+  };
+
+  constructor(private readonly scene: THREE.Scene) {}
+
+  fire(from: THREE.Vector3, to: THREE.Vector3, explosive: boolean, now: number): void {
+    const a = from.clone().setY(from.y + 1);
+    const b = to.clone().setY(to.y + 0.8);
+    const line = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints([a, b]),
+      (explosive ? this.materials.explosive : this.materials.shot).clone(),
+    );
+    this.scene.add(line);
+    this.active.push({ line, startedAt: now });
+  }
+
+  update(now: number): void {
+    for (let i = this.active.length - 1; i >= 0; i--) {
+      const t = this.active[i];
+      const k = (now - t.startedAt) / TRACER_MS;
+      if (k >= 1) {
+        this.scene.remove(t.line);
+        t.line.geometry.dispose();
+        (t.line.material as THREE.Material).dispose();
+        this.active.splice(i, 1);
+      } else {
+        (t.line.material as THREE.LineBasicMaterial).opacity = 1 - k;
+      }
+    }
+  }
+}
+
+/** A bouncing yellow arrow over the tutorial's next target. */
+export class HintArrow {
+  private readonly mesh: THREE.Mesh;
+
+  constructor(scene: THREE.Scene) {
+    const geometry = new THREE.ConeGeometry(0.22, 0.5, 4).rotateX(Math.PI);
+    this.mesh = new THREE.Mesh(
+      geometry,
+      new THREE.MeshLambertMaterial({ color: '#ffe14a', emissive: '#806a10', flatShading: true }),
+    );
+    this.mesh.visible = false;
+    scene.add(this.mesh);
+  }
+
+  update(target: THREE.Vector3 | null, heightAbove: number, timeSec: number): void {
+    this.mesh.visible = target !== null;
+    if (!target) return;
+    this.mesh.position.set(
+      target.x,
+      target.y + heightAbove + 0.3 + Math.abs(Math.sin(timeSec * 3)) * 0.35,
+      target.z,
+    );
+    this.mesh.rotation.y = timeSec * 2;
+  }
+}
+
+/** A small green-over-red bar that floats above a combatant (one billboard sprite). */
+export class HpBar {
+  readonly sprite: THREE.Sprite;
+  private readonly ctx: CanvasRenderingContext2D;
+  private readonly texture: THREE.CanvasTexture;
+  private shown = -1;
+
+  constructor() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 30;
+    canvas.height = 4;
+    this.ctx = canvas.getContext('2d')!;
+    this.texture = new THREE.CanvasTexture(canvas);
+    this.texture.magFilter = THREE.NearestFilter;
+    this.texture.minFilter = THREE.NearestFilter;
+    this.sprite = new THREE.Sprite(
+      new THREE.SpriteMaterial({ map: this.texture, depthTest: false }),
+    );
+    this.sprite.scale.set(0.8, 0.11, 1);
+    this.sprite.renderOrder = 5;
+    this.sprite.visible = false;
+  }
+
+  set(fraction: number, visible: boolean): void {
+    this.sprite.visible = visible;
+    const px = Math.round(Math.max(0, Math.min(1, fraction)) * 30);
+    if (!visible || px === this.shown) return;
+    this.shown = px;
+    this.ctx.fillStyle = '#c0281e';
+    this.ctx.fillRect(0, 0, 30, 4);
+    this.ctx.fillStyle = '#2fd04a';
+    this.ctx.fillRect(0, 0, px, 4);
+    this.texture.needsUpdate = true;
   }
 }

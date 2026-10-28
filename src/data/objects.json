@@ -6,6 +6,7 @@
     "model": "rack_dusty",
     "actions": ["Mine"],
     "blocks": true,
+    "role": "gather",
     "depleted": {
       "name": "Overheated Rack",
       "examine": "Too hot to mine. It needs a moment and a fan.",
@@ -19,6 +20,7 @@
     "model": "rack_humming",
     "actions": ["Mine"],
     "blocks": true,
+    "role": "gather",
     "depleted": {
       "name": "Overheated Rack",
       "examine": "Too hot to mine. It needs a moment and a fan.",
@@ -32,11 +34,106 @@
     "model": "rack_liquid",
     "actions": ["Mine"],
     "blocks": true,
+    "role": "gather",
     "depleted": {
       "name": "Overheated Rack",
-      "examine": "Even the liquid cooling has given up for now.",
+      "examine": "Too hot to mine. It needs a moment and a fan.",
       "model": "rack_overheated"
     }
+  },
+  {
+    "id": "obj_donor_chicken",
+    "name": "Rubber Chicken Dinner",
+    "examine": "Donors, rubber chicken, and rumors.",
+    "model": "donor_chicken",
+    "actions": ["Work the room"],
+    "blocks": true,
+    "role": "gather",
+    "depleted": {
+      "name": "Empty Table",
+      "examine": "The donors went home. More are on the way.",
+      "model": "donor_empty"
+    }
+  },
+  {
+    "id": "obj_donor_gala",
+    "name": "Gala Table",
+    "examine": "Black tie. Black secrets.",
+    "model": "donor_gala",
+    "actions": ["Work the room"],
+    "blocks": true,
+    "role": "gather",
+    "depleted": {
+      "name": "Empty Table",
+      "examine": "The donors went home. More are on the way.",
+      "model": "donor_empty"
+    }
+  },
+  {
+    "id": "obj_donor_yacht",
+    "name": "Yacht Party Deck",
+    "examine": "Where the really big donors float their ideas.",
+    "model": "donor_yacht",
+    "actions": ["Work the room"],
+    "blocks": true,
+    "role": "gather",
+    "depleted": {
+      "name": "Empty Table",
+      "examine": "The donors went home. More are on the way.",
+      "model": "donor_empty"
+    }
+  },
+  {
+    "id": "obj_lobbyist_junior",
+    "name": "Junior Lobbyist",
+    "examine": "Eager. Underpaid. Paying you anyway.",
+    "model": "lobbyist_junior",
+    "actions": ["Do a favor"],
+    "blocks": true,
+    "role": "gather",
+    "depleted": {
+      "name": "Busy Lobbyist",
+      "examine": "On the phone. Try again in a moment.",
+      "model": "lobbyist_busy"
+    }
+  },
+  {
+    "id": "obj_lobbyist_veteran",
+    "name": "K Street Veteran",
+    "examine": "Has seen eleven administrations. Pays well.",
+    "model": "lobbyist_veteran",
+    "actions": ["Do a favor"],
+    "blocks": true,
+    "role": "gather",
+    "depleted": {
+      "name": "Busy Lobbyist",
+      "examine": "On the phone. Try again in a moment.",
+      "model": "lobbyist_busy"
+    }
+  },
+  {
+    "id": "obj_lobbyist_broker",
+    "name": "Shadow Broker",
+    "examine": "Nobody knows who they work for. The money is real.",
+    "model": "lobbyist_broker",
+    "actions": ["Do a favor"],
+    "blocks": true,
+    "role": "gather",
+    "depleted": {
+      "name": "Busy Lobbyist",
+      "examine": "On the phone. Try again in a moment.",
+      "model": "lobbyist_busy"
+    }
+  },
+  {
+    "id": "obj_press_podium",
+    "name": "Press Podium",
+    "examine": "Raw scandals go in. Talking Points come out.",
+    "model": "press_podium",
+    "actions": ["Spin"],
+    "blocks": true,
+    "role": "station",
+    "skill": "spin"
   },
   {
     "id": "obj_bank_booth",
@@ -44,7 +141,62 @@
     "examine": "The Treasury's bank. Your deposits are safe, and definitely not BTC.",
     "model": "bank_booth",
     "actions": ["Bank"],
-    "blocks": true
+    "blocks": true,
+    "role": "bank"
+  },
+  {
+    "id": "obj_terminal",
+    "name": "Trading Terminal",
+    "examine": "Buy and sell at the live $BITCOIN price. Timing is everything.",
+    "model": "terminal",
+    "actions": ["Use"],
+    "blocks": true,
+    "role": "terminal"
+  },
+  {
+    "id": "obj_bunker_hatch",
+    "name": "Bunker Hatch",
+    "examine": "A heavy hatch in the floor. It leads to a bunker.",
+    "model": "bunker_hatch",
+    "actions": ["Climb-down"],
+    "blocks": true,
+    "role": "portal"
+  },
+  {
+    "id": "obj_bunker_ladder",
+    "name": "Ladder",
+    "examine": "Back up to the Treasury.",
+    "model": "ladder",
+    "actions": ["Climb-up"],
+    "blocks": true,
+    "role": "portal"
+  },
+  {
+    "id": "obj_trench_entrance",
+    "name": "Trench Entrance",
+    "examine": "Sandbags, mud, and something growling. The Trenches.",
+    "model": "trench_entrance",
+    "actions": ["Enter"],
+    "blocks": true,
+    "role": "portal"
+  },
+  {
+    "id": "obj_trench_exit",
+    "name": "Supply Ladder",
+    "examine": "Back to the Treasury lawn.",
+    "model": "ladder",
+    "actions": ["Climb-up"],
+    "blocks": true,
+    "role": "portal"
+  },
+  {
+    "id": "obj_barricade",
+    "name": "Barricade",
+    "examine": "It opens for whoever beats the boss guarding it.",
+    "model": "barricade",
+    "actions": ["Pass"],
+    "blocks": true,
+    "role": "gate"
   },
   {
     "id": "obj_roadmap_board",
@@ -53,6 +205,7 @@
     "model": "board_roadmap",
     "actions": [],
     "blocks": true,
+    "role": "scenery",
     "width": 2
   },
   {
@@ -61,7 +214,8 @@
     "examine": "Holds up the Treasury. Somebody has to.",
     "model": "pillar_marble",
     "actions": [],
-    "blocks": true
+    "blocks": true,
+    "role": "scenery"
   },
   {
     "id": "obj_flagpole",
@@ -69,7 +223,8 @@
     "examine": "The flag of The People's Bitcoin. It only goes up.",
     "model": "flagpole",
     "actions": [],
-    "blocks": true
+    "blocks": true,
+    "role": "scenery"
   },
   {
     "id": "obj_bench",
@@ -77,7 +232,8 @@
     "examine": "Reserved for people waiting for the price target.",
     "model": "bench_park",
     "actions": [],
-    "blocks": true
+    "blocks": true,
+    "role": "scenery"
   },
   {
     "id": "obj_statue_gremlin",
@@ -85,14 +241,332 @@
     "examine": "A golden Gremlin. Someone has scratched 'FREE ME' on the base.",
     "model": "statue_gremlin",
     "actions": [],
-    "blocks": true
+    "blocks": true,
+    "role": "scenery"
   },
   {
     "id": "obj_tree",
     "name": "Swamp Oak",
-    "examine": "A sturdy tree. Lobbyists will hang around here one day.",
+    "examine": "A sturdy tree. Good shade for lobbyists.",
     "model": "tree_oak",
     "actions": [],
-    "blocks": true
+    "blocks": true,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_hotspot_storage",
+    "name": "Storage Space",
+    "examine": "An empty spot in your bunker. Something useful could go here.",
+    "model": "hotspot",
+    "actions": [],
+    "blocks": true,
+    "role": "hotspot",
+    "builds": [
+      {
+        "id": "build_locker",
+        "name": "Storage Locker",
+        "examine": "Your bank, at home.",
+        "model": "build_locker",
+        "levelReq": 1,
+        "toolTier": 1,
+        "materials": [
+          {
+            "item": "item_scrap_hash",
+            "qty": 5
+          },
+          {
+            "item": "item_concrete_bag",
+            "qty": 1
+          }
+        ],
+        "xp": 60,
+        "provides": "bank"
+      }
+    ]
+  },
+  {
+    "id": "obj_hotspot_medbay",
+    "name": "Med Bay Space",
+    "examine": "An empty spot in your bunker. Something useful could go here.",
+    "model": "hotspot",
+    "actions": [],
+    "blocks": true,
+    "role": "hotspot",
+    "builds": [
+      {
+        "id": "build_medbay",
+        "name": "Med Bay",
+        "examine": "Rest here to heal fully.",
+        "model": "build_medbay",
+        "levelReq": 5,
+        "toolTier": 1,
+        "materials": [
+          {
+            "item": "item_scrap_hash",
+            "qty": 10
+          },
+          {
+            "item": "item_concrete_bag",
+            "qty": 2
+          }
+        ],
+        "xp": 120,
+        "provides": "heal"
+      }
+    ]
+  },
+  {
+    "id": "obj_hotspot_terminal",
+    "name": "Terminal Space",
+    "examine": "An empty spot in your bunker. Something useful could go here.",
+    "model": "hotspot",
+    "actions": [],
+    "blocks": true,
+    "role": "hotspot",
+    "builds": [
+      {
+        "id": "build_home_terminal",
+        "name": "Home Terminal",
+        "examine": "Trade without leaving the bunker.",
+        "model": "build_home_terminal",
+        "levelReq": 10,
+        "toolTier": 1,
+        "materials": [
+          {
+            "item": "item_warm_hash",
+            "qty": 5
+          },
+          {
+            "item": "item_circuit_board",
+            "qty": 1
+          }
+        ],
+        "xp": 180,
+        "provides": "terminal"
+      }
+    ]
+  },
+  {
+    "id": "obj_hotspot_bed",
+    "name": "Bed Space",
+    "examine": "An empty spot in your bunker. Something useful could go here.",
+    "model": "hotspot",
+    "actions": [],
+    "blocks": true,
+    "role": "hotspot",
+    "builds": [
+      {
+        "id": "build_bed",
+        "name": "Respawn Bed",
+        "examine": "If you fall in battle, you wake up here instead of the Treasury.",
+        "model": "build_bed",
+        "levelReq": 15,
+        "toolTier": 2,
+        "materials": [
+          {
+            "item": "item_steel_beam",
+            "qty": 2
+          },
+          {
+            "item": "item_concrete_bag",
+            "qty": 3
+          }
+        ],
+        "xp": 280,
+        "provides": "respawn"
+      }
+    ]
+  },
+  {
+    "id": "obj_hotspot_farm",
+    "name": "Server Farm Space",
+    "examine": "An empty spot in your bunker. Something useful could go here.",
+    "model": "hotspot",
+    "actions": [],
+    "blocks": true,
+    "role": "hotspot",
+    "width": 2,
+    "builds": [
+      {
+        "id": "build_farm_1",
+        "name": "Server Farm I",
+        "examine": "Mines Scrap Hash while you are busy elsewhere.",
+        "model": "build_farm_1",
+        "levelReq": 20,
+        "toolTier": 2,
+        "materials": [
+          {
+            "item": "item_scrap_hash",
+            "qty": 20
+          },
+          {
+            "item": "item_circuit_board",
+            "qty": 2
+          }
+        ],
+        "xp": 400,
+        "provides": "produce",
+        "produce": {
+          "item": "item_scrap_hash",
+          "qty": 1,
+          "everyTicks": 50,
+          "cap": 28
+        }
+      },
+      {
+        "id": "build_farm_2",
+        "name": "Server Farm II",
+        "examine": "Mines Warm Hash while you are busy elsewhere.",
+        "model": "build_farm_2",
+        "levelReq": 40,
+        "toolTier": 3,
+        "materials": [
+          {
+            "item": "item_warm_hash",
+            "qty": 20
+          },
+          {
+            "item": "item_circuit_board",
+            "qty": 4
+          },
+          {
+            "item": "item_steel_beam",
+            "qty": 2
+          }
+        ],
+        "xp": 900,
+        "provides": "produce",
+        "produce": {
+          "item": "item_warm_hash",
+          "qty": 1,
+          "everyTicks": 60,
+          "cap": 28
+        }
+      },
+      {
+        "id": "build_farm_3",
+        "name": "Server Farm III",
+        "examine": "Mines Molten Hash while you are busy elsewhere.",
+        "model": "build_farm_3",
+        "levelReq": 60,
+        "toolTier": 3,
+        "materials": [
+          {
+            "item": "item_molten_hash",
+            "qty": 20
+          },
+          {
+            "item": "item_circuit_board",
+            "qty": 8
+          },
+          {
+            "item": "item_steel_beam",
+            "qty": 4
+          }
+        ],
+        "xp": 1600,
+        "provides": "produce",
+        "produce": {
+          "item": "item_molten_hash",
+          "qty": 1,
+          "everyTicks": 80,
+          "cap": 28
+        }
+      }
+    ]
+  },
+  {
+    "id": "obj_hotspot_armory",
+    "name": "Armory Space",
+    "examine": "An empty spot in your bunker. Something useful could go here.",
+    "model": "hotspot",
+    "actions": [],
+    "blocks": true,
+    "role": "hotspot",
+    "builds": [
+      {
+        "id": "build_armory_1",
+        "name": "Ammo Crate",
+        "examine": "Fills with Rounds over time.",
+        "model": "build_armory_1",
+        "levelReq": 25,
+        "toolTier": 2,
+        "materials": [
+          {
+            "item": "item_steel_beam",
+            "qty": 3
+          },
+          {
+            "item": "item_circuit_board",
+            "qty": 1
+          }
+        ],
+        "xp": 450,
+        "provides": "produce",
+        "produce": {
+          "item": "item_rounds",
+          "qty": 25,
+          "everyTicks": 100,
+          "cap": 500
+        }
+      },
+      {
+        "id": "build_armory_2",
+        "name": "Armory",
+        "examine": "Fills with lots of Rounds over time.",
+        "model": "build_armory_2",
+        "levelReq": 50,
+        "toolTier": 3,
+        "materials": [
+          {
+            "item": "item_steel_beam",
+            "qty": 6
+          },
+          {
+            "item": "item_circuit_board",
+            "qty": 3
+          }
+        ],
+        "xp": 1100,
+        "provides": "produce",
+        "produce": {
+          "item": "item_rounds",
+          "qty": 60,
+          "everyTicks": 100,
+          "cap": 1500
+        }
+      }
+    ]
+  },
+  {
+    "id": "obj_hotspot_circle",
+    "name": "Circle Space",
+    "examine": "An empty spot in your bunker. Something useful could go here.",
+    "model": "hotspot",
+    "actions": [],
+    "blocks": true,
+    "role": "hotspot",
+    "builds": [
+      {
+        "id": "build_circle",
+        "name": "Summoning Circle",
+        "examine": "Refills your Summoning points.",
+        "model": "build_circle",
+        "levelReq": 35,
+        "toolTier": 3,
+        "materials": [
+          {
+            "item": "item_molten_hash",
+            "qty": 10
+          },
+          {
+            "item": "item_circuit_board",
+            "qty": 3
+          }
+        ],
+        "xp": 700,
+        "provides": "recharge"
+      }
+    ]
   }
 ]

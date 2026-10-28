@@ -1,27 +1,48 @@
 /**
- * 28-slot inventory grid. Normally: left-click examines, shift-click drops,
- * right-click opens Drop / Examine, and dragging swaps slots. While the bank is
- * open: left-click deposits the bank's selected quantity, right-click lists
- * Deposit-1/5/10/All. Changes go out as intents; the grid re-renders from state.
+ * 28-slot inventory grid. Left-click runs the top option, right-click lists
+ * them all, shift-click drops, dragging swaps slots. Options depend on context:
+ * normally Wield/Wear/Recite/Summon, Drop, Examine; with the bank open,
+ * Deposit-1/5/10/All; at the Terminal, Value and Sell-1/5/10/All.
+ * Changes go out as intents; the grid re-renders from state.
  */
 import type { Content } from '../sim/content';
+import type { ItemDef } from '../sim/schemas';
 import type { Inventory, Quantity } from '../sim/state';
 import { QUANTITIES, qtyLabel } from './bank';
 import type { MenuOption } from './contextmenu';
 import { qtyBadge } from './format';
 import type { Tooltip } from './tooltips';
 
+export type InventoryMode =
+  { kind: 'normal' } | { kind: 'bank'; qty: Quantity } | { kind: 'terminal' };
+export type UseKind = 'equip' | 'eat' | 'summon';
+
 export interface InventoryHandlers {
   examine(itemId: string): void;
   drop(slot: number): void;
   move(from: number, to: number): void;
+  use(slot: number, kind: UseKind): void;
   deposit(slot: number, qty: Quantity): void;
+  sell(slot: number, qty: Quantity): void;
+  value(itemId: string): void;
   openMenu(options: MenuOption[], x: number, y: number): void;
-  /** The bank's left-click quantity while it's open, otherwise null. */
-  bankQuantity(): Quantity | null;
+  mode(): InventoryMode;
 }
 
 const DRAG_TYPE = 'text/x-inventory-slot';
+
+/** The item's main action verb and what it does, if any. */
+export function primaryUse(def: ItemDef | undefined): { verb: string; kind: UseKind } | null {
+  if (!def) return null;
+  if (def.equip)
+    return {
+      verb: def.weapon ? 'Wield' : def.equip.slot === 'ammo' ? 'Equip' : 'Wear',
+      kind: 'equip',
+    };
+  if (def.food) return { verb: def.food.verb, kind: 'eat' };
+  if (def.summon) return { verb: 'Summon', kind: 'summon' };
+  return null;
+}
 
 export class InventoryPanel {
   readonly el = document.createElement('div');
@@ -48,9 +69,8 @@ export class InventoryPanel {
     this.el.addEventListener('click', (e) => {
       const index = this.slotOf(e);
       if (index === null) return;
-      const options = this.options(index);
-      if (e.shiftKey && this.h.bankQuantity() === null) this.h.drop(index);
-      else options[0].run?.();
+      if (e.shiftKey && this.h.mode().kind === 'normal') this.h.drop(index);
+      else this.options(index)[0].run?.();
     });
     this.el.addEventListener('contextmenu', (e) => {
       e.preventDefault();
@@ -116,27 +136,33 @@ export class InventoryPanel {
   /** Menu options for a slot, default (left-click) option first. */
   private options(index: number): MenuOption[] {
     const item = this.items[index]!;
-    const name = this.content.items.get(item.itemId)?.name ?? item.itemId;
-    const examine: MenuOption = {
-      action: 'Examine',
+    const def = this.content.items.get(item.itemId);
+    const name = def?.name ?? item.itemId;
+    const opt = (action: string, run: () => void): MenuOption => ({
+      action,
       target: name,
       targetKind: 'item',
-      run: () => this.h.examine(item.itemId),
-    };
-    const bankQty = this.h.bankQuantity();
-    if (bankQty !== null) {
-      const deposit = (q: Quantity): MenuOption => ({
-        action: `Deposit-${qtyLabel(q)}`,
-        target: name,
-        targetKind: 'item',
-        run: () => this.h.deposit(index, q),
-      });
-      return [deposit(bankQty), ...QUANTITIES.filter((q) => q !== bankQty).map(deposit), examine];
+      run,
+    });
+    const examine = opt('Examine', () => this.h.examine(item.itemId));
+    const mode = this.h.mode();
+    if (mode.kind === 'bank') {
+      const deposit = (q: Quantity) =>
+        opt(`Deposit-${qtyLabel(q)}`, () => this.h.deposit(index, q));
+      return [deposit(mode.qty), ...QUANTITIES.filter((q) => q !== mode.qty).map(deposit), examine];
     }
-    return [
-      examine,
-      { action: 'Drop', target: name, targetKind: 'item', run: () => this.h.drop(index) },
-    ];
+    if (mode.kind === 'terminal') {
+      return [
+        opt('Value', () => this.h.value(item.itemId)),
+        ...QUANTITIES.map((q) => opt(`Sell-${qtyLabel(q)}`, () => this.h.sell(index, q))),
+        examine,
+      ];
+    }
+    const use = primaryUse(def);
+    const drop = opt('Drop', () => this.h.drop(index));
+    return use
+      ? [opt(use.verb, () => this.h.use(index, use.kind)), drop, examine]
+      : [examine, drop];
   }
 
   private slotOf(e: MouseEvent): number | null {

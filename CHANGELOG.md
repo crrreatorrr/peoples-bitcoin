@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.3.0 — Skill web, combat, tutorial and Higgsfield art (2026-10-28)
+
+- **10 interconnected skills** (owner revision): Shooting, Melee, Defense, Hitpoints, Summoning,
+  Mining, Fundraising, Lobbying, Spin, Construction. Gathering skills need tools (picks, donor
+  lists, business cards) with three tiers each.
+- **Trading Terminal:** 50 items priced in USD (ending in 69), paid in $BITCOIN at the live
+  price; sell anything with a value. Hash, scandals, Talking Points, loot all sell.
+- **Lobbying** pays $BITCOIN per favor; 1 in 5 favors is blackmail (XP, no pay).
+- **Spin** turns raw Scandals into Talking Points (food) at the Press Podium; can fail.
+- **Combat:** OSRS-style accuracy/max hit, guns > melee > shields triangle, Accurate / Rapid /
+  Longrange and Bash / Block styles, line of sight, auto-retaliate, hitsplats, HP bars, tracers.
+  9 guns, 4 melee weapons, 13 armor pieces, common Rounds; the Hash Cannon and Golden Veto Cannon
+  fire mined Hash and splash nearby enemies. Death drops your pack where you fell.
+- **The Trenches:** 10 enemy types from level 2 to 80 plus three bosses (Sludge Mother with
+  adds, Wrong-Namer Chief, Captain Motion) gating barricaded sections. Drops are all useful.
+- **Summoning:** five Sprotos (Recruit, Medic, Grunt, Sniper, Heavy) that follow, assist and
+  defend, each with a special (Rally, Patch Up, Taunt, Headshot, Suppress).
+- **Bunker:** unlocked by the Bunker Down quest; build a Storage Locker, Med Bay, Home Terminal,
+  Respawn Bed, Server Farms (passive Hash), Ammo Crate/Armory and a Summoning Circle.
+- **Tutorial "Empty Treasury":** 19 quick steps across every skill with tutor NPCs, a yellow
+  hint arrow and a Quests tab checklist; hints only, any order.
+- **UI:** Equipment tab (gear, stats, styles), Summoning tab, Quests tab, Terminal and build
+  windows, Hitpoints and special orbs, skill guides for every skill.
+- **Art:** 118 Higgsfield sprites and icons (characters, enemies, Sprotos, props, items).
+- **Saves:** format v3; older saves upgrade (Command XP becomes Summoning XP).
+- **Tests:** 129.
+
 ## 0.2.0 — OSRS interface pass (2026-10-28)
 
 - **Minimap** with compass (top-right): turns with the camera, NPC and ground-item dots, bank and

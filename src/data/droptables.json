@@ -1,0 +1,497 @@
+[
+  {
+    "id": "drops_sludgeling",
+    "usd": [0.5, 2],
+    "table": [
+      {
+        "item": "item_rounds",
+        "weight": 30,
+        "min": 5,
+        "max": 15
+      },
+      {
+        "item": "item_scrap_hash",
+        "weight": 15,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_raw_minor_scandal",
+        "weight": 15,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "weight": 40
+      }
+    ]
+  },
+  {
+    "id": "drops_heckler",
+    "usd": [1, 4],
+    "table": [
+      {
+        "item": "item_rounds",
+        "weight": 30,
+        "min": 10,
+        "max": 25
+      },
+      {
+        "item": "item_tp_soundbite",
+        "weight": 15,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_raw_minor_scandal",
+        "weight": 15,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_concrete_bag",
+        "weight": 5,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "weight": 35
+      }
+    ]
+  },
+  {
+    "id": "drops_sockpuppet",
+    "usd": [2, 6],
+    "table": [
+      {
+        "item": "item_rounds",
+        "weight": 30,
+        "min": 15,
+        "max": 30
+      },
+      {
+        "item": "item_scrap_hash",
+        "weight": 15,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_raw_juicy_scandal",
+        "weight": 10,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_tp_soundbite",
+        "weight": 15,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "weight": 30
+      }
+    ]
+  },
+  {
+    "id": "drops_paper_hands",
+    "usd": [3, 9],
+    "table": [
+      {
+        "item": "item_rounds",
+        "weight": 30,
+        "min": 20,
+        "max": 40
+      },
+      {
+        "item": "item_warm_hash",
+        "weight": 15,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_tp_zinger",
+        "weight": 10,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_steel_beam",
+        "weight": 5,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "weight": 40
+      }
+    ]
+  },
+  {
+    "id": "drops_fud_wraith",
+    "usd": [5, 14],
+    "table": [
+      {
+        "item": "item_rounds",
+        "weight": 30,
+        "min": 30,
+        "max": 60
+      },
+      {
+        "item": "item_raw_juicy_scandal",
+        "weight": 15,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_tp_zinger",
+        "weight": 15,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_circuit_board",
+        "weight": 4,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "contract_medic",
+        "weight": 3,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "weight": 33
+      }
+    ]
+  },
+  {
+    "id": "drops_sludge_brute",
+    "usd": [8, 20],
+    "table": [
+      {
+        "item": "item_rounds",
+        "weight": 30,
+        "min": 40,
+        "max": 80
+      },
+      {
+        "item": "item_warm_hash",
+        "weight": 20,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_steel_beam",
+        "weight": 8,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_tp_zinger",
+        "weight": 15,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_flak_vest",
+        "weight": 2,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "weight": 25
+      }
+    ]
+  },
+  {
+    "id": "drops_bear_raider",
+    "usd": [12, 30],
+    "table": [
+      {
+        "item": "item_rounds",
+        "weight": 30,
+        "min": 50,
+        "max": 100
+      },
+      {
+        "item": "item_molten_hash",
+        "weight": 15,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_tp_mic_drop",
+        "weight": 12,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_circuit_board",
+        "weight": 6,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_kevlar_fedora",
+        "weight": 1,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "weight": 36
+      }
+    ]
+  },
+  {
+    "id": "drops_rug_puller",
+    "usd": [18, 45],
+    "table": [
+      {
+        "item": "item_rounds",
+        "weight": 30,
+        "min": 60,
+        "max": 120
+      },
+      {
+        "item": "item_raw_mega_scandal",
+        "weight": 15,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_molten_hash",
+        "weight": 15,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_btc_shard",
+        "weight": 3,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "contract_sniper",
+        "weight": 3,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "weight": 34
+      }
+    ]
+  },
+  {
+    "id": "drops_dump_golem",
+    "usd": [25, 60],
+    "table": [
+      {
+        "item": "item_rounds",
+        "weight": 30,
+        "min": 80,
+        "max": 160
+      },
+      {
+        "item": "item_molten_hash",
+        "weight": 20,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_circuit_board",
+        "weight": 10,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_steel_beam",
+        "weight": 10,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_kevlar_suit",
+        "weight": 2,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "weight": 28
+      }
+    ]
+  },
+  {
+    "id": "drops_margin_caller",
+    "usd": [35, 90],
+    "table": [
+      {
+        "item": "item_rounds",
+        "weight": 30,
+        "min": 100,
+        "max": 200
+      },
+      {
+        "item": "item_tp_mic_drop",
+        "weight": 15,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_btc_shard",
+        "weight": 6,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "contract_heavy",
+        "weight": 3,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_diamond_plate",
+        "weight": 1,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "weight": 45
+      }
+    ]
+  },
+  {
+    "id": "drops_sludge_mother",
+    "usd": [40, 90],
+    "always": [
+      {
+        "item": "item_btc_shard",
+        "qty": 1
+      },
+      {
+        "item": "item_rounds",
+        "qty": 100
+      }
+    ],
+    "rolls": 2,
+    "table": [
+      {
+        "item": "contract_grunt",
+        "weight": 10,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_flak_helmet",
+        "weight": 10,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_tp_zinger",
+        "weight": 30,
+        "min": 2,
+        "max": 4
+      },
+      {
+        "item": "item_circuit_board",
+        "weight": 20,
+        "min": 1,
+        "max": 1
+      }
+    ]
+  },
+  {
+    "id": "drops_wrongnamer_chief",
+    "usd": [90, 200],
+    "always": [
+      {
+        "item": "item_btc_shard",
+        "qty": 2
+      },
+      {
+        "item": "item_rounds",
+        "qty": 200
+      }
+    ],
+    "rolls": 2,
+    "table": [
+      {
+        "item": "item_gold_cards",
+        "weight": 15,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_kevlar_trousers",
+        "weight": 10,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "contract_sniper",
+        "weight": 10,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_tp_mic_drop",
+        "weight": 30,
+        "min": 2,
+        "max": 3
+      },
+      {
+        "item": "item_steel_beam",
+        "weight": 20,
+        "min": 2,
+        "max": 4
+      }
+    ]
+  },
+  {
+    "id": "drops_captain_motion",
+    "usd": [200, 450],
+    "always": [
+      {
+        "item": "item_btc_shard",
+        "qty": 3
+      },
+      {
+        "item": "item_rounds",
+        "qty": 300
+      }
+    ],
+    "rolls": 2,
+    "table": [
+      {
+        "item": "item_kevlar_suit",
+        "weight": 15,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_platinum_cards",
+        "weight": 15,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_pick_quantum",
+        "weight": 15,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "contract_heavy",
+        "weight": 10,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "item_tp_mic_drop",
+        "weight": 30,
+        "min": 3,
+        "max": 5
+      }
+    ]
+  }
+]

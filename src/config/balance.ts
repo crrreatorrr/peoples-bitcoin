@@ -10,6 +10,7 @@ export const AUTOSAVE_EVERY_TICKS = 10;
 export const MAX_CATCHUP_TICKS = 5;
 export const INVENTORY_SIZE = 28;
 export const START_ZONE_ID = 'zone_treasury';
+export const TERMINAL_SHOP_ID = 'shop_terminal';
 
 // ── Movement ─────────────────────────────────────────────────────────────────
 export const MOVEMENT = {
@@ -34,14 +35,73 @@ export const XP_CURVE = {
   divisor: 4,
 } as const;
 
-export const MINING = {
-  /** Ticks between mining attempts while standing at a rack. */
+/** Mining, Fundraising and Lobbying share one gathering model. */
+export const GATHERING = {
+  /** Ticks between attempts while working a node. */
   attemptIntervalTicks: 3,
-  /** Success chance per attempt when Mining level equals the rack requirement. */
+  /** Success chance per attempt when the skill level equals the node requirement. */
   successAtReq: 0.35,
-  /** Extra success chance per Mining level above the requirement. */
+  /** Extra success chance per level above the requirement. */
   successPerLevel: 0.02,
   successMax: 0.95,
+} as const;
+
+/** Spin (processing at a station). */
+export const PROCESSING = {
+  intervalTicks: 3,
+} as const;
+
+// ── Combat (DESIGN.md §8) ────────────────────────────────────────────────────
+export const COMBAT = {
+  /** Effective-level offset in the OSRS accuracy/max-hit formulas. */
+  levelOffset: 8,
+  /** Equipment bonus offset in the accuracy roll: (level + 8) * (bonus + 64). */
+  bonusOffset: 64,
+  /** maxHit = floor(0.5 + effStrength * (damage + 64) / 640). */
+  maxHitDivisor: 640,
+  /** Style bonus to the trained stat (accurate/bash/block/longrange). */
+  styleBonus: 3,
+  rapidSpeedBonus: 1,
+  longrangeRangeBonus: 2,
+  /** Accuracy modifier for the guns > melee > shields > guns triangle. */
+  triangleModifier: 0.25,
+  xpPerDamage: 4,
+  hpXpPerDamage: 4 / 3,
+  /** Defense XP for each point of damage taken (DESIGN.md: Defense trains by taking hits). */
+  defenseXpPerDamageTaken: 1,
+  /** Eating pushes the next attack back this many ticks. */
+  eatDelayTicks: 3,
+  hpRegenEveryTicks: 100,
+  /** Explosions hit enemies within this many tiles of the target for a share of the damage. */
+  splashRadius: 1,
+  splashShare: 0.5,
+  /** Fallback when the weapon slot is empty or a gun is out of ammo. */
+  fallbackWeaponId: 'item_gavel',
+  /** Enemies ignore players whose combat level is above this multiple of theirs. */
+  aggroLevelMultiplier: 2,
+} as const;
+
+export const ENEMIES = {
+  /** Enemies give up and walk home beyond this distance from spawn. */
+  leashRange: 10,
+  wanderChance: 0.1,
+} as const;
+
+export const DEATH = {
+  /** Unbanked inventory drops where you fell (DESIGN.md §6, configurable). */
+  dropInventory: true,
+  pileDespawnTicks: 1000,
+} as const;
+
+export const SUMMONING = {
+  /** How long a Sproto stays (30 minutes). */
+  durationTicks: 3000,
+  /** Wait after a Sproto falls before summoning again. */
+  cooldownTicks: 50,
+  pointsMax: 100,
+  pointsRegenPerTick: 0.25,
+  /** Summoning XP per point of damage a Sproto deals. */
+  xpPerDamage: 1,
 } as const;
 
 // ── Economy (DESIGN.md §6) ───────────────────────────────────────────────────

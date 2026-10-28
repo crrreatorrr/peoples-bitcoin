@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { isWalkable } from '../src/sim/grid';
 import { runTick } from '../src/sim/tick';
-import { content, newGame } from './helpers';
+import { content, newGame, treasuryGrid } from './helpers';
 
 describe('NPC wandering', () => {
   it('wanders within its radius on walkable tiles, one step at a time', () => {
@@ -13,7 +13,7 @@ describe('NPC wandering', () => {
       runTick(state, ctx, []);
       expect(Math.abs(npc.x - npc.spawn.x)).toBeLessThanOrEqual(radius);
       expect(Math.abs(npc.y - npc.spawn.y)).toBeLessThanOrEqual(radius);
-      expect(isWalkable(ctx.grid, npc.x, npc.y)).toBe(true);
+      expect(isWalkable(treasuryGrid(ctx), npc.x, npc.y)).toBe(true);
       expect(Math.abs(npc.x - npc.from.x) + Math.abs(npc.y - npc.from.y)).toBeLessThanOrEqual(1);
       visited.add(`${npc.x},${npc.y}`);
     }

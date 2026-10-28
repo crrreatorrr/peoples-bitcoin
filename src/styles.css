@@ -63,7 +63,9 @@ body {
 #xpcounter,
 #contextmenu,
 .bank,
-.skill-guide {
+.skill-guide,
+.terminal-window,
+.build-window {
   pointer-events: auto;
 }
 
@@ -233,8 +235,22 @@ body {
 }
 
 .orb-hp {
-  background: radial-gradient(circle at 50% 100%, #a3221a 0 100%, #2a241d 100%);
+  background: radial-gradient(circle at 50% 100%, #a3221a 0 var(--fill), #2a241d var(--fill));
   cursor: default;
+}
+
+.orb-hp.low {
+  box-shadow:
+    inset 0 0 0 2px #ff4d4d,
+    0 0 8px rgba(255, 77, 77, 0.7);
+}
+
+.orb-special {
+  background: radial-gradient(circle at 50% 100%, #2b5fa8 0 var(--fill), #2a241d var(--fill));
+}
+
+.orb-special:not(.on) {
+  opacity: 0.6;
 }
 
 .orb-xp {
@@ -548,7 +564,9 @@ body {
 /* ── Windows: bank, skill guide ─────────────────────────────────────────── */
 
 .bank,
-.skill-guide {
+.skill-guide,
+.terminal-window,
+.build-window {
   position: absolute;
   left: 50%;
   top: 44%;
@@ -924,4 +942,335 @@ body {
     grid-template-columns: repeat(4, 42px);
     grid-auto-rows: 36px;
   }
+}
+
+/* ── Hitsplats ──────────────────────────────────────────────────────────── */
+
+#hitsplats {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.hitsplat {
+  position: fixed;
+  transform: translate(-50%, -100%);
+  min-width: 22px;
+  padding: 0 4px;
+  text-align: center;
+  font-size: 18px;
+  line-height: 20px;
+  color: #ffffff;
+  border-radius: 50% 50% 45% 45%;
+  border: 2px solid #000;
+  text-shadow: 1px 1px 0 #000;
+  animation: splat-pop 1s ease-out forwards;
+}
+
+.hitsplat.hit {
+  background: #b3151b;
+}
+
+.hitsplat.miss {
+  background: #1f53b5;
+}
+
+@keyframes splat-pop {
+  0% {
+    transform: translate(-50%, -100%) scale(0.6);
+  }
+  15% {
+    transform: translate(-50%, -100%) scale(1.15);
+  }
+  25% {
+    transform: translate(-50%, -100%) scale(1);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ── Terminal & build windows ───────────────────────────────────────────── */
+
+.terminal-window {
+  width: min(480px, calc(100vw - 32px));
+}
+
+.terminal-wallet,
+.terminal-rate,
+.terminal-hint {
+  font-size: 16px;
+  color: #d9ccb0;
+}
+
+.terminal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 52px);
+  gap: 3px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--edge-dark);
+}
+
+.terminal-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2px 0;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.terminal-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.terminal-item img {
+  width: 32px;
+  height: 32px;
+  image-rendering: pixelated;
+}
+
+.terminal-price {
+  font-size: 14px;
+  color: #ffff00;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.terminal-price.too-expensive {
+  color: #ff7a6e;
+}
+
+.terminal-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.build-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.build-row {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 4px 6px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--edge-dark);
+}
+
+.build-row img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.build-row.locked .build-name {
+  color: #b9ab8f;
+}
+
+.build-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+}
+
+.build-name {
+  color: var(--gold);
+}
+
+.build-detail {
+  font-size: 15px;
+  color: #d9ccb0;
+}
+
+.stone-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ── Equipment, Summoning, Quests tabs ──────────────────────────────────── */
+
+.equip-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 46px);
+  grid-template-areas:
+    '. head .'
+    'weapon body ammo'
+    '. legs .';
+  gap: 4px;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.equip-slot {
+  position: relative;
+  width: 46px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid var(--edge-dark);
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px var(--edge-light);
+  cursor: pointer;
+  padding: 0;
+}
+
+.equip-head {
+  grid-area: head;
+}
+.equip-weapon {
+  grid-area: weapon;
+}
+.equip-body {
+  grid-area: body;
+}
+.equip-legs {
+  grid-area: legs;
+}
+.equip-ammo {
+  grid-area: ammo;
+}
+
+.equip-slot img {
+  width: 32px;
+  height: 32px;
+  image-rendering: pixelated;
+}
+
+.equip-empty {
+  font-size: 13px;
+  color: #8e826a;
+}
+
+.style-buttons {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 6px;
+}
+
+.style-btn {
+  flex: 1;
+  font-size: 15px;
+}
+
+.style-btn.active {
+  color: var(--gold);
+  box-shadow: inset 0 0 0 1px var(--gold);
+}
+
+.equip-stats,
+.summoning > div,
+.quests {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.equip-line,
+.sproto-line {
+  font-size: 16px;
+  line-height: 1.05;
+  color: #e8dcc0;
+}
+
+.summon-level {
+  color: #ffff00;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.points-bar {
+  --fill: 100%;
+  padding: 2px 6px;
+  font-size: 15px;
+  border: 1px solid var(--edge-dark);
+  background: linear-gradient(90deg, #2b5fa8 0 var(--fill), rgba(0, 0, 0, 0.35) var(--fill));
+}
+
+.sproto-card {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 6px;
+  align-items: center;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--edge-dark);
+}
+
+.sproto-card img {
+  grid-row: span 2;
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.sproto-name {
+  color: var(--gold);
+}
+
+.quests {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.quest-hint {
+  padding: 4px 6px;
+  color: var(--ink);
+  background: var(--parchment);
+  border: 1px solid var(--edge-dark);
+  line-height: 1.05;
+}
+
+.quest-name {
+  font-size: 18px;
+}
+
+.quest-name.not-started {
+  color: #ff4d3f;
+}
+
+.quest-name.started {
+  color: #ffff00;
+}
+
+.quest-name.complete {
+  color: #3fdc5a;
+}
+
+.quest-step {
+  display: block;
+  font-size: 15px;
+  line-height: 1.05;
+  color: #e8dcc0;
+  padding-left: 6px;
+}
+
+.quest-step.done {
+  color: #8f8470;
+  text-decoration: line-through;
+}
+
+.skill-cell.locked {
+  opacity: 0.55;
+}
+
+.skill-cell.locked .skill-level::after {
+  content: ' 🔒';
+  font-size: 12px;
 }

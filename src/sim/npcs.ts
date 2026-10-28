@@ -7,7 +7,7 @@
 import { NPCS } from '../config/balance';
 import { isWalkable } from './grid';
 import { chance, nextInt } from './rng';
-import type { GameState, SimContext } from './state';
+import { gridOf, type GameState, type SimContext } from './state';
 
 const CARDINALS: readonly (readonly [number, number])[] = [
   [1, 0],
@@ -31,7 +31,7 @@ export function stepNpcs(state: GameState, ctx: SimContext): void {
     const occupied =
       (player.pos.x === x && player.pos.y === y) ||
       zone.npcs.some((other) => other !== npc && other.x === x && other.y === y);
-    if (inRange && !occupied && isWalkable(ctx.grid, x, y)) {
+    if (inRange && !occupied && isWalkable(gridOf(state, ctx), x, y)) {
       npc.x = x;
       npc.y = y;
     }

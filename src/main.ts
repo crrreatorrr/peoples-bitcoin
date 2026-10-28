@@ -3,44 +3,51 @@
  * UI. The tick loop runs here: input becomes intents, intents feed runTick, and
  * rendering reads the resulting state every frame.
  */
+import * as THREE from 'three';
 import { INVENTORY_SIZE, MAX_CATCHUP_TICKS, START_ZONE_ID, TICK_MS, UI } from './config/balance';
 import { GAME_TITLE, PRESIDENT_NAME } from './config/branding';
 import { Keyboard } from './input/keyboard';
 import { attachMouse } from './input/mouse';
 import { clearSavedGame, loadSavedGame, saveGame } from './persist';
 import { OrbitCamera } from './render/camera';
-import { ClickMarker, Fireworks } from './render/effects';
-import { EntityRenderer } from './render/entities';
+import { PALETTES } from './render/effects';
 import { AssetLoader } from './render/loader';
 import { createLowResRenderer, fitToContainer } from './render/lowres';
-import { Picker, type PickResult } from './render/picking';
-import { createScene } from './render/scene';
-import { buildWorld } from './render/world';
+import type { PickResult } from './render/picking';
+import { ZoneView } from './render/zoneview';
+import { buildProblem, builtOption } from './sim/bunker';
 import { loadContent, type Content } from './sim/content';
-import { buildZoneGrid } from './sim/grid';
+import { buildGrids } from './sim/grid';
+import { currentHint } from './sim/quests';
 import {
   createGameState,
   findEntity,
+  PLAYER_ID,
   type GameState,
   type Intent,
   type SimContext,
   type SimEvent,
   type Tile,
 } from './sim/state';
-import { runTick } from './sim/tick';
+import { buyPrice, sellPrice } from './sim/terminal';
+import { entityActions, runTick } from './sim/tick';
 import { levelForXp } from './sim/xp';
 import { BankWindow } from './ui/bank';
+import { BuildWindow } from './ui/build';
 import { Chat } from './ui/chat';
 import { ContextMenu, type MenuOption } from './ui/contextmenu';
 import { DialogueBox, type DialogueLine } from './ui/dialogue';
+import { Hitsplats } from './ui/hitsplats';
 import { Hud } from './ui/hud';
-import { InventoryPanel } from './ui/inventory';
+import { InventoryPanel, type InventoryMode } from './ui/inventory';
 import { Minimap } from './ui/minimap';
 import { OverheadText } from './ui/overhead';
 import { buildSettingsPanel } from './ui/settings';
-import { comingSoon, SidePanel } from './ui/sidepanel';
+import { SidePanel } from './ui/sidepanel';
 import { SkillGuide } from './ui/skillguide';
 import { SkillsPanel } from './ui/skills';
+import { EquipmentTab, QuestsTab, SummoningTab } from './ui/tabs';
+import { TerminalWindow } from './ui/terminal';
 import { Tooltip, type TargetKind } from './ui/tooltips';
 import './styles.css';
 
@@ -61,8 +68,7 @@ function $(selector: string): HTMLElement {
 async function boot(): Promise<void> {
   document.title = GAME_TITLE;
   const content = loadContent();
-  const zone = content.zones.get(START_ZONE_ID)!;
-  const ctx: SimContext = { content, grid: buildZoneGrid(zone, content) };
+  const ctx: SimContext = { content, grids: buildGrids(content) };
 
   let pending: Intent[] = [];
   const queue = (intent: Intent) => pending.push(intent);
@@ -77,27 +83,23 @@ async function boot(): Promise<void> {
   const assets = await AssetLoader.load();
   const viewport = $('#viewport');
   const renderer = createLowResRenderer(viewport);
-  const scene = createScene();
-  const terrain = buildWorld(scene, zone, content, assets);
-  const entities = new EntityRenderer(scene, assets, content, state);
   const cam = new OrbitCamera();
-  const marker = new ClickMarker(scene);
-  const fireworks = new Fireworks(scene);
-  const picker = new Picker(cam.camera, renderer.domElement, terrain, entities.pickables, zone);
+  const canvas = renderer.domElement;
+  let view = new ZoneView(state, content, assets, cam.camera, canvas);
   const resize = () => fitToContainer(renderer, cam.camera, viewport);
   resize();
   window.addEventListener('resize', resize);
 
   // ── Actions ────────────────────────────────────────────────────────────────
-  const describe = (entityId: string) => describeEntity(content, state, entityId);
+  const describe = (entityId: string) => describeEntity(ctx, state, entityId);
   const interact = (entityId: string, action: string) => {
     queue({ type: 'interact', targetId: entityId, action });
-    const c = entities.entityCenter(state, entityId);
-    if (c) marker.show(c.x, c.z, 'action', performance.now());
+    const c = view.entities.entityCenter(state, entityId);
+    if (c) view.marker.show(c.x, c.z, 'action', performance.now());
   };
   const walk = (tile: Tile) => {
     queue({ type: 'walk', x: tile.x, y: tile.y });
-    marker.show(tile.x + 0.5, tile.y + 0.5, 'walk', performance.now());
+    view.marker.show(tile.x + 0.5, tile.y + 0.5, 'walk', performance.now());
   };
   const examine = (text: string) => chat.add(text, 'examine');
 
@@ -129,10 +131,18 @@ async function boot(): Promise<void> {
   };
 
   // ── UI ─────────────────────────────────────────────────────────────────────
+  const hudRoot = $('#hud');
   const tooltip = new Tooltip($('#tooltip'));
   const menu = new ContextMenu($('#contextmenu'));
   const glyph = (id: string) => assets.glyph(id);
   const iconUrl = (id: string) => assets.iconUrl(id);
+  const openMenu = (options: MenuOption[], x: number, y: number) => {
+    tooltip.hide();
+    menu.open(options, x, y);
+  };
+  const itemExamine = (itemId: string) => examine(content.items.get(itemId)?.examine ?? '');
+  const closeInterface = () => queue({ type: 'closeInterface' });
+
   const hud = new Hud(
     $('#ticker'),
     $('#orbs'),
@@ -141,61 +151,79 @@ async function boot(): Promise<void> {
     $('#banner'),
     glyph,
     () => queue({ type: 'toggleRun' }),
+    () => queue({ type: 'special' }),
   );
-  const minimap = new Minimap($('#minimap'), zone, content, assets, {
+  const minimap = new Minimap($('#minimap'), content, assets, {
     walk,
     faceNorth: () => cam.faceNorth(),
   });
+  minimap.setZone(content.zones.get(state.zone.id)!);
   const overhead = new OverheadText($('#overhead'));
+  const hitsplats = new Hitsplats($('#hitsplats'));
   const dialogue = new DialogueBox(chat.dialogueHost, () => queue({ type: 'continueDialogue' }));
-  const openMenu = (options: MenuOption[], x: number, y: number) => {
-    tooltip.hide();
-    menu.open(options, x, y);
-  };
-  const itemExamine = (itemId: string) => examine(content.items.get(itemId)?.examine ?? '');
-  const bank = new BankWindow($('#hud'), content, iconUrl, tooltip, {
+  const bank = new BankWindow(hudRoot, content, iconUrl, tooltip, {
     withdraw: (index, qty) => queue({ type: 'withdraw', index, qty }),
     depositAll: () => queue({ type: 'depositAll' }),
-    close: () => queue({ type: 'closeBank' }),
+    close: closeInterface,
     examine: itemExamine,
     openMenu,
   });
+  const terminal = new TerminalWindow(hudRoot, content, iconUrl, tooltip, {
+    buy: (itemId, qty) => queue({ type: 'buy', itemId, qty }),
+    close: closeInterface,
+    examine: itemExamine,
+    openMenu,
+    priceOf: (itemId, qty) => buyPrice(state, ctx, itemId, qty),
+  });
+  const buildWindow = new BuildWindow(hudRoot, content, iconUrl, {
+    build: (buildId) => queue({ type: 'build', buildId }),
+    close: closeInterface,
+  });
+  const inventoryMode = (): InventoryMode => {
+    const ui = state.player.interface;
+    if (ui?.kind === 'bank' && bank.isOpen) return { kind: 'bank', qty: bank.leftClickQuantity };
+    if (ui?.kind === 'terminal' && terminal.isOpen) return { kind: 'terminal' };
+    return { kind: 'normal' };
+  };
   const inventory = new InventoryPanel(content, iconUrl, tooltip, INVENTORY_SIZE, {
     examine: itemExamine,
     drop: (slot) => queue({ type: 'dropItem', slot }),
     move: (from, to) => queue({ type: 'moveItem', from, to }),
+    use: (slot, kind) => queue({ type: kind, slot }),
     deposit: (slot, qty) => queue({ type: 'deposit', slot, qty }),
+    sell: (slot, qty) => queue({ type: 'sell', slot, qty }),
+    value: (itemId) => {
+      const name = content.items.get(itemId)?.name ?? itemId;
+      const price = sellPrice(state, ctx, itemId, 1);
+      chat.add(
+        `The Terminal will pay ${price.toLocaleString('en-US')} $BITCOIN for a ${name} right now.`,
+      );
+    },
     openMenu,
-    bankQuantity: () => (bank.isOpen ? bank.leftClickQuantity : null),
+    mode: inventoryMode,
   });
-  const guide = new SkillGuide($('#hud'), content, glyph, iconUrl);
+  const guide = new SkillGuide(hudRoot, content, glyph, iconUrl);
   const skills = new SkillsPanel(content, glyph, tooltip, (skillId) =>
     guide.open(skillId, levelForXp(state.player.skills[skillId] ?? 0)),
   );
+  const equipment = new EquipmentTab(ctx, iconUrl, {
+    unequip: (slot) => queue({ type: 'unequip', slot }),
+    setStyle: (style) => queue({ type: 'setStyle', style }),
+  });
+  const summoning = new SummoningTab(content, iconUrl, {
+    special: () => queue({ type: 'special' }),
+    dismiss: () => queue({ type: 'dismiss' }),
+  });
+  const quests = new QuestsTab(content);
 
   let resetting = false;
   const persist = () => !resetting && saveGame(state);
   const sidePanel = new SidePanel($('#sidepanel'), [
     { id: 'inventory', icon: glyph('tab_inventory'), title: 'Inventory', content: inventory.el },
-    {
-      id: 'equipment',
-      icon: glyph('tab_equipment'),
-      title: 'Equipment',
-      content: comingSoon('Suits, ties and aviators go here. Arrives with combat in Phase 2.'),
-    },
+    { id: 'equipment', icon: glyph('tab_equipment'), title: 'Equipment', content: equipment.el },
     { id: 'skills', icon: glyph('tab_skills'), title: 'Skills', content: skills.el },
-    {
-      id: 'military',
-      icon: glyph('tab_military'),
-      title: 'Military',
-      content: comingSoon('The Barracks are still being painted. Sprotos enlist in Phase 2.'),
-    },
-    {
-      id: 'quests',
-      icon: glyph('tab_quests'),
-      title: 'Quests',
-      content: comingSoon('RoadMap to $100bn (+ ∞%). Step 1: ⬆. Quests arrive in Phase 3.'),
-    },
+    { id: 'summoning', icon: glyph('tab_summoning'), title: 'Summoning', content: summoning.el },
+    { id: 'quests', icon: glyph('tab_quests'), title: 'Quests', content: quests.el },
     {
       id: 'settings',
       icon: glyph('tab_settings'),
@@ -215,16 +243,16 @@ async function boot(): Promise<void> {
   const keyboard = new Keyboard();
   let hover: { x: number; y: number } | null = null;
 
-  attachMouse(renderer.domElement, {
+  attachMouse(canvas, {
     onPress: () => {
       chat.input.blur();
       if (!menu.isOpen) return false;
       menu.close();
       return true;
     },
-    onClick: (x, y) => menuOptions(picker.pick(x, y))[0]?.run?.(),
+    onClick: (x, y) => menuOptions(view.picker.pick(x, y))[0]?.run?.(),
     onContextMenu: (x, y) => {
-      const options = menuOptions(picker.pick(x, y));
+      const options = menuOptions(view.picker.pick(x, y));
       if (options.length > 0) openMenu(options, x, y);
     },
     onHover: (x, y) => (hover = { x, y }),
@@ -247,6 +275,8 @@ async function boot(): Promise<void> {
     if (document.activeElement === chat.input) return;
     if (e.key === 'Escape') {
       bank.close();
+      terminal.close();
+      buildWindow.close();
       guide.close();
       sidePanel.select('inventory');
     } else if (e.key === ' ' && dialogue.isOpen) {
@@ -261,7 +291,7 @@ async function boot(): Promise<void> {
 
   const updateHoverTooltip = () => {
     if (!hover || menu.isOpen) return;
-    const [top, ...rest] = menuOptions(picker.pick(hover.x, hover.y));
+    const [top, ...rest] = menuOptions(view.picker.pick(hover.x, hover.y));
     if (top) tooltip.show({ ...top, moreOptions: rest.length }, hover.x, hover.y);
     else tooltip.hide();
   };
@@ -277,16 +307,78 @@ async function boot(): Promise<void> {
       : null;
   };
 
+  /** The nearest instance in this zone of whatever the tutorial wants next. */
+  const hintTarget = (): { pos: THREE.Vector3; height: number } | null => {
+    const hint = currentHint(state, ctx);
+    if (!hint) return null;
+    const p = state.player.pos;
+    const near = <T extends { id: string; x: number; y: number }>(list: T[]) =>
+      list.sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
+    const target =
+      (hint.npc && near(state.zone.npcs.filter((n) => n.defId === hint.npc))) ||
+      (hint.object && near(state.zone.objects.filter((o) => o.defId === hint.object))) ||
+      (hint.enemy &&
+        near(state.zone.enemies.filter((e) => e.defId === hint.enemy && e.respawnAt === null)));
+    if (!target) return null;
+    const pos = view.entities.entityCenter(state, target.id);
+    return pos ? { pos, height: view.entities.heightOf(target.id) } : null;
+  };
+
   // ── Sim events ─────────────────────────────────────────────────────────────
   const skillName = (id: string) => content.skills.get(id)?.name ?? id;
   const handleEvents = (events: SimEvent[]) => {
+    const now = performance.now();
     for (const e of events) {
-      if (e.type === 'message') chat.add(e.text, e.kind, e.speaker);
-      else if (e.type === 'xp') hud.xpDrop(skillName(e.skillId), e.amount);
-      else if (e.type === 'levelUp') {
-        hud.banner(`${skillName(e.skillId)} level ${e.level}!`);
-        fireworks.burst(entities.playerPosition, performance.now());
-      } else if (e.type === 'autosave') persist();
+      switch (e.type) {
+        case 'message':
+          chat.add(e.text, e.kind, e.speaker);
+          break;
+        case 'xp':
+          hud.xpDrop(skillName(e.skillId), e.amount);
+          break;
+        case 'levelUp':
+          hud.banner(`${skillName(e.skillId)} level ${e.level}!`);
+          view.bursts.spawn(view.entities.playerPosition, PALETTES.fireworks, now, { lift: 1.2 });
+          break;
+        case 'hitsplat':
+          hitsplats.spawn(e.targetId, e.damage, now);
+          view.entities.markHit(e.targetId, now);
+          break;
+        case 'projectile': {
+          const from = view.entities.positionOf(e.fromId);
+          const to = view.entities.positionOf(e.toId);
+          if (from && to) {
+            view.tracers.fire(from, to, e.explosive, now);
+            if (e.explosive)
+              view.bursts.spawn(to, PALETTES.explosion, now, {
+                count: 30,
+                speed: 2.6,
+                durationMs: 600,
+              });
+          }
+          break;
+        }
+        case 'death': {
+          const at = view.entities.positionOf(e.entityId);
+          if (at && e.entityId !== PLAYER_ID) {
+            view.bursts.spawn(at, PALETTES.sludge, now, {
+              count: 40,
+              speed: 1.6,
+              durationMs: 900,
+              lift: 0.4,
+            });
+          }
+          break;
+        }
+        case 'zoneChanged':
+          view = new ZoneView(state, content, assets, cam.camera, canvas);
+          minimap.setZone(content.zones.get(e.zoneId)!);
+          hitsplats.clear();
+          break;
+        case 'autosave':
+          persist();
+          break;
+      }
     }
   };
 
@@ -294,7 +386,7 @@ async function boot(): Promise<void> {
   document.addEventListener('visibilitychange', () => document.hidden && persist());
 
   if (import.meta.env.DEV) {
-    Object.assign(window, { __game: { state, queue, content } });
+    Object.assign(window, { __game: { state, queue, content, ctx } });
   }
 
   // ── Main loop: fixed 600 ms ticks, rendering every frame ───────────────────
@@ -313,62 +405,108 @@ async function boot(): Promise<void> {
     const alpha = (now - lastTickAt) / TICK_MS;
     const dt = Math.min(0.1, (now - lastFrameAt) / 1000);
     lastFrameAt = now;
+    const p = state.player;
 
-    entities.update(state, alpha, dt, now / 1000);
-    cam.update(dt, keyboard.cameraAxes(), entities.playerPosition);
-    marker.update(now);
-    fireworks.update(now);
+    view.entities.update(state, alpha, dt, now / 1000, cam.camera);
+    cam.update(dt, keyboard.cameraAxes(), view.entities.playerPosition);
+    view.marker.update(now);
+    view.bursts.update(now);
+    view.tracers.update(now);
+    const hint = hintTarget();
+    view.hint.update(hint?.pos ?? null, hint?.height ?? 0, now / 1000);
     updateHoverTooltip();
 
-    const p = state.player;
+    const screenOf = (id: string) => {
+      const pos = view.entities.positionOf(id);
+      return pos
+        ? view.entities.toScreen(pos, view.entities.heightOf(id) + 0.1, cam.camera, canvas)
+        : null;
+    };
+    hitsplats.update(now, screenOf);
+    overhead.update(
+      p.overhead?.text ?? null,
+      view.entities.toScreen(view.entities.playerPosition, UI.overheadHeight, cam.camera, canvas),
+    );
+
     hud.update(state);
     minimap.draw({
-      playerX: entities.playerPosition.x,
-      playerZ: entities.playerPosition.z,
+      playerX: view.entities.playerPosition.x,
+      playerZ: view.entities.playerPosition.z,
       yaw: cam.yawRad,
-      npcs: state.zone.npcs,
+      npcs: [...state.zone.npcs, ...state.zone.enemies.filter((e) => e.respawnAt === null)],
       groundItems: state.zone.groundItems,
       destination: p.path.at(-1) ?? null,
     });
-    overhead.update(
-      p.overhead?.text ?? null,
-      entities.playerHeadScreen(cam.camera, renderer.domElement, UI.overheadHeight),
-    );
     dialogue.update(currentDialogue());
-    bank.update(p.bankOpen, p.bank);
+    bank.update(p.interface?.kind === 'bank', p.bank);
+    terminal.update(p.interface?.kind === 'terminal', p.currencies.bitcoin, state.economy.priceUsd);
+    const build = buildState(content, ctx, state);
+    buildWindow.update(build.name, build.choices);
     inventory.update(p.inventory);
-    skills.update(p.skills);
-    renderer.render(scene, cam.camera);
+    skills.update(p.skills, p.unlocks);
+    equipment.update(state);
+    summoning.update(state);
+    quests.update(state, currentHint(state, ctx));
+    renderer.render(view.scene, cam.camera);
   };
   requestAnimationFrame(frame);
 }
 
-function describeEntity(content: Content, state: GameState, entityId: string): EntityInfo | null {
+/** The build window's title and choices for the open hotspot, if any. */
+function buildState(content: Content, ctx: SimContext, state: GameState) {
+  const ui = state.player.interface;
+  const ref = ui?.kind === 'build' ? findEntity(state, ui.targetId) : null;
+  if (ref?.kind !== 'object') return { name: null, choices: [] };
+  const def = content.objects.get(ref.instance.defId)!;
+  const built = builtOption(state, def, ref.instance);
+  return {
+    name: def.name,
+    choices: def.builds.map((option) => ({
+      option,
+      problem: buildProblem(state, ctx, option),
+      built: built?.id === option.id,
+    })),
+  };
+}
+
+function describeEntity(ctx: SimContext, state: GameState, entityId: string): EntityInfo | null {
   const ref = findEntity(state, entityId);
   if (!ref) return null;
+  const content = ctx.content;
   const id = entityId;
-  if (ref.kind === 'npc') {
-    const def = content.npcs.get(ref.instance.defId);
-    return def
-      ? { id, name: def.name, examine: def.examine, actions: def.actions, kind: 'npc' }
-      : null;
+  const actions = entityActions(state, ctx, ref);
+  switch (ref.kind) {
+    case 'npc': {
+      const def = content.npcs.get(ref.instance.defId);
+      return def ? { id, name: def.name, examine: def.examine, actions, kind: 'npc' } : null;
+    }
+    case 'enemy': {
+      const def = content.enemies.get(ref.instance.defId);
+      return def
+        ? {
+            id,
+            name: `${def.name} (level ${def.level})`,
+            examine: def.examine,
+            actions,
+            kind: 'npc',
+          }
+        : null;
+    }
+    case 'ground': {
+      const item = content.items.get(ref.instance.itemId);
+      if (!item) return null;
+      const qty = ref.instance.qty > 1 ? ` (${ref.instance.qty})` : '';
+      return { id, name: `${item.name}${qty}`, examine: item.examine, actions, kind: 'item' };
+    }
+    case 'object': {
+      const def = content.objects.get(ref.instance.defId);
+      if (!def) return null;
+      const built = def.role === 'hotspot' ? builtOption(state, def, ref.instance) : null;
+      const look =
+        ref.instance.depletedUntil !== null && def.depleted ? def.depleted : (built ?? def);
+      return { id, name: look.name, examine: look.examine, actions, kind: 'object' };
+    }
   }
-  if (ref.kind === 'ground') {
-    const item = content.items.get(ref.instance.itemId);
-    if (!item) return null;
-    const qty = ref.instance.qty > 1 ? ` (${ref.instance.qty})` : '';
-    return {
-      id,
-      name: `${item.name}${qty}`,
-      examine: item.examine,
-      actions: ['Take'],
-      kind: 'item',
-    };
-  }
-  const def = content.objects.get(ref.instance.defId);
-  if (!def) return null;
-  const look = ref.instance.depletedUntil !== null && def.depleted ? def.depleted : def;
-  return { id, name: look.name, examine: look.examine, actions: def.actions, kind: 'object' };
 }
 
 function greet(chat: Chat, status: 'loaded' | 'none' | 'unreadable'): void {
@@ -384,7 +522,7 @@ function greet(chat: Chat, status: 'loaded' | 'none' | 'unreadable'): void {
   }
   chat.add(`Welcome to The Treasury, ${PRESIDENT_NAME}.`);
   chat.add(
-    "ATTENTION ATTENTION: The national reserve holds $BITCOIN. It's not BTC. Talk to The Treasurer.",
+    'ATTENTION ATTENTION: Follow the yellow arrow and the Quests tab. The Treasurer is waiting in the main hall.',
   );
 }
 

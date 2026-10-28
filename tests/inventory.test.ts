@@ -10,8 +10,24 @@ import {
 } from '../src/sim/inventory';
 import type { ItemDef } from '../src/sim/schemas';
 
-const ore: ItemDef = { id: 'ore', name: 'Ore', examine: '', stackable: false, model: 'm' };
-const coins: ItemDef = { id: 'coins', name: 'Coins', examine: '', stackable: true, model: 'm' };
+const ore: ItemDef = {
+  id: 'ore',
+  name: 'Ore',
+  examine: '',
+  stackable: false,
+  model: 'm',
+  value: 0,
+  requires: [],
+};
+const coins: ItemDef = {
+  id: 'coins',
+  name: 'Coins',
+  examine: '',
+  stackable: true,
+  model: 'm',
+  value: 0,
+  requires: [],
+};
 
 describe('inventory', () => {
   it('starts empty with 28 slots', () => {

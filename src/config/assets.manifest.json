@@ -46,7 +46,9 @@
       "idle": "idle",
       "walk": "walk",
       "mine": "mine"
-    }
+    },
+    "sprite": "sprites/player_president.png",
+    "spriteHeight": 1.75
   },
   "npc_treasurer": {
     "placeholder": "humanoid",
@@ -57,75 +59,84 @@
     "glasses": true,
     "clips": {
       "idle": "idle"
-    }
+    },
+    "sprite": "sprites/npc_treasurer.png",
+    "spriteHeight": 1.7
   },
   "rack_dusty": {
     "placeholder": "rack",
     "color": "#625d55",
-    "accent": "#7cff6b"
+    "accent": "#7cff6b",
+    "sprite": "sprites/rack_dusty.png",
+    "spriteHeight": 1.9
   },
   "rack_humming": {
     "placeholder": "rack",
     "color": "#3c4350",
-    "accent": "#ffd23f"
+    "accent": "#ffd23f",
+    "sprite": "sprites/rack_humming.png",
+    "spriteHeight": 1.9
   },
   "rack_liquid": {
     "placeholder": "rack",
     "color": "#22303f",
-    "accent": "#3fd8ff"
+    "accent": "#3fd8ff",
+    "sprite": "sprites/rack_liquid.png",
+    "spriteHeight": 1.95
   },
   "rack_overheated": {
     "placeholder": "rack",
     "color": "#3a3330",
     "accent": "#ff3b2f",
-    "smoke": true
+    "smoke": true,
+    "sprite": "sprites/rack_overheated.png",
+    "spriteHeight": 1.9
   },
   "board_roadmap": {
     "placeholder": "board",
     "color": "#1b1b1b",
-    "accent": "#3fdc5a"
+    "accent": "#3fdc5a",
+    "sprite": "sprites/board_roadmap.png",
+    "spriteHeight": 2.0
   },
   "bank_booth": {
     "placeholder": "booth",
     "color": "#6b4a2b",
-    "accent": "#d2a63a"
+    "accent": "#d2a63a",
+    "sprite": "sprites/bank_booth.png",
+    "spriteHeight": 1.9
   },
   "pillar_marble": {
     "placeholder": "pillar",
-    "color": "#e8e2d4"
+    "color": "#e8e2d4",
+    "sprite": "sprites/pillar_marble.png",
+    "spriteHeight": 2.6
   },
   "flagpole": {
     "placeholder": "flagpole",
     "color": "#c9c9c9",
-    "accent": "#2f9e44"
+    "accent": "#2f9e44",
+    "sprite": "sprites/flagpole.png",
+    "spriteHeight": 3.4
   },
   "bench_park": {
     "placeholder": "bench",
-    "color": "#6b4a2b"
+    "color": "#6b4a2b",
+    "sprite": "sprites/bench_park.png",
+    "spriteHeight": 0.9
   },
   "statue_gremlin": {
     "placeholder": "gremlin",
-    "color": "#d4a83a"
+    "color": "#d4a83a",
+    "sprite": "sprites/statue_gremlin.png",
+    "spriteHeight": 2.0
   },
   "tree_oak": {
     "placeholder": "tree",
     "color": "#3f7a2c",
-    "accent": "#5b3b22"
-  },
-  "icon_scrap_hash": {
-    "placeholder": "icon",
-    "color": "#8c8c8c",
-    "label": "SH"
-  },
-  "icon_warm_hash": {
-    "placeholder": "icon",
-    "color": "#e0a030",
-    "label": "WH"
-  },
-  "icon_molten_hash": {
-    "placeholder": "icon",
-    "color": "#3fd8ff",
-    "label": "MH"
+    "accent": "#5b3b22",
+    "sprite": "sprites/tree_oak.png",
+    "spriteHeight": 3.3
   },
   "tab_inventory": {
     "placeholder": "glyph",
@@ -171,10 +182,6 @@
     "placeholder": "glyph",
     "label": "❤️"
   },
-  "skill_command": {
-    "placeholder": "glyph",
-    "label": "🎖️"
-  },
   "skill_mining": {
     "placeholder": "glyph",
     "label": "⛏️"
@@ -191,25 +198,9 @@
     "placeholder": "glyph",
     "label": "🌀"
   },
-  "skill_policy": {
-    "placeholder": "glyph",
-    "label": "📜"
-  },
-  "skill_press_dodging": {
-    "placeholder": "glyph",
-    "label": "🏃"
-  },
   "skill_construction": {
     "placeholder": "glyph",
     "label": "🏛️"
-  },
-  "skill_painting": {
-    "placeholder": "glyph",
-    "label": "🎨"
-  },
-  "skill_gunsmithing": {
-    "placeholder": "glyph",
-    "label": "🔧"
   },
   "mapicon_bank": {
     "placeholder": "glyph",
@@ -226,5 +217,838 @@
   "orb_xp": {
     "placeholder": "glyph",
     "label": "XP"
+  },
+  "icon_scrap_hash": {
+    "placeholder": "icon",
+    "color": "#8c8c8c",
+    "label": "SH",
+    "sprite": "icons/icon_scrap_hash.png"
+  },
+  "icon_warm_hash": {
+    "placeholder": "icon",
+    "color": "#e0a030",
+    "label": "WH",
+    "sprite": "icons/icon_warm_hash.png"
+  },
+  "icon_molten_hash": {
+    "placeholder": "icon",
+    "color": "#3fd8ff",
+    "label": "MH",
+    "sprite": "icons/icon_molten_hash.png"
+  },
+  "icon_btc_shard": {
+    "placeholder": "icon",
+    "color": "#f7931a",
+    "label": "BS",
+    "sprite": "icons/icon_btc_shard.png"
+  },
+  "icon_raw_minor_scandal": {
+    "placeholder": "icon",
+    "color": "#b35a5a",
+    "label": "MS",
+    "sprite": "icons/icon_raw_minor_scandal.png"
+  },
+  "icon_raw_juicy_scandal": {
+    "placeholder": "icon",
+    "color": "#b35a5a",
+    "label": "JS",
+    "sprite": "icons/icon_raw_juicy_scandal.png"
+  },
+  "icon_raw_mega_scandal": {
+    "placeholder": "icon",
+    "color": "#b35a5a",
+    "label": "MS",
+    "sprite": "icons/icon_raw_mega_scandal.png"
+  },
+  "icon_tp_soundbite": {
+    "placeholder": "icon",
+    "color": "#e8d27a",
+    "label": "S",
+    "sprite": "icons/icon_tp_soundbite.png"
+  },
+  "icon_tp_zinger": {
+    "placeholder": "icon",
+    "color": "#e8d27a",
+    "label": "Z",
+    "sprite": "icons/icon_tp_zinger.png"
+  },
+  "icon_tp_mic_drop": {
+    "placeholder": "icon",
+    "color": "#e8d27a",
+    "label": "MD",
+    "sprite": "icons/icon_tp_mic_drop.png"
+  },
+  "icon_pick_rusty": {
+    "placeholder": "icon",
+    "color": "#9aa3ad",
+    "label": "RH",
+    "sprite": "icons/icon_pick_rusty.png"
+  },
+  "icon_pick_steel": {
+    "placeholder": "icon",
+    "color": "#9aa3ad",
+    "label": "SH",
+    "sprite": "icons/icon_pick_steel.png"
+  },
+  "icon_pick_quantum": {
+    "placeholder": "icon",
+    "color": "#9aa3ad",
+    "label": "QH",
+    "sprite": "icons/icon_pick_quantum.png"
+  },
+  "icon_donor_list": {
+    "placeholder": "icon",
+    "color": "#c49a6c",
+    "label": "DL",
+    "sprite": "icons/icon_donor_list.png"
+  },
+  "icon_rolodex": {
+    "placeholder": "icon",
+    "color": "#c49a6c",
+    "label": "R",
+    "sprite": "icons/icon_rolodex.png"
+  },
+  "icon_black_book": {
+    "placeholder": "icon",
+    "color": "#c49a6c",
+    "label": "BB",
+    "sprite": "icons/icon_black_book.png"
+  },
+  "icon_business_cards": {
+    "placeholder": "icon",
+    "color": "#d4d4d4",
+    "label": "BC",
+    "sprite": "icons/icon_business_cards.png"
+  },
+  "icon_gold_cards": {
+    "placeholder": "icon",
+    "color": "#d4d4d4",
+    "label": "GC",
+    "sprite": "icons/icon_gold_cards.png"
+  },
+  "icon_platinum_cards": {
+    "placeholder": "icon",
+    "color": "#d4d4d4",
+    "label": "PC",
+    "sprite": "icons/icon_platinum_cards.png"
+  },
+  "icon_toolkit_basic": {
+    "placeholder": "icon",
+    "color": "#d9822b",
+    "label": "BT",
+    "sprite": "icons/icon_toolkit_basic.png"
+  },
+  "icon_toolkit_pro": {
+    "placeholder": "icon",
+    "color": "#d9822b",
+    "label": "PT",
+    "sprite": "icons/icon_toolkit_pro.png"
+  },
+  "icon_toolkit_elite": {
+    "placeholder": "icon",
+    "color": "#d9822b",
+    "label": "ET",
+    "sprite": "icons/icon_toolkit_elite.png"
+  },
+  "icon_gavel": {
+    "placeholder": "icon",
+    "color": "#7a5230",
+    "label": "PG",
+    "sprite": "icons/icon_gavel.png"
+  },
+  "icon_oak_gavel": {
+    "placeholder": "icon",
+    "color": "#7a5230",
+    "label": "OG",
+    "sprite": "icons/icon_oak_gavel.png"
+  },
+  "icon_iron_gavel": {
+    "placeholder": "icon",
+    "color": "#7a5230",
+    "label": "IG",
+    "sprite": "icons/icon_iron_gavel.png"
+  },
+  "icon_veto_hammer": {
+    "placeholder": "icon",
+    "color": "#7a5230",
+    "label": "VH",
+    "sprite": "icons/icon_veto_hammer.png"
+  },
+  "icon_filibuster_mace": {
+    "placeholder": "icon",
+    "color": "#7a5230",
+    "label": "FM",
+    "sprite": "icons/icon_filibuster_mace.png"
+  },
+  "icon_gun_campaign_pistol": {
+    "placeholder": "icon",
+    "color": "#4a4f57",
+    "label": "CP",
+    "sprite": "icons/icon_gun_campaign_pistol.png"
+  },
+  "icon_gun_confetti_shotgun": {
+    "placeholder": "icon",
+    "color": "#4a4f57",
+    "label": "CS",
+    "sprite": "icons/icon_gun_confetti_shotgun.png"
+  },
+  "icon_gun_press_pass_smg": {
+    "placeholder": "icon",
+    "color": "#4a4f57",
+    "label": "PP",
+    "sprite": "icons/icon_gun_press_pass_smg.png"
+  },
+  "icon_gun_hash_cannon": {
+    "placeholder": "icon",
+    "color": "#4a4f57",
+    "label": "HC",
+    "sprite": "icons/icon_gun_hash_cannon.png"
+  },
+  "icon_gun_treasury_rifle": {
+    "placeholder": "icon",
+    "color": "#4a4f57",
+    "label": "TR",
+    "sprite": "icons/icon_gun_treasury_rifle.png"
+  },
+  "icon_gun_gremlin_blaster": {
+    "placeholder": "icon",
+    "color": "#4a4f57",
+    "label": "GB",
+    "sprite": "icons/icon_gun_gremlin_blaster.png"
+  },
+  "icon_gun_diamond_minigun": {
+    "placeholder": "icon",
+    "color": "#4a4f57",
+    "label": "DH",
+    "sprite": "icons/icon_gun_diamond_minigun.png"
+  },
+  "icon_gun_golden_veto": {
+    "placeholder": "icon",
+    "color": "#4a4f57",
+    "label": "GV",
+    "sprite": "icons/icon_gun_golden_veto.png"
+  },
+  "icon_gun_flippening_railgun": {
+    "placeholder": "icon",
+    "color": "#4a4f57",
+    "label": "FR",
+    "sprite": "icons/icon_gun_flippening_railgun.png"
+  },
+  "icon_rounds": {
+    "placeholder": "icon",
+    "color": "#d4a83a",
+    "label": "R",
+    "sprite": "icons/icon_rounds.png"
+  },
+  "icon_campaign_hat": {
+    "placeholder": "icon",
+    "color": "#5b6b8a",
+    "label": "CH",
+    "sprite": "icons/icon_campaign_hat.png"
+  },
+  "icon_campaign_slacks": {
+    "placeholder": "icon",
+    "color": "#5b6b8a",
+    "label": "CS",
+    "sprite": "icons/icon_campaign_slacks.png"
+  },
+  "icon_campaign_jacket": {
+    "placeholder": "icon",
+    "color": "#5b6b8a",
+    "label": "CJ",
+    "sprite": "icons/icon_campaign_jacket.png"
+  },
+  "icon_aviators": {
+    "placeholder": "icon",
+    "color": "#5b6b8a",
+    "label": "A",
+    "sprite": "icons/icon_aviators.png"
+  },
+  "icon_flak_helmet": {
+    "placeholder": "icon",
+    "color": "#5b6b8a",
+    "label": "FH",
+    "sprite": "icons/icon_flak_helmet.png"
+  },
+  "icon_flak_pants": {
+    "placeholder": "icon",
+    "color": "#5b6b8a",
+    "label": "FP",
+    "sprite": "icons/icon_flak_pants.png"
+  },
+  "icon_flak_vest": {
+    "placeholder": "icon",
+    "color": "#5b6b8a",
+    "label": "FV",
+    "sprite": "icons/icon_flak_vest.png"
+  },
+  "icon_kevlar_fedora": {
+    "placeholder": "icon",
+    "color": "#5b6b8a",
+    "label": "KF",
+    "sprite": "icons/icon_kevlar_fedora.png"
+  },
+  "icon_kevlar_trousers": {
+    "placeholder": "icon",
+    "color": "#5b6b8a",
+    "label": "KT",
+    "sprite": "icons/icon_kevlar_trousers.png"
+  },
+  "icon_kevlar_suit": {
+    "placeholder": "icon",
+    "color": "#5b6b8a",
+    "label": "KS",
+    "sprite": "icons/icon_kevlar_suit.png"
+  },
+  "icon_diamond_helm": {
+    "placeholder": "icon",
+    "color": "#5b6b8a",
+    "label": "DH",
+    "sprite": "icons/icon_diamond_helm.png"
+  },
+  "icon_diamond_greaves": {
+    "placeholder": "icon",
+    "color": "#5b6b8a",
+    "label": "DH",
+    "sprite": "icons/icon_diamond_greaves.png"
+  },
+  "icon_diamond_plate": {
+    "placeholder": "icon",
+    "color": "#5b6b8a",
+    "label": "DH",
+    "sprite": "icons/icon_diamond_plate.png"
+  },
+  "icon_contract_recruit": {
+    "placeholder": "icon",
+    "color": "#3f8fd8",
+    "label": "RC",
+    "sprite": "icons/icon_contract.png"
+  },
+  "icon_contract_medic": {
+    "placeholder": "icon",
+    "color": "#3f8fd8",
+    "label": "MC",
+    "sprite": "icons/icon_contract.png"
+  },
+  "icon_contract_grunt": {
+    "placeholder": "icon",
+    "color": "#3f8fd8",
+    "label": "GC",
+    "sprite": "icons/icon_contract.png"
+  },
+  "icon_contract_sniper": {
+    "placeholder": "icon",
+    "color": "#3f8fd8",
+    "label": "SC",
+    "sprite": "icons/icon_contract.png"
+  },
+  "icon_contract_heavy": {
+    "placeholder": "icon",
+    "color": "#3f8fd8",
+    "label": "HC",
+    "sprite": "icons/icon_contract.png"
+  },
+  "icon_concrete_bag": {
+    "placeholder": "icon",
+    "color": "#a8a29a",
+    "label": "CB",
+    "sprite": "icons/icon_concrete_bag.png"
+  },
+  "icon_steel_beam": {
+    "placeholder": "icon",
+    "color": "#a8a29a",
+    "label": "SB",
+    "sprite": "icons/icon_steel_beam.png"
+  },
+  "icon_circuit_board": {
+    "placeholder": "icon",
+    "color": "#a8a29a",
+    "label": "CB",
+    "sprite": "icons/icon_circuit_board.png"
+  },
+  "donor_chicken": {
+    "placeholder": "prop",
+    "color": "#7a6a52",
+    "height": 1.2,
+    "sprite": "sprites/donor_chicken.png",
+    "spriteHeight": 1.2
+  },
+  "donor_empty": {
+    "placeholder": "prop",
+    "color": "#4a3f33",
+    "height": 1.0,
+    "sprite": "sprites/donor_empty.png",
+    "spriteHeight": 1.1
+  },
+  "donor_gala": {
+    "placeholder": "prop",
+    "color": "#7a6a52",
+    "height": 1.2,
+    "sprite": "sprites/donor_gala.png",
+    "spriteHeight": 1.3
+  },
+  "donor_yacht": {
+    "placeholder": "prop",
+    "color": "#7a6a52",
+    "height": 1.2,
+    "sprite": "sprites/donor_yacht.png",
+    "spriteHeight": 1.6
+  },
+  "lobbyist_junior": {
+    "placeholder": "prop",
+    "color": "#7a6a52",
+    "height": 1.2,
+    "sprite": "sprites/lobbyist_junior.png",
+    "spriteHeight": 1.7
+  },
+  "lobbyist_busy": {
+    "placeholder": "prop",
+    "color": "#4a3f33",
+    "height": 1.0,
+    "sprite": "sprites/lobbyist_busy.png",
+    "spriteHeight": 1.7
+  },
+  "lobbyist_veteran": {
+    "placeholder": "prop",
+    "color": "#7a6a52",
+    "height": 1.2,
+    "sprite": "sprites/lobbyist_veteran.png",
+    "spriteHeight": 1.75
+  },
+  "lobbyist_broker": {
+    "placeholder": "prop",
+    "color": "#7a6a52",
+    "height": 1.2,
+    "sprite": "sprites/lobbyist_broker.png",
+    "spriteHeight": 1.8
+  },
+  "press_podium": {
+    "placeholder": "prop",
+    "color": "#7a6a52",
+    "height": 1.2,
+    "sprite": "sprites/press_podium.png",
+    "spriteHeight": 1.6
+  },
+  "terminal": {
+    "placeholder": "prop",
+    "color": "#7a6a52",
+    "height": 1.2,
+    "sprite": "sprites/terminal.png",
+    "spriteHeight": 1.5
+  },
+  "bunker_hatch": {
+    "placeholder": "prop",
+    "color": "#7a6a52",
+    "height": 1.2,
+    "sprite": "sprites/bunker_hatch.png",
+    "spriteHeight": 0.7
+  },
+  "ladder": {
+    "placeholder": "prop",
+    "color": "#7a6a52",
+    "height": 1.2,
+    "sprite": "sprites/ladder.png",
+    "spriteHeight": 2.0
+  },
+  "trench_entrance": {
+    "placeholder": "prop",
+    "color": "#7a6a52",
+    "height": 1.2,
+    "sprite": "sprites/trench_entrance.png",
+    "spriteHeight": 1.7
+  },
+  "barricade": {
+    "placeholder": "prop",
+    "color": "#7a6a52",
+    "height": 1.2,
+    "sprite": "sprites/barricade.png",
+    "spriteHeight": 1.8
+  },
+  "hotspot": {
+    "placeholder": "prop",
+    "color": "#7a6a52",
+    "height": 1.2,
+    "sprite": "sprites/hotspot.png",
+    "spriteHeight": 0.6
+  },
+  "build_locker": {
+    "placeholder": "prop",
+    "color": "#5a6f8a",
+    "height": 1.4,
+    "sprite": "sprites/build_locker.png",
+    "spriteHeight": 1.8
+  },
+  "build_medbay": {
+    "placeholder": "prop",
+    "color": "#5a6f8a",
+    "height": 1.4,
+    "sprite": "sprites/build_medbay.png",
+    "spriteHeight": 1.3
+  },
+  "build_home_terminal": {
+    "placeholder": "prop",
+    "color": "#5a6f8a",
+    "height": 1.4,
+    "sprite": "sprites/build_home_terminal.png",
+    "spriteHeight": 1.4
+  },
+  "build_bed": {
+    "placeholder": "prop",
+    "color": "#5a6f8a",
+    "height": 1.4,
+    "sprite": "sprites/build_bed.png",
+    "spriteHeight": 1.3
+  },
+  "build_farm_1": {
+    "placeholder": "prop",
+    "color": "#5a6f8a",
+    "height": 1.4,
+    "sprite": "sprites/build_farm_1.png",
+    "spriteHeight": 1.8
+  },
+  "build_farm_2": {
+    "placeholder": "prop",
+    "color": "#5a6f8a",
+    "height": 1.4,
+    "sprite": "sprites/build_farm_2.png",
+    "spriteHeight": 2.0
+  },
+  "build_farm_3": {
+    "placeholder": "prop",
+    "color": "#5a6f8a",
+    "height": 1.4,
+    "sprite": "sprites/build_farm_3.png",
+    "spriteHeight": 2.2
+  },
+  "build_armory_1": {
+    "placeholder": "prop",
+    "color": "#5a6f8a",
+    "height": 1.4,
+    "sprite": "sprites/build_armory_1.png",
+    "spriteHeight": 1.0
+  },
+  "build_armory_2": {
+    "placeholder": "prop",
+    "color": "#5a6f8a",
+    "height": 1.4,
+    "sprite": "sprites/build_armory_2.png",
+    "spriteHeight": 1.9
+  },
+  "build_circle": {
+    "placeholder": "prop",
+    "color": "#5a6f8a",
+    "height": 1.4,
+    "sprite": "sprites/build_circle.png",
+    "spriteHeight": 0.6
+  },
+  "npc_sysadmin": {
+    "placeholder": "humanoid",
+    "color": "#4a5568",
+    "accent": "#d2a63a",
+    "skin": "#c98e62",
+    "hair": "#3a2a1c",
+    "sprite": "sprites/npc_sysadmin.png",
+    "spriteHeight": 1.7
+  },
+  "npc_party_planner": {
+    "placeholder": "humanoid",
+    "color": "#4a5568",
+    "accent": "#d2a63a",
+    "skin": "#c98e62",
+    "hair": "#3a2a1c",
+    "sprite": "sprites/npc_party_planner.png",
+    "spriteHeight": 1.7
+  },
+  "npc_spin_doctor": {
+    "placeholder": "humanoid",
+    "color": "#4a5568",
+    "accent": "#d2a63a",
+    "skin": "#c98e62",
+    "hair": "#3a2a1c",
+    "sprite": "sprites/npc_spin_doctor.png",
+    "spriteHeight": 1.7
+  },
+  "npc_fixer": {
+    "placeholder": "humanoid",
+    "color": "#4a5568",
+    "accent": "#d2a63a",
+    "skin": "#c98e62",
+    "hair": "#3a2a1c",
+    "sprite": "sprites/npc_fixer.png",
+    "spriteHeight": 1.75
+  },
+  "npc_drill_sergeant": {
+    "placeholder": "humanoid",
+    "color": "#4a5568",
+    "accent": "#d2a63a",
+    "skin": "#c98e62",
+    "hair": "#3a2a1c",
+    "sprite": "sprites/npc_drill_sergeant.png",
+    "spriteHeight": 1.75
+  },
+  "npc_sproto_handler": {
+    "placeholder": "humanoid",
+    "color": "#4a5568",
+    "accent": "#d2a63a",
+    "skin": "#c98e62",
+    "hair": "#3a2a1c",
+    "sprite": "sprites/npc_sproto_handler.png",
+    "spriteHeight": 1.7
+  },
+  "npc_contractor": {
+    "placeholder": "humanoid",
+    "color": "#4a5568",
+    "accent": "#d2a63a",
+    "skin": "#c98e62",
+    "hair": "#3a2a1c",
+    "sprite": "sprites/npc_contractor.png",
+    "spriteHeight": 1.75
+  },
+  "npc_scout": {
+    "placeholder": "humanoid",
+    "color": "#4a5568",
+    "accent": "#d2a63a",
+    "skin": "#c98e62",
+    "hair": "#3a2a1c",
+    "sprite": "sprites/npc_scout.png",
+    "spriteHeight": 1.7
+  },
+  "enemy_sludgeling": {
+    "placeholder": "sludge",
+    "color": "#3b4a2c",
+    "accent": "#e0c040",
+    "skin": "#8a7a6a",
+    "hair": "#222222",
+    "scale": 1.0,
+    "sprite": "sprites/enemy_sludgeling.png",
+    "spriteHeight": 0.9
+  },
+  "enemy_heckler": {
+    "placeholder": "humanoid",
+    "color": "#6a2e2e",
+    "accent": "#e0c040",
+    "skin": "#8a7a6a",
+    "hair": "#222222",
+    "scale": 1.0,
+    "sprite": "sprites/enemy_heckler.png",
+    "spriteHeight": 1.75
+  },
+  "enemy_sockpuppet": {
+    "placeholder": "humanoid",
+    "color": "#6a2e2e",
+    "accent": "#e0c040",
+    "skin": "#8a7a6a",
+    "hair": "#222222",
+    "scale": 1.0,
+    "sprite": "sprites/enemy_sockpuppet.png",
+    "spriteHeight": 1.7
+  },
+  "enemy_paper_hands": {
+    "placeholder": "humanoid",
+    "color": "#6a2e2e",
+    "accent": "#e0c040",
+    "skin": "#8a7a6a",
+    "hair": "#222222",
+    "scale": 1.0,
+    "sprite": "sprites/enemy_paper_hands.png",
+    "spriteHeight": 1.5
+  },
+  "enemy_fud_wraith": {
+    "placeholder": "humanoid",
+    "color": "#6a2e2e",
+    "accent": "#e0c040",
+    "skin": "#8a7a6a",
+    "hair": "#222222",
+    "scale": 1.0,
+    "sprite": "sprites/enemy_fud_wraith.png",
+    "spriteHeight": 2.0
+  },
+  "enemy_sludge_brute": {
+    "placeholder": "sludge",
+    "color": "#3b4a2c",
+    "accent": "#e0c040",
+    "skin": "#8a7a6a",
+    "hair": "#222222",
+    "scale": 1.0,
+    "sprite": "sprites/enemy_sludge_brute.png",
+    "spriteHeight": 2.3
+  },
+  "enemy_bear_raider": {
+    "placeholder": "humanoid",
+    "color": "#6a2e2e",
+    "accent": "#e0c040",
+    "skin": "#8a7a6a",
+    "hair": "#222222",
+    "scale": 1.0,
+    "sprite": "sprites/enemy_bear_raider.png",
+    "spriteHeight": 2.3
+  },
+  "enemy_rug_puller": {
+    "placeholder": "humanoid",
+    "color": "#6a2e2e",
+    "accent": "#e0c040",
+    "skin": "#8a7a6a",
+    "hair": "#222222",
+    "scale": 1.0,
+    "sprite": "sprites/enemy_rug_puller.png",
+    "spriteHeight": 1.9
+  },
+  "enemy_dump_golem": {
+    "placeholder": "humanoid",
+    "color": "#6a2e2e",
+    "accent": "#e0c040",
+    "skin": "#8a7a6a",
+    "hair": "#222222",
+    "scale": 1.0,
+    "sprite": "sprites/enemy_dump_golem.png",
+    "spriteHeight": 2.9
+  },
+  "enemy_margin_caller": {
+    "placeholder": "humanoid",
+    "color": "#6a2e2e",
+    "accent": "#e0c040",
+    "skin": "#8a7a6a",
+    "hair": "#222222",
+    "scale": 1.0,
+    "sprite": "sprites/enemy_margin_caller.png",
+    "spriteHeight": 2.1
+  },
+  "enemy_sludge_mother": {
+    "placeholder": "sludge",
+    "color": "#3b4a2c",
+    "accent": "#e0c040",
+    "skin": "#8a7a6a",
+    "hair": "#222222",
+    "scale": 2.0,
+    "sprite": "sprites/enemy_sludge_mother.png",
+    "spriteHeight": 3.2
+  },
+  "enemy_wrongnamer_chief": {
+    "placeholder": "humanoid",
+    "color": "#6a2e2e",
+    "accent": "#e0c040",
+    "skin": "#8a7a6a",
+    "hair": "#222222",
+    "scale": 2.0,
+    "sprite": "sprites/enemy_wrongnamer_chief.png",
+    "spriteHeight": 2.6
+  },
+  "enemy_captain_motion": {
+    "placeholder": "humanoid",
+    "color": "#6a2e2e",
+    "accent": "#e0c040",
+    "skin": "#8a7a6a",
+    "hair": "#222222",
+    "scale": 2.0,
+    "sprite": "sprites/enemy_captain_motion.png",
+    "spriteHeight": 2.3
+  },
+  "sp_recruit": {
+    "placeholder": "gremlin",
+    "color": "#3f6fd8",
+    "scale": 0.55,
+    "sprite": "sprites/sp_recruit.png",
+    "spriteHeight": 0.9
+  },
+  "sp_medic": {
+    "placeholder": "gremlin",
+    "color": "#3f6fd8",
+    "scale": 0.55,
+    "sprite": "sprites/sp_medic.png",
+    "spriteHeight": 0.9
+  },
+  "sp_grunt": {
+    "placeholder": "gremlin",
+    "color": "#3f6fd8",
+    "scale": 0.55,
+    "sprite": "sprites/sp_grunt.png",
+    "spriteHeight": 1.0
+  },
+  "sp_sniper": {
+    "placeholder": "gremlin",
+    "color": "#3f6fd8",
+    "scale": 0.55,
+    "sprite": "sprites/sp_sniper.png",
+    "spriteHeight": 0.95
+  },
+  "sp_heavy": {
+    "placeholder": "gremlin",
+    "color": "#3f6fd8",
+    "scale": 0.55,
+    "sprite": "sprites/sp_heavy.png",
+    "spriteHeight": 1.05
+  },
+  "tile_fence": {
+    "placeholder": "wall",
+    "color": "#7a5a3a",
+    "pattern": "brick",
+    "height": 0.9
+  },
+  "tile_mud": {
+    "placeholder": "tile",
+    "color": "#5a4632",
+    "pattern": "noise"
+  },
+  "tile_duckboard": {
+    "placeholder": "tile",
+    "color": "#8a6a42",
+    "pattern": "tiles"
+  },
+  "tile_sandbag": {
+    "placeholder": "wall",
+    "color": "#a08c62",
+    "pattern": "cobble",
+    "height": 1.0
+  },
+  "tile_crater": {
+    "placeholder": "water",
+    "color": "#2e241a"
+  },
+  "tile_concrete": {
+    "placeholder": "tile",
+    "color": "#9a9a96",
+    "pattern": "tiles"
+  },
+  "tile_bunker_wall": {
+    "placeholder": "wall",
+    "color": "#5e5e5a",
+    "pattern": "brick",
+    "height": 2.0
+  },
+  "mapicon_terminal": {
+    "placeholder": "glyph",
+    "label": "💻"
+  },
+  "mapicon_fund": {
+    "placeholder": "glyph",
+    "label": "🍽️"
+  },
+  "mapicon_spin": {
+    "placeholder": "glyph",
+    "label": "🌀"
+  },
+  "mapicon_lobby": {
+    "placeholder": "glyph",
+    "label": "🤝"
+  },
+  "mapicon_combat": {
+    "placeholder": "glyph",
+    "label": "⚔️"
+  },
+  "mapicon_boss": {
+    "placeholder": "glyph",
+    "label": "💀"
+  },
+  "skill_summoning": {
+    "placeholder": "glyph",
+    "label": "🪖"
+  },
+  "tab_summoning": {
+    "placeholder": "glyph",
+    "label": "🪖"
+  },
+  "orb_special": {
+    "placeholder": "glyph",
+    "label": "⭐"
   }
 }

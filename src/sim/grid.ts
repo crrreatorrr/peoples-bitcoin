@@ -67,3 +67,35 @@ export function isCardinallyAdjacent(pos: Tile, fp: Footprint): boolean {
     (withinY && (pos.x === fp.x - 1 || pos.x === fp.x + fp.width))
   );
 }
+
+export function buildGrids(content: Content): Map<string, Grid> {
+  return new Map([...content.zones.values()].map((z) => [z.id, buildZoneGrid(z, content)]));
+}
+
+export function chebyshev(a: Tile, b: Tile): number {
+  return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
+}
+
+/** Bresenham line of sight: every tile strictly between a and b must be walkable. */
+export function hasLineOfSight(grid: Grid, a: Tile, b: Tile): boolean {
+  let x = a.x;
+  let y = a.y;
+  const dx = Math.abs(b.x - x);
+  const dy = -Math.abs(b.y - y);
+  const sx = x < b.x ? 1 : -1;
+  const sy = y < b.y ? 1 : -1;
+  let err = dx + dy;
+  for (;;) {
+    if (x === b.x && y === b.y) return true;
+    const e2 = 2 * err;
+    if (e2 >= dy) {
+      err += dy;
+      x += sx;
+    }
+    if (e2 <= dx) {
+      err += dx;
+      y += sy;
+    }
+    if ((x !== b.x || y !== b.y) && !isWalkable(grid, x, y)) return false;
+  }
+}

@@ -6,6 +6,21 @@ Build in phases (section 15). Do not start a phase until the previous one passes
 
 ---
 
+## Revisions approved by the owner (2026-10-28) — these override the sections below
+
+- **Skills (10):** Shooting, Melee, Defense, Hitpoints, **Summoning** (was Command), Mining, Fundraising, Lobbying, Spin, Construction. **Removed:** Gunsmithing, Policy, Press Dodging, Painting.
+- **Skill web:** Mining → Hash (sold at the Terminal at the live price; also cannon ammo; Construction material). Fundraising → raw Scandals (+ rare whale payouts). Spin → Scandals into Talking Points (food that heals in combat). **Lobbying pays $BITCOIN for favors; sometimes you're blackmailed and do it unpaid.** Summoning → Sproto allies from contracts. Construction → **locked behind the Bunker Down quest**; better toolkits unlock better bunker upgrades.
+- **No cosmetics in the game; every item is useful.** Gremlin Street painting, the Resort Boutique and cosmetic skins are dropped.
+- **The Trading Terminal (a computer):** guns, ammo, armor, tools, food, contracts and building materials are bought there in USD prices paid in $BITCOIN at the live price; anything with a value sells there.
+- **Ammo:** one common ammo type (Rounds), bought at the Terminal, works in every gun. **Explosive guns are cannons that fire the Hash you mine** (Hash Cannon, Golden Veto Cannon), with splash damage.
+- **Combat ladder:** lots of combat with enemies of increasing difficulty in **The Trenches**, gated by bosses (Sludge Mother, Wrong-Namer Chief, Captain Motion).
+- **Tutorial:** "Empty Treasury" teaches every skill quickly, OSRS-style, with hints and a step list; never locked.
+- **Bank** is in Phase 1 (pulled forward from Phase 3).
+- **Art:** sprites and icons come from Higgsfield (AI-generated, original characters only).
+- **Wording:** "jeet" comes from an ethnic slur (Hard Rule 4), so the Dumper Leviathan's adds are "paper-hands fish".
+
+---
+
 ## 0. Hard rules (never break)
 
 1. **In-game currency only.** No real money, no crypto wallets, no blockchain calls, no cash-out, no real-money trading. "$BITCOIN" and "BTC" are fictional in-game currencies.
@@ -290,7 +305,7 @@ Each boss: HP, combat stats, phases (HP thresholds), mechanics (tick-scheduled a
 6. **The Prophet** (Temple of Belief) — converts your NPC followers; win them back with Recursive Gifting. Mosquito Swarm DoT; stand under a Net to clear. Drops: Prophet's Robes, Bug Net, Belief Crystals.
 
 **Late (group raids)**
-7. **Dumper Leviathan** (Trenches, 4–8) — P1: whole party must "buy the dip" on the same tick; P2: splits into escaping jeet-fish that carry loot; P3: anyone who sold in 24h takes double damage. Drops: Whale Bone, Diamond Hands gloves, Gremlin chance.
+7. **Dumper Leviathan** (Trenches, 4–8) — P1: whole party must "buy the dip" on the same tick; P2: splits into escaping paper-hands fish that carry loot; P3: anyone who sold in 24h takes double damage. Drops: Whale Bone, Diamond Hands gloves, Gremlin chance.
 8. **The Civil War** (server event, Ranch) — 3-day faction war (President vs Squire Froth); losing leader becomes a raid boss. Drops: faction banners, titles.
 9. **Hatchery Hydra** — each head is a player-launched coin; cutting one grows two copy-coins; burn necks via Recursive Gifting. Drops: Hydra Egg (free launch), Hatchery Fee Pass.
 
@@ -300,7 +315,7 @@ Each boss: HP, combat stats, phases (HP thresholds), mechanics (tick-scheduled a
 
 **Extras:** Mars Rocket mini-boss (if server misses a Day chant); weekly Hostage-Taker (holds an NPC until a server price target); 1/5000 pet drops (baby Sludge, mini Badger, mosquito, tiny Gremlin, mini BTC Prime).
 
-**Sproto counters (for design/tuning):** Medic vs Sludge Mother; Shield vs Captain Motion; Grunt vs Badger Dump; Grenadier vs Prophet & Hydra; Scout vs jeet-fish; Commander vs Neptune; Golden Sproto vs BTC Prime.
+**Sproto counters (for design/tuning):** Medic vs Sludge Mother; Shield vs Captain Motion; Grunt vs Badger Dump; Grenadier vs Prophet & Hydra; Scout vs paper-hands fish; Commander vs Neptune; Golden Sproto vs BTC Prime.
 
 ---
 

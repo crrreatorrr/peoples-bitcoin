@@ -5,7 +5,7 @@
  */
 import { ECONOMY } from '../config/balance';
 import { nextGaussian, type RngState } from './rng';
-import type { EconomyState } from './state';
+import type { EconomyState, GameState } from './state';
 
 export function createEconomy(): EconomyState {
   return {
@@ -43,4 +43,16 @@ export function stepEconomy(econ: EconomyState, rng: RngState, tick: number): vo
 
 export function marketCapUsd(econ: EconomyState): number {
   return econ.priceUsd * ECONOMY.supply;
+}
+
+/** $BITCOIN needed to cover `usd` at the current price. */
+export function usdToBitcoin(econ: EconomyState, usd: number): number {
+  return usd / econ.priceUsd;
+}
+
+/** Pays the player `usd` worth of $BITCOIN at the live price; returns the amount paid. */
+export function payUsd(state: GameState, usd: number): number {
+  const amount = Math.floor(usdToBitcoin(state.economy, usd));
+  state.player.currencies.bitcoin += amount;
+  return amount;
 }

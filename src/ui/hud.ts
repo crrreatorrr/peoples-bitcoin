@@ -6,8 +6,8 @@
 import { MOVEMENT, UI } from '../config/balance';
 import { COIN_TICKER } from '../config/branding';
 import { marketCapUsd } from '../sim/economy';
-import type { GameState } from '../sim/state';
-import { levelForXp } from '../sim/xp';
+import { SUMMONING } from '../config/balance';
+import { maxHp, type GameState } from '../sim/state';
 import { span } from './tooltips';
 
 const SPARK_W = 150;
@@ -37,6 +37,9 @@ export class Hud {
   private readonly runValue = span('orb-value', '');
   private readonly hpOrb = document.createElement('div');
   private readonly hpValue = span('orb-value', '');
+  private readonly specialOrb = document.createElement('button');
+  private readonly specialValue = span('orb-value', '');
+  private specialKey = '';
   private readonly xpButton = document.createElement('button');
   private readonly xpTotal = span('xp-total', '');
   private tickerKey = '';
@@ -53,6 +56,7 @@ export class Hud {
     private readonly bannerEl: HTMLElement,
     glyph: (id: string) => string,
     onToggleRun: () => void,
+    onSpecial: () => void,
   ) {
     const head = document.createElement('div');
     head.className = 'ticker-head';
@@ -83,7 +87,11 @@ export class Hud {
     this.runOrb.title = 'Toggle run';
     this.runOrb.append(span('orb-icon', glyph('orb_run')), this.runValue);
     this.runOrb.addEventListener('click', onToggleRun);
-    orbs.replaceChildren(this.xpButton, this.hpOrb, this.runOrb);
+    this.specialOrb.className = 'orb orb-special';
+    this.specialOrb.title = "Use your Sproto's special";
+    this.specialOrb.append(span('orb-icon', glyph('orb_special')), this.specialValue);
+    this.specialOrb.addEventListener('click', onSpecial);
+    orbs.replaceChildren(this.xpButton, this.hpOrb, this.runOrb, this.specialOrb);
   }
 
   update(state: GameState): void {
@@ -108,12 +116,23 @@ export class Hud {
       this.wallet.textContent = `Wallet: ${amount.format(bitcoin)} ${COIN_TICKER} · ${amount.format(btc)} BTC`;
     }
 
-    // Hitpoints are always full until combat arrives (Phase 2).
-    const hp = levelForXp(state.player.skills.hitpoints ?? 0);
-    const hpKey = String(hp);
+    const hp = state.player.hp;
+    const max = maxHp(state.player);
+    const hpKey = `${hp}|${max}`;
     if (hpKey !== this.hpKey) {
       this.hpKey = hpKey;
       this.hpValue.textContent = String(hp);
+      this.hpOrb.style.setProperty('--fill', `${(hp / max) * 100}%`);
+      this.hpOrb.classList.toggle('low', hp <= max * 0.3);
+    }
+
+    const points = Math.floor(state.player.summoning.points);
+    const specialKey = `${points}|${state.player.sproto !== null}`;
+    if (specialKey !== this.specialKey) {
+      this.specialKey = specialKey;
+      this.specialValue.textContent = String(points);
+      this.specialOrb.style.setProperty('--fill', `${(points / SUMMONING.pointsMax) * 100}%`);
+      this.specialOrb.classList.toggle('on', state.player.sproto !== null);
     }
 
     const totalXp = Object.values(state.player.skills).reduce((a, b) => a + b, 0);
@@ -134,7 +153,7 @@ export class Hud {
   }
 
   xpDrop(skillName: string, xp: number): void {
-    const drop = span('xp-drop', `+${xp} ${skillName} XP`);
+    const drop = span('xp-drop', `+${Math.round(xp * 10) / 10} ${skillName} XP`);
     this.xpDrops.append(drop);
     setTimeout(() => drop.remove(), UI.xpDropMs);
   }

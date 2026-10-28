@@ -2,22 +2,1046 @@
   {
     "id": "item_scrap_hash",
     "name": "Scrap Hash",
-    "examine": "A lukewarm chunk of hash. Smells faintly of dust and fans.",
+    "examine": "A lukewarm chunk of hash. Sells at the Terminal, or fires from a cannon.",
     "stackable": false,
-    "model": "icon_scrap_hash"
+    "model": "icon_scrap_hash",
+    "value": 6.9,
+    "shell": {
+      "damage": 6
+    }
   },
   {
     "id": "item_warm_hash",
     "name": "Warm Hash",
     "examine": "Still humming. It's not BTC, but it's honest work.",
     "stackable": false,
-    "model": "icon_warm_hash"
+    "model": "icon_warm_hash",
+    "value": 19,
+    "shell": {
+      "damage": 12
+    }
   },
   {
     "id": "item_molten_hash",
     "name": "Molten Hash",
-    "examine": "Liquid-cooled and somehow still too hot to hold.",
+    "examine": "Liquid-cooled and still too hot to hold. Makes a big boom.",
     "stackable": false,
-    "model": "icon_molten_hash"
+    "model": "icon_molten_hash",
+    "value": 46,
+    "shell": {
+      "damage": 20
+    }
+  },
+  {
+    "id": "item_btc_shard",
+    "name": "BTC Shard",
+    "examine": "A sliver of the real thing. The Terminal pays very well for it.",
+    "stackable": true,
+    "model": "icon_btc_shard",
+    "value": 690
+  },
+  {
+    "id": "item_raw_minor_scandal",
+    "name": "Minor Scandal",
+    "examine": "A raw rumor from a donor dinner. Spin it before it spreads.",
+    "stackable": false,
+    "model": "icon_raw_minor_scandal",
+    "value": 5
+  },
+  {
+    "id": "item_raw_juicy_scandal",
+    "name": "Juicy Scandal",
+    "examine": "Raw, juicy and dangerous. Spin it carefully.",
+    "stackable": false,
+    "model": "icon_raw_juicy_scandal",
+    "value": 15
+  },
+  {
+    "id": "item_raw_mega_scandal",
+    "name": "Mega Scandal",
+    "examine": "This could end a career. Or become a great talking point.",
+    "stackable": false,
+    "model": "icon_raw_mega_scandal",
+    "value": 40
+  },
+  {
+    "id": "item_tp_soundbite",
+    "name": "Soundbite",
+    "examine": "A short Talking Point. Reciting it steadies the nerves.",
+    "stackable": false,
+    "model": "icon_tp_soundbite",
+    "value": 8,
+    "food": {
+      "heal": 4,
+      "verb": "Recite"
+    }
+  },
+  {
+    "id": "item_tp_zinger",
+    "name": "Zinger",
+    "examine": "A sharp Talking Point that really lands.",
+    "stackable": false,
+    "model": "icon_tp_zinger",
+    "value": 22,
+    "food": {
+      "heal": 9,
+      "verb": "Recite"
+    }
+  },
+  {
+    "id": "item_tp_mic_drop",
+    "name": "Mic Drop",
+    "examine": "The best Talking Point there is. Nobody can follow it.",
+    "stackable": false,
+    "model": "icon_tp_mic_drop",
+    "value": 55,
+    "food": {
+      "heal": 16,
+      "verb": "Recite"
+    }
+  },
+  {
+    "id": "item_pick_rusty",
+    "name": "Rusty Hash Pick",
+    "examine": "Gets hash out of a rack. Eventually.",
+    "stackable": false,
+    "model": "icon_pick_rusty",
+    "value": 24.15,
+    "requires": [
+      {
+        "skill": "mining",
+        "level": 1
+      }
+    ],
+    "tool": {
+      "skill": "mining",
+      "tier": 1,
+      "bonus": 0
+    }
+  },
+  {
+    "id": "item_pick_steel",
+    "name": "Steel Hash Pick",
+    "examine": "Mines faster than the rusty one.",
+    "stackable": false,
+    "model": "icon_pick_steel",
+    "value": 234.15,
+    "requires": [
+      {
+        "skill": "mining",
+        "level": 15
+      }
+    ],
+    "tool": {
+      "skill": "mining",
+      "tier": 2,
+      "bonus": 0.08
+    }
+  },
+  {
+    "id": "item_pick_quantum",
+    "name": "Quantum Hash Pick",
+    "examine": "Mines in several racks at once, probably.",
+    "stackable": false,
+    "model": "icon_pick_quantum",
+    "value": 934.15,
+    "requires": [
+      {
+        "skill": "mining",
+        "level": 35
+      }
+    ],
+    "tool": {
+      "skill": "mining",
+      "tier": 3,
+      "bonus": 0.16
+    }
+  },
+  {
+    "id": "item_donor_list",
+    "name": "Donor List",
+    "examine": "Names, numbers and favorite appetizers.",
+    "stackable": false,
+    "model": "icon_donor_list",
+    "value": 24.15,
+    "requires": [
+      {
+        "skill": "fundraising",
+        "level": 1
+      }
+    ],
+    "tool": {
+      "skill": "fundraising",
+      "tier": 1,
+      "bonus": 0
+    }
+  },
+  {
+    "id": "item_rolodex",
+    "name": "Rolodex",
+    "examine": "Better donors, better dinners.",
+    "stackable": false,
+    "model": "icon_rolodex",
+    "value": 234.15,
+    "requires": [
+      {
+        "skill": "fundraising",
+        "level": 15
+      }
+    ],
+    "tool": {
+      "skill": "fundraising",
+      "tier": 2,
+      "bonus": 0.08
+    }
+  },
+  {
+    "id": "item_black_book",
+    "name": "Black Book",
+    "examine": "The donors nobody talks about.",
+    "stackable": false,
+    "model": "icon_black_book",
+    "value": 934.15,
+    "requires": [
+      {
+        "skill": "fundraising",
+        "level": 35
+      }
+    ],
+    "tool": {
+      "skill": "fundraising",
+      "tier": 3,
+      "bonus": 0.16
+    }
+  },
+  {
+    "id": "item_business_cards",
+    "name": "Business Cards",
+    "examine": "Hand them out and favors come back.",
+    "stackable": false,
+    "model": "icon_business_cards",
+    "value": 24.15,
+    "requires": [
+      {
+        "skill": "lobbying",
+        "level": 1
+      }
+    ],
+    "tool": {
+      "skill": "lobbying",
+      "tier": 1,
+      "bonus": 0
+    }
+  },
+  {
+    "id": "item_gold_cards",
+    "name": "Gold Cards",
+    "examine": "Embossed. Lobbyists respect embossed.",
+    "stackable": false,
+    "model": "icon_gold_cards",
+    "value": 234.15,
+    "requires": [
+      {
+        "skill": "lobbying",
+        "level": 15
+      }
+    ],
+    "tool": {
+      "skill": "lobbying",
+      "tier": 2,
+      "bonus": 0.08
+    }
+  },
+  {
+    "id": "item_platinum_cards",
+    "name": "Platinum Cards",
+    "examine": "They open doors that do not officially exist.",
+    "stackable": false,
+    "model": "icon_platinum_cards",
+    "value": 934.15,
+    "requires": [
+      {
+        "skill": "lobbying",
+        "level": 35
+      }
+    ],
+    "tool": {
+      "skill": "lobbying",
+      "tier": 3,
+      "bonus": 0.16
+    }
+  },
+  {
+    "id": "item_toolkit_basic",
+    "name": "Basic Toolkit",
+    "examine": "A hammer, a level and optimism.",
+    "stackable": false,
+    "model": "icon_toolkit_basic",
+    "value": 59.15,
+    "requires": [
+      {
+        "skill": "construction",
+        "level": 1
+      }
+    ],
+    "tool": {
+      "skill": "construction",
+      "tier": 1,
+      "bonus": 0
+    }
+  },
+  {
+    "id": "item_toolkit_pro",
+    "name": "Pro Toolkit",
+    "examine": "Power tools. The bunker grows.",
+    "stackable": false,
+    "model": "icon_toolkit_pro",
+    "value": 584.15,
+    "requires": [
+      {
+        "skill": "construction",
+        "level": 15
+      }
+    ],
+    "tool": {
+      "skill": "construction",
+      "tier": 2,
+      "bonus": 0
+    }
+  },
+  {
+    "id": "item_toolkit_elite",
+    "name": "Elite Toolkit",
+    "examine": "Builds things the blueprints never planned for.",
+    "stackable": false,
+    "model": "icon_toolkit_elite",
+    "value": 2334.15,
+    "requires": [
+      {
+        "skill": "construction",
+        "level": 35
+      }
+    ],
+    "tool": {
+      "skill": "construction",
+      "tier": 3,
+      "bonus": 0
+    }
+  },
+  {
+    "id": "item_gavel",
+    "name": "Presidential Gavel",
+    "examine": "Order! Order! Always there when the ammo runs out.",
+    "stackable": false,
+    "model": "icon_gavel",
+    "value": 0,
+    "equip": {
+      "slot": "weapon"
+    },
+    "weapon": {
+      "type": "melee",
+      "ammo": "none",
+      "speed": 4,
+      "range": 1,
+      "accuracy": 0,
+      "damage": 0
+    }
+  },
+  {
+    "id": "item_oak_gavel",
+    "name": "Oak Gavel",
+    "examine": "Solid oak. Settles arguments.",
+    "stackable": false,
+    "model": "icon_oak_gavel",
+    "value": 27.6,
+    "requires": [
+      {
+        "skill": "melee",
+        "level": 1
+      }
+    ],
+    "equip": {
+      "slot": "weapon"
+    },
+    "weapon": {
+      "type": "melee",
+      "ammo": "none",
+      "speed": 4,
+      "range": 1,
+      "accuracy": 8,
+      "damage": 6
+    }
+  },
+  {
+    "id": "item_iron_gavel",
+    "name": "Iron Gavel",
+    "examine": "For sessions that get out of hand.",
+    "stackable": false,
+    "model": "icon_iron_gavel",
+    "value": 347.6,
+    "requires": [
+      {
+        "skill": "melee",
+        "level": 20
+      }
+    ],
+    "equip": {
+      "slot": "weapon"
+    },
+    "weapon": {
+      "type": "melee",
+      "ammo": "none",
+      "speed": 4,
+      "range": 1,
+      "accuracy": 24,
+      "damage": 20
+    }
+  },
+  {
+    "id": "item_veto_hammer",
+    "name": "Veto Hammer",
+    "examine": "Says no with feeling.",
+    "stackable": false,
+    "model": "icon_veto_hammer",
+    "value": 1867.6,
+    "requires": [
+      {
+        "skill": "melee",
+        "level": 40
+      }
+    ],
+    "equip": {
+      "slot": "weapon"
+    },
+    "weapon": {
+      "type": "melee",
+      "ammo": "none",
+      "speed": 5,
+      "range": 1,
+      "accuracy": 45,
+      "damage": 42
+    }
+  },
+  {
+    "id": "item_filibuster_mace",
+    "name": "Filibuster Mace",
+    "examine": "Keeps going long after everyone wants it to stop.",
+    "stackable": false,
+    "model": "icon_filibuster_mace",
+    "value": 6667.6,
+    "requires": [
+      {
+        "skill": "melee",
+        "level": 60
+      }
+    ],
+    "equip": {
+      "slot": "weapon"
+    },
+    "weapon": {
+      "type": "melee",
+      "ammo": "none",
+      "speed": 5,
+      "range": 1,
+      "accuracy": 70,
+      "damage": 64
+    }
+  },
+  {
+    "id": "gun_campaign_pistol",
+    "name": "Campaign Pistol",
+    "examine": "Standard issue for the campaign trail.",
+    "stackable": false,
+    "model": "icon_gun_campaign_pistol",
+    "value": 27.6,
+    "requires": [
+      {
+        "skill": "shooting",
+        "level": 1
+      }
+    ],
+    "equip": {
+      "slot": "weapon"
+    },
+    "weapon": {
+      "type": "gun",
+      "ammo": "rounds",
+      "speed": 4,
+      "range": 5,
+      "accuracy": 10,
+      "damage": 8,
+      "splash": false
+    }
+  },
+  {
+    "id": "gun_confetti_shotgun",
+    "name": "Confetti Shotgun",
+    "examine": "Celebratory. Up close.",
+    "stackable": false,
+    "model": "icon_gun_confetti_shotgun",
+    "value": 187.6,
+    "requires": [
+      {
+        "skill": "shooting",
+        "level": 15
+      }
+    ],
+    "equip": {
+      "slot": "weapon"
+    },
+    "weapon": {
+      "type": "gun",
+      "ammo": "rounds",
+      "speed": 5,
+      "range": 3,
+      "accuracy": 18,
+      "damage": 24,
+      "splash": false
+    }
+  },
+  {
+    "id": "gun_press_pass_smg",
+    "name": "Press Pass SMG",
+    "examine": "Rapid-fire questions. Rapid-fire answers.",
+    "stackable": false,
+    "model": "icon_gun_press_pass_smg",
+    "value": 587.6,
+    "requires": [
+      {
+        "skill": "shooting",
+        "level": 30
+      }
+    ],
+    "equip": {
+      "slot": "weapon"
+    },
+    "weapon": {
+      "type": "gun",
+      "ammo": "rounds",
+      "speed": 2,
+      "range": 5,
+      "accuracy": 30,
+      "damage": 14,
+      "splash": false
+    }
+  },
+  {
+    "id": "gun_hash_cannon",
+    "name": "Hash Cannon",
+    "examine": "Fires the Hash you mine. Explodes on impact.",
+    "stackable": false,
+    "model": "icon_gun_hash_cannon",
+    "value": 1067.6,
+    "requires": [
+      {
+        "skill": "shooting",
+        "level": 40
+      }
+    ],
+    "equip": {
+      "slot": "weapon"
+    },
+    "weapon": {
+      "type": "gun",
+      "ammo": "hash",
+      "speed": 6,
+      "range": 7,
+      "accuracy": 35,
+      "damage": 30,
+      "splash": true
+    }
+  },
+  {
+    "id": "gun_treasury_rifle",
+    "name": "Treasury Rifle",
+    "examine": "Long range, longer paperwork.",
+    "stackable": false,
+    "model": "icon_gun_treasury_rifle",
+    "value": 1467.6,
+    "requires": [
+      {
+        "skill": "shooting",
+        "level": 45
+      }
+    ],
+    "equip": {
+      "slot": "weapon"
+    },
+    "weapon": {
+      "type": "gun",
+      "ammo": "rounds",
+      "speed": 5,
+      "range": 9,
+      "accuracy": 45,
+      "damage": 42,
+      "splash": false
+    }
+  },
+  {
+    "id": "gun_gremlin_blaster",
+    "name": "Gremlin Blaster",
+    "examine": "The sludge hates this one.",
+    "stackable": false,
+    "model": "icon_gun_gremlin_blaster",
+    "value": 3867.6,
+    "requires": [
+      {
+        "skill": "shooting",
+        "level": 60
+      }
+    ],
+    "equip": {
+      "slot": "weapon"
+    },
+    "weapon": {
+      "type": "gun",
+      "ammo": "rounds",
+      "speed": 4,
+      "range": 7,
+      "accuracy": 60,
+      "damage": 52,
+      "splash": false
+    }
+  },
+  {
+    "id": "gun_diamond_minigun",
+    "name": "Diamond Hands Minigun",
+    "examine": "Never lets go of the trigger.",
+    "stackable": false,
+    "model": "icon_gun_diamond_minigun",
+    "value": 9867.6,
+    "requires": [
+      {
+        "skill": "shooting",
+        "level": 75
+      }
+    ],
+    "equip": {
+      "slot": "weapon"
+    },
+    "weapon": {
+      "type": "gun",
+      "ammo": "rounds",
+      "speed": 1,
+      "range": 6,
+      "accuracy": 70,
+      "damage": 26,
+      "splash": false
+    }
+  },
+  {
+    "id": "gun_golden_veto",
+    "name": "Golden Veto Cannon",
+    "examine": "Launches molten hash. Vetoes everything nearby.",
+    "stackable": false,
+    "model": "icon_gun_golden_veto",
+    "value": 27867.6,
+    "requires": [
+      {
+        "skill": "shooting",
+        "level": 90
+      }
+    ],
+    "equip": {
+      "slot": "weapon"
+    },
+    "weapon": {
+      "type": "gun",
+      "ammo": "hash",
+      "speed": 6,
+      "range": 8,
+      "accuracy": 85,
+      "damage": 80,
+      "splash": true
+    }
+  },
+  {
+    "id": "gun_flippening_railgun",
+    "name": "Flippening Railgun",
+    "examine": "The last word in arguments.",
+    "stackable": false,
+    "model": "icon_gun_flippening_railgun",
+    "value": 67867.6,
+    "requires": [
+      {
+        "skill": "shooting",
+        "level": 99
+      }
+    ],
+    "equip": {
+      "slot": "weapon"
+    },
+    "weapon": {
+      "type": "gun",
+      "ammo": "rounds",
+      "speed": 6,
+      "range": 12,
+      "accuracy": 100,
+      "damage": 110,
+      "splash": false
+    }
+  },
+  {
+    "id": "item_rounds",
+    "name": "Rounds",
+    "examine": "Common ammo. Every gun takes it, except the cannons.",
+    "stackable": true,
+    "model": "icon_rounds",
+    "value": 0.25,
+    "equip": {
+      "slot": "ammo"
+    }
+  },
+  {
+    "id": "item_campaign_hat",
+    "name": "Campaign Hat",
+    "examine": "Keeps the sun and the questions off.",
+    "stackable": false,
+    "model": "icon_campaign_hat",
+    "value": 27.6,
+    "requires": [
+      {
+        "skill": "defense",
+        "level": 1
+      }
+    ],
+    "equip": {
+      "slot": "head"
+    },
+    "armor": {
+      "defense": 3,
+      "accuracy": 0
+    }
+  },
+  {
+    "id": "item_campaign_slacks",
+    "name": "Campaign Slacks",
+    "examine": "Pressed for every photo op.",
+    "stackable": false,
+    "model": "icon_campaign_slacks",
+    "value": 67.6,
+    "requires": [
+      {
+        "skill": "defense",
+        "level": 1
+      }
+    ],
+    "equip": {
+      "slot": "legs"
+    },
+    "armor": {
+      "defense": 4,
+      "accuracy": 0
+    }
+  },
+  {
+    "id": "item_campaign_jacket",
+    "name": "Campaign Jacket",
+    "examine": "Slightly padded shoulders.",
+    "stackable": false,
+    "model": "icon_campaign_jacket",
+    "value": 107.6,
+    "requires": [
+      {
+        "skill": "defense",
+        "level": 1
+      }
+    ],
+    "equip": {
+      "slot": "body"
+    },
+    "armor": {
+      "defense": 6,
+      "accuracy": 0
+    }
+  },
+  {
+    "id": "item_aviators",
+    "name": "Aviators",
+    "examine": "You see the target clearly. It sees itself in them.",
+    "stackable": false,
+    "model": "icon_aviators",
+    "value": 267.6,
+    "requires": [
+      {
+        "skill": "defense",
+        "level": 10
+      }
+    ],
+    "equip": {
+      "slot": "head"
+    },
+    "armor": {
+      "defense": 4,
+      "accuracy": 6
+    }
+  },
+  {
+    "id": "item_flak_helmet",
+    "name": "Flak Helmet",
+    "examine": "Rated for heckling and worse.",
+    "stackable": false,
+    "model": "icon_flak_helmet",
+    "value": 267.6,
+    "requires": [
+      {
+        "skill": "defense",
+        "level": 20
+      }
+    ],
+    "equip": {
+      "slot": "head"
+    },
+    "armor": {
+      "defense": 9,
+      "accuracy": 0
+    }
+  },
+  {
+    "id": "item_flak_pants",
+    "name": "Flak Pants",
+    "examine": "Armored trousers. Surprisingly breathable.",
+    "stackable": false,
+    "model": "icon_flak_pants",
+    "value": 347.6,
+    "requires": [
+      {
+        "skill": "defense",
+        "level": 20
+      }
+    ],
+    "equip": {
+      "slot": "legs"
+    },
+    "armor": {
+      "defense": 12,
+      "accuracy": 0
+    }
+  },
+  {
+    "id": "item_flak_vest",
+    "name": "Flak Vest",
+    "examine": "Stops sludge and hard questions.",
+    "stackable": false,
+    "model": "icon_flak_vest",
+    "value": 507.6,
+    "requires": [
+      {
+        "skill": "defense",
+        "level": 20
+      }
+    ],
+    "equip": {
+      "slot": "body"
+    },
+    "armor": {
+      "defense": 18,
+      "accuracy": 0
+    }
+  },
+  {
+    "id": "item_kevlar_fedora",
+    "name": "Kevlar Fedora",
+    "examine": "A fedora that means business.",
+    "stackable": false,
+    "model": "icon_kevlar_fedora",
+    "value": 1067.6,
+    "requires": [
+      {
+        "skill": "defense",
+        "level": 40
+      }
+    ],
+    "equip": {
+      "slot": "head"
+    },
+    "armor": {
+      "defense": 16,
+      "accuracy": 2
+    }
+  },
+  {
+    "id": "item_kevlar_trousers",
+    "name": "Kevlar Trousers",
+    "examine": "Bulletproof creases.",
+    "stackable": false,
+    "model": "icon_kevlar_trousers",
+    "value": 1467.6,
+    "requires": [
+      {
+        "skill": "defense",
+        "level": 40
+      }
+    ],
+    "equip": {
+      "slot": "legs"
+    },
+    "armor": {
+      "defense": 22,
+      "accuracy": 0
+    }
+  },
+  {
+    "id": "item_kevlar_suit",
+    "name": "Kevlar Suit",
+    "examine": "Tailored. Armored. Presidential.",
+    "stackable": false,
+    "model": "icon_kevlar_suit",
+    "value": 2267.6,
+    "requires": [
+      {
+        "skill": "defense",
+        "level": 40
+      }
+    ],
+    "equip": {
+      "slot": "body"
+    },
+    "armor": {
+      "defense": 32,
+      "accuracy": 0
+    }
+  },
+  {
+    "id": "item_diamond_helm",
+    "name": "Diamond Hands Helm",
+    "examine": "Never folds.",
+    "stackable": false,
+    "model": "icon_diamond_helm",
+    "value": 3467.6,
+    "requires": [
+      {
+        "skill": "defense",
+        "level": 60
+      }
+    ],
+    "equip": {
+      "slot": "head"
+    },
+    "armor": {
+      "defense": 26,
+      "accuracy": 4
+    }
+  },
+  {
+    "id": "item_diamond_greaves",
+    "name": "Diamond Hands Greaves",
+    "examine": "Stands firm through every dump.",
+    "stackable": false,
+    "model": "icon_diamond_greaves",
+    "value": 4667.6,
+    "requires": [
+      {
+        "skill": "defense",
+        "level": 60
+      }
+    ],
+    "equip": {
+      "slot": "legs"
+    },
+    "armor": {
+      "defense": 34,
+      "accuracy": 0
+    }
+  },
+  {
+    "id": "item_diamond_plate",
+    "name": "Diamond Hands Plate",
+    "examine": "The strongest hands in the land, now for your chest.",
+    "stackable": false,
+    "model": "icon_diamond_plate",
+    "value": 6667.6,
+    "requires": [
+      {
+        "skill": "defense",
+        "level": 60
+      }
+    ],
+    "equip": {
+      "slot": "body"
+    },
+    "armor": {
+      "defense": 50,
+      "accuracy": 0
+    }
+  },
+  {
+    "id": "contract_recruit",
+    "name": "Recruit Contract",
+    "examine": "Signed, sealed, and ready to summon a Sproto.",
+    "stackable": false,
+    "model": "icon_contract_recruit",
+    "value": 27.6,
+    "summon": {
+      "sproto": "sp_recruit"
+    }
+  },
+  {
+    "id": "contract_medic",
+    "name": "Medic Contract",
+    "examine": "Signed, sealed, and ready to summon a Sproto.",
+    "stackable": false,
+    "model": "icon_contract_medic",
+    "value": 107.6,
+    "summon": {
+      "sproto": "sp_medic"
+    }
+  },
+  {
+    "id": "contract_grunt",
+    "name": "Grunt Contract",
+    "examine": "Signed, sealed, and ready to summon a Sproto.",
+    "stackable": false,
+    "model": "icon_contract_grunt",
+    "value": 267.6,
+    "summon": {
+      "sproto": "sp_grunt"
+    }
+  },
+  {
+    "id": "contract_sniper",
+    "name": "Sniper Contract",
+    "examine": "Signed, sealed, and ready to summon a Sproto.",
+    "stackable": false,
+    "model": "icon_contract_sniper",
+    "value": 667.6,
+    "summon": {
+      "sproto": "sp_sniper"
+    }
+  },
+  {
+    "id": "contract_heavy",
+    "name": "Heavy Contract",
+    "examine": "Signed, sealed, and ready to summon a Sproto.",
+    "stackable": false,
+    "model": "icon_contract_heavy",
+    "value": 1867.6,
+    "summon": {
+      "sproto": "sp_heavy"
+    }
+  },
+  {
+    "id": "item_concrete_bag",
+    "name": "Concrete Bag",
+    "examine": "Bunker basics.",
+    "stackable": false,
+    "model": "icon_concrete_bag",
+    "value": 25
+  },
+  {
+    "id": "item_steel_beam",
+    "name": "Steel Beam",
+    "examine": "Holds up the important stuff.",
+    "stackable": false,
+    "model": "icon_steel_beam",
+    "value": 60
+  },
+  {
+    "id": "item_circuit_board",
+    "name": "Circuit Board",
+    "examine": "Powers terminals and server farms.",
+    "stackable": false,
+    "model": "icon_circuit_board",
+    "value": 170
   }
 ]

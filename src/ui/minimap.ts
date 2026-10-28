@@ -32,15 +32,14 @@ const OBJECT_INSET = 0.5;
 export class Minimap {
   private readonly ctx: CanvasRenderingContext2D;
   private readonly compass: CanvasRenderingContext2D;
-  private readonly base: HTMLCanvasElement;
-  private readonly icons: { glyph: string; x: number; y: number }[];
+  private base: HTMLCanvasElement | null = null;
+  private icons: { glyph: string; x: number; y: number }[] = [];
   private view: MinimapView | null = null;
 
   constructor(
     root: HTMLElement,
-    zone: ZoneDef,
-    content: Content,
-    assets: MinimapAssets,
+    private readonly content: Content,
+    private readonly assets: MinimapAssets,
     handlers: { walk(tile: Tile): void; faceNorth(): void },
   ) {
     const size = UI.minimapSize;
@@ -57,8 +56,6 @@ export class Minimap {
     this.compass = compass.getContext('2d')!;
 
     root.replaceChildren(map, compass);
-    this.base = renderZone(zone, content, assets);
-    this.icons = zone.mapIcons.map((i) => ({ glyph: assets.glyph(i.icon), x: i.x, y: i.y }));
 
     map.addEventListener('click', (e) => {
       const tile = this.tileAt(e.offsetX, e.offsetY);
@@ -66,6 +63,12 @@ export class Minimap {
     });
     map.addEventListener('contextmenu', (e) => e.preventDefault());
     compass.addEventListener('click', () => handlers.faceNorth());
+  }
+
+  /** Redraws the static map for a zone (call on zone change). */
+  setZone(zone: ZoneDef): void {
+    this.base = renderZone(zone, this.content, this.assets);
+    this.icons = zone.mapIcons.map((i) => ({ glyph: this.assets.glyph(i.icon), x: i.x, y: i.y }));
   }
 
   draw(view: MinimapView): void {
@@ -85,7 +88,7 @@ export class Minimap {
     ctx.translate(half, half);
     ctx.rotate(view.yaw);
     ctx.translate(-view.playerX * px, -view.playerZ * px);
-    ctx.drawImage(this.base, 0, 0);
+    if (this.base) ctx.drawImage(this.base, 0, 0);
     ctx.restore();
 
     const dot = (t: Tile, color: string) => {

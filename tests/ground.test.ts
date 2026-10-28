@@ -12,7 +12,7 @@ describe('ground items', () => {
     addItem(state.player.inventory, hash());
     runTick(state, ctx, [{ type: 'dropItem', slot: 0 }]);
     const dropped = state.zone.groundItems[0];
-    runUntil(state, ctx, () => state.player.path.length === 0, [{ type: 'walk', x: 22, y: 33 }]);
+    runUntil(state, ctx, () => state.player.path.length === 0, [{ type: 'walk', x: 30, y: 33 }]);
 
     runUntil(state, ctx, () => state.zone.groundItems.length === 0, [
       { type: 'interact', targetId: dropped.id, action: 'Take' },
