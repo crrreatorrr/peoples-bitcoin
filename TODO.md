@@ -23,7 +23,6 @@
 - [ ] Draw calls: props are a dozen meshes each, over the Phase 6 budget of 300. Fix: merge
       static meshes per prop by material (or instance racks/trees).
 - [ ] Mobile: long-press menu, one-finger camera drag, bottom-drawer panels (Phase 6). Taps already work.
-- [ ] The BTC wallet currency is still unused (BTC Shards are items that sell at the Terminal).
 - [ ] Bundle is ~1 MB (306 KB gzipped; mostly Three.js plus the code-built models); Vite warns at 500 KB. Split the vendor chunk or raise the limit.
 - [ ] Character GLBs total ~9.5 MB and all load at start. Load per zone, or compress meshes with
       `gltf-transform` (meshopt).

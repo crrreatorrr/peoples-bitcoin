@@ -25,7 +25,7 @@ Build in phases (section 15). Do not start a phase until the previous one passes
 
 ## 0. Hard rules (never break)
 
-1. **In-game currency only.** No real money, no crypto wallets, no blockchain calls, no cash-out, no real-money trading. "$BITCOIN" and "BTC" are fictional in-game currencies.
+1. **In-game currency only.** No real money, no crypto wallets, no blockchain calls, no cash-out, no real-money trading. **$BITCOIN is the only currency** and it is fictional. *(Amended by the owner, 2026-10-28: BTC was removed.)* No real-world currencies or coins by name or ticker.
 2. **Fictional characters; public figures only as satire.** *(Amended by the owner, 2026-10-28.)* Characters have invented names, with one owner-approved satirical exception: the player character is **President Obama**, a stylized low-poly caricature inspired by Barack Obama. Caricatures of public figures must be low-poly cartoons, never photorealistic, never sexual or demeaning, and must never imply a real person endorses anything (no real-world endorsements, quotes or slogans attributed to them, nothing about real coins or investing in their voice). The game shows a parody notice (`PARODY_NOTICE` in `src/config/branding.ts`). No other real names or handles. Private individuals' faces only with their consent. All other characters are archetypes with invented names.
 3. **No trademarked characters on screen.** No wizard boy, no blue hedgehog, no studio characters. The coin's full name is a configurable string constant `COIN_FULL_NAME` in `src/config/branding.ts`; default it to a parody name `"PresidentWizardHedgehog10Inu"` with ticker `"$BITCOIN"`. The owner may change it later.
 4. **Content rating: teen-friendly satire.** No sexual content, no slurs, no racial or religious jokes, no mutilation threats, no mocking of disabled people. Guns are cartoon, low-poly, chunky, no gore. Enemies "poof" into sludge when defeated.
@@ -97,7 +97,7 @@ All randomness goes through `rng.ts` (seeded) so tests and server replays are de
 
 The game parodies a real meme coin community. Keep only the safe, funny parts listed here.
 
-**Premise.** President Obama takes office and opens the national reserve. It is supposed to hold BTC. It holds **$BITCOIN** ("The People's Bitcoin"), a meme coin with a 1,000,000,000 supply and 0% tax, because the Treasurer misread the ticker. Selling would crash the coin and the country, so the President takes the **Never Sell Vow** and begins **the Quest**: pump the People's Bitcoin to the mythical **$100 billion** and fund the nation on the way.
+**Premise.** President Obama takes office and opens the national reserve. It is supposed to hold gold. It holds **$BITCOIN** ("The People's Bitcoin"), a meme coin with a 1,000,000,000 supply and 0% tax, because the Treasurer misread the memo. Selling would crash the coin and the country, so the President takes the **Never Sell Vow** and begins **the Quest**: pump the People's Bitcoin to the mythical **$100 billion** and fund the nation on the way.
 
 **Mythology (from the coin's straight-faced "white paper"):**
 - **The Quest (of Hallows):** a cosmic event where the universe created a "store of value".
@@ -110,7 +110,7 @@ The game parodies a real meme coin community. Keep only the safe, funny parts li
 **Running gags to use:**
 - Posts and announcements open with **"ATTENTION ATTENTION"**.
 - **"Induce me" / "check DM" / "drop wallet"** = NPCs asking for tips.
-- **"It's not BTC."** Calling the coin BTC puts you on the public **Enemy List**.
+- **"It's not $BITCON."** The Wrong-Namers call the coin $BITCON ("it's a con"); saying it puts you on the public **Enemy List**.
 - **"Free my Gremlin."** Everyone wants a Gremlin (the mascot).
 - **Promises to "cure the malaria"** — turned into a real good deed: funding wells and nets in The Village.
 - **Mock "civil wars"** in the community.
@@ -139,9 +139,9 @@ The game parodies a real meme coin community. Keep only the safe, funny parts li
 | npc_cat_artisan | **The Cat Artisan** | Student craftsman | Crafts cosmetic pets, always "between exams" |
 | npc_well_builder | **The Well Builder** | Village hero | Quiet, sincere. Turns treasure into wells |
 | npc_captain_motion | **Captain Motion** | Rival | Maximum Motion. Rage-quits, threatens to sue |
-| npc_badger_warlord | **The Badger Warlord** | Frenemy | Ally or enemy by season. Keeps asking for 0.55 ETH |
+| npc_badger_warlord | **The Badger Warlord** | Frenemy | Ally or enemy by season. Keeps asking for 55 $BITCOIN |
 | npc_prophet | **The Prophet** | Rival cult leader | Steals your followers, mosquito swarms |
-| npc_wrongnamers | **The Wrong-Namers** | Heckler faction | Shout "BTC President!" |
+| npc_wrongnamers | **The Wrong-Namers** | Heckler faction | Shout "$BITCON President!" |
 | npc_gloomy_beggar | **The Gloomy Beggar** | Ambient NPC | Asks for 10 coins forever |
 | npc_gossip | **The Gossip Broker** | Info vendor | Trades rumors (hints) for coins |
 | npc_slitherman | **Slitherman** | Rival candidate | A rapper running against you for president |
@@ -155,7 +155,6 @@ Dialogue lives in `/src/data/dialogue/<npc_id>.json` as node graphs (id, speaker
 | Key | Name | Source | Use |
 |---|---|---|---|
 | `bitcoin` | $BITCOIN | Quests, Induce, selling, bosses | Main currency, volatile price in USD |
-| `btc` | BTC | Mining (slow) | Rare, stable. Buys infrastructure |
 | `opal` | Opal | Overnight "charging" (offline progress), Neptune boss | Endgame crafting, Opal ammo |
 | `induce` | Induce | Fame: NPC and player tips | Converts to $BITCOIN |
 | `motion` | Motion | Stat | Actions-per-tick bonuses, run energy |
@@ -169,7 +168,7 @@ Dialogue lives in `/src/data/dialogue/<npc_id>.json` as node graphs (id, speaker
 - `drift = k1*(hopium-50) + k2*recentBossWins - k3*recentDumps`. All constants live in `balance.ts`.
 - Clamp to a floor; record a 200-point history for the ticker sparkline.
 - Shop prices are quoted in USD and charged in $BITCOIN at the current price, so timing matters.
-- **Events:** "Halving" (mining yield halves), "Dump" (instant −10–25%), "Pump" (+10–25%), "Ticker Swap" (shop labels swap BTC/$BITCOIN for 60 ticks; buying with the wrong one fails with a joke message).
+- **Events:** "Halving" (mining yield halves), "Dump" (instant −10–25%), "Pump" (+10–25%), "Ticker Swap" (shop labels swap $BITCOIN/$BITCON for 60 ticks; buying with the wrong one fails with a joke message).
 
 ### Gremlins and the Hatchery tax
 - **Gremlins** are rare collectible items (mascot). Owning one gives passive income from the Hatchery.
@@ -188,7 +187,7 @@ Use the OSRS XP formula. Skills:
 | **Defense** | Defence | Taking hits |
 | **Hitpoints** | Hitpoints | Combat |
 | **Command** | Summoning | Enlisting and fighting with Sprotos |
-| **Mining** | Mining | Server racks → BTC |
+| **Mining** | Mining | Server racks → Hash (sold for $BITCOIN) |
 | **Fundraising** | Fishing | Donor dinners → $BITCOIN, rare whales |
 | **Lobbying** | Woodcutting | Lobbyists → Favors |
 | **Spin** | Cooking | Scandals → Talking Points (can burn) |
@@ -303,7 +302,7 @@ Each boss: HP, combat stats, phases (HP thresholds), mechanics (tick-scheduled a
 
 **Mid (solo/duo)**
 4. **Captain Motion** (Trenches arena) — 2 actions/tick; phase 2 roots you ("no motion"); at 10% rage-quits and runs — catch him or zone locks 1 hour. Drops: Boots of Motion, Rage-Quit Letter pet.
-5. **The Badger Warlord** (Honey Badger Valley) — seasonal ally/boss (server vote). "Dump" attack lowers your $BITCOIN during the fight (block with Iron Guidance). Asks for 0.55 ETH mid-fight: paying skips phase 2 but lowers Vow. Drops: Honey Badger pet, Badger Pelt cape, Badger Fact scrolls.
+5. **The Badger Warlord** (Honey Badger Valley) — seasonal ally/boss (server vote). "Dump" attack lowers your $BITCOIN during the fight (block with Iron Guidance). Asks for 55 $BITCOIN mid-fight: paying skips phase 2 but lowers Vow. Drops: Honey Badger pet, Badger Pelt cape, Badger Fact scrolls.
 6. **The Prophet** (Temple of Belief) — converts your NPC followers; win them back with Recursive Gifting. Mosquito Swarm DoT; stand under a Net to clear. Drops: Prophet's Robes, Bug Net, Belief Crystals.
 
 **Late (group raids)**
@@ -313,11 +312,11 @@ Each boss: HP, combat stats, phases (HP thresholds), mechanics (tick-scheduled a
 
 **Endgame**
 10. **Guardian of Neptune's Core** — damage boosted by overnight Opal charging; P2: walk the 10 spirals in order; P3: Three Tenets sync — three players act on the same tick. Drops: Neptune Opal, Spiral Staff, Tree of Life cape.
-11. **BTC Prime** (final, The Flippening raid) — orange titan. P1 "Store of Value": only damageable while server Hopium > 80. P2 "Halving": halves damage periodically. P3 "The Flippening": server $BITCOIN market cap acts as the damage meter; when it passes BTC Prime, boss falls. Win: roadmap arrow reaches the end; Flippening title. Drops: Golden Gremlin, Presidential Crown, name on the Ticker Monument.
+11. **The Old Coin** (final, The Flippening raid) — orange titan. P1 "Store of Value": only damageable while server Hopium > 80. P2 "Halving": halves damage periodically. P3 "The Flippening": server $BITCOIN market cap acts as the damage meter; when it passes The Old Coin, boss falls. Win: roadmap arrow reaches the end; Flippening title. Drops: Golden Gremlin, Presidential Crown, name on the Ticker Monument.
 
-**Extras:** Mars Rocket mini-boss (if server misses a Day chant); weekly Hostage-Taker (holds an NPC until a server price target); 1/5000 pet drops (baby Sludge, mini Badger, mosquito, tiny Gremlin, mini BTC Prime).
+**Extras:** Mars Rocket mini-boss (if server misses a Day chant); weekly Hostage-Taker (holds an NPC until a server price target); 1/5000 pet drops (baby Sludge, mini Badger, mosquito, tiny Gremlin, mini Old Coin).
 
-**Sproto counters (for design/tuning):** Medic vs Sludge Mother; Shield vs Captain Motion; Grunt vs Badger Dump; Grenadier vs Prophet & Hydra; Scout vs paper-hands fish; Commander vs Neptune; Golden Sproto vs BTC Prime.
+**Sproto counters (for design/tuning):** Medic vs Sludge Mother; Shield vs Captain Motion; Grunt vs Badger Dump; Grenadier vs Prophet & Hydra; Scout vs paper-hands fish; Commander vs Neptune; Golden Sproto vs The Old Coin.
 
 ---
 
@@ -326,7 +325,7 @@ Each boss: HP, combat stats, phases (HP thresholds), mechanics (tick-scheduled a
 Each quest: id, name, requirements (skills, quests), steps (state machine), dialogue refs, rewards.
 
 1. **Empty Treasury** — tutorial: walk, talk, mine, shoot, enlist first Sproto, bank, shop.
-2. **It's Not BTC** — correct 10 Wrong-Namers; each converted name is crossed off your Enemy List.
+2. **It's Not $BITCON** — correct 10 Wrong-Namers; each converted name is crossed off your Enemy List.
 3. **Free My Gremlin** — long chain ending with your first Gremlin.
 4. **The Civil War** — pick a side; ties into the server event.
 5. **Hostage Price** — NPC stays in your office until the coin hits a target.
@@ -381,7 +380,7 @@ Reporter ambush (approval gamble), Whistleblower, Lost Intern, Rig Power Outage,
 - ✅ Accept: all data files validate; every boss beatable with intended counters; balance sheet in `balance.ts`.
 
 ### Phase 5 — Multiplayer
-- Colyseus server running `src/sim`, interest management by zone, chat, trading, Swamp Exchange, Civil War, server-wide Hopium, BTC Prime raid.
+- Colyseus server running `src/sim`, interest management by zone, chat, trading, Swamp Exchange, Civil War, server-wide Hopium, The Old Coin raid.
 - ✅ Accept: two browsers see each other, trade, and raid together; server is authoritative (client cannot set state).
 
 ### Phase 6 — Polish

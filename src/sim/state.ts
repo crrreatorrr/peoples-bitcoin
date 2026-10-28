@@ -77,7 +77,6 @@ export type OpenInterface =
 
 export interface Currencies {
   bitcoin: number;
-  btc: number;
 }
 
 export interface DialogueState {

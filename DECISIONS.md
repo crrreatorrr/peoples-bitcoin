@@ -47,7 +47,7 @@ OSRS conventions". Newest at the bottom of each section.
 ## Mining
 
 - **Output** is "hash" items (Scrap/Warm/Molten Hash), non-stackable like OSRS ore, so a full
-  inventory stops mining. Turning hash into BTC needs the bank/terminal from Phase 3.
+  inventory stops mining. Hash is sold for $BITCOIN at the Terminal.
 - **Success** per attempt = `successAtReq + (level − levelReq) × successPerLevel`, capped at
   `successMax`; one attempt every 3 ticks. Depletion chance and respawn time are per rack in
   `skills.json` (dusty racks deplete 50% of the time so the tutorial area flows).

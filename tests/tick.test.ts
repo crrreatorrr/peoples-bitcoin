@@ -148,14 +148,14 @@ describe('tick loop', () => {
 
   it('public chat goes to the chatbox and above the head, then fades', () => {
     const { state, ctx } = newGame();
-    const events = runTick(state, ctx, [{ type: 'chat', text: '  it is   not BTC  ' }]);
+    const events = runTick(state, ctx, [{ type: 'chat', text: '  never   sell  ' }]);
     expect(events).toContainEqual({
       type: 'message',
       kind: 'public',
       speaker: state.player.name,
-      text: 'it is not BTC',
+      text: 'never sell',
     });
-    expect(state.player.overhead?.text).toBe('it is not BTC');
+    expect(state.player.overhead?.text).toBe('never sell');
     for (let i = 0; i < CHAT.overheadTicks; i++) runTick(state, ctx, []);
     expect(state.player.overhead).toBeNull();
   });

@@ -421,7 +421,7 @@
     "ordered": true,
     "startNpc": "npc_morelight",
     "requires": ["quest_sludge_duty"],
-    "summary": "The Wrong-Namers hold the middle of the Trenches and insist it's BTC. Loudly. Morelight wants them corrected so you can push north.",
+    "summary": "The Wrong-Namers hold the middle of the Trenches and insist it's $BITCON. Loudly. Morelight wants them corrected so you can push north.",
     "steps": [
       {
         "id": "briefing",

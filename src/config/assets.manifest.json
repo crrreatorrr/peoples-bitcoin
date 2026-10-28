@@ -244,11 +244,11 @@
     "label": "MH",
     "sprite": "icons/icon_molten_hash.png"
   },
-  "icon_btc_shard": {
+  "icon_hash_crystal": {
     "placeholder": "icon",
     "color": "#f7931a",
     "label": "BS",
-    "sprite": "icons/icon_btc_shard.png"
+    "sprite": "icons/icon_hash_crystal.png"
   },
   "icon_raw_minor_scandal": {
     "placeholder": "icon",

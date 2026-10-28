@@ -129,6 +129,26 @@ describe('save / load', () => {
     expect(loaded.player.quests.quest_tutorial).toEqual({ done: [], complete: false, choices: [] });
   });
 
+  it('upgrades a version 5 save: no BTC wallet, BTC Shards become Hash Crystals', () => {
+    const { state } = newGame();
+    const v6 = serialize(state, 1);
+    const v5 = {
+      ...v6,
+      version: 5,
+      player: {
+        ...v6.player,
+        inventory: [{ itemId: 'item_btc_shard', qty: 1 }, ...v6.player.inventory.slice(1)],
+        bank: [{ itemId: 'item_btc_shard', qty: 3 }],
+        currencies: { bitcoin: 42, btc: 7 },
+      },
+    };
+    const loaded = deserialize(roundTrip(v5), content())!;
+    expect(loaded).not.toBeNull();
+    expect(loaded.player.currencies).toEqual({ bitcoin: 42 });
+    expect(loaded.player.inventory[0]).toEqual({ itemId: 'item_hash_crystal', qty: 1 });
+    expect(loaded.player.bank).toEqual([{ itemId: 'item_hash_crystal', qty: 3 }]);
+  });
+
   it('does not save transient movement state', () => {
     const { state, ctx } = newGame();
     runTick(state, ctx, [{ type: 'walk', x: 27, y: 40 }]);

@@ -96,13 +96,13 @@ export class TerminalWindow {
         );
       });
       cell.addEventListener('mousemove', (e) => {
-        const btc = h.priceOf(def.id, 1) ?? 0;
+        const coins = h.priceOf(def.id, 1) ?? 0;
         tooltip.show(
           {
             action: 'Value',
             target: def.name,
             targetKind: 'item',
-            detail: `${usd} = ${amount.format(btc)} $BITCOIN${reqs ? `\nRequires ${reqs}` : ''}`,
+            detail: `${usd} = ${amount.format(coins)} $BITCOIN${reqs ? `\nRequires ${reqs}` : ''}`,
           },
           e.clientX,
           e.clientY,

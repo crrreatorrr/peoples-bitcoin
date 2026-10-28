@@ -184,7 +184,7 @@ describe('interface', () => {
     // The Soundbites are now at index 0; a stale "index 1" click still finds them.
     withdraw(state.player, content(), 1, 1, [], 'item_tp_soundbite');
     expect(countItem(state.player.inventory, 'item_tp_soundbite')).toBe(1);
-    withdraw(state.player, content(), 0, 1, [], 'item_btc_shard');
+    withdraw(state.player, content(), 0, 1, [], 'item_hash_crystal');
     expect(state.player.bank).toEqual([{ itemId: 'item_tp_soundbite', qty: 4 }]);
   });
 

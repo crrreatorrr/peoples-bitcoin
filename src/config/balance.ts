@@ -143,7 +143,7 @@ export const ECONOMY = {
   recentDecay: 0.98,
 } as const;
 
-export const START_CURRENCIES = { bitcoin: 0, btc: 0 } as const;
+export const START_CURRENCIES = { bitcoin: 0 } as const;
 
 // ── Bank, ground items, chat, NPCs ───────────────────────────────────────────
 export const BANK = {

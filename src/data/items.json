@@ -13,7 +13,7 @@
   {
     "id": "item_warm_hash",
     "name": "Warm Hash",
-    "examine": "Still humming. It's not BTC, but it's honest work.",
+    "examine": "Still humming. Not glamorous, but it's honest work.",
     "stackable": false,
     "model": "icon_warm_hash",
     "value": 19,
@@ -33,11 +33,11 @@
     }
   },
   {
-    "id": "item_btc_shard",
-    "name": "BTC Shard",
-    "examine": "A sliver of the real thing. The Terminal pays very well for it.",
+    "id": "item_hash_crystal",
+    "name": "Hash Crystal",
+    "examine": "A sliver of crystallized hash. The Terminal pays very well for it.",
     "stackable": true,
-    "model": "icon_btc_shard",
+    "model": "icon_hash_crystal",
     "value": 690
   },
   {

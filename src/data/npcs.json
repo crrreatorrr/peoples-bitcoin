@@ -134,7 +134,7 @@
           {
             "player": "Shouting what?"
           },
-          "That it's BTC. That it was always BTC. That we should all go home. They brought megaphones.",
+          "That it's $BITCON. That it was always a con. That we should all go home. They brought megaphones.",
           "Start with a Heckler. Then expose one of their Sockpuppets. That will bring out their Chief at the second barricade.",
           "Correct them, President. Firmly. With whatever you're holding."
         ]
@@ -164,7 +164,7 @@
           "The Sludge Mother is gone? Splendid! I'll have the Trenches hosed down. Twice.",
           "The first barricade is open, and The Scout says the next stretch belongs to the Wrong-Namers.",
           {
-            "player": "The ones who keep calling it BTC?"
+            "player": "The ones who keep calling it $BITCON?"
           },
           "The very same. Catch your breath and come back to me. That's our next job."
         ]
@@ -421,8 +421,8 @@
                 "choice": "meltdown_password"
               },
               {
-                "text": "BTC",
-                "lines": ["It's never BTC. We've been over this."]
+                "text": "$BITCON",
+                "lines": ["That's what the Wrong-Namers chant. Never type that in here."]
               }
             ]
           }

@@ -337,7 +337,7 @@
         "max": 1
       },
       {
-        "item": "item_btc_shard",
+        "item": "item_hash_crystal",
         "weight": 3,
         "min": 1,
         "max": 1
@@ -409,7 +409,7 @@
         "max": 1
       },
       {
-        "item": "item_btc_shard",
+        "item": "item_hash_crystal",
         "weight": 6,
         "min": 1,
         "max": 1
@@ -436,7 +436,7 @@
     "usd": [40, 90],
     "always": [
       {
-        "item": "item_btc_shard",
+        "item": "item_hash_crystal",
         "qty": 1
       },
       {
@@ -477,7 +477,7 @@
     "usd": [90, 200],
     "always": [
       {
-        "item": "item_btc_shard",
+        "item": "item_hash_crystal",
         "qty": 2
       },
       {
@@ -524,7 +524,7 @@
     "usd": [200, 450],
     "always": [
       {
-        "item": "item_btc_shard",
+        "item": "item_hash_crystal",
         "qty": 3
       },
       {

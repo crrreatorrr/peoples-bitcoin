@@ -23,7 +23,7 @@ import {
 } from './state';
 import { EQUIP_SLOTS } from './schemas';
 
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 const StackSchema = z.object({ itemId: z.string(), qty: z.number().int().positive() });
 const STYLES = ['accurate', 'rapid', 'longrange', 'bash', 'block'] as const;
@@ -44,7 +44,7 @@ const SaveSchema = z.object({
     equipment: z.record(z.string(), StackSchema.nullable()),
     bank: z.array(StackSchema),
     skills: z.record(z.string(), z.number().nonnegative()),
-    currencies: z.object({ bitcoin: z.number(), btc: z.number() }),
+    currencies: z.object({ bitcoin: z.number() }),
     quests: z.record(
       z.string(),
       z.object({ done: z.array(z.string()), complete: z.boolean(), choices: z.array(z.string()) }),
@@ -111,6 +111,26 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
       ]),
     );
     return { ...save, version: 5, player: { ...player, quests } };
+  },
+  // v6: $BITCOIN is the only currency. The BTC wallet goes; BTC Shards become Hash Crystals.
+  5: (save) => {
+    const player = asRecord(save.player);
+    const rename = (s: unknown) => {
+      const stack = asRecord(s);
+      return stack.itemId === 'item_btc_shard' ? { ...stack, itemId: 'item_hash_crystal' } : s;
+    };
+    const list = (v: unknown) => (Array.isArray(v) ? v.map((s) => (s ? rename(s) : s)) : v);
+    const { bitcoin } = asRecord(player.currencies);
+    return {
+      ...save,
+      version: 6,
+      player: {
+        ...player,
+        inventory: list(player.inventory),
+        bank: list(player.bank),
+        currencies: { bitcoin: typeof bitcoin === 'number' ? bitcoin : 0 },
+      },
+    };
   },
 };
 

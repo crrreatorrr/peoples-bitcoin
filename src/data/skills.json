@@ -42,8 +42,8 @@
         "output": "item_scrap_hash",
         "rare": {
           "chance": 0.0025,
-          "item": "item_btc_shard",
-          "message": "You find a BTC Shard in the dust!"
+          "item": "item_hash_crystal",
+          "message": "You find a Hash Crystal in the dust!"
         }
       },
       {
@@ -57,8 +57,8 @@
         "output": "item_warm_hash",
         "rare": {
           "chance": 0.004,
-          "item": "item_btc_shard",
-          "message": "You find a BTC Shard in the dust!"
+          "item": "item_hash_crystal",
+          "message": "You find a Hash Crystal in the dust!"
         }
       },
       {
@@ -72,8 +72,8 @@
         "output": "item_molten_hash",
         "rare": {
           "chance": 0.007,
-          "item": "item_btc_shard",
-          "message": "You find a BTC Shard in the coolant!"
+          "item": "item_hash_crystal",
+          "message": "You find a Hash Crystal in the coolant!"
         }
       }
     ],

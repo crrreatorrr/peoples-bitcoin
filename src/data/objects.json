@@ -138,7 +138,7 @@
   {
     "id": "obj_bank_booth",
     "name": "Bank Booth",
-    "examine": "The Treasury's bank. Your deposits are safe, and definitely not BTC.",
+    "examine": "The Treasury's bank. Your deposits are safe, and definitely not a con.",
     "model": "bank_booth",
     "actions": ["Bank"],
     "blocks": true,

@@ -65,7 +65,7 @@
   {
     "id": "enemy_heckler",
     "name": "Wrong-Namer Heckler",
-    "examine": "Keeps shouting 'BTC President!'",
+    "examine": "Keeps shouting '$BITCON President!'",
     "model": "enemy_heckler",
     "level": 6,
     "hp": 12,
@@ -282,7 +282,7 @@
   {
     "id": "enemy_wrongnamer_chief",
     "name": "Wrong-Namer Chief",
-    "examine": "Commands the hecklers. Insists it's BTC.",
+    "examine": "Commands the hecklers. Insists it's $BITCON.",
     "model": "enemy_wrongnamer_chief",
     "level": 45,
     "hp": 220,

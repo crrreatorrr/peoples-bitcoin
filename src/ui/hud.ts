@@ -109,11 +109,11 @@ export class Hud {
       this.drawSparkline(econ.history, up);
     }
 
-    const { bitcoin, btc } = state.player.currencies;
-    const walletKey = `${bitcoin}|${btc}`;
+    const { bitcoin } = state.player.currencies;
+    const walletKey = `${bitcoin}`;
     if (walletKey !== this.walletKey) {
       this.walletKey = walletKey;
-      this.wallet.textContent = `Wallet: ${amount.format(bitcoin)} ${COIN_TICKER} · ${amount.format(btc)} BTC`;
+      this.wallet.textContent = `Wallet: ${amount.format(bitcoin)} ${COIN_TICKER}`;
     }
 
     const hp = state.player.hp;
