@@ -1,0 +1,23 @@
+[
+  {
+    "id": "item_scrap_hash",
+    "name": "Scrap Hash",
+    "examine": "A lukewarm chunk of hash. Smells faintly of dust and fans.",
+    "stackable": false,
+    "model": "icon_scrap_hash"
+  },
+  {
+    "id": "item_warm_hash",
+    "name": "Warm Hash",
+    "examine": "Still humming. It's not BTC, but it's honest work.",
+    "stackable": false,
+    "model": "icon_warm_hash"
+  },
+  {
+    "id": "item_molten_hash",
+    "name": "Molten Hash",
+    "examine": "Liquid-cooled and somehow still too hot to hold.",
+    "stackable": false,
+    "model": "icon_molten_hash"
+  }
+]

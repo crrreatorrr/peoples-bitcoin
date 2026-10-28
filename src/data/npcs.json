@@ -1,0 +1,15 @@
+[
+  {
+    "id": "npc_treasurer",
+    "name": "The Treasurer",
+    "examine": "Bought the wrong coin. Feels terrible about it.",
+    "model": "npc_treasurer",
+    "actions": ["Talk-to"],
+    "lines": [
+      "ATTENTION ATTENTION. Er, President... about the national reserve. I may have misread the ticker.",
+      "It's not BTC. It's $BITCOIN. The People's Bitcoin. One billion of them, zero percent tax, and all of them ours.",
+      "We can't sell. It would crash the coin AND the country. So... the Never Sell Vow, I suppose?",
+      "Meanwhile, those old server racks still mine hash. Start with the dusty ones on the lawn, then the server room east of here."
+    ]
+  }
+]

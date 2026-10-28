@@ -1,0 +1,49 @@
+[
+  { "id": "shooting", "name": "Shooting", "replaces": "Ranged" },
+  { "id": "melee", "name": "Melee", "replaces": "Attack/Strength" },
+  { "id": "defense", "name": "Defense", "replaces": "Defence" },
+  { "id": "hitpoints", "name": "Hitpoints", "replaces": "Hitpoints", "startLevel": 10 },
+  { "id": "command", "name": "Command", "replaces": "Summoning" },
+  {
+    "id": "mining",
+    "name": "Mining",
+    "replaces": "Mining",
+    "actions": [
+      {
+        "id": "mine_dusty",
+        "objectId": "obj_rack_dusty",
+        "levelReq": 1,
+        "xp": 17.5,
+        "output": "item_scrap_hash",
+        "depleteChance": 0.5,
+        "respawnTicks": 4
+      },
+      {
+        "id": "mine_humming",
+        "objectId": "obj_rack_humming",
+        "levelReq": 15,
+        "xp": 35,
+        "output": "item_warm_hash",
+        "depleteChance": 1,
+        "respawnTicks": 9
+      },
+      {
+        "id": "mine_liquid",
+        "objectId": "obj_rack_liquid",
+        "levelReq": 30,
+        "xp": 50,
+        "output": "item_molten_hash",
+        "depleteChance": 1,
+        "respawnTicks": 40
+      }
+    ]
+  },
+  { "id": "fundraising", "name": "Fundraising", "replaces": "Fishing" },
+  { "id": "lobbying", "name": "Lobbying", "replaces": "Woodcutting" },
+  { "id": "spin", "name": "Spin", "replaces": "Cooking" },
+  { "id": "policy", "name": "Policy", "replaces": "Smithing/Crafting" },
+  { "id": "press_dodging", "name": "Press Dodging", "replaces": "Agility" },
+  { "id": "construction", "name": "Construction", "replaces": "Construction" },
+  { "id": "painting", "name": "Painting" },
+  { "id": "gunsmithing", "name": "Gunsmithing", "replaces": "Fletching" }
+]

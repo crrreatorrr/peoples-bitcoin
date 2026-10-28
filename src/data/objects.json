@@ -1,0 +1,90 @@
+[
+  {
+    "id": "obj_rack_dusty",
+    "name": "Dusty Server Rack",
+    "examine": "An old rack wheezing out hash. Mostly fan noise.",
+    "model": "rack_dusty",
+    "actions": ["Mine"],
+    "blocks": true,
+    "depleted": {
+      "name": "Overheated Rack",
+      "examine": "Too hot to mine. It needs a moment and a fan.",
+      "model": "rack_overheated"
+    }
+  },
+  {
+    "id": "obj_rack_humming",
+    "name": "Humming Server Rack",
+    "examine": "It hums in the key of 'number go up'.",
+    "model": "rack_humming",
+    "actions": ["Mine"],
+    "blocks": true,
+    "depleted": {
+      "name": "Overheated Rack",
+      "examine": "Too hot to mine. It needs a moment and a fan.",
+      "model": "rack_overheated"
+    }
+  },
+  {
+    "id": "obj_rack_liquid",
+    "name": "Liquid-Cooled Rack",
+    "examine": "Kept in the vault. Bubbles like a premium aquarium.",
+    "model": "rack_liquid",
+    "actions": ["Mine"],
+    "blocks": true,
+    "depleted": {
+      "name": "Overheated Rack",
+      "examine": "Even the liquid cooling has given up for now.",
+      "model": "rack_overheated"
+    }
+  },
+  {
+    "id": "obj_roadmap_board",
+    "name": "RoadMap to $100bn",
+    "examine": "RoadMap to $100bn (+ ∞%). It has one step. The step is an arrow.",
+    "model": "board_roadmap",
+    "actions": [],
+    "blocks": true,
+    "width": 2
+  },
+  {
+    "id": "obj_pillar",
+    "name": "Marble Pillar",
+    "examine": "Holds up the Treasury. Somebody has to.",
+    "model": "pillar_marble",
+    "actions": [],
+    "blocks": true
+  },
+  {
+    "id": "obj_flagpole",
+    "name": "Flagpole",
+    "examine": "The flag of The People's Bitcoin. It only goes up.",
+    "model": "flagpole",
+    "actions": [],
+    "blocks": true
+  },
+  {
+    "id": "obj_bench",
+    "name": "Park Bench",
+    "examine": "Reserved for people waiting for the price target.",
+    "model": "bench_park",
+    "actions": [],
+    "blocks": true
+  },
+  {
+    "id": "obj_statue_gremlin",
+    "name": "Gremlin Statue",
+    "examine": "A golden Gremlin. Someone has scratched 'FREE ME' on the base.",
+    "model": "statue_gremlin",
+    "actions": [],
+    "blocks": true
+  },
+  {
+    "id": "obj_tree",
+    "name": "Swamp Oak",
+    "examine": "A sturdy tree. Lobbyists will hang around here one day.",
+    "model": "tree_oak",
+    "actions": [],
+    "blocks": true
+  }
+]
