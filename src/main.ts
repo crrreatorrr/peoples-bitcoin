@@ -109,9 +109,12 @@ async function boot(): Promise<void> {
     const c = view.entities.entityCenter(state, entityId);
     if (c) view.marker.show(c.x, c.z, 'action', clockNow());
   };
-  const walk = (tile: Tile) => {
+  /** Where the minimap flag goes until the next tick plans the real path. */
+  let pendingDestination: Tile | null = null;
+  const walk = (tile: Tile, marker = true) => {
     queue({ type: 'walk', x: tile.x, y: tile.y });
-    view.marker.show(tile.x + 0.5, tile.y + 0.5, 'walk', clockNow());
+    pendingDestination = tile;
+    if (marker) view.marker.show(tile.x + 0.5, tile.y + 0.5, 'walk', clockNow());
   };
   const examine = (text: string) => chat.add(text, 'examine');
 
@@ -139,6 +142,7 @@ async function boot(): Promise<void> {
         action: 'Examine',
         target: info.name,
         targetKind: info.kind,
+        level: info.level === undefined ? undefined : levelTag(info.level, yours),
         run: () => examine(info.examine),
       });
     }
@@ -169,7 +173,7 @@ async function boot(): Promise<void> {
     () => queue({ type: 'special' }),
   );
   const minimap = new Minimap($('#minimap'), content, assets, {
-    walk,
+    walk: (tile) => walk(tile, false), // OSRS shows only the minimap flag
     faceNorth: () => cam.faceNorth(),
   });
   minimap.setZone(content.zones.get(state.zone.id)!);
@@ -177,7 +181,7 @@ async function boot(): Promise<void> {
   const hitsplats = new Hitsplats($('#hitsplats'));
   const dialogue = new DialogueBox(chat.dialogueHost, () => queue({ type: 'continueDialogue' }));
   const bank = new BankWindow(hudRoot, content, iconUrl, tooltip, {
-    withdraw: (index, qty) => queue({ type: 'withdraw', index, qty }),
+    withdraw: (index, qty, itemId) => queue({ type: 'withdraw', index, qty, itemId }),
     depositAll: () => queue({ type: 'depositAll' }),
     close: closeInterface,
     examine: itemExamine,
@@ -185,6 +189,7 @@ async function boot(): Promise<void> {
   });
   const terminal = new TerminalWindow(hudRoot, content, iconUrl, tooltip, {
     buy: (itemId, qty) => queue({ type: 'buy', itemId, qty }),
+    message: (text) => chat.add(text),
     close: closeInterface,
     examine: itemExamine,
     openMenu,
@@ -224,6 +229,9 @@ async function boot(): Promise<void> {
   const equipment = new EquipmentTab(ctx, iconUrl, {
     unequip: (slot) => queue({ type: 'unequip', slot }),
     setStyle: (style) => queue({ type: 'setStyle', style }),
+    toggleRetaliate: () => queue({ type: 'toggleRetaliate' }),
+    openMenu,
+    examine: itemExamine,
   });
   const summoning = new SummoningTab(content, iconUrl, {
     special: () => queue({ type: 'special' }),
@@ -296,7 +304,14 @@ async function boot(): Promise<void> {
       tooltip.hide();
     },
     onDrag: (dx, dy) => cam.drag(dx, dy),
-    onWheel: (dy) => cam.zoom(dy),
+    onWheel: (dx, dy) => {
+      cam.zoom(dy);
+      if (dx !== 0) cam.drag(-dx, 0); // sideways trackpad swipe rotates
+    },
+  });
+  // No browser context menu anywhere in the game (OSRS has its own), except in text fields.
+  document.addEventListener('contextmenu', (e) => {
+    if (!(e.target instanceof HTMLInputElement)) e.preventDefault();
   });
 
   chat.input.addEventListener('keydown', (e) => {
@@ -373,45 +388,55 @@ async function boot(): Promise<void> {
   const skillName = (id: string) => content.skills.get(id)?.name ?? id;
   const handleEvents = (events: SimEvent[]) => {
     const now = clockNow();
+    // Shots in flight this tick: hits on their targets (and a shell's splash) land on arrival.
+    const flight = new Map<string, number>();
+    let splashDelay = 0;
+    // OSRS shows one XP drop per tick, with an icon for each skill.
+    const xpThisTick = new Map<string, number>();
     for (const e of events) {
       switch (e.type) {
         case 'message':
           chat.add(e.text, e.kind, e.speaker);
           break;
         case 'xp':
-          hud.xpDrop(skillName(e.skillId), e.amount);
+          xpThisTick.set(e.skillId, (xpThisTick.get(e.skillId) ?? 0) + e.amount);
           view.entities.playWork(state, e.skillId, now);
           break;
         case 'levelUp':
           hud.banner(`${skillName(e.skillId)} level ${e.level}!`);
           view.bursts.spawn(view.entities.playerPosition, PALETTES.fireworks, now, { lift: 1.2 });
           break;
-        case 'hitsplat':
-          hitsplats.spawn(e.targetId, e.damage, now);
-          view.entities.markHit(e.targetId, now);
+        case 'hitsplat': {
+          const delay = flight.get(e.targetId) ?? splashDelay;
+          hitsplats.spawn(e.targetId, e.damage, now, delay);
+          view.entities.markHit(e.targetId, now + delay);
           break;
+        }
         case 'attack': {
           view.entities.playAttack(e.attackerId, e.style, now);
           if (e.style === 'melee') break;
           const explosive = e.style === 'explosive';
           const from = view.entities.positionOf(e.attackerId);
           const to = view.entities.positionOf(e.targetId);
-          if (from && to) {
-            view.tracers.fire(from, to, explosive, now);
-            if (explosive)
-              view.bursts.spawn(to, PALETTES.explosion, now, {
-                count: 30,
-                speed: 2.6,
-                durationMs: 600,
-              });
+          if (!from || !to) break;
+          const ms = view.tracers.fire(from, to, explosive, now);
+          flight.set(e.targetId, ms);
+          if (explosive) {
+            splashDelay = ms;
+            view.bursts.spawn(to, PALETTES.explosion, now + ms, {
+              count: 30,
+              speed: 2.6,
+              durationMs: 600,
+            });
           }
           break;
         }
         case 'death': {
-          view.entities.markDeath(e.entityId, now);
+          const delay = flight.get(e.entityId) ?? 0;
+          view.entities.markDeath(e.entityId, now + delay);
           const at = view.entities.positionOf(e.entityId);
           if (at && e.entityId !== PLAYER_ID) {
-            view.bursts.spawn(at, PALETTES.sludge, now, {
+            view.bursts.spawn(at, PALETTES.sludge, now + delay, {
               count: 40,
               speed: 1.6,
               durationMs: 900,
@@ -420,15 +445,21 @@ async function boot(): Promise<void> {
           }
           break;
         }
-        case 'zoneChanged':
+        case 'zoneChanged': {
+          const old = view;
           view = new ZoneView(state, content, assets, cam.camera, canvas);
+          old.dispose();
           minimap.setZone(content.zones.get(e.zoneId)!);
           hitsplats.clear();
           break;
+        }
         case 'autosave':
           persist();
           break;
       }
+    }
+    if (xpThisTick.size > 0) {
+      hud.xpDrop([...xpThisTick].map(([id, amount]) => ({ icon: glyph(`skill_${id}`), amount })));
     }
   };
 
@@ -457,6 +488,7 @@ async function boot(): Promise<void> {
       const intents = pending;
       pending = [];
       handleEvents(runTick(state, ctx, intents));
+      pendingDestination = null;
     }
     const alpha = (now - lastTickAt) / TICK_MS;
     const dt = Math.min(0.1, (now - lastFrameAt) / 1000);
@@ -475,7 +507,7 @@ async function boot(): Promise<void> {
     const screenOf = (id: string) => {
       const pos = view.entities.positionOf(id);
       return pos
-        ? view.entities.toScreen(pos, view.entities.heightOf(id) + 0.1, cam.camera, canvas)
+        ? view.entities.toScreen(pos, view.entities.heightOf(id) * 0.5, cam.camera, canvas)
         : null;
     };
     hitsplats.update(now, screenOf);
@@ -491,7 +523,7 @@ async function boot(): Promise<void> {
       yaw: cam.yawRad,
       npcs: [...state.zone.npcs, ...state.zone.enemies.filter((e) => e.respawnAt === null)],
       groundItems: state.zone.groundItems,
-      destination: p.path.at(-1) ?? null,
+      destination: pendingDestination ?? p.path.at(-1) ?? null,
     });
     dialogue.update(currentDialogue());
     bank.update(p.interface?.kind === 'bank', p.bank);

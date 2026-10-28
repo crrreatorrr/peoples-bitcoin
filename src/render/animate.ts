@@ -64,7 +64,7 @@ export function poseActor(actor: ActorModel, a: AnimInput): void {
     actor.muzzle.visible = a.attackStyle !== 'melee' && a.now - a.attackAt < FLASH_MS;
   }
   if (a.diedAt > -Infinity) {
-    fall(actor, a.now - a.diedAt);
+    fall(actor, Math.max(0, a.now - a.diedAt));
     return;
   }
   actor.root.rotation.x = 0;

@@ -1,8 +1,8 @@
 /**
- * Pointer input on the game canvas. Left click = default action; right click =
- * context menu; right/middle drag = rotate camera; wheel = zoom. A right press
- * becomes a drag only after moving a few pixels, so short right clicks still
- * open the menu.
+ * Pointer input on the game canvas, OSRS-style: a left press does the default
+ * action and a right press opens the menu at once (on press, not release);
+ * middle-drag rotates the camera; the wheel zooms, and a sideways trackpad
+ * swipe rotates (for laptops without a middle button).
  */
 import { RENDER } from '../config/balance';
 
@@ -18,67 +18,64 @@ export interface MouseHandlers {
   onHover(x: number, y: number): void;
   onLeave(): void;
   onDrag(dx: number, dy: number): void;
-  onWheel(deltaY: number): void;
+  onWheel(deltaX: number, deltaY: number): void;
 }
 
-interface Press {
-  button: number;
+interface Drag {
   startX: number;
   startY: number;
   lastX: number;
   lastY: number;
   dragging: boolean;
-  swallowed: boolean;
 }
 
 export function attachMouse(el: HTMLElement, h: MouseHandlers): void {
-  let press: Press | null = null;
+  let drag: Drag | null = null;
 
   el.addEventListener('pointerdown', (e) => {
-    if (press) return;
-    if (e.button === MIDDLE) e.preventDefault();
-    press = {
-      button: e.button,
-      startX: e.clientX,
-      startY: e.clientY,
-      lastX: e.clientX,
-      lastY: e.clientY,
-      dragging: false,
-      swallowed: h.onPress(),
-    };
-    el.setPointerCapture(e.pointerId);
+    // The canvas closes open menus itself (onPress); keep the document's
+    // "press outside closes the menu" handler from closing one just opened.
+    e.stopPropagation();
+    if (e.button === MIDDLE) {
+      e.preventDefault();
+      drag = {
+        startX: e.clientX,
+        startY: e.clientY,
+        lastX: e.clientX,
+        lastY: e.clientY,
+        dragging: false,
+      };
+      el.setPointerCapture(e.pointerId);
+      return;
+    }
+    if (h.onPress()) return;
+    if (e.button === LEFT) h.onClick(e.clientX, e.clientY, e);
+    else if (e.button === RIGHT) h.onContextMenu(e.clientX, e.clientY);
   });
 
   el.addEventListener('pointermove', (e) => {
-    const rotating = press && (press.button === MIDDLE || press.button === RIGHT);
-    if (!press || !rotating) {
+    if (!drag) {
       h.onHover(e.clientX, e.clientY);
       return;
     }
-    const moved = Math.hypot(e.clientX - press.startX, e.clientY - press.startY);
-    if (!press.dragging && moved > RENDER.dragThresholdPx) press.dragging = true;
-    if (press.dragging) h.onDrag(e.clientX - press.lastX, e.clientY - press.lastY);
-    press.lastX = e.clientX;
-    press.lastY = e.clientY;
+    const moved = Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY);
+    if (!drag.dragging && moved > RENDER.dragThresholdPx) drag.dragging = true;
+    if (drag.dragging) h.onDrag(e.clientX - drag.lastX, e.clientY - drag.lastY);
+    drag.lastX = e.clientX;
+    drag.lastY = e.clientY;
   });
 
   el.addEventListener('pointerup', (e) => {
-    if (!press || e.button !== press.button) return;
-    const done = press;
-    press = null;
-    if (done.swallowed || done.dragging) return;
-    if (done.button === LEFT) h.onClick(e.clientX, e.clientY, e);
-    else if (done.button === RIGHT) h.onContextMenu(e.clientX, e.clientY);
+    if (e.button === MIDDLE) drag = null;
   });
-
-  el.addEventListener('pointercancel', () => (press = null));
+  el.addEventListener('pointercancel', () => (drag = null));
   el.addEventListener('pointerleave', () => h.onLeave());
   el.addEventListener('contextmenu', (e) => e.preventDefault());
   el.addEventListener(
     'wheel',
     (e) => {
       e.preventDefault();
-      h.onWheel(e.deltaY);
+      h.onWheel(e.deltaX, e.deltaY);
     },
     { passive: false },
   );

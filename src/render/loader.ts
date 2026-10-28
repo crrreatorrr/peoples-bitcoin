@@ -11,6 +11,7 @@ import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import { z } from 'zod';
 import manifestJson from '../config/assets.manifest.json';
 import { buildActor, LookSchema, staticActor, type ActorModel, type Look } from './actors';
+import { share } from './kit';
 import { buildPlaceholder, iconCanvas, terrainPart, type TerrainPart } from './placeholders';
 
 const AssetEntrySchema = z
@@ -102,7 +103,7 @@ export class AssetLoader {
         tex.magFilter = THREE.NearestFilter;
         tex.minFilter = THREE.NearestFilter;
         tex.generateMipmaps = false;
-        this.sprites.set(id, tex);
+        this.sprites.set(id, share(tex));
       });
     await Promise.all(jobs);
   }
@@ -159,6 +160,8 @@ export class AssetLoader {
     let part = this.terrain.get(id);
     if (!part) {
       part = terrainPart(this.entry(id));
+      share(part.geometry);
+      share(part.material);
       this.terrain.set(id, part);
     }
     return part;
@@ -186,7 +189,7 @@ export class AssetLoader {
       tex.magFilter = THREE.NearestFilter;
       tex.minFilter = THREE.NearestFilter;
       tex.colorSpace = THREE.SRGBColorSpace;
-      this.iconTextures.set(id, tex);
+      this.iconTextures.set(id, share(tex));
     }
     return tex;
   }

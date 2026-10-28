@@ -10,7 +10,8 @@ import { qtyBadge } from './format';
 import type { Tooltip } from './tooltips';
 
 export interface BankHandlers {
-  withdraw(index: number, qty: Quantity): void;
+  /** `itemId` guards against the bank shifting before the click is handled. */
+  withdraw(index: number, qty: Quantity, itemId: string): void;
   depositAll(): void;
   close(): void;
   examine(itemId: string): void;
@@ -55,7 +56,7 @@ export class BankWindow {
     this.grid.className = 'bank-grid';
     this.grid.addEventListener('click', (e) => {
       const index = this.indexOf(e);
-      if (index !== null) h.withdraw(index, this.quantity);
+      if (index !== null) h.withdraw(index, this.quantity, this.items[index].itemId);
     });
     this.grid.addEventListener('contextmenu', (e) => {
       e.preventDefault();
@@ -69,8 +70,18 @@ export class BankWindow {
             action: `Withdraw-${qtyLabel(q)}`,
             target: name,
             targetKind: 'item' as const,
-            run: () => h.withdraw(index, q),
+            run: () => h.withdraw(index, q, item.itemId),
           })),
+          ...(item.qty > 1
+            ? [
+                {
+                  action: 'Withdraw-All-but-1',
+                  target: name,
+                  targetKind: 'item' as const,
+                  run: () => h.withdraw(index, item.qty - 1, item.itemId),
+                },
+              ]
+            : []),
           {
             action: 'Examine',
             target: name,
@@ -91,7 +102,7 @@ export class BankWindow {
           action: `Withdraw-${qtyLabel(this.quantity)}`,
           target: name,
           targetKind: 'item',
-          moreOptions: 4,
+          moreOptions: QUANTITIES.length,
         },
         e.clientX,
         e.clientY,

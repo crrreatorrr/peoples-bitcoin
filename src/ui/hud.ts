@@ -152,8 +152,16 @@ export class Hud {
     }
   }
 
-  xpDrop(skillName: string, xp: number): void {
-    const drop = span('xp-drop', `+${Math.round(xp * 10) / 10} ${skillName} XP`);
+  /** One OSRS-style drop per tick: each skill's icon and the XP it gained. */
+  xpDrop(drops: { icon: string; amount: number }[]): void {
+    const drop = document.createElement('div');
+    drop.className = 'xp-drop';
+    for (const d of drops) {
+      drop.append(
+        span('xp-drop-icon', d.icon),
+        span('xp-drop-amount', `+${Math.round(d.amount * 10) / 10}`),
+      );
+    }
     this.xpDrops.append(drop);
     setTimeout(() => drop.remove(), UI.xpDropMs);
   }

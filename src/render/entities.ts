@@ -149,10 +149,10 @@ export class EntityRenderer {
     view.attackStyle = style;
   }
 
-  /** Something died: it falls over before disappearing. */
+  /** Something died: it falls over before disappearing (or, for the player, respawning). */
   markDeath(entityId: string, now: number): void {
     const view = this.viewOf(entityId);
-    if (view && entityId !== PLAYER_ID) view.diedAt = now;
+    if (view) view.diedAt = now;
   }
 
   /** A one-off skilling animation for actions that finish instantly (Construction). */
@@ -202,6 +202,11 @@ export class EntityRenderer {
       x: rect.left + ((v.x + 1) / 2) * rect.width,
       y: rect.top + ((1 - v.y) / 2) * rect.height,
     };
+  }
+
+  private unpick(obj: THREE.Object3D): void {
+    const i = this.pickables.indexOf(obj);
+    if (i >= 0) this.pickables.splice(i, 1);
   }
 
   private viewOf(entityId: string): ActorView | null {
@@ -255,7 +260,7 @@ export class EntityRenderer {
       if (live.has(id)) continue;
       this.scene.remove(mesh);
       (mesh.material as THREE.Material).dispose();
-      this.pickables.splice(this.pickables.indexOf(mesh), 1);
+      this.unpick(mesh);
       this.groundItems.delete(id);
     }
   }
@@ -264,6 +269,7 @@ export class EntityRenderer {
     const p = state.player;
     const key = dressKeyOf(p);
     if (key !== this.player.dressKey) this.redress(this.player, key);
+    if (p.dyingUntil === null) this.player.diedAt = -Infinity;
 
     const work = this.workOf(state, now);
     const fighting = p.action?.action === 'Attack';
@@ -286,7 +292,7 @@ export class EntityRenderer {
       face,
     });
     this.playerPosition.copy(this.player.root.position);
-    this.player.hpBar.set(p.hp / maxHp(p), p.hp < maxHp(p) || now - this.player.hitAt < HP_BAR_MS);
+    this.player.hpBar.set(p.hp / maxHp(p), now - this.player.hitAt < HP_BAR_MS);
   }
 
   private updateSproto(state: GameState, t: number, dt: number, now: number): void {
@@ -294,13 +300,14 @@ export class EntityRenderer {
     const modelId = s ? this.content.sprotos.get(s.defId)?.model : undefined;
     if (this.sproto && (!s || this.sproto.modelId !== modelId)) {
       this.scene.remove(this.sproto.root);
-      this.pickables.splice(this.pickables.indexOf(this.sproto.root), 1);
+      this.unpick(this.sproto.root);
       this.sproto = null;
     }
     if (!s || !modelId) return;
     if (!this.sproto) {
       this.sproto = this.createActor(modelId);
       this.sproto.root.userData.entityId = SPROTO_ID;
+      this.pickables.push(this.sproto.root);
       interpolateSteps([s], 1, this.sproto.root.position, this.segment);
     }
     const target = s.target ? state.zone.enemies.find((e) => e.id === s.target) : null;
@@ -310,7 +317,7 @@ export class EntityRenderer {
       face: target ?? null,
     });
     const max = this.content.sprotos.get(s.defId)?.hp ?? s.hp;
-    this.sproto.hpBar.set(s.hp / max, s.hp < max);
+    this.sproto.hpBar.set(s.hp / max, now - this.sproto.hitAt < HP_BAR_MS);
   }
 
   private updateEnemies(state: GameState, t: number, dt: number, now: number): void {
@@ -350,7 +357,7 @@ export class EntityRenderer {
         face: target ?? null,
       });
       const max = this.content.enemies.get(enemy.defId)?.hp ?? enemy.hp;
-      view.hpBar.set(enemy.hp / max, enemy.hp < max || now - view.hitAt < HP_BAR_MS);
+      view.hpBar.set(enemy.hp / max, now - view.hitAt < HP_BAR_MS);
     }
     for (const [id, view] of this.enemies) {
       if (live.has(id)) continue;
@@ -360,7 +367,7 @@ export class EntityRenderer {
         continue;
       }
       this.scene.remove(view.root);
-      this.pickables.splice(this.pickables.indexOf(view.root), 1);
+      this.unpick(view.root);
       this.enemies.delete(id);
     }
   }

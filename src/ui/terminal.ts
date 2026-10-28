@@ -1,7 +1,7 @@
 /**
  * The Trading Terminal window: the stock list with live $BITCOIN prices.
- * Left-click buys one; right-click buys more. Selling happens from the
- * inventory while this window is open.
+ * Like an OSRS shop, left-click checks the price (Value) and right-click buys.
+ * Selling happens from the inventory while this window is open.
  */
 import { TERMINAL_SHOP_ID } from '../config/balance';
 import type { Content } from '../sim/content';
@@ -11,6 +11,8 @@ import { span, type Tooltip } from './tooltips';
 
 export interface TerminalHandlers {
   buy(itemId: string, qty: number): void;
+  /** Prints a line in the chat box. */
+  message(text: string): void;
   close(): void;
   examine(itemId: string): void;
   openMenu(options: MenuOption[], x: number, y: number): void;
@@ -65,12 +67,17 @@ export class TerminalWindow {
         .map((r) => `${content.skills.get(r.skill)?.name ?? r.skill} ${r.level}`)
         .join(', ');
       const usd = `$${entry.priceUsd.toLocaleString('en-US')}`;
-      cell.addEventListener('click', () => h.buy(def.id, 1));
+      const value = () =>
+        h.message(
+          `${def.name}: currently costs ${amount.format(h.priceOf(def.id, 1) ?? 0)} $BITCOIN (${usd}). Right-click to buy.`,
+        );
+      cell.addEventListener('click', value);
       cell.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         const qtys = def.stackable ? [1, 10, 50, 100, 500] : [1, 5, 10];
         h.openMenu(
           [
+            { action: 'Value', target: def.name, targetKind: 'item' as const, run: value },
             ...qtys.map((q) => ({
               action: `Buy-${q}`,
               target: def.name,
@@ -92,7 +99,7 @@ export class TerminalWindow {
         const btc = h.priceOf(def.id, 1) ?? 0;
         tooltip.show(
           {
-            action: 'Buy',
+            action: 'Value',
             target: def.name,
             targetKind: 'item',
             detail: `${usd} = ${amount.format(btc)} $BITCOIN${reqs ? `\nRequires ${reqs}` : ''}`,

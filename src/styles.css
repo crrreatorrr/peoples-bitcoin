@@ -896,10 +896,22 @@ body {
 }
 
 .xp-drop {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
   color: #ffffff;
   font-size: 20px;
   text-shadow: 1px 1px 0 #000;
   animation: xp-rise 1.6s ease-out forwards;
+}
+
+.xp-drop-icon {
+  font-size: 16px;
+}
+
+.xp-drop-amount + .xp-drop-icon {
+  margin-left: 6px;
 }
 
 @keyframes xp-rise {
@@ -998,7 +1010,7 @@ body {
 
 .hitsplat {
   position: fixed;
-  transform: translate(-50%, -100%);
+  transform: translate(-50%, -50%);
   min-width: 22px;
   padding: 0 4px;
   text-align: center;
@@ -1211,6 +1223,12 @@ body {
   font-size: 15px;
 }
 
+.retaliate-btn {
+  width: 100%;
+  margin: 4px 0;
+}
+
+.retaliate-btn.active,
 .style-btn.active {
   color: var(--gold);
   box-shadow: inset 0 0 0 1px var(--gold);

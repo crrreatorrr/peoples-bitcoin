@@ -8,6 +8,34 @@ import * as THREE from 'three';
 const materials = new Map<string, THREE.MeshLambertMaterial>();
 const geometries = new Map<string, THREE.BufferGeometry>();
 const textures = new Map<string, THREE.Texture>();
+/** Cached GPU resources used across zones: never disposed with a zone's scene. */
+const shared = new WeakSet<object>();
+
+/** Marks a cached resource so disposeScene leaves it alone. */
+export function share<T extends object>(resource: T): T {
+  shared.add(resource);
+  return resource;
+}
+
+/**
+ * Frees a scene's GPU memory (geometries, materials, textures, instance
+ * buffers), except cached resources marked with share().
+ */
+export function disposeScene(scene: THREE.Object3D): void {
+  scene.traverse((o) => {
+    if (o instanceof THREE.InstancedMesh) o.dispose();
+    const { geometry, material } = o as Partial<THREE.Mesh>;
+    // Sprites share one internal quad across the whole app.
+    if (geometry && !(o instanceof THREE.Sprite) && !shared.has(geometry)) geometry.dispose();
+    for (const mat of Array.isArray(material) ? material : material ? [material] : []) {
+      if (shared.has(mat)) continue;
+      for (const value of Object.values(mat)) {
+        if (value instanceof THREE.Texture && !shared.has(value)) value.dispose();
+      }
+      mat.dispose();
+    }
+  });
+}
 
 export interface MatOptions {
   emissive?: string;
@@ -27,7 +55,7 @@ export function lambert(color: string, opts: MatOptions = {}): THREE.MeshLambert
       transparent: opts.opacity !== undefined,
       opacity: opts.opacity ?? 1,
     });
-    materials.set(key, mat);
+    materials.set(key, share(mat));
   }
   return mat;
 }
@@ -40,7 +68,7 @@ export function glow(color: string): THREE.MeshLambertMaterial {
 function geometry(key: string, make: () => THREE.BufferGeometry): THREE.BufferGeometry {
   let geo = geometries.get(key);
   if (!geo) {
-    geo = make();
+    geo = share(make());
     geometries.set(key, geo);
   }
   return geo;
@@ -161,6 +189,6 @@ export function canvasTexture(
   tex.minFilter = THREE.NearestFilter;
   tex.generateMipmaps = false;
   tex.colorSpace = THREE.SRGBColorSpace;
-  textures.set(key, tex);
+  textures.set(key, share(tex));
   return tex;
 }

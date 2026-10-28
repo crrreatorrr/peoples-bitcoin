@@ -183,6 +183,10 @@ export const RENDER = {
   /** Radians per second used to turn actors toward their facing. */
   turnSpeed: 12,
   clickMarkerMs: 450,
+  /** Shot flight time: base + per tile, capped. The hitsplat lands on arrival. */
+  projectileMsBase: 120,
+  projectileMsPerTile: 45,
+  projectileMaxMs: 600,
   dragThresholdPx: 4,
 } as const;
 
@@ -193,6 +197,8 @@ export const UI = {
   bannerMs: 2600,
   /** Minimap scale and diameter in CSS pixels. */
   minimapPxPerTile: 4,
+  /** Scroll-wheel zoom range for the minimap, in pixels per tile. */
+  minimapZoomPx: [2, 8],
   minimapSize: 152,
   /** Overhead chat sits this high above the player's feet (world units). */
   overheadHeight: 1.95,

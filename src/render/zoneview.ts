@@ -7,6 +7,7 @@ import type { Content } from '../sim/content';
 import type { GameState } from '../sim/state';
 import { Bursts, ClickMarker, HintArrow, Tracers } from './effects';
 import { EntityRenderer } from './entities';
+import { disposeScene } from './kit';
 import type { AssetLoader } from './loader';
 import { Picker } from './picking';
 import { createScene } from './scene';
@@ -37,5 +38,10 @@ export class ZoneView {
     this.tracers = new Tracers(this.scene);
     this.hint = new HintArrow(this.scene);
     this.picker = new Picker(camera, canvas, terrain, this.entities.pickables, zone);
+  }
+
+  /** Frees this zone's GPU memory once another zone replaces it. */
+  dispose(): void {
+    disposeScene(this.scene);
   }
 }

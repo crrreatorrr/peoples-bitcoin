@@ -1,8 +1,8 @@
 /**
  * Minimap: a top-down 2D render of the zone's tile grid that turns with the
  * camera. Yellow dots are NPCs, red dots ground items, the white square is the
- * player and the red pin is the walk destination. Clicking the map walks there;
- * clicking the compass turns the camera north.
+ * player and the red pin is the walk destination. Pressing the map walks there;
+ * the wheel zooms it; clicking the compass turns the camera north.
  */
 import { UI } from '../config/balance';
 import type { Content } from '../sim/content';
@@ -35,6 +35,8 @@ export class Minimap {
   private base: HTMLCanvasElement | null = null;
   private icons: { glyph: string; x: number; y: number }[] = [];
   private view: MinimapView | null = null;
+  /** Current zoom, in pixels per tile. */
+  private px: number = UI.minimapPxPerTile;
 
   constructor(
     root: HTMLElement,
@@ -57,10 +59,20 @@ export class Minimap {
 
     root.replaceChildren(map, compass);
 
-    map.addEventListener('click', (e) => {
+    map.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
       const tile = this.tileAt(e.offsetX, e.offsetY);
       if (tile) handlers.walk(tile);
     });
+    map.addEventListener(
+      'wheel',
+      (e) => {
+        e.preventDefault();
+        const [min, max] = UI.minimapZoomPx;
+        this.px = Math.min(max, Math.max(min, this.px * (e.deltaY < 0 ? 1.25 : 0.8)));
+      },
+      { passive: false },
+    );
     map.addEventListener('contextmenu', (e) => e.preventDefault());
     compass.addEventListener('click', () => handlers.faceNorth());
   }
@@ -76,7 +88,7 @@ export class Minimap {
     const ctx = this.ctx;
     const size = UI.minimapSize;
     const half = size / 2;
-    const px = UI.minimapPxPerTile;
+    const px = this.px;
 
     ctx.save();
     ctx.clearRect(0, 0, size, size);
@@ -88,6 +100,7 @@ export class Minimap {
     ctx.translate(half, half);
     ctx.rotate(view.yaw);
     ctx.translate(-view.playerX * px, -view.playerZ * px);
+    ctx.scale(px / UI.minimapPxPerTile, px / UI.minimapPxPerTile);
     if (this.base) ctx.drawImage(this.base, 0, 0);
     ctx.restore();
 
@@ -124,7 +137,7 @@ export class Minimap {
   /** World (tile-unit) position → minimap pixel, given the last drawn view. */
   private toMap(wx: number, wz: number): [number, number] {
     const v = this.view!;
-    const px = UI.minimapPxPerTile;
+    const px = this.px;
     const half = UI.minimapSize / 2;
     const dx = (wx - v.playerX) * px;
     const dz = (wz - v.playerZ) * px;
@@ -139,7 +152,7 @@ export class Minimap {
     const dx = mx - half;
     const dy = my - half;
     if (!v || Math.hypot(dx, dy) > half) return null;
-    const px = UI.minimapPxPerTile;
+    const px = this.px;
     const c = Math.cos(-v.yaw);
     const s = Math.sin(-v.yaw);
     return {

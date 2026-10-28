@@ -125,6 +125,8 @@ export class Bursts {
     for (let i = this.active.length - 1; i >= 0; i--) {
       const b = this.active[i];
       const elapsed = now - b.startedAt;
+      b.points.visible = elapsed >= 0; // a burst can be scheduled for when a shot lands
+      if (elapsed < 0) continue;
       if (elapsed >= b.durationMs) {
         this.scene.remove(b.points);
         b.points.geometry.dispose();
@@ -146,46 +148,71 @@ export class Bursts {
   }
 }
 
-interface Tracer {
-  line: THREE.Line;
+interface Shot {
+  mesh: THREE.Mesh;
+  from: THREE.Vector3;
+  to: THREE.Vector3;
   startedAt: number;
+  flightMs: number;
+  arc: number;
+  onArrive?: () => void;
 }
 
-const TRACER_MS = 220;
-
-/** Shots: a brief line from shooter to target. Hits resolve on the tick; this is only visual. */
+/**
+ * Shots fly from shooter to target, OSRS-style, and the hitsplat waits for
+ * them. Damage already resolved on the tick; this is only what you see.
+ * Explosive shells lob in an arc.
+ */
 export class Tracers {
-  private readonly active: Tracer[] = [];
+  private readonly active: Shot[] = [];
+  private readonly geometry = new THREE.OctahedronGeometry(0.07, 0);
+  private readonly shell = new THREE.IcosahedronGeometry(0.13, 0);
   private readonly materials = {
-    shot: new THREE.LineBasicMaterial({ color: '#fff1a8', transparent: true }),
-    explosive: new THREE.LineBasicMaterial({ color: '#ff8a1a', transparent: true }),
+    shot: new THREE.MeshBasicMaterial({ color: '#fff1a8' }),
+    explosive: new THREE.MeshBasicMaterial({ color: '#7cff6b' }),
   };
 
   constructor(private readonly scene: THREE.Scene) {}
 
-  fire(from: THREE.Vector3, to: THREE.Vector3, explosive: boolean, now: number): void {
-    const a = from.clone().setY(from.y + 1);
+  /** Launches a shot; returns its flight time in ms so the hit can land on arrival. */
+  fire(
+    from: THREE.Vector3,
+    to: THREE.Vector3,
+    explosive: boolean,
+    now: number,
+    onArrive?: () => void,
+  ): number {
+    const a = from.clone().setY(from.y + 1.1);
     const b = to.clone().setY(to.y + 0.8);
-    const line = new THREE.Line(
-      new THREE.BufferGeometry().setFromPoints([a, b]),
-      (explosive ? this.materials.explosive : this.materials.shot).clone(),
+    const tiles = Math.hypot(b.x - a.x, b.z - a.z);
+    const flightMs = Math.min(
+      RENDER.projectileMaxMs,
+      RENDER.projectileMsBase + RENDER.projectileMsPerTile * tiles,
     );
-    this.scene.add(line);
-    this.active.push({ line, startedAt: now });
+    const mesh = new THREE.Mesh(
+      explosive ? this.shell : this.geometry,
+      explosive ? this.materials.explosive : this.materials.shot,
+    );
+    mesh.position.copy(a);
+    this.scene.add(mesh);
+    const arc = explosive ? 0.25 * tiles : 0;
+    this.active.push({ mesh, from: a, to: b, startedAt: now, flightMs, arc, onArrive });
+    return flightMs;
   }
 
   update(now: number): void {
     for (let i = this.active.length - 1; i >= 0; i--) {
-      const t = this.active[i];
-      const k = (now - t.startedAt) / TRACER_MS;
+      const shot = this.active[i];
+      const k = (now - shot.startedAt) / shot.flightMs;
       if (k >= 1) {
-        this.scene.remove(t.line);
-        t.line.geometry.dispose();
-        (t.line.material as THREE.Material).dispose();
+        this.scene.remove(shot.mesh);
         this.active.splice(i, 1);
-      } else {
-        (t.line.material as THREE.LineBasicMaterial).opacity = 1 - k;
+        shot.onArrive?.();
+        continue;
       }
+      shot.mesh.position.lerpVectors(shot.from, shot.to, Math.max(0, k));
+      shot.mesh.position.y += shot.arc * 4 * k * (1 - k);
+      shot.mesh.rotation.y = now / 60;
     }
   }
 }

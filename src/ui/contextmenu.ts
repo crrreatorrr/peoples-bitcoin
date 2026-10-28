@@ -31,7 +31,9 @@ export class ContextMenu {
       const row = document.createElement('div');
       row.className = 'menu-row';
       row.append(...optionParts(opt));
-      row.addEventListener('click', () => {
+      // OSRS picks an option on press.
+      row.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0) return;
         this.close();
         opt.run?.();
       });
