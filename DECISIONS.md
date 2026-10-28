@@ -369,3 +369,8 @@ Three audits (gameplay duels in the real sim, every NPC variant, the story as a 
   take (Bunker Down's 10 Scrap Hash, the Chamber's fuel); out of spare Hash, it bashes and says why.
 - **Spent quest leftovers** (Photo Negatives, Blackmail Photo) can be dropped like anything else;
   no special handling.
+- **Dialogue pages (owner):** the UI measures each line against the box and splits it at word
+  breaks into pages that fit, preferring a sentence end after the first third of a page. Pages are
+  UI-only; the sim still sees one line, advanced after the last page.
+- **Click cross (owner):** a 2D overlay at the click's screen position (the right-click point for
+  menu choices), not a 3D marker on the target's tile, as in OSRS.

@@ -1438,3 +1438,15 @@ body {
   outline: 1px solid #ffffff;
   outline-offset: -1px;
 }
+
+/* The OSRS click cross, centered on the click. */
+.click-cross {
+  position: fixed;
+  z-index: 40;
+  width: 32px;
+  height: 32px;
+  transform: translate(-50%, -50%);
+  background-size: 100% 100%;
+  image-rendering: pixelated;
+  pointer-events: none;
+}

@@ -39,6 +39,7 @@ import { levelForXp } from './sim/xp';
 import { BankWindow } from './ui/bank';
 import { BuildWindow } from './ui/build';
 import { Chat } from './ui/chat';
+import { ClickCross } from './ui/clickcross';
 import { ContextMenu, type MenuOption } from './ui/contextmenu';
 import { DialogueBox, type DialogueLine } from './ui/dialogue';
 import { levelTag } from './ui/format';
@@ -104,17 +105,19 @@ async function boot(): Promise<void> {
 
   // ── Actions ────────────────────────────────────────────────────────────────
   const describe = (entityId: string) => describeEntity(ctx, state, entityId);
+  /** Where the last left click, or the right click that opened the menu, landed (client pixels). */
+  let clickAt = { x: 0, y: 0 };
+  const cross = new ClickCross(document.body);
   const interact = (entityId: string, action: string) => {
     queue({ type: 'interact', targetId: entityId, action });
-    const c = view.entities.entityCenter(state, entityId);
-    if (c) view.marker.show(c.x, c.z, 'action', clockNow());
+    cross.show(clickAt.x, clickAt.y, 'action', clockNow());
   };
   /** Where the minimap flag goes until the next tick plans the real path. */
   let pendingDestination: Tile | null = null;
   const walk = (tile: Tile, marker = true) => {
     queue({ type: 'walk', x: tile.x, y: tile.y });
     pendingDestination = tile;
-    if (marker) view.marker.show(tile.x + 0.5, tile.y + 0.5, 'walk', clockNow());
+    if (marker) cross.show(clickAt.x, clickAt.y, 'walk', clockNow());
   };
   const examine = (text: string) => chat.add(text, 'examine');
 
@@ -131,8 +134,7 @@ async function boot(): Promise<void> {
       run: () => {
         usingSlot = null;
         queue({ type: 'useItem', slot, targetId: info.id });
-        const c = view.entities.entityCenter(state, info.id);
-        if (c) view.marker.show(c.x, c.z, 'action', clockNow());
+        cross.show(clickAt.x, clickAt.y, 'action', clockNow());
       },
     }));
     if (tile) {
@@ -335,8 +337,12 @@ async function boot(): Promise<void> {
       menu.close();
       return true;
     },
-    onClick: (x, y) => menuOptions(view.picker.pick(x, y))[0]?.run?.(),
+    onClick: (x, y) => {
+      clickAt = { x, y };
+      menuOptions(view.picker.pick(x, y))[0]?.run?.();
+    },
     onContextMenu: (x, y) => {
+      clickAt = { x, y };
       const options = menuOptions(view.picker.pick(x, y));
       if (options.length > 0) openMenu(options, x, y);
     },
@@ -558,7 +564,7 @@ async function boot(): Promise<void> {
 
     view.entities.update(state, alpha, dt, now);
     cam.update(dt, keyboard.cameraAxes(), view.entities.playerPosition);
-    view.marker.update(now);
+    cross.update(now);
     view.bursts.update(now);
     view.tracers.update(now);
     const hint = hintTarget();

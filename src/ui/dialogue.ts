@@ -1,7 +1,8 @@
 /**
  * NPC dialogue box, drawn over the chat log: speaker, one line of text and
  * "Click to continue" (Space also continues). Shows whatever state.player.dialogue
- * points at; one click sends one continue intent per line. Like OSRS, the
+ * points at. A line too long for the box is split into pages that each fit;
+ * continuing shows the next page, and only the last one sends a continue intent. Like OSRS, the
  * NPC's chat head sits on the left and the player's on the right when they reply,
  * and choices appear as "Select an Option" (click, or press 1-5).
  */
@@ -26,6 +27,8 @@ export class DialogueBox {
   private readonly menu = document.createElement('div');
   private options = 0;
   private key = '';
+  private pages: string[] = [];
+  private page = 0;
   private waiting = false;
 
   constructor(
@@ -62,9 +65,14 @@ export class DialogueBox {
     return true;
   }
 
-  /** Advances one line; extra presses before the next tick are ignored. */
+  /** Shows the next page of a long line, else advances one line; extra presses before the next tick are ignored. */
   continue(): void {
     if (!this.isOpen || this.waiting || this.options > 0) return;
+    if (this.page < this.pages.length - 1) {
+      this.page += 1;
+      this.text.textContent = this.pages[this.page];
+      return;
+    }
     this.waiting = true;
     this.el.classList.add('waiting');
     this.onContinue();
@@ -102,6 +110,42 @@ export class DialogueBox {
       return;
     }
     this.speaker.textContent = line.speaker;
-    this.text.textContent = line.text;
+    this.pages = this.paginate(line.text);
+    this.page = 0;
+    this.text.textContent = this.pages[0];
+  }
+
+  /** Splits `text` into pages that fit in the box, as long as possible, ending on a sentence where one can. */
+  private paginate(text: string): string[] {
+    const fits = (words: string[]) => {
+      this.text.textContent = words.join(' ');
+      return this.el.scrollHeight <= this.el.clientHeight;
+    };
+    const words = text.split(' ');
+    if (fits(words)) return [text];
+    const pages: string[] = [];
+    let start = 0;
+    while (start < words.length) {
+      // The most words from `start` that still fit (at least one, so a page always moves on).
+      let lo = start + 1;
+      let hi = words.length;
+      while (lo < hi) {
+        const mid = Math.ceil((lo + hi) / 2);
+        if (fits(words.slice(start, mid))) lo = mid;
+        else hi = mid - 1;
+      }
+      // Rather end the page on a sentence, if one ends after its first third.
+      if (lo < words.length) {
+        for (let i = lo; i > start + (lo - start) / 3; i--) {
+          if (/[.!?]$/.test(words[i - 1])) {
+            lo = i;
+            break;
+          }
+        }
+      }
+      pages.push(words.slice(start, lo).join(' '));
+      start = lo;
+    }
+    return pages;
   }
 }

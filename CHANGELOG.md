@@ -24,6 +24,10 @@
   List, Business Cards, a contract) say shorter lines after the first talk.
 - **Steadier price:** the $BITCOIN price drifts back toward normal instead of wandering off.
 - **A Hash Cannon no longer fires the Scrap Hash you're carrying for a quest.**
+- **Long dialogue lines fit the box:** a line too long for the chat box is split into pages
+  (ending on a sentence where it can), and "Click to continue" pages through it.
+- **The click cross is where you clicked,** like OSRS: yellow for walking, red for an action, and
+  for a right-click menu choice, where you opened the menu.
 - **Tests:** 199, including dialogue checks that fail on lines nobody can see.
 
 ## 0.6.0 — The Trenches story and Moonward Academy (2026-10-28)
