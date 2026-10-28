@@ -632,6 +632,47 @@
             "quest": "quest_gala_night",
             "step": "crashers"
           }
+        },
+        {
+          "enemyId": "enemy_sergeant_sandbag",
+          "x": 14,
+          "y": 45
+        },
+        {
+          "enemyId": "enemy_building_inspector",
+          "x": 31,
+          "y": 17,
+          "quest": {
+            "quest": "quest_bunker",
+            "step": "inspector"
+          }
+        },
+        {
+          "enemyId": "enemy_gatecrasher",
+          "x": 4,
+          "y": 25,
+          "quest": {
+            "quest": "quest_gala_night",
+            "step": "gatecrasher"
+          }
+        },
+        {
+          "enemyId": "enemy_corporate_raider",
+          "x": 46,
+          "y": 30,
+          "quest": {
+            "quest": "quest_hostile_takeover",
+            "step": "raider"
+          }
+        },
+        {
+          "enemyId": "enemy_pundit",
+          "x": 10,
+          "y": 32,
+          "quest": {
+            "quest": "quest_press_conference",
+            "step": "pundit"
+          }
         }
       ],
       "mapIcons": [
@@ -1155,6 +1196,15 @@
           "enemyId": "enemy_margin_caller",
           "x": 11,
           "y": 5
+        },
+        {
+          "enemyId": "enemy_lockdown_warden",
+          "x": 21,
+          "y": 6,
+          "quest": {
+            "quest": "quest_way_out",
+            "step": "warden"
+          }
         }
       ],
       "mapIcons": [

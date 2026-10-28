@@ -219,6 +219,8 @@ export interface EnemyInstance {
   overhead: Overhead | null;
   /** Which barks it has used this life. */
   said: { aggro: boolean; hurt: boolean };
+  /** The last weapon (or 'sproto') it shrugged off, so it only says so once per weapon. */
+  resisted: string | null;
 }
 
 export interface GroundItem {
@@ -367,6 +369,7 @@ export function newEnemy(
     goal: null,
     overhead: null,
     said: { aggro: false, hurt: false },
+    resisted: null,
   };
 }
 

@@ -1862,5 +1862,48 @@
     "placeholder": "rug",
     "color": "#8a1d2a",
     "height": 3
+  },
+  "enemy_sergeant_sandbag": {
+    "placeholder": "humanoid",
+    "look": {},
+    "path": "models/npc_drill_sergeant.glb",
+    "scale": 0.95
+  },
+  "enemy_building_inspector": {
+    "placeholder": "humanoid",
+    "look": {
+      "left": "clipboard"
+    },
+    "path": "models/lobbyist_veteran.glb"
+  },
+  "enemy_gatecrasher": {
+    "placeholder": "humanoid",
+    "look": {},
+    "path": "models/enemy_party_crasher.glb",
+    "scale": 1.25
+  },
+  "enemy_corporate_raider": {
+    "placeholder": "humanoid",
+    "look": {
+      "right": "briefcase"
+    },
+    "path": "models/lobbyist_junior.glb",
+    "scale": 1.12
+  },
+  "enemy_pundit": {
+    "placeholder": "humanoid",
+    "look": {
+      "right": "microphone"
+    },
+    "path": "models/enemy_heckler.glb",
+    "scale": 1.15
+  },
+  "enemy_lockdown_warden": {
+    "placeholder": "humanoid",
+    "look": {
+      "left": "stone_shield"
+    },
+    "path": "models/enemy_dump_golem.glb",
+    "scale": 1.2
   }
 }

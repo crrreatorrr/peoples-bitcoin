@@ -43,6 +43,7 @@ describe('enemy barks', () => {
 
   it('starts talking when it aggroes in the sim, and the line fades', () => {
     const { state, ctx, captain } = captainFight();
+    state.player.autoRetaliate = false; // hitting back would make it say something else
     const events = runTick(state, ctx, []);
     expect(said(events, 'Captain Motion')).toHaveLength(1);
     expect(captain.overhead).not.toBeNull();

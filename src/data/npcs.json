@@ -13,6 +13,15 @@
     "dialogue": [
       {
         "quest": "quest_way_out",
+        "status": "started",
+        "step": ["warden"],
+        "lines": [
+          "The gates have stood up and called themselves the Lockdown Warden. Of course they have.",
+          "It's a law, President. You can't shoot a law. You can only veto it."
+        ]
+      },
+      {
+        "quest": "quest_way_out",
         "status": "complete",
         "lines": [
           "You've seen it now, President. The world out there.",
@@ -71,6 +80,11 @@
         "lines": [
           "The Chamber is at the far north end of the Trenches, past Captain Motion's barricade.",
           "Use each part on it: the blueprints, the Coordinates Drive, the Power Cell, the Exit Permit. Then feed it 20 Scrap Hash.",
+          "And President, one more thing. The Scout says the stones by the Chamber have started to move. The old gates, standing up.",
+          {
+            "player": "The Lockdown?"
+          },
+          "The Lockdown Act itself. Laws don't fall to bullets, President. They fall to a veto.",
           "When the doors open, step through. I'll be right behind you."
         ]
       },
@@ -103,7 +117,8 @@
         "step": ["captain"],
         "lines": [
           "The Captain hits fast but tires. Stand your ground and keep your health up.",
-          "And President? Wear your best armor. And bring him down gently if you can. He was one of ours."
+          "The Treasury keeps a rifle for exactly this sort of man. Long range. Longer paperwork. You'll find it at the Terminal.",
+          "And President? Bring him down gently if you can. He was one of ours."
         ]
       },
       {
@@ -163,7 +178,7 @@
         "step": ["chief"],
         "lines": [
           "The Chief guards the second barricade. He calls for Sockpuppets when he's losing, so finish him fast.",
-          "Melee beats shields. Guns, less so. Trust the triangle, President."
+          "He's had a year of people shouting at him, President. What he has never once heard is a President calling the room to order."
         ]
       },
       {
@@ -203,7 +218,7 @@
         "step": ["mother"],
         "lines": [
           "The Mother calls her little ones when she's hurt. Hit hard and keep moving.",
-          "Bring Talking Points. Lots of them. Sludge is very hard to get out of a suit."
+          "Sludge feeds on gloom, President. Bring something festive. And bring Talking Points; sludge is very hard to get out of a suit."
         ]
       },
       {
@@ -411,7 +426,12 @@
         "status": "started",
         "step": ["rogue"],
         "lines": [
-          "That red window! A Rogue Process. It's loose in the west wing, guarding OUTSIDE.TXT. Shut it down, President!"
+          "That red window! A Rogue Process. It's loose in the west wing, guarding OUTSIDE.TXT.",
+          {
+            "player": "How do I shut it down?"
+          },
+          "Not one shot at a time. It patches itself between hits. Every bullet just gets logged, and then it recovers.",
+          "Flood it, President. More hits per second than it can patch. Rapid-fire, like a press scrum."
         ]
       },
       {
@@ -470,6 +490,19 @@
       "Oh, and every so often a whale pledges a fortune. Smile and nod, darling. Smile and nod."
     ],
     "dialogue": [
+      {
+        "quest": "quest_gala_night",
+        "status": "started",
+        "step": ["gatecrasher"],
+        "lines": [
+          "You got the list! But now HIM. The Gatecrasher. He's crashed every party since the Lockdown.",
+          "Bouncers bounce off him. Bullets bounce off him. I threw a canape at him. Nothing.",
+          {
+            "player": "So how do I get him out?"
+          },
+          "Darling, nothing clears a dance floor like a fireworks show. The bigger the bang, the better. Something that goes boom on impact."
+        ]
+      },
       {
         "quest": "quest_gala_night",
         "status": "complete",
@@ -575,6 +608,19 @@
     "dialogue": [
       {
         "quest": "quest_press_conference",
+        "status": "started",
+        "step": ["pundit"],
+        "lines": [
+          "Disaster! The Pundit has stormed the podium. He's telling everyone that 'the people' don't want a door.",
+          {
+            "player": "Then I'll argue with him."
+          },
+          "Never argue with a pundit, President. You'll lose, even when you win.",
+          "Prove him wrong with the people. Every voice, every vote, counted. One by one."
+        ]
+      },
+      {
+        "quest": "quest_press_conference",
         "status": "complete",
         "lines": [
           "Front page, President! 'A DOOR FOR EVERYONE.' I couldn't have written it better. I tried.",
@@ -636,6 +682,20 @@
       "Bigger lobbyists pay better, if your Lobbying is up to it. Now walk away slowly."
     ],
     "dialogue": [
+      {
+        "quest": "quest_hostile_takeover",
+        "status": "started",
+        "step": ["raider"],
+        "lines": [
+          "Word got out about the Broker. Now the Corporate Raider wants the whole Treasury. A hostile takeover.",
+          {
+            "player": "So I shoot him?"
+          },
+          "Bullets? He's priced those in. He's bought every gun on the market.",
+          "What a man like that can't handle is paperwork. Lots of it. The heavy kind. Beat him with his own filing.",
+          "He's on the east lawn, near the Broker."
+        ]
+      },
       {
         "quest": "quest_hostile_takeover",
         "status": "complete",
@@ -722,6 +782,11 @@
       },
       "Cannons fire the Hash you mine and blow up everything around the target! I LOVE CANNONS!",
       "Pick a style in the Equipment tab: Accurate, Rapid or Longrange! Take the gun off and you swing your gavel! That's Melee!",
+      "And that dummy in the yard? SERGEANT SANDBAG! Gavels bounce right off him!",
+      {
+        "player": "So what works?"
+      },
+      "WHAT DID YOU JUST BUY AT THE TERMINAL, RECRUIT? Use it! From a distance!",
       "Start on the Spam Bots, then the Sludgelings, then the Comment Trolls! DISMISSED!"
     ],
     "dialogue": [
@@ -785,6 +850,28 @@
       "Morale. My crew won't dig without a good speech. Bring both and the hatch is yours."
     ],
     "dialogue": [
+      {
+        "quest": "quest_bunker",
+        "status": "started",
+        "step": ["inspector"],
+        "lines": [
+          "Bad news. The Building Inspector heard about the dig. He's standing on the hatch with a clipboard.",
+          {
+            "player": "Can't we just move him?"
+          },
+          "Not with anything fancy. Upgraded, modified, imported: he writes it up and ignores it.",
+          "He only respects regulation kit. Standard issue. The plain, boring thing they hand you on the campaign trail.",
+          "Make him sign off, President, and the hatch is yours."
+        ]
+      },
+      {
+        "quest": "quest_bunker",
+        "status": "started",
+        "step": ["report"],
+        "lines": [
+          "He signed? With a standard-issue pistol pointed at him, I bet he did. Give me a minute with the hatch."
+        ]
+      },
       {
         "quest": "quest_way_out",
         "status": "started",
@@ -873,7 +960,9 @@
         "status": "started",
         "lines": [
           "Morelight's really doing it? Waking the Chamber?",
-          "Go on up. I'll keep the Trenches quiet behind you. The Captain's sitting by the Chamber already. Wouldn't miss it."
+          "Careful up there. The old gate stones by the Chamber stood up last night. They keep saying 'NOBODY LEAVES'.",
+          "The Captain says bullets just bounce off. He says what that thing fears is a big, loud No.",
+          "Go on up. I'll keep the Trenches quiet behind you."
         ]
       },
       {
@@ -897,7 +986,8 @@
             "player": "Why guard it?"
           },
           "So nobody else sees it doesn't work. So nobody else gives up. I think that's what he tells himself.",
-          "He moves twice as fast as anyone. Don't chase him. Let him come to you.",
+          "He moves twice as fast as anyone. Up close, he's gone before you swing. Don't chase him.",
+          "Catch him from across the trench, mid-lap. You need reach. Real reach.",
           {
             "player": "And then?"
           },
@@ -918,7 +1008,8 @@
         "lines": [
           "Wrong-Namers everywhere past the first barricade. My ears are still ringing.",
           "They weren't always like this. Some of them were Treasury clerks. Got scared of the walls, then got more scared of what's past them.",
-          "Their Chief guards the second barricade. Bring a hammer. Shields hate hammers."
+          "Their Chief guards the second barricade. Shoot at him and he just shouts louder.",
+          "Somebody needs to call that man to order, President. You've got the hammer for it. Bang, bang."
         ]
       },
       {
@@ -940,7 +1031,8 @@
           {
             "player": "Any advice?"
           },
-          "Clear the little ones if they swarm you, then go back to Mom. And don't step in anything.",
+          "Bullets go straight through her. Plop. One little hole, and she just closes it up.",
+          "You want something that hits her everywhere at once, up close. And she can't stand a party. All that panic, she hates anything cheerful.",
           {
             "player": "What's past her?"
           },
@@ -961,6 +1053,15 @@
       "Since the Lockdown, the news is the only thing that gets in or out."
     ],
     "dialogue": [
+      {
+        "quest": "quest_press_conference",
+        "status": "started",
+        "step": ["pundit"],
+        "lines": [
+          "We're still live, and the Pundit just took my microphone! He says the voters are on his side.",
+          "If only someone could actually count them."
+        ]
+      },
       {
         "quest": "quest_press_conference",
         "status": "complete",
@@ -1181,7 +1282,8 @@
           {
             "player": "Any advice?"
           },
-          "He's a bursar, not a fighter. He fights the way he budgets: badly, then all at once."
+          "Ordinary spells just get woven into his rug. It's spun from doubt, President. Every gloomy forecast since he took the gold.",
+          "Only hope unravels doubt. Ask the Staffwright for a staff that only ever looks up."
         ]
       },
       {
@@ -1209,6 +1311,15 @@
       "And always carry spare COOM. Nothing sadder than a wizard hitting someone with a stick."
     ],
     "dialogue": [
+      {
+        "quest": "quest_moonward",
+        "status": "started",
+        "step": ["rugmancer"],
+        "lines": [
+          "Going after the Rugmancer? Then you'll want hope in your hands. You know the one: the crystal only ever points up.",
+          "Twenty-five Shooting and it's yours. It's on the stall."
+        ]
+      },
       {
         "quest": "quest_moonward",
         "status": "complete",

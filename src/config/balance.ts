@@ -86,6 +86,11 @@ export const COMBAT = {
   aggroLevelMultiplier: 2,
 } as const;
 
+export const BOSSES = {
+  /** A boss hit with a weapon it isn't weak to (EnemyDef.weakTo) takes this share of the damage. */
+  offWeaponScale: 0.1,
+} as const;
+
 export const ENEMIES = {
   /** Enemies never step further than this from spawn; at the edge they hold their ground. */
   leashRange: 10,

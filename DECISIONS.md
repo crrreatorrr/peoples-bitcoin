@@ -298,3 +298,28 @@ An audit compared movement and interface with OSRS; these choices came out of it
 - **Moonward Enrollment** (3 quest points): the Archmage hands you a staff and COOM, then you win
   a duel, break the spell on a Battlemage, and beat the Rugmancer, who only wakes in his tower
   when the quest gets to him. Reward: the Archmage's Staff.
+
+## Quest bosses and the weapons they fear (0.6.0)
+
+- **Every quest has a boss** (owner) that fears one weapon (or a style), and the quest's dialogue
+  hints at it without naming it. `EnemyDef.weakTo` lists the weapon ids or attack styles; anything
+  else does `BOSSES.offWeaponScale` (10%) of its damage (owner: "others do little damage", so a
+  stubborn player can still grind it). The boss says so once per weapon (a `resist` bark and a
+  warning), and Sprotos barely scratch it, so the puzzle can't be skipped.
+- **The bosses and their weapons** (hint in brackets): Sergeant Sandbag, tutorial, any ranged
+  weapon ("gavels bounce off"); the Building Inspector, Bunker Down, Campaign Pistol ("standard
+  issue"); the Sludge Mother, Confetti Shotgun ("hits everywhere at once, she hates a party");
+  the Wrong-Namer Chief, a gavel ("call the room to order"); Captain Motion, Treasury Rifle ("reach
+  across the trench; long range, longer paperwork"); the Rogue Process, Press Pass SMG or
+  Minigun ("flood it"); the Gatecrasher, explosive cannons ("fireworks"); the Corporate Raider,
+  Briefcase Bludgeon ("heavy paperwork"); the Pundit, Ballot Blaster ("count every vote"); the
+  Lockdown Warden, Veto Hammer or Golden Veto Cannon ("laws fall to a veto"); the Rugmancer,
+  Hopium Staff ("only hope unravels doubt").
+- **New bosses reuse the cast's models** (owner): the Sandbag wears the Drill Sergeant, the
+  Inspector the veteran lobbyist, the Gatecrasher a big Party Crasher, the Raider the junior
+  lobbyist, the Pundit a big Heckler, and the Warden the Dump Golem.
+- **Quest steps:** new bosses get a kill step (Bunker Down then ends with a talk to the
+  Contractor; Hostile Takeover ends on the Raider). The Chamber unlocks when the Warden falls,
+  not when it's fueled, so nobody walks past him.
+- **"The way forward is open"** now only shows for bosses that guard a barricade.
+- **Sergeant Sandbag** is a gentle dummy: 8 HP, never hits back, always in the training yard.

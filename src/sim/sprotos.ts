@@ -6,6 +6,7 @@
  */
 import { COMBAT, SUMMONING } from '../config/balance';
 import { accuracyRoll, damageEnemy, inAttackRange, maxHit, pathToward, rollDamage } from './combat';
+import { damageAfterWeakness } from './weakness';
 import { chebyshev, isWalkable } from './grid';
 import { progressQuests } from './quests';
 import {
@@ -183,6 +184,8 @@ export function stepSproto(state: GameState, ctx: SimContext, events: SimEvent[]
     const defRoll = accuracyRoll(edef.defense + COMBAT.levelOffset, edef.armor);
     damage = rollDamage(state.rng, attRoll, defRoll, max);
   }
+  // Bosses only fear certain weapons, and a Sproto is never one of them.
+  damage = damageAfterWeakness(state, ctx, target, null, null, damage, events);
   events.push({
     type: 'attack',
     attackerId: SPROTO_ID,

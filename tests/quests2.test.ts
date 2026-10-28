@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { OUTFITS, TELEPORT } from '../src/config/balance';
 import { effectiveLevel } from '../src/sim/boosts';
+import { damageEnemy } from '../src/sim/combat';
 import { xpMultiplier } from '../src/sim/equipment';
 import { countItem } from '../src/sim/inventory';
 import { atStep } from '../src/sim/quests';
@@ -133,7 +134,8 @@ describe('Server Meltdown: use, quest spawns and a password choice', () => {
     runUntil(state, ctx, () => rogue.respawnAt === null);
     state.player.skills.shooting = xpForLevel(70);
     state.player.skills.hitpoints = xpForLevel(99);
-    state.player.equipment.weapon = { itemId: 'gun_treasury_rifle', qty: 1 };
+    // It patches itself between single shots; rapid fire floods it.
+    state.player.equipment.weapon = { itemId: 'gun_press_pass_smg', qty: 1 };
     state.player.equipment.ammo = { itemId: 'item_rounds', qty: 500 };
     runUntil(
       state,
@@ -200,6 +202,12 @@ describe('quest-only drops and branching choices', () => {
     const before = state.player.currencies.bitcoin;
     talk(state, ctx, 'npc_fixer');
     answer(state, ctx, 1); // use them on the Broker
+    expect(atStep(state.player, ctx.content, 'quest_hostile_takeover', 'raider')).toBe(true);
+    runTick(state, ctx, []);
+    const raider = state.zone.enemies.find((e) => e.defId === 'enemy_corporate_raider')!;
+    runTick(state, ctx, []);
+    expect(raider.respawnAt).toBeNull();
+    damageEnemy(state, ctx, raider, 9999, []);
     expect(state.player.quests.quest_hostile_takeover).toMatchObject({
       complete: true,
       choices: ['takeover_leverage'],
@@ -286,7 +294,8 @@ describe('The Way Out', () => {
       'boss:enemy_captain_motion',
     );
     changeZone(state, ctx, 'zone_trenches', { x: 20, y: 6 }, []);
-    state.zone.enemies = []; // the north end's level-80 guards would eat a test President
+    // The north end's level-80 guards would eat a test President; keep only the Warden.
+    state.zone.enemies = state.zone.enemies.filter((e) => e.defId === 'enemy_lockdown_warden');
     const chamber = objectOf(state, 'obj_teleport_chamber');
     expect(
       messages(
@@ -305,6 +314,12 @@ describe('The Way Out', () => {
     }
     useOn(state, ctx, 'item_scrap_hash', chamber.id);
     expect(countItem(state.player.inventory, 'item_scrap_hash')).toBe(0);
+    expect(state.player.unlocks).not.toContain('chamber_ready'); // the Lockdown stands up first
+    runTick(state, ctx, []);
+    runTick(state, ctx, []);
+    const warden = state.zone.enemies.find((e) => e.defId === 'enemy_lockdown_warden')!;
+    expect(warden.respawnAt).toBeNull();
+    damageEnemy(state, ctx, warden, 9999, []);
     expect(state.player.unlocks).toContain('chamber_ready');
     runUntil(state, ctx, () => state.zone.id === 'zone_outside', [
       { type: 'interact', targetId: chamber.id, action: 'Enter' },

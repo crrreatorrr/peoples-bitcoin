@@ -147,6 +147,17 @@
         }
       },
       {
+        "id": "sandbag",
+        "text": "Knock down Sergeant Sandbag in the training yard.",
+        "trigger": {
+          "type": "kill",
+          "enemy": "enemy_sergeant_sandbag"
+        },
+        "hint": {
+          "enemy": "enemy_sergeant_sandbag"
+        }
+      },
+      {
         "id": "talk_planner",
         "text": "Meet The Party Planner in the west garden.",
         "trigger": {
@@ -337,6 +348,28 @@
               "qty": 2
             }
           ]
+        },
+        "hint": {
+          "npc": "npc_contractor"
+        }
+      },
+      {
+        "id": "inspector",
+        "text": "Get the Building Inspector off the hatch. He only respects regulation equipment.",
+        "trigger": {
+          "type": "kill",
+          "enemy": "enemy_building_inspector"
+        },
+        "hint": {
+          "enemy": "enemy_building_inspector"
+        }
+      },
+      {
+        "id": "report",
+        "text": "Tell the Contractor the Inspector has signed off.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_contractor"
         },
         "hint": {
           "npc": "npc_contractor"
@@ -617,7 +650,7 @@
       },
       {
         "id": "rogue",
-        "text": "Defeat the Rogue Process in the west wing.",
+        "text": "Shut down the Rogue Process in the west wing. It patches itself between hits.",
         "trigger": {
           "type": "kill",
           "enemy": "enemy_rogue_process"
@@ -721,6 +754,17 @@
         },
         "hint": {
           "enemy": "enemy_party_crasher"
+        }
+      },
+      {
+        "id": "gatecrasher",
+        "text": "Throw out the Gatecrasher himself. Nothing so far has moved him.",
+        "trigger": {
+          "type": "kill",
+          "enemy": "enemy_gatecrasher"
+        },
+        "hint": {
+          "enemy": "enemy_gatecrasher"
         }
       },
       {
@@ -840,6 +884,17 @@
             "usd": 6000
           }
         }
+      },
+      {
+        "id": "raider",
+        "text": "Stop the Corporate Raider's hostile takeover of the Treasury.",
+        "trigger": {
+          "type": "kill",
+          "enemy": "enemy_corporate_raider"
+        },
+        "hint": {
+          "enemy": "enemy_corporate_raider"
+        }
       }
     ],
     "reward": {
@@ -857,7 +912,7 @@
         }
       ]
     },
-    "completeMessage": "Quest complete: Hostile Takeover! The Broker signed your Exit Permit. Nobody is quite sure how."
+    "completeMessage": "Quest complete: Hostile Takeover! The Raider is out, the Permit is signed, and the Treasury is still yours."
   },
   {
     "id": "quest_press_conference",
@@ -927,6 +982,17 @@
         },
         "hint": {
           "npc": "npc_reporter"
+        }
+      },
+      {
+        "id": "pundit",
+        "text": "Shut down the Pundit at the podiums.",
+        "trigger": {
+          "type": "kill",
+          "enemy": "enemy_pundit"
+        },
+        "hint": {
+          "enemy": "enemy_pundit"
         }
       },
       {
@@ -1090,6 +1156,17 @@
         },
         "hint": {
           "object": "obj_teleport_chamber"
+        }
+      },
+      {
+        "id": "warden",
+        "text": "Bring down the Lockdown Warden at the Teleport Chamber.",
+        "trigger": {
+          "type": "kill",
+          "enemy": "enemy_lockdown_warden"
+        },
+        "hint": {
+          "enemy": "enemy_lockdown_warden"
         },
         "reward": {
           "unlock": "chamber_ready"

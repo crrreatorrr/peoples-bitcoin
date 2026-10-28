@@ -290,12 +290,24 @@ export const EnemyDefSchema = z.object({
   drops: Id,
   /** Its ranged attacks are spells: they fly as magic bolts instead of bullets. */
   magic: z.boolean().default(false),
+  /**
+   * Bosses that fear only certain weapons (hinted in their quest's dialogue): these weapon ids
+   * or attack styles hit it fully; anything else does BOSSES.offWeaponScale of its damage.
+   */
+  weakTo: z
+    .object({
+      weapons: z.array(Id).default([]),
+      styles: z.array(z.enum(['melee', 'gun', 'explosive', 'magic'])).default([]),
+    })
+    .optional(),
   /** What it says, in chat and over its head: as a fight starts, below half HP, and when beaten. */
   barks: z
     .object({
       aggro: z.array(z.string()).default([]),
       hurt: z.array(z.string()).default([]),
       defeat: z.array(z.string()).default([]),
+      /** Said the first time it's hit with a weapon it isn't weak to. */
+      resist: z.array(z.string()).default([]),
     })
     .optional(),
   boss: z

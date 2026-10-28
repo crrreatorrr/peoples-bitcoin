@@ -324,7 +324,11 @@
         "Sell... sell it all... and stay..."
       ],
       "hurt": ["Children! Mother needs you!"],
-      "defeat": ["Just... one more... dip..."]
+      "defeat": ["Just... one more... dip..."],
+      "resist": ["Plop. Mother closes right back up."]
+    },
+    "weakTo": {
+      "weapons": ["gun_confetti_shotgun"]
     }
   },
   {
@@ -357,7 +361,11 @@
     "barks": {
       "aggro": ["THERE IS NO OUTSIDE! IT'S ALL $BITCON!"],
       "hurt": ["Sockpuppets! Agree with me! LOUDER!"],
-      "defeat": ["Fine! Maybe there's an outside. MAYBE."]
+      "defeat": ["Fine! Maybe there's an outside. MAYBE."],
+      "resist": ["LOUDER! I CAN'T HEAR YOU!"]
+    },
+    "weakTo": {
+      "weapons": ["item_gavel", "item_oak_gavel", "item_iron_gavel", "item_gavel_of_order"]
     }
   },
   {
@@ -387,7 +395,11 @@
         "Turn back! Nothing up here but me and my laps!"
       ],
       "hurt": ["If I stop, I have to admit it doesn't work!"],
-      "defeat": ["The Chamber's dead. I ran so nobody would see."]
+      "defeat": ["The Chamber's dead. I ran so nobody would see."],
+      "resist": ["Too slow! You'll never catch me up close!"]
+    },
+    "weakTo": {
+      "weapons": ["gun_treasury_rifle"]
     }
   },
   {
@@ -395,21 +407,31 @@
     "name": "Rogue Process",
     "examine": "It runs at 100% CPU and 0% empathy.",
     "model": "enemy_rogue_process",
-    "level": 20,
-    "hp": 45,
-    "attack": 18,
-    "strength": 16,
-    "defense": 16,
-    "accuracy": 16,
-    "damage": 10,
-    "armor": 14,
+    "level": 32,
+    "hp": 120,
+    "attack": 28,
+    "strength": 24,
+    "defense": 26,
+    "accuracy": 26,
+    "damage": 14,
+    "armor": 22,
     "speed": 4,
     "range": 5,
     "type": "gun",
     "aggressive": true,
     "aggroRange": 4,
     "respawnTicks": 40,
-    "drops": "drops_rogue_process"
+    "drops": "drops_rogue_process",
+    "boss": {},
+    "weakTo": {
+      "weapons": ["gun_press_pass_smg", "gun_diamond_minigun"]
+    },
+    "barks": {
+      "aggro": ["PROCESS STARTED. INTRUDER DETECTED."],
+      "resist": ["ERROR LOGGED. PATCHED."],
+      "hurt": ["CPU AT 200%. REQUESTING MORE CPU."],
+      "defeat": ["SEGMENTATION FAULT."]
+    }
   },
   {
     "id": "enemy_party_crasher",
@@ -513,7 +535,8 @@
     "barks": {
       "aggro": ["Welcome, President! Mind the rug.", "You can't pull a rug that's already pulled!"],
       "hurt": ["Apprentices! Defend your Bursar!"],
-      "defeat": ["My beautiful rug... unravelling..."]
+      "defeat": ["My beautiful rug... unravelling..."],
+      "resist": ["Woven in! What a delightful pattern."]
     },
     "boss": {
       "adds": {
@@ -521,6 +544,209 @@
         "everyTicks": 15,
         "max": 2
       }
+    },
+    "weakTo": {
+      "weapons": ["staff_hopium"]
     }
+  },
+  {
+    "id": "enemy_sergeant_sandbag",
+    "name": "Sergeant Sandbag",
+    "examine": "A training dummy in the Drill Sergeant's spare uniform. He swears it isn't modeled on him. Gavels bounce right off, and it doesn't hit back.",
+    "model": "enemy_sergeant_sandbag",
+    "level": 5,
+    "hp": 8,
+    "attack": 2,
+    "strength": 2,
+    "defense": 1,
+    "accuracy": 0,
+    "damage": 0,
+    "armor": 0,
+    "speed": 5,
+    "range": 1,
+    "type": "melee",
+    "aggressive": false,
+    "aggroRange": 0,
+    "wanderRadius": 0,
+    "respawnTicks": 20,
+    "drops": "drops_sergeant_sandbag",
+    "weakTo": {
+      "styles": ["gun", "explosive", "magic"]
+    },
+    "barks": {
+      "aggro": ["ON YOUR FEET, RECRUIT!"],
+      "resist": ["HA! That TICKLES, recruit!"],
+      "defeat": ["...good... shooting... recruit..."]
+    },
+    "boss": {}
+  },
+  {
+    "id": "enemy_building_inspector",
+    "name": "The Building Inspector",
+    "examine": "Clipboard, hard stare, and a rule for everything. Only respects regulation equipment.",
+    "model": "enemy_building_inspector",
+    "level": 12,
+    "hp": 70,
+    "attack": 10,
+    "strength": 9,
+    "defense": 10,
+    "accuracy": 8,
+    "damage": 5,
+    "armor": 12,
+    "speed": 4,
+    "range": 1,
+    "type": "melee",
+    "aggressive": true,
+    "aggroRange": 3,
+    "wanderRadius": 1,
+    "respawnTicks": 60,
+    "drops": "drops_building_inspector",
+    "weakTo": {
+      "weapons": ["gun_campaign_pistol"]
+    },
+    "barks": {
+      "aggro": ["This dig is NOT up to code!", "Do you have a permit for that face?"],
+      "resist": ["Is that regulation? It is not. Noted."],
+      "hurt": ["I'll have you know I'm a public servant!"],
+      "defeat": ["...Fine. Permit approved."]
+    },
+    "boss": {}
+  },
+  {
+    "id": "enemy_gatecrasher",
+    "name": "The Gatecrasher",
+    "examine": "Has crashed every party since the Lockdown. Bouncers bounce off him.",
+    "model": "enemy_gatecrasher",
+    "level": 40,
+    "hp": 170,
+    "attack": 36,
+    "strength": 34,
+    "defense": 34,
+    "accuracy": 30,
+    "damage": 22,
+    "armor": 34,
+    "speed": 4,
+    "range": 1,
+    "type": "melee",
+    "aggressive": true,
+    "aggroRange": 4,
+    "wanderRadius": 2,
+    "respawnTicks": 120,
+    "drops": "drops_gatecrasher",
+    "weakTo": {
+      "styles": ["explosive"]
+    },
+    "barks": {
+      "aggro": ["Who invited YOU?", "This party's dead. Let me liven it up."],
+      "resist": ["Is that all? BORING!"],
+      "hurt": ["Okay, okay, now it's a party!"],
+      "defeat": ["Best... party... ever..."]
+    },
+    "boss": {
+      "adds": {
+        "enemy": "enemy_party_crasher",
+        "everyTicks": 15,
+        "max": 2
+      }
+    }
+  },
+  {
+    "id": "enemy_corporate_raider",
+    "name": "The Corporate Raider",
+    "examine": "Has bought everything in the Treasury except the Treasury. Wants that next.",
+    "model": "enemy_corporate_raider",
+    "level": 35,
+    "hp": 150,
+    "attack": 32,
+    "strength": 30,
+    "defense": 34,
+    "accuracy": 28,
+    "damage": 18,
+    "armor": 40,
+    "speed": 4,
+    "range": 1,
+    "type": "shield",
+    "aggressive": true,
+    "aggroRange": 4,
+    "wanderRadius": 2,
+    "respawnTicks": 120,
+    "drops": "drops_corporate_raider",
+    "weakTo": {
+      "weapons": ["item_briefcase_bludgeon"]
+    },
+    "barks": {
+      "aggro": [
+        "Everything has a price, President. Even you.",
+        "Hostile takeover! Nothing personal."
+      ],
+      "resist": ["Priced in."],
+      "hurt": ["Sell! I mean buy! I mean..."],
+      "defeat": ["I'll... file a complaint..."]
+    },
+    "boss": {}
+  },
+  {
+    "id": "enemy_pundit",
+    "name": "The Pundit",
+    "examine": "Talks for a living. Has never once been asked to stop.",
+    "model": "enemy_pundit",
+    "level": 35,
+    "hp": 140,
+    "attack": 30,
+    "strength": 28,
+    "defense": 30,
+    "accuracy": 30,
+    "damage": 16,
+    "armor": 28,
+    "speed": 4,
+    "range": 5,
+    "type": "gun",
+    "aggressive": true,
+    "aggroRange": 4,
+    "wanderRadius": 1,
+    "respawnTicks": 120,
+    "drops": "drops_pundit",
+    "weakTo": {
+      "weapons": ["gun_ballot_blaster"]
+    },
+    "barks": {
+      "aggro": ["The people don't want a door, President!", "Breaking news: I'm right!"],
+      "resist": ["Says you! The people are with ME!"],
+      "hurt": ["I'm being silenced! Live on air!"],
+      "defeat": ["...The people have spoken."]
+    },
+    "boss": {}
+  },
+  {
+    "id": "enemy_lockdown_warden",
+    "name": "The Lockdown Warden",
+    "examine": "The Lockdown Act, given legs. Built from the stones of the sealed gates.",
+    "model": "enemy_lockdown_warden",
+    "level": 72,
+    "hp": 420,
+    "attack": 62,
+    "strength": 58,
+    "defense": 60,
+    "accuracy": 56,
+    "damage": 40,
+    "armor": 64,
+    "speed": 5,
+    "range": 1,
+    "type": "shield",
+    "aggressive": true,
+    "aggroRange": 5,
+    "wanderRadius": 1,
+    "respawnTicks": 200,
+    "drops": "drops_lockdown_warden",
+    "weakTo": {
+      "weapons": ["item_veto_hammer", "gun_golden_veto"]
+    },
+    "barks": {
+      "aggro": ["NOBODY LEAVES.", "SECTION ONE: THE GATES STAY SHUT."],
+      "resist": ["THE ACT STANDS."],
+      "hurt": ["AMENDMENT... PENDING..."],
+      "defeat": ["...REPEALED."]
+    },
+    "boss": {}
   }
 ]

@@ -4,7 +4,8 @@
  * Hit chance uses the OSRS comparison; damage on a hit is 0..maxHit.
  */
 import { COMBAT, GROUND_ITEMS } from '../config/balance';
-import { bark, barkOnHurt } from './barks';
+import { bark, barkOnAggro, barkOnHurt } from './barks';
+import { damageAfterWeakness } from './weakness';
 import { effectiveLevel } from './boosts';
 import { payUsd } from './economy';
 import { attackProfile, consumeAmmo } from './equipment';
@@ -22,6 +23,7 @@ import { atStep, progressQuests } from './quests';
 import { chance, nextFloat, nextInt, type RngState } from './rng';
 import type { CombatType, EnemyDef } from './schemas';
 import {
+  type AttackStyle,
   gridOf,
   PLAYER_ID,
   type EnemyInstance,
@@ -163,30 +165,36 @@ export function tickPlayerAttack(
   const defRoll = accuracyRoll(def.defense + COMBAT.levelOffset, def.armor);
   const rally = state.tick < player.rally.untilTick ? 1 + player.rally.pct : 1;
   const max = Math.floor(maxHit(effective, profile.damageBonus) * rally);
-  const damage = rollDamage(state.rng, attRoll, defRoll, max);
-
-  events.push({
-    type: 'attack',
-    attackerId: PLAYER_ID,
-    targetId: enemy.id,
-    style: melee
-      ? 'melee'
-      : profile.explosive
-        ? 'explosive'
-        : profile.weapon.weapon?.ammo === 'coom'
-          ? 'magic'
-          : 'gun',
-  });
-  awardCombatXp(state, ctx, damage, melee, events);
+  const style: AttackStyle = melee
+    ? 'melee'
+    : profile.explosive
+      ? 'explosive'
+      : profile.weapon.weapon?.ammo === 'coom'
+        ? 'magic'
+        : 'gun';
+  events.push({ type: 'attack', attackerId: PLAYER_ID, targetId: enemy.id, style });
+  // Being attacked starts the fight (and its opening line) before any reaction to the hit.
   if (enemy.target === null) enemy.target = PLAYER_ID;
   enemy.lastCombatTick = state.tick;
+  barkOnAggro(state, ctx, enemy, events);
+  const damage = damageAfterWeakness(
+    state,
+    ctx,
+    enemy,
+    profile.weapon,
+    style,
+    rollDamage(state.rng, attRoll, defRoll, max),
+    events,
+  );
+  awardCombatXp(state, ctx, damage, melee, events);
 
   if (profile.explosive) {
     const splash = state.zone.enemies.filter(
       (e) => e !== enemy && e.respawnAt === null && chebyshev(e, enemy) <= COMBAT.splashRadius,
     );
     for (const other of splash) {
-      const hit = Math.floor(nextFloat(state.rng) * max * COMBAT.splashShare);
+      const roll = Math.floor(nextFloat(state.rng) * max * COMBAT.splashShare);
+      const hit = damageAfterWeakness(state, ctx, other, profile.weapon, style, roll, events);
       if (other.target === null) other.target = PLAYER_ID;
       damageEnemy(state, ctx, other, hit, events);
     }
@@ -255,10 +263,12 @@ function killEnemy(
     const flag = `boss:${def.id}`;
     if (!player.unlocks.includes(flag)) {
       player.unlocks.push(flag);
+      // Only bosses guarding a barricade open a way forward.
+      const opens = ctx.content.zones.get(state.zone.id)?.objects.some((o) => o.requires === flag);
       events.push({
         type: 'message',
         kind: 'levelup',
-        text: `${def.name} is defeated! The way forward is open.`,
+        text: `${def.name} is defeated!${opens ? ' The way forward is open.' : ''}`,
       });
     }
     state.economy.recentBossWins += 1;

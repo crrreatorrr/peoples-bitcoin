@@ -7,7 +7,7 @@
 import { CHAT } from '../config/balance';
 import type { EnemyInstance, GameState, SimContext, SimEvent } from './state';
 
-export type BarkKind = 'aggro' | 'hurt' | 'defeat';
+export type BarkKind = 'aggro' | 'hurt' | 'defeat' | 'resist';
 
 export function bark(
   state: GameState,

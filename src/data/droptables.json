@@ -710,5 +710,119 @@
         "weight": 50
       }
     ]
+  },
+  {
+    "id": "drops_sergeant_sandbag",
+    "usd": [1, 2],
+    "always": [
+      {
+        "item": "item_rounds",
+        "qty": 25
+      }
+    ],
+    "table": [
+      {
+        "weight": 1
+      }
+    ]
+  },
+  {
+    "id": "drops_building_inspector",
+    "usd": [5, 10],
+    "table": [
+      {
+        "item": "item_concrete_bag",
+        "weight": 30,
+        "min": 1,
+        "max": 3
+      },
+      {
+        "item": "item_steel_beam",
+        "weight": 10
+      },
+      {
+        "weight": 60
+      }
+    ]
+  },
+  {
+    "id": "drops_gatecrasher",
+    "usd": [20, 40],
+    "always": [
+      {
+        "item": "item_tp_zinger",
+        "qty": 2
+      }
+    ],
+    "table": [
+      {
+        "item": "item_hopium_soda",
+        "weight": 20
+      },
+      {
+        "item": "item_victory_smoothie",
+        "weight": 10
+      },
+      {
+        "weight": 70
+      }
+    ]
+  },
+  {
+    "id": "drops_corporate_raider",
+    "usd": [25, 50],
+    "table": [
+      {
+        "item": "item_gold_cards",
+        "weight": 10
+      },
+      {
+        "item": "item_power_suit",
+        "weight": 5
+      },
+      {
+        "weight": 85
+      }
+    ]
+  },
+  {
+    "id": "drops_pundit",
+    "usd": [20, 40],
+    "table": [
+      {
+        "item": "item_tp_mic_drop",
+        "weight": 20
+      },
+      {
+        "item": "item_press_headset",
+        "weight": 5
+      },
+      {
+        "weight": 75
+      }
+    ]
+  },
+  {
+    "id": "drops_lockdown_warden",
+    "usd": [80, 160],
+    "always": [
+      {
+        "item": "item_molten_hash",
+        "qty": 5
+      }
+    ],
+    "table": [
+      {
+        "item": "item_diamond_plate",
+        "weight": 5
+      },
+      {
+        "item": "item_gavel_of_order",
+        "weight": 3
+      },
+      {
+        "weight": 92
+      }
+    ]
   }
 ]

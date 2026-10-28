@@ -220,7 +220,7 @@ describe('fighting', () => {
     state.player.skills.defense = xpForLevel(70);
     state.player.skills.hitpoints = xpForLevel(99);
     state.player.hp = 99;
-    armed(state, 'gun_treasury_rifle', 1000);
+    armed(state, 'gun_confetti_shotgun', 1000); // the one weapon she's weak to
     let sawAdd = false;
     runUntil(
       state,

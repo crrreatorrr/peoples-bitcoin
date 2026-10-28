@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { SUMMONING } from '../src/config/balance';
 import { hotspotKey } from '../src/sim/bunker';
+import { damageEnemy } from '../src/sim/combat';
 import { interactionTiles } from '../src/sim/grid';
 import { countItem } from '../src/sim/inventory';
 import { findPath } from '../src/sim/pathfinding';
@@ -10,6 +11,15 @@ import { runTick } from '../src/sim/tick';
 import { changeZone } from '../src/sim/zones';
 import { xpForLevel } from '../src/sim/xp';
 import { content, give, messages, newGame, objectOf, runUntil, treasuryGrid } from './helpers';
+
+/** Wakes the Building Inspector (he only turns up for his step) and beats him. */
+function beatInspector(state: GameState, ctx: SimContext) {
+  runTick(state, ctx, []);
+  runTick(state, ctx, []);
+  const inspector = state.zone.enemies.find((e) => e.defId === 'enemy_building_inspector')!;
+  expect(inspector.respawnAt).toBeNull();
+  damageEnemy(state, ctx, inspector, 9999, []);
+}
 
 const talkTo = (npcDef: string) => (state: ReturnType<typeof newGame>['state']) => {
   const npc = state.zone.npcs.find((n) => n.defId === npcDef)!;
@@ -91,7 +101,12 @@ describe('quest-aware dialogue, Morelight and the quest list', () => {
     expect(talk(state, ctx, 'npc_contractor')).toEqual(contractor.lines); // materials missing
     give(state, 'item_scrap_hash', 10);
     give(state, 'item_tp_soundbite', 2);
-    const after = contractor.dialogue.find((d) => d.quest === 'quest_bunker')!;
+    const inspector = contractor.dialogue.find((d) => d.step?.includes('inspector'))!;
+    expect(talk(state, ctx, 'npc_contractor')).toEqual(inspector.lines);
+    beatInspector(state, ctx);
+    const after = contractor.dialogue.find(
+      (d) => d.quest === 'quest_bunker' && d.status === 'complete',
+    )!;
     expect(talk(state, ctx, 'npc_contractor')).toEqual(after.lines);
     expect(state.player.quests.quest_bunker.complete).toBe(true);
   });
@@ -180,7 +195,7 @@ describe('Bunker Down and Construction', () => {
     expect(state.zone.id).toBe('zone_treasury');
   });
 
-  it('delivering the materials unlocks the bunker and pays a toolkit', () => {
+  it('materials, then the Building Inspector, then the bunker and a toolkit', () => {
     const { state, ctx } = newGame();
     give(state, 'item_scrap_hash', 10);
     give(state, 'item_tp_soundbite', 2);
@@ -191,6 +206,10 @@ describe('Bunker Down and Construction', () => {
       talkTo('npc_contractor')(state),
     );
     expect(messages(events)).toContain('Quest started: Bunker Down');
+    expect(state.player.quests.quest_bunker.complete).toBe(false);
+    beatInspector(state, ctx);
+    state.player.dialogue = null;
+    runUntil(state, ctx, () => state.player.dialogue !== null, talkTo('npc_contractor')(state));
     expect(state.player.quests.quest_bunker.complete).toBe(true);
     expect(state.player.unlocks).toContain('bunker');
     expect(countItem(state.player.inventory, 'item_scrap_hash')).toBe(0);

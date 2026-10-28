@@ -15,7 +15,11 @@
   that fly as glowing orbs, a Moonward hat and robe, and the Staffwright's Stall to buy them.
 - **Moonward Enrollment:** a new 3-point quest ending in the Rugmancer's tower.
 - **Adults only:** the game is now rated 18+ (owner); the parody notice says so.
-- **Tests:** 177.
+- **Quest bosses:** every quest now has a boss that fears one weapon, hinted in its dialogue
+  (Confetti Shotgun for the Sludge Mother, a gavel for the Wrong-Namer Chief, a veto for the
+  Lockdown Warden...). Other weapons do about 10% damage. Six new bosses: Sergeant Sandbag, the
+  Building Inspector, the Gatecrasher, the Corporate Raider, the Pundit and the Lockdown Warden.
+- **Tests:** 183.
 
 ## 0.5.1 — Owner fixes (2026-10-28)
 
