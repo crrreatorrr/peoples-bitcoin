@@ -12,7 +12,7 @@ import { z } from 'zod';
 import manifestJson from '../config/assets.manifest.json';
 import { buildActor, LookSchema, staticActor, type ActorModel, type Look } from './actors';
 import { share } from './kit';
-import { isRigged, riggedActor } from './rigged';
+import { flatten, isRigged, riggedActor } from './rigged';
 import { buildPlaceholder, iconCanvas, terrainPart, type TerrainPart } from './placeholders';
 
 const AssetEntrySchema = z
@@ -56,6 +56,12 @@ const IMAGE_URLS = import.meta.glob('../assets/**/*.png', {
   import: 'default',
   eager: true,
 }) as Record<string, string>;
+
+/** What a rigged character holds and how it stands; its mesh already shows the rest of the look. */
+function held(entry: AssetEntry): Partial<Look> {
+  const { left, right, pose } = entry.look ?? {};
+  return { left, right, pose };
+}
 
 const MISSING: AssetEntry = {
   placeholder: 'box',
@@ -134,7 +140,7 @@ export class AssetLoader {
     const source = this.models.get(id);
     const actor = source
       ? isRigged(source)
-        ? riggedActor(source, entry.scale)
+        ? riggedActor(source, entry.scale, held(entry))
         : null
       : buildActor(entry);
     if (actor) {
@@ -150,7 +156,8 @@ export class AssetLoader {
   actor(id: string, dress: Partial<Look> = {}): ActorModel {
     const entry = this.entry(id);
     const source = this.models.get(id);
-    if (source && isRigged(source)) return riggedActor(source, entry.scale, dress);
+    if (source && isRigged(source))
+      return riggedActor(source, entry.scale, { ...held(entry), ...dress });
     if (source) return staticActor(this.model(id, entry));
     return buildActor(entry, dress) ?? staticActor(this.model(id, entry));
   }
@@ -158,6 +165,7 @@ export class AssetLoader {
   private model(id: string, entry: AssetEntry): THREE.Object3D {
     const source = this.models.get(id);
     const model = source ? cloneSkinned(source) : buildPlaceholder(entry);
+    if (source) flatten(model);
     model.scale.multiplyScalar(entry.scale);
     model.rotation.y += THREE.MathUtils.degToRad(entry.rotationYDeg);
     return model;

@@ -52,7 +52,7 @@
   },
   "npc_morelight": {
     "placeholder": "humanoid",
-    "scale": 1.12,
+    "scale": 1.16,
     "look": {
       "skin": "#f2d2bc",
       "hair": "#2a2018",
@@ -65,7 +65,8 @@
       "shoes": "#2a1c10",
       "legs": 1.12,
       "left": "clipboard"
-    }
+    },
+    "path": "models/npc_morelight.glb"
   },
   "npc_treasurer": {
     "placeholder": "humanoid",
@@ -78,7 +79,8 @@
       "skin": "#e0b08a",
       "left": "book"
     },
-    "sprite": "sprites/npc_treasurer.png"
+    "sprite": "sprites/npc_treasurer.png",
+    "path": "models/npc_treasurer.glb"
   },
   "rack_dusty": {
     "placeholder": "rack",
@@ -146,79 +148,79 @@
   },
   "tab_inventory": {
     "placeholder": "glyph",
-    "label": "🎒"
+    "label": "\ud83c\udf92"
   },
   "tab_equipment": {
     "placeholder": "glyph",
-    "label": "👔"
+    "label": "\ud83d\udc54"
   },
   "tab_skills": {
     "placeholder": "glyph",
-    "label": "📊"
+    "label": "\ud83d\udcca"
   },
   "tab_military": {
     "placeholder": "glyph",
-    "label": "🪖"
+    "label": "\ud83e\ude96"
   },
   "tab_quests": {
     "placeholder": "glyph",
-    "label": "📜"
+    "label": "\ud83d\udcdc"
   },
   "tab_settings": {
     "placeholder": "glyph",
-    "label": "⚙️"
+    "label": "\u2699\ufe0f"
   },
   "orb_run": {
     "placeholder": "glyph",
-    "label": "🏃"
+    "label": "\ud83c\udfc3"
   },
   "skill_shooting": {
     "placeholder": "glyph",
-    "label": "🎯"
+    "label": "\ud83c\udfaf"
   },
   "skill_melee": {
     "placeholder": "glyph",
-    "label": "🔨"
+    "label": "\ud83d\udd28"
   },
   "skill_defense": {
     "placeholder": "glyph",
-    "label": "🛡️"
+    "label": "\ud83d\udee1\ufe0f"
   },
   "skill_hitpoints": {
     "placeholder": "glyph",
-    "label": "❤️"
+    "label": "\u2764\ufe0f"
   },
   "skill_mining": {
     "placeholder": "glyph",
-    "label": "⛏️"
+    "label": "\u26cf\ufe0f"
   },
   "skill_fundraising": {
     "placeholder": "glyph",
-    "label": "🍽️"
+    "label": "\ud83c\udf7d\ufe0f"
   },
   "skill_lobbying": {
     "placeholder": "glyph",
-    "label": "🤝"
+    "label": "\ud83e\udd1d"
   },
   "skill_spin": {
     "placeholder": "glyph",
-    "label": "🌀"
+    "label": "\ud83c\udf00"
   },
   "skill_construction": {
     "placeholder": "glyph",
-    "label": "🏛️"
+    "label": "\ud83c\udfdb\ufe0f"
   },
   "mapicon_bank": {
     "placeholder": "glyph",
-    "label": "🏦"
+    "label": "\ud83c\udfe6"
   },
   "mapicon_mining": {
     "placeholder": "glyph",
-    "label": "⛏️"
+    "label": "\u26cf\ufe0f"
   },
   "orb_hp": {
     "placeholder": "glyph",
-    "label": "❤️"
+    "label": "\u2764\ufe0f"
   },
   "orb_xp": {
     "placeholder": "glyph",
@@ -607,7 +609,8 @@
       "skin": "#e8b890",
       "right": "briefcase"
     },
-    "sprite": "sprites/lobbyist_junior.png"
+    "sprite": "sprites/lobbyist_junior.png",
+    "path": "models/lobbyist_junior.glb"
   },
   "lobbyist_busy": {
     "placeholder": "humanoid",
@@ -621,7 +624,8 @@
       "left": "phone",
       "pose": "phone"
     },
-    "sprite": "sprites/lobbyist_busy.png"
+    "sprite": "sprites/lobbyist_busy.png",
+    "path": "models/lobbyist_junior.glb"
   },
   "lobbyist_veteran": {
     "placeholder": "humanoid",
@@ -635,7 +639,8 @@
       "skin": "#e0b08a",
       "right": "briefcase"
     },
-    "sprite": "sprites/lobbyist_veteran.png"
+    "sprite": "sprites/lobbyist_veteran.png",
+    "path": "models/lobbyist_veteran.glb"
   },
   "lobbyist_broker": {
     "placeholder": "humanoid",
@@ -650,8 +655,8 @@
       "hairStyle": "bald",
       "right": "envelope"
     },
-    "scale": 1.05,
-    "sprite": "sprites/lobbyist_broker.png"
+    "sprite": "sprites/lobbyist_broker.png",
+    "path": "models/lobbyist_broker.glb"
   },
   "press_podium": {
     "placeholder": "podium",
@@ -759,7 +764,8 @@
       "hat": "headset",
       "left": "tablet"
     },
-    "sprite": "sprites/npc_sysadmin.png"
+    "sprite": "sprites/npc_sysadmin.png",
+    "path": "models/npc_sysadmin.glb"
   },
   "npc_party_planner": {
     "placeholder": "humanoid",
@@ -774,7 +780,8 @@
       "left": "clipboard",
       "build": 0.9
     },
-    "sprite": "sprites/npc_party_planner.png"
+    "sprite": "sprites/npc_party_planner.png",
+    "path": "models/npc_party_planner.glb"
   },
   "npc_spin_doctor": {
     "placeholder": "humanoid",
@@ -788,7 +795,8 @@
       "skin": "#e8b890",
       "right": "microphone"
     },
-    "sprite": "sprites/npc_spin_doctor.png"
+    "sprite": "sprites/npc_spin_doctor.png",
+    "path": "models/npc_spin_doctor.glb"
   },
   "npc_fixer": {
     "placeholder": "humanoid",
@@ -801,7 +809,8 @@
       "glasses": "shades",
       "right": "playing_cards"
     },
-    "sprite": "sprites/npc_fixer.png"
+    "sprite": "sprites/npc_fixer.png",
+    "path": "models/npc_fixer.glb"
   },
   "npc_drill_sergeant": {
     "placeholder": "humanoid",
@@ -816,7 +825,8 @@
       "shoes": "#2a1c10",
       "build": 1.1
     },
-    "sprite": "sprites/npc_drill_sergeant.png"
+    "sprite": "sprites/npc_drill_sergeant.png",
+    "path": "models/npc_drill_sergeant.glb"
   },
   "npc_sproto_handler": {
     "placeholder": "humanoid",
@@ -831,7 +841,8 @@
       "skin": "#e8b890",
       "left": "clipboard"
     },
-    "sprite": "sprites/npc_sproto_handler.png"
+    "sprite": "sprites/npc_sproto_handler.png",
+    "path": "models/npc_sproto_handler.glb"
   },
   "npc_contractor": {
     "placeholder": "humanoid",
@@ -847,7 +858,8 @@
       "shoes": "#5a3a1c",
       "right": "plans"
     },
-    "sprite": "sprites/npc_contractor.png"
+    "sprite": "sprites/npc_contractor.png",
+    "path": "models/npc_contractor.glb"
   },
   "npc_scout": {
     "placeholder": "humanoid",
@@ -862,13 +874,16 @@
       "back": "backpack",
       "left": "binoculars"
     },
-    "sprite": "sprites/npc_scout.png"
+    "sprite": "sprites/npc_scout.png",
+    "path": "models/npc_scout.glb"
   },
   "enemy_sludgeling": {
     "placeholder": "sludge",
     "color": "#3b4a2c",
     "accent": "#e0c040",
-    "sprite": "sprites/enemy_sludgeling.png"
+    "sprite": "sprites/enemy_sludgeling.png",
+    "path": "models/enemy_sludgeling.glb",
+    "scale": 0.85
   },
   "enemy_spam_bot": {
     "placeholder": "humanoid",
@@ -882,7 +897,7 @@
       "build": 0.85,
       "legs": 0.7
     },
-    "scale": 0.7
+    "path": "models/enemy_spam_bot.glb"
   },
   "enemy_comment_troll": {
     "placeholder": "humanoid",
@@ -898,7 +913,7 @@
       "build": 1.1,
       "legs": 0.75
     },
-    "scale": 0.8
+    "path": "models/enemy_comment_troll.glb"
   },
   "enemy_heckler": {
     "placeholder": "humanoid",
@@ -913,13 +928,16 @@
       "hair": "#5a3a1c",
       "right": "megaphone"
     },
-    "sprite": "sprites/enemy_heckler.png"
+    "sprite": "sprites/enemy_heckler.png",
+    "path": "models/enemy_heckler.glb"
   },
   "enemy_sockpuppet": {
     "placeholder": "sock",
     "color": "#c8261e",
     "accent": "#2f4fa8",
-    "sprite": "sprites/enemy_sockpuppet.png"
+    "sprite": "sprites/enemy_sockpuppet.png",
+    "path": "models/enemy_sockpuppet.glb",
+    "scale": 1.3
   },
   "enemy_paper_hands": {
     "placeholder": "humanoid",
@@ -933,14 +951,16 @@
       "hunch": 0.3,
       "build": 0.9
     },
-    "scale": 0.9,
-    "sprite": "sprites/enemy_paper_hands.png"
+    "sprite": "sprites/enemy_paper_hands.png",
+    "path": "models/enemy_paper_hands.glb"
   },
   "enemy_fud_wraith": {
     "placeholder": "wraith",
     "color": "#6a3aa8",
     "accent": "#f2e05a",
-    "sprite": "sprites/enemy_fud_wraith.png"
+    "sprite": "sprites/enemy_fud_wraith.png",
+    "path": "models/enemy_fud_wraith.glb",
+    "scale": 1.6
   },
   "enemy_sludge_brute": {
     "placeholder": "humanoid",
@@ -956,8 +976,8 @@
       "legs": 0.8,
       "hunch": 0.25
     },
-    "scale": 1.35,
-    "sprite": "sprites/enemy_sludge_brute.png"
+    "sprite": "sprites/enemy_sludge_brute.png",
+    "path": "models/enemy_sludge_brute.glb"
   },
   "enemy_bear_raider": {
     "placeholder": "humanoid",
@@ -972,8 +992,8 @@
       "right": "club",
       "build": 1.3
     },
-    "scale": 1.3,
-    "sprite": "sprites/enemy_bear_raider.png"
+    "sprite": "sprites/enemy_bear_raider.png",
+    "path": "models/enemy_bear_raider.glb"
   },
   "enemy_rug_puller": {
     "placeholder": "humanoid",
@@ -988,8 +1008,8 @@
       "back": "rug",
       "right": "pistol"
     },
-    "scale": 1.05,
-    "sprite": "sprites/enemy_rug_puller.png"
+    "sprite": "sprites/enemy_rug_puller.png",
+    "path": "models/enemy_rug_puller.glb"
   },
   "enemy_dump_golem": {
     "placeholder": "humanoid",
@@ -1007,8 +1027,8 @@
       "build": 1.6,
       "legs": 0.9
     },
-    "scale": 1.3,
-    "sprite": "sprites/enemy_dump_golem.png"
+    "sprite": "sprites/enemy_dump_golem.png",
+    "path": "models/enemy_dump_golem.glb"
   },
   "enemy_margin_caller": {
     "placeholder": "humanoid",
@@ -1021,8 +1041,8 @@
       "skin": "#e8b890",
       "right": "pistol"
     },
-    "scale": 1.15,
-    "sprite": "sprites/enemy_margin_caller.png"
+    "sprite": "sprites/enemy_margin_caller.png",
+    "path": "models/enemy_margin_caller.glb"
   },
   "enemy_sludge_mother": {
     "placeholder": "sludge",
@@ -1030,7 +1050,8 @@
     "color": "#2f3b22",
     "accent": "#e0d040",
     "scale": 1.25,
-    "sprite": "sprites/enemy_sludge_mother.png"
+    "sprite": "sprites/enemy_sludge_mother.png",
+    "path": "models/enemy_sludge_mother.glb"
   },
   "enemy_wrongnamer_chief": {
     "placeholder": "humanoid",
@@ -1047,8 +1068,8 @@
       "left": "cardboard_shield",
       "build": 1.25
     },
-    "scale": 1.3,
-    "sprite": "sprites/enemy_wrongnamer_chief.png"
+    "sprite": "sprites/enemy_wrongnamer_chief.png",
+    "path": "models/enemy_wrongnamer_chief.glb"
   },
   "enemy_captain_motion": {
     "placeholder": "humanoid",
@@ -1063,8 +1084,8 @@
       "build": 0.95,
       "legs": 1.1
     },
-    "scale": 1.2,
-    "sprite": "sprites/enemy_captain_motion.png"
+    "sprite": "sprites/enemy_captain_motion.png",
+    "path": "models/enemy_captain_motion.glb"
   },
   "sp_recruit": {
     "placeholder": "humanoid",
@@ -1084,8 +1105,8 @@
       "right": "pistol",
       "belt": "#d62828"
     },
-    "scale": 0.62,
-    "sprite": "sprites/sp_recruit.png"
+    "sprite": "sprites/sp_recruit.png",
+    "path": "models/sp_recruit.glb"
   },
   "sp_medic": {
     "placeholder": "humanoid",
@@ -1104,8 +1125,8 @@
       "hatColor": "#4b5a2e",
       "left": "medkit"
     },
-    "scale": 0.62,
-    "sprite": "sprites/sp_medic.png"
+    "sprite": "sprites/sp_medic.png",
+    "path": "models/sp_medic.glb"
   },
   "sp_grunt": {
     "placeholder": "humanoid",
@@ -1126,8 +1147,8 @@
       "left": "wood_shield",
       "vest": "#4b5a2e"
     },
-    "scale": 0.62,
-    "sprite": "sprites/sp_grunt.png"
+    "sprite": "sprites/sp_grunt.png",
+    "path": "models/sp_grunt.glb"
   },
   "sp_sniper": {
     "placeholder": "humanoid",
@@ -1147,8 +1168,8 @@
       "right": "sniper",
       "vest": "#4b5a2e"
     },
-    "scale": 0.62,
-    "sprite": "sprites/sp_sniper.png"
+    "sprite": "sprites/sp_sniper.png",
+    "path": "models/sp_sniper.glb"
   },
   "sp_heavy": {
     "placeholder": "humanoid",
@@ -1168,8 +1189,8 @@
       "right": "minigun",
       "vest": "#4b5a2e"
     },
-    "scale": 0.62,
-    "sprite": "sprites/sp_heavy.png"
+    "sprite": "sprites/sp_heavy.png",
+    "path": "models/sp_heavy.glb"
   },
   "tile_fence": {
     "placeholder": "wall",
@@ -1210,39 +1231,39 @@
   },
   "mapicon_terminal": {
     "placeholder": "glyph",
-    "label": "💻"
+    "label": "\ud83d\udcbb"
   },
   "mapicon_fund": {
     "placeholder": "glyph",
-    "label": "🍽️"
+    "label": "\ud83c\udf7d\ufe0f"
   },
   "mapicon_spin": {
     "placeholder": "glyph",
-    "label": "🌀"
+    "label": "\ud83c\udf00"
   },
   "mapicon_lobby": {
     "placeholder": "glyph",
-    "label": "🤝"
+    "label": "\ud83e\udd1d"
   },
   "mapicon_combat": {
     "placeholder": "glyph",
-    "label": "⚔️"
+    "label": "\u2694\ufe0f"
   },
   "mapicon_boss": {
     "placeholder": "glyph",
-    "label": "💀"
+    "label": "\ud83d\udc80"
   },
   "skill_summoning": {
     "placeholder": "glyph",
-    "label": "🪖"
+    "label": "\ud83e\ude96"
   },
   "tab_summoning": {
     "placeholder": "glyph",
-    "label": "🪖"
+    "label": "\ud83e\ude96"
   },
   "orb_special": {
     "placeholder": "glyph",
-    "label": "⭐"
+    "label": "\u2b50"
   },
   "npc_reporter": {
     "placeholder": "humanoid",
@@ -1255,7 +1276,8 @@
       "skin": "#e8b890",
       "right": "microphone",
       "left": "clipboard"
-    }
+    },
+    "path": "models/npc_reporter.glb"
   },
   "enemy_rogue_process": {
     "placeholder": "humanoid",
@@ -1269,7 +1291,8 @@
       "eyes": "#ff3b2f",
       "plate": "#c8261e",
       "right": "pistol"
-    }
+    },
+    "path": "models/enemy_rogue_process.glb"
   },
   "enemy_party_crasher": {
     "placeholder": "humanoid",
@@ -1282,7 +1305,8 @@
       "skin": "#c98e62",
       "hair": "#2a2a2a",
       "shoes": "#f2f2f2"
-    }
+    },
+    "path": "models/enemy_party_crasher.glb"
   },
   "teleport_chamber": {
     "placeholder": "chamber",

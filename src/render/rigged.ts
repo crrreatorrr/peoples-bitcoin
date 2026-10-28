@@ -4,11 +4,14 @@
  * as the code-built humanoids. animate.ts poses invisible proxy joints; sync()
  * copies each proxy's rotation onto its bone, after turning the A-pose arms
  * down so "rest" means arms at the sides. Held gear hangs from anchors on the
- * hand bones; worn armor shows as low-poly overlays on the bones.
+ * hand bones; worn armor shows as low-poly overlays on the bones. The mesh
+ * already shows clothes and hats, so only `left`, `right`, `pose` and worn
+ * armor are read from the look.
  */
 import * as THREE from 'three';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
-import { hat, type ActorModel, type Joints, type Look } from './actors';
+import { hat, holdRight, type ActorModel, type Joints, type Look } from './actors';
+import { gearModel } from './gear';
 import { box, lambert, shade } from './kit';
 
 type ProxyName = Exclude<keyof Joints, 'handL' | 'handR'>;
@@ -39,6 +42,8 @@ const PARENT: Partial<Record<ProxyName, ProxyName>> = {
 /** How far below the wrist the grip sits, and how wide a head is, in model meters. */
 const GRIP_DROP = 0.07;
 const HEAD_WIDTH = 0.3;
+/** Height of a code-built humanoid at scale 1: held gear is sized for it. */
+const GEAR_HEIGHT = 1.83;
 
 interface Link {
   proxy: THREE.Object3D;
@@ -131,8 +136,9 @@ export function riggedActor(
   sync();
   root.updateMatrixWorld(true);
 
-  const handL = anchor(bone('LeftHand'), down);
-  const handR = anchor(bone('RightHand'), down);
+  const gearScale = height / GEAR_HEIGHT;
+  const handL = anchor(bone('LeftHand'), down, gearScale);
+  const handR = anchor(bone('RightHand'), down, gearScale);
   const joints: Joints = { ...proxies, handL, handR };
   root.scale.setScalar(scale);
   const actor: ActorModel = {
@@ -143,7 +149,7 @@ export function riggedActor(
     height: height * scale,
     motion: 'walk',
     hunch: 0,
-    pose: undefined,
+    pose: dress.pose,
     rightId: null,
     right: null,
     left: null,
@@ -151,28 +157,35 @@ export function riggedActor(
     sync,
   };
   wear(model, dress, height);
+  const left = dress.left ? gearModel(dress.left) : null;
+  if (left) {
+    handL.add(left.model);
+    actor.left = left.hold;
+  }
+  holdRight(actor, dress.right ?? null);
   return actor;
 }
 
 /**
  * A grip anchor on a hand bone, oriented like the code-built rig's (+z down
  * the hanging arm, +y forward), so held gear fits either kind of character.
+ * `size` shrinks gear for small characters and grows it for big ones.
  */
-function anchor(hand: THREE.Bone, down: THREE.Vector3): THREE.Group {
+function anchor(hand: THREE.Bone, down: THREE.Vector3, size: number): THREE.Group {
   const a = new THREE.Group();
   hand.add(a);
   const wrist = hand.getWorldPosition(new THREE.Vector3());
-  const target = wrist.addScaledVector(down, GRIP_DROP);
+  const target = wrist.addScaledVector(down, GRIP_DROP * size);
   a.position.copy(hand.worldToLocal(target.clone()));
   const want = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2);
   a.quaternion.copy(hand.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(want));
   const s = hand.getWorldScale(new THREE.Vector3());
-  a.scale.set(1 / s.x, 1 / s.y, 1 / s.z);
+  a.scale.set(size / s.x, size / s.y, size / s.z);
   return a;
 }
 
 /** Flat-shaded matte materials, for the old-school look. */
-function flatten(model: THREE.Object3D): void {
+export function flatten(model: THREE.Object3D): void {
   model.traverse((o) => {
     const mesh = o as THREE.Mesh;
     if (!mesh.isMesh) return;
