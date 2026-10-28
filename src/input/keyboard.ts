@@ -18,7 +18,8 @@ export class Keyboard {
   cameraAxes(): { yaw: number; pitch: number } {
     const axis = (pos: string, neg: string) =>
       Number(this.held.has(pos)) - Number(this.held.has(neg));
-    return { yaw: axis('ArrowLeft', 'ArrowRight'), pitch: axis('ArrowUp', 'ArrowDown') };
+    // Left turns the view left (the camera orbits clockwise seen from above), as in OSRS.
+    return { yaw: axis('ArrowRight', 'ArrowLeft'), pitch: axis('ArrowUp', 'ArrowDown') };
   }
 }
 
