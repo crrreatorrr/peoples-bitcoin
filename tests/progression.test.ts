@@ -45,7 +45,8 @@ describe('tutorial', () => {
     expect(currentHint(state, ctx)?.npc).toBe('npc_treasurer');
     state.player.dialogue = null;
     runUntil(state, ctx, () => state.player.dialogue !== null, talkTo('npc_treasurer')(state));
-    expect(state.player.currencies.bitcoin).toBeGreaterThan(0);
+    // Treasurer step is 100 USD → round(sqrt(100)) = 10 Tickets. Earlier steps pay items only.
+    expect(state.player.currencies.tickets).toBe(Math.round(Math.sqrt(100)));
     expect(currentHint(state, ctx)?.object).toBe('obj_rack_dusty');
   });
 
@@ -71,11 +72,12 @@ describe('tutorial', () => {
     state.player.quests.quest_tutorial.done = quest.steps
       .map((s) => s.id)
       .filter((id) => id !== 'trenches');
-    const before = state.player.currencies.bitcoin;
+    const before = state.player.currencies.tickets;
     const events: never[] = [];
     changeZone(state, ctx, 'zone_trenches', { x: 20, y: 120 }, events);
     expect(state.player.quests.quest_tutorial.complete).toBe(true);
-    expect(state.player.currencies.bitcoin).toBeGreaterThan(before);
+    // The trenches step has no USD. Completion is round(sqrt(669)) = 26.
+    expect(state.player.currencies.tickets).toBe(before + Math.round(Math.sqrt(669)));
   });
 });
 
@@ -162,10 +164,11 @@ describe('quest-aware dialogue, Morelight and the quest list', () => {
     const events: SimEvent[] = [];
     progressQuests(state, ctx, { type: 'kill', enemy: 'enemy_sludge_mother' }, events);
     changeZone(state, ctx, 'zone_treasury', { x: 28, y: 30 }, events);
-    const before = state.player.currencies.bitcoin;
+    const before = state.player.currencies.tickets;
     const lines = talk(state, ctx, 'npc_morelight');
     expect(state.player.quests.quest_sludge_duty.complete).toBe(true);
-    expect(state.player.currencies.bitcoin).toBeGreaterThan(before);
+    // Report step has no USD. Completion is round(sqrt(1500)) = 39.
+    expect(state.player.currencies.tickets).toBe(before + Math.round(Math.sqrt(1500)));
     expect(lines.join(' ')).toMatch(/Sludge Mother is gone/);
     expect(state.player.quests.quest_name_calling).toBeUndefined();
 

@@ -202,7 +202,7 @@ describe('quest-only drops and branching choices', () => {
     ]);
 
     changeZone(state, ctx, 'zone_treasury', { x: 44, y: 22 }, []);
-    const before = state.player.currencies.bitcoin;
+    const before = state.player.currencies.tickets;
     talk(state, ctx, 'npc_fixer');
     answer(state, ctx, 1); // use them on the Broker
     expect(atStep(state.player, ctx.content, 'quest_hostile_takeover', 'raider')).toBe(true);
@@ -215,7 +215,12 @@ describe('quest-only drops and branching choices', () => {
       complete: true,
       choices: ['takeover_leverage'],
     });
-    expect(state.player.currencies.bitcoin).toBeGreaterThan(before);
+    const choice = Math.round(Math.sqrt(6000));
+    const gained = state.player.currencies.tickets - before;
+    // The leverage choice is its own quest earn (77). The Raider's coin drop is 1–2 more.
+    expect(choice).toBe(77);
+    expect(gained).toBeGreaterThanOrEqual(choice);
+    expect(gained).toBeLessThan(choice + 5);
     expect(countItem(state.player.inventory, 'item_exit_permit')).toBe(1);
     const fixer = content().npcs.get('npc_fixer')!;
     talk(state, ctx, 'npc_fixer');

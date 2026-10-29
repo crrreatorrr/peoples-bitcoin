@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GATHERING } from '../src/config/balance';
+import { GATHERING, TICKETS } from '../src/config/balance';
 import { successChance } from '../src/sim/gathering';
 import { countItem } from '../src/sim/inventory';
 import { runTick } from '../src/sim/tick';
@@ -60,25 +60,41 @@ describe('gathering skills', () => {
     expect(countItem(state.player.inventory, 'item_raw_minor_scandal')).toBe(1);
   });
 
-  it('lobbying pays $BITCOIN per favor, except when blackmailed', () => {
+  it('lobbying pays a fraction of a Ticket per favor, except when blackmailed', () => {
     const { state, ctx } = newGame(99);
     give(state, 'item_business_cards');
     const lobbyist = objectOf(state, 'obj_lobbyist_junior', 45, 24);
+    // Junior favors are 3–6 USD, which is 0.12–0.24 Tickets at 1 per 25 USD.
+    const min = 3 / TICKETS.usdPerTicket;
+    const max = 6 / TICKETS.usdPerTicket;
+    const owed = () =>
+      state.player.currencies.tickets + state.player.ledger.offlineRemainder.pb_lobby;
     let paid = 0;
     let blackmailed = 0;
-    for (let i = 0; i < 4000 && (paid < 3 || blackmailed < 1); i++) {
+    for (
+      let i = 0;
+      i < 4000 && (paid < 3 || blackmailed < 1 || state.player.currencies.tickets < 1);
+      i++
+    ) {
       state.player.pos = { x: 45, y: 25 };
-      const before = state.player.currencies.bitcoin;
+      const before = owed();
+      const beforeTickets = state.player.currencies.tickets;
       const events = runTick(state, ctx, state.player.action ? [] : act(lobbyist.id, 'Do a favor'));
       if (!events.some((e) => e.type === 'xp')) continue;
-      if (state.player.currencies.bitcoin > before) paid++;
+      const delta = owed() - before;
       if (messages(events).some((m) => m.startsWith('Blackmail!'))) {
         blackmailed++;
-        expect(state.player.currencies.bitcoin).toBe(before);
+        expect(delta).toBe(0);
+        expect(state.player.currencies.tickets).toBe(beforeTickets);
+      } else if (delta > 0) {
+        paid++;
+        expect(delta).toBeGreaterThanOrEqual(min - 1e-9);
+        expect(delta).toBeLessThanOrEqual(max + 1e-9);
       }
     }
     expect(paid).toBeGreaterThanOrEqual(3);
     expect(blackmailed).toBeGreaterThanOrEqual(1);
+    expect(state.player.currencies.tickets).toBeGreaterThanOrEqual(1);
     expect(countItem(state.player.inventory, 'item_raw_minor_scandal')).toBe(0);
   });
 

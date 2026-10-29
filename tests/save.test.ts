@@ -144,7 +144,19 @@ describe('save / load', () => {
     };
     const loaded = deserialize(roundTrip(v5), content())!;
     expect(loaded).not.toBeNull();
-    expect(loaded.player.currencies).toEqual({ bitcoin: 42 });
+    // v5 → v6 keeps bitcoin, v7 copies it onto tickets and leaves the unused field at 0.
+    const migrated = migrate(v5) as {
+      version: number;
+      player: { currencies: { tickets?: number; bitcoin?: number }; ledger: { batches: object } };
+    };
+    expect(migrated.version).toBe(7);
+    expect(migrated.player.currencies).toEqual({ tickets: 42 });
+    expect(loaded.player.currencies).toEqual({ tickets: 42, bitcoin: 0 });
+    expect(loaded.player.ledger.streams.pb_drop.pending).toBe(0);
+    expect(loaded.player.ledger.streams.pb_lobby.pending).toBe(0);
+    expect(loaded.player.ledger.streams.pb_sell.pending).toBe(0);
+    expect(loaded.player.ledger.batches).toEqual({});
+    expect(loaded.player.ledger.questEarns).toEqual([]);
     expect(loaded.player.inventory[0]).toEqual({ itemId: 'item_hash_crystal', qty: 1 });
     expect(loaded.player.bank).toEqual([{ itemId: 'item_hash_crystal', qty: 3 }]);
   });
