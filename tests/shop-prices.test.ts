@@ -69,7 +69,9 @@ describe('Gameplay v3 shop prices', () => {
 
   it('keeps the Coffee row but cannot buy, sell, or grant it', () => {
     const coffee = 'item_blue_sproto_coffee';
-    expect(content().items.has(coffee)).toBe(false);
+    // Content-only. The id is in the item list and is not stocked, dropped, or granted.
+    expect([...content().items.keys()]).toContain(coffee);
+    expect(content().items.get(coffee)?.value).toBe(3.69);
     expect(content().ticketPrices.find((row) => row.itemId === coffee)).toEqual({
       shopId: 'shop_terminal',
       itemId: coffee,

@@ -1763,3 +1763,74 @@ describe('two tabs', () => {
     expect(script.spends).toEqual([]);
   });
 });
+
+describe('M8 content-only items on the hub', () => {
+  const coffee = 'item_blue_sproto_coffee';
+
+  it('sells no Coffee and does not call the server or bank a fraction', async () => {
+    const { state, ctx } = newGame();
+    state.hubSession.mode = 'hub';
+    state.player.interface = { kind: 'terminal', shopId: 'shop_terminal' };
+    give(state, coffee, 20);
+    const { hub, said } = attach(state, ctx);
+    await hub.start();
+    const wallet = state.player.currencies.tickets;
+    hub.sell(0, 'all');
+    await settle();
+    expect(said).toContain('Worth 0 Tickets');
+    expect(script.sells).toEqual([]);
+    expect(countItem(state.player.inventory, coffee)).toBe(20);
+    expect(state.player.currencies.tickets).toBe(wallet);
+    expect(state.player.ledger.offlineRemainder.pb_sell).toBe(0);
+    expect(state.player.ledger.streams.pb_sell.pending).toBe(0);
+    expect(state.player.ledger.streams.pb_sell.remainder).toBe(0);
+
+    script.shopError = new HubSdkError('zero_value', 'zero');
+    state.player.ledger.sale = {
+      key: '018f3b2e-7c4a-7b11-8d2e-6a5b4c3d2e1f',
+      shopId: 'shop_terminal',
+      itemId: coffee,
+      packs: 20,
+      slot: 0,
+    };
+    hub.checkpoint();
+    await settle();
+    expect(script.sells, 'a zero sell price never reaches the server').toEqual([]);
+    expect(state.player.ledger.sale).toBeNull();
+    expect(countItem(state.player.inventory, coffee)).toBe(20);
+    expect(state.player.currencies.tickets).toBe(wallet);
+  });
+
+  it('does not buy or grant the Memo or the Pup', async () => {
+    const { state, ctx } = newGame();
+    state.hubSession.mode = 'hub';
+    state.player.interface = { kind: 'terminal', shopId: 'shop_terminal' };
+    const { hub, said } = attach(state, ctx);
+    await hub.start();
+    const wallet = state.player.currencies.tickets;
+    hub.buy('shop_terminal', 'item_leaked_memo', 1);
+    hub.buy('shop_terminal', 'pet_sproto_pup', 1);
+    await settle();
+    expect(said).toContain('Unavailable');
+    expect(script.spends).toEqual([]);
+    expect(script.sells).toEqual([]);
+    expect(countItem(state.player.inventory, 'item_leaked_memo')).toBe(0);
+    expect(countItem(state.player.inventory, 'pet_sproto_pup')).toBe(0);
+    expect(state.player.currencies.tickets).toBe(wallet);
+  });
+
+  it('does not buy or grant Coffee', async () => {
+    const { state, ctx } = newGame();
+    state.hubSession.mode = 'hub';
+    state.player.interface = { kind: 'terminal', shopId: 'shop_terminal' };
+    const { hub } = attach(state, ctx);
+    await hub.start();
+    const wallet = state.player.currencies.tickets;
+    hub.buy('shop_terminal', coffee, 1);
+    await settle();
+    expect(script.spends, 'Coffee is content-only and must not be bought').toEqual([]);
+    expect(countItem(state.player.inventory, coffee)).toBe(0);
+    expect(state.player.currencies.tickets).toBe(wallet);
+    expect(state.player.ledger.purchase).toBeNull();
+  });
+});
