@@ -2,7 +2,7 @@
   {
     "item": "item_empty_canister",
     "target": "obj_statue_gremlin",
-    "message": "You fill the canister at the Gremlin Fountain. The water is neither warm nor cold. The Gremlin seems to wink.",
+    "message": "You fill the canister at the Gremlin Fountain. The water is neither warm nor cold. The Gremlin seems to wink. For a second, you'd swear it glowed.",
     "consume": 1,
     "quest": {
       "quest": "quest_server_meltdown",
@@ -18,7 +18,7 @@
   {
     "item": "item_coolant_canister",
     "target": "obj_rack_liquid",
-    "message": "The rack hisses and cools down. Then every screen in the wing flashes red: ROGUE PROCESS DETECTED.",
+    "message": "The rack hisses and cools down. Then every screen in the wing flashes red: ROGUE PROCESS DETECTED. UPLINK ACTIVE.",
     "consume": 1,
     "quest": {
       "quest": "quest_server_meltdown",
@@ -47,7 +47,7 @@
   {
     "item": "item_press_release",
     "target": "npc_reporter",
-    "message": "The Reporter reads it live: 'THE PRESIDENT IS OPENING A DOOR. FOR EVERYONE.' Somewhere, the Treasury cheers.",
+    "message": "Lorna Coinlore reads it live: 'THE PRESIDENT IS OPENING A DOOR. FOR EVERYONE.' Somewhere, the Treasury cheers.",
     "consume": 1,
     "quest": {
       "quest": "quest_way_out",
@@ -57,7 +57,7 @@
   {
     "item": "item_chamber_blueprints",
     "target": "obj_teleport_chamber",
-    "message": "Following the blueprints, you reconnect three cables and one very confusing lever. Lights flicker on.",
+    "message": "Following the blueprints, you reconnect three cables and one very confusing lever. The old stone warms under your hand. Lights flicker on in patterns no electrician would sign off.",
     "consume": 1,
     "quest": {
       "quest": "quest_way_out",
@@ -70,7 +70,7 @@
   {
     "item": "item_coordinates_drive",
     "target": "obj_teleport_chamber",
-    "message": "You slot in the Coordinates Drive. A screen blinks: DESTINATION SET. OUTSIDE.",
+    "message": "You slot in the Coordinates Drive. A screen blinks: DESTINATION SET. OUTSIDE. OLD WORLD.",
     "consume": 1,
     "quest": {
       "quest": "quest_way_out",
