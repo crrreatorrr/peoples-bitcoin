@@ -1413,6 +1413,30 @@ body {
   font-size: 12px;
 }
 
+.tab-lock {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(13, 11, 9, 0.72);
+  pointer-events: auto;
+}
+
+.tab-lock p {
+  margin: 0;
+  padding: 16px 18px;
+  max-width: 280px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--parchment);
+  border: 3px solid var(--edge-dark);
+}
+
 .parody-notice {
   margin: 8px 0 0;
   font-size: 14px;

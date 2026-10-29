@@ -397,12 +397,14 @@ Three audits (gameplay duels in the real sim, every NPC variant, the story as a 
   disk seals into memory, then compare-and-swaps the store's `v`. A seal is append-only: acking
   it does not forget the id. A tab whose save still has the pre-seal `pending` subtracts that
   amount instead of minting a new key. Reset clears this store along with the game save.
-- **Shop inventory** uses that same store and lock. Each acked spend or sell is an inventory
-  delta keyed by the purchase key (`grant` or `remove`, item, units). The key is written once.
-  Every save re-reads `peoples-bitcoin.save` and merges those deltas into the inventory instead
-  of replacing it with a stale tab's snapshot. A sold stack cannot come back, and a bought item
-  cannot be dropped by the other tab's save. Pending shop orders are merged the same way: an
-  unacked order on disk is kept when this tab has none.
+- **One writer.** A `BroadcastChannel` plus `localStorage` key `peoples-bitcoin.writer` gives
+  the newest tab the save. An older tab stops, writes once, and shows "playing in another tab".
+  Inventories are not merged. A server lease replaces this later.
+- **Over-cap earns.** The server rejects a whole batch that does not fit (`pb_*` and the session
+  cap are 200, `pb_quest` is 158). Stream batches are at most 200 and at most the room
+  `getTicketBalance` left. A rejected stream batch goes back to `pending` and is not deleted.
+  If that size still fits the room we know, new batches wait for the next balance refresh.
+  A quest keeps `pb:quest:<id>` and is sent again on the next session start, so it pays once.
 - **Quest and step rewards** are `round(sqrt(usd))`, each its own `earnTickets` with reason
   `pb_quest`. `questEarnName` builds `pb:quest:<questId>` and adds a step or choice id when
   that reward is separate. `questEarnWireKey` is the UUIDv5 of that name. The wallet is credited

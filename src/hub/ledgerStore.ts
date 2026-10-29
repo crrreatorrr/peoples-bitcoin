@@ -10,8 +10,7 @@
 import type { EarnBatch, GameState, StreamReason } from '../sim/state';
 import { STREAM_REASONS } from '../sim/state';
 
-export const HUB_LEDGER_KEY = 'peoples-bitcoin.hub-ledger';
-const STORE_KEY = HUB_LEDGER_KEY;
+const STORE_KEY = 'peoples-bitcoin.hub-ledger';
 const LOCK_KEY = 'peoples-bitcoin.hub-ledger.lock';
 const LOCK_MS = 2000;
 
@@ -22,19 +21,9 @@ export interface SealRecord {
   acked: boolean;
 }
 
-/** One acked shop spend or sell. Applying the same key twice is a no-op. */
-export interface InventoryDelta {
-  key: string;
-  op: 'grant' | 'remove';
-  itemId: string;
-  units: number;
-  stackable: boolean;
-}
-
 interface HubLedgerFile {
   v: number;
   seals: SealRecord[];
-  deltas: InventoryDelta[];
 }
 
 interface LockFile {
@@ -43,21 +32,7 @@ interface LockFile {
 }
 
 function emptyFile(): HubLedgerFile {
-  return { v: 0, seals: [], deltas: [] };
-}
-
-function isDelta(row: unknown): row is InventoryDelta {
-  if (!row || typeof row !== 'object') return false;
-  const delta = row as Partial<InventoryDelta>;
-  return (
-    typeof delta.key === 'string' &&
-    (delta.op === 'grant' || delta.op === 'remove') &&
-    typeof delta.itemId === 'string' &&
-    typeof delta.units === 'number' &&
-    Number.isInteger(delta.units) &&
-    delta.units > 0 &&
-    typeof delta.stackable === 'boolean'
-  );
+  return { v: 0, seals: [] };
 }
 
 function readStore(): HubLedgerFile {
@@ -66,7 +41,6 @@ function readStore(): HubLedgerFile {
     if (!raw) return emptyFile();
     const parsed = JSON.parse(raw) as Partial<HubLedgerFile>;
     const seals = Array.isArray(parsed.seals) ? parsed.seals : [];
-    const deltas = Array.isArray(parsed.deltas) ? parsed.deltas.filter(isDelta) : [];
     return {
       v: typeof parsed.v === 'number' ? parsed.v : 0,
       seals: seals.filter(
@@ -77,7 +51,6 @@ function readStore(): HubLedgerFile {
           typeof seal.amount === 'number' &&
           typeof seal.acked === 'boolean',
       ),
-      deltas,
     };
   } catch {
     return emptyFile();
@@ -183,35 +156,6 @@ export function ackSeal(owner: string, id: string): void {
     disk.v += 1;
     writeStore(disk);
   });
-}
-
-export function readInventoryDeltas(): InventoryDelta[] {
-  return readStore().deltas.map((delta) => ({ ...delta }));
-}
-
-/**
- * Records an acked spend or sell. The same key is not stored twice, so a second
- * tab cannot apply that inventory change again.
- */
-export function rememberInventoryDelta(owner: string, delta: InventoryDelta): boolean {
-  if (!isDelta(delta)) return false;
-  const wrote = withHubLock(owner, () => {
-    const disk = readStore();
-    if (disk.deltas.some((row) => row.key === delta.key)) return true;
-    disk.deltas.push({
-      key: delta.key,
-      op: delta.op,
-      itemId: delta.itemId,
-      units: delta.units,
-      stackable: delta.stackable,
-    });
-    disk.v += 1;
-    const seen = disk.v;
-    writeStore(disk);
-    const stored = readStore();
-    return stored.v === seen && stored.deltas.some((row) => row.key === delta.key);
-  });
-  return wrote === true;
 }
 
 export function clearHubLedger(): void {

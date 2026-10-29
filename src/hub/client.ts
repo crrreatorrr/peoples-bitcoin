@@ -34,13 +34,7 @@ import {
   type TicketSnapshot,
 } from './bridge';
 import { HubSdkError } from '@metaverse/hub-sdk';
-import {
-  ackSeal,
-  forgetSeal,
-  reconcileSeals,
-  rememberInventoryDelta,
-  rememberSeal,
-} from './ledgerStore';
+import { ackSeal, forgetSeal, reconcileSeals, rememberSeal } from './ledgerStore';
 import { questEarnWireKey, uuidv7 } from './uuid';
 
 const QUEST_REASON = 'pb_quest';
@@ -71,6 +65,8 @@ export class HubClient {
     // That migrated number is not in any earn batch, so it is not banked.
     const balance = await this.bridge.getTicketBalance();
     if (balance != null) this.applySnapshot(balance);
+    // A cap rejection holds new batches until the next balance refresh.
+    this.state.hubSession.streamHold = false;
     const opened = this.sealSync();
     if (!this.save()) {
       this.undo(opened);
@@ -118,6 +114,7 @@ export class HubClient {
     // Disk seals win over a stale in-memory pending balance.
     reconcileSeals(this.state);
     for (const reason of STREAM_REASONS) {
+      if (this.state.hubSession.streamHold) break;
       if (this.state.player.ledger.batches[reason]) continue;
       const id = uuidv7();
       const batch = openStreamBatch(this.state, reason, id);
@@ -401,11 +398,17 @@ export class HubClient {
     } catch (err) {
       const code = errorCode(err);
       this.rememberCaps(err);
-      if (isStreamTerminal(code)) {
+      if (isCap(code) || code === 'amount_over_rule') {
+        // The server rejected the whole batch. Put it back and seal a smaller
+        // one later, instead of deleting the Tickets.
+        this.releaseBatch(reason, id, amount);
+        this.say(ticketLimitMessage(capRemaining(err)));
+        this.save();
+      } else if (isStreamTerminal(code)) {
         console.warn('[hub] earn batch dropped', { reason, id, amount, code });
         dropStreamBatch(this.state, reason, id, null);
         ackSeal(this.lockOwner, id);
-        this.say(isCap(code) ? ticketLimitMessage(capRemaining(err)) : 'Could not bank Tickets.');
+        this.say('Could not bank Tickets.');
         this.save();
       } else {
         const batch = this.state.player.ledger.batches[reason];
@@ -444,12 +447,15 @@ export class HubClient {
     } catch (err) {
       const code = errorCode(err);
       this.rememberCaps(err);
-      if (code === 'session_ticket_cap') {
+      if (isCap(code) || code === 'amount_over_rule') {
+        // Same pb:quest key. The next session start sends it once; the server pays once.
         row.status = 'capped';
         row.cappedSessionId = this.bridge.sessionId() || row.cappedSessionId;
-        console.warn('[hub] quest earn session_ticket_cap; resend on the next session', {
+        console.warn('[hub] quest earn over cap; resend on the next session', {
           name: row.name,
           key: row.key,
+          code,
+          questCap: TICKETS.questCap,
           cappedSessionId: row.cappedSessionId,
         });
         this.say(ticketLimitMessage(capRemaining(err)));
@@ -489,22 +495,19 @@ export class HubClient {
     }
   }
 
+  private releaseBatch(reason: StreamReason, id: string, amount: number): void {
+    undoStreamBatch(this.state, reason, id);
+    this.state.player.ledger.appliedSealIds = this.state.player.ledger.appliedSealIds.filter(
+      (sealId) => sealId !== id,
+    );
+    forgetSeal(this.lockOwner, id);
+    const room = earnRoom(this.state);
+    if (room == null || room >= amount) this.state.hubSession.streamHold = true;
+    console.warn('[hub] earn batch returned to pending', { reason, id, amount, room });
+  }
+
   private finishPurchase(key: string, itemId: string, units: number, balance: number): void {
     const ledger = this.state.player.ledger;
-    const item = this.ctx.content.items.get(itemId);
-    if (
-      units > 0 &&
-      !rememberInventoryDelta(this.lockOwner, {
-        key,
-        op: 'grant',
-        itemId,
-        units,
-        stackable: item?.stackable ?? false,
-      })
-    ) {
-      this.say('Purchase pending');
-      return;
-    }
     if (ledger.purchase?.key === key) ledger.purchase = null;
     if (!ledger.fulfilledKeys.includes(key)) {
       ledger.fulfilledKeys = [...ledger.fulfilledKeys, key];
@@ -578,19 +581,6 @@ export class HubClient {
   ): void {
     const ledger = this.state.player.ledger;
     const item = this.ctx.content.items.get(itemId);
-    if (
-      units > 0 &&
-      !rememberInventoryDelta(this.lockOwner, {
-        key,
-        op: 'remove',
-        itemId,
-        units,
-        stackable: item?.stackable ?? false,
-      })
-    ) {
-      this.say('Sale pending');
-      return;
-    }
     if (ledger.sale?.key === key) ledger.sale = null;
     if (!ledger.fulfilledKeys.includes(key)) {
       ledger.fulfilledKeys = [...ledger.fulfilledKeys, key];
@@ -739,15 +729,19 @@ function isCap(code: string): boolean {
   return code.endsWith('_cap');
 }
 
-/** Stream batches are not resent after a terminal rejection. */
-function isStreamTerminal(code: string): boolean {
-  return code === 'idempotency_mismatch' || code === 'amount_over_rule' || code.endsWith('_cap');
+/** Smallest known earn room. Null when the server has not said. */
+function earnRoom(state: GameState): number | null {
+  const rooms = [state.hubSession.sessionCapLeft, state.hubSession.dailyCapLeft].filter(
+    (n): n is number => typeof n === 'number',
+  );
+  return rooms.length > 0 ? Math.min(...rooms) : null;
 }
 
-/**
- * Quest earns: session_ticket_cap stays pending. These codes are finished
- * (acked) and not resent.
- */
+/** A mismatched body is not resent. Cap rejections go back to pending instead. */
+function isStreamTerminal(code: string): boolean {
+  return code === 'idempotency_mismatch';
+}
+
 function isShopTerminal(code: string): boolean {
   return (
     code === 'unknown_item' ||
@@ -759,9 +753,9 @@ function isShopTerminal(code: string): boolean {
   );
 }
 
+/** A mismatched quest body is finished. Cap rejections keep the key for the next session. */
 function isQuestTerminal(code: string): boolean {
-  if (code === 'session_ticket_cap') return false;
-  return code === 'idempotency_mismatch' || code === 'amount_over_rule' || code.endsWith('_cap');
+  return code === 'idempotency_mismatch';
 }
 
 function takeUnits(state: GameState, itemId: string, units: number, slot: number): void {

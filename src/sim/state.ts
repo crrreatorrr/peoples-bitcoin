@@ -172,6 +172,11 @@ export interface HubSession {
   sessionCapLeft: number | null;
   /** Tickets this game can still credit today. Null until getTicketBalance. */
   dailyCapLeft: number | null;
+  /**
+   * A stream batch was rejected at a size the known room still allows.
+   * New batches wait for the next balance refresh so the same size is not resent.
+   */
+  streamHold: boolean;
 }
 
 export interface DialogueState {
@@ -427,6 +432,7 @@ export function freshHubSession(): HubSession {
     verseCapLeft: null,
     sessionCapLeft: null,
     dailyCapLeft: null,
+    streamHold: false,
   };
 }
 
