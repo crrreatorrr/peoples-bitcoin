@@ -34,7 +34,13 @@ import {
   type TicketSnapshot,
 } from './bridge';
 import { HubSdkError } from '@metaverse/hub-sdk';
-import { ackSeal, forgetSeal, reconcileSeals, rememberSeal } from './ledgerStore';
+import {
+  ackSeal,
+  forgetSeal,
+  reconcileSeals,
+  rememberInventoryDelta,
+  rememberSeal,
+} from './ledgerStore';
 import { questEarnWireKey, uuidv7 } from './uuid';
 
 const QUEST_REASON = 'pb_quest';
@@ -485,9 +491,23 @@ export class HubClient {
 
   private finishPurchase(key: string, itemId: string, units: number, balance: number): void {
     const ledger = this.state.player.ledger;
+    const item = this.ctx.content.items.get(itemId);
+    if (
+      units > 0 &&
+      !rememberInventoryDelta(this.lockOwner, {
+        key,
+        op: 'grant',
+        itemId,
+        units,
+        stackable: item?.stackable ?? false,
+      })
+    ) {
+      this.say('Purchase pending');
+      return;
+    }
     if (ledger.purchase?.key === key) ledger.purchase = null;
     if (!ledger.fulfilledKeys.includes(key)) {
-      ledger.fulfilledKeys = [...ledger.fulfilledKeys, key].slice(-100);
+      ledger.fulfilledKeys = [...ledger.fulfilledKeys, key];
       setTicketBalance(this.state, balance);
       const events: SimEvent[] = [];
       giveItem(this.state, this.ctx, itemId, units, events);
@@ -533,8 +553,14 @@ export class HubClient {
     this.inflight.add(token);
     try {
       const result = await this.bridge.sellItem(order.shopId, order.itemId, order.packs, order.key);
-      if (result.credited != null) this.noteCredit(result.credited);
-      this.finishSale(order.key, order.itemId, order.slot, result.units, result.balance);
+      this.finishSale(
+        order.key,
+        order.itemId,
+        order.slot,
+        result.units,
+        result.balance,
+        result.credited,
+      );
     } catch (err) {
       this.failSale(order.key, err);
     } finally {
@@ -548,17 +574,33 @@ export class HubClient {
     slot: number,
     units: number,
     balance: number,
+    credited: number | null,
   ): void {
     const ledger = this.state.player.ledger;
+    const item = this.ctx.content.items.get(itemId);
+    if (
+      units > 0 &&
+      !rememberInventoryDelta(this.lockOwner, {
+        key,
+        op: 'remove',
+        itemId,
+        units,
+        stackable: item?.stackable ?? false,
+      })
+    ) {
+      this.say('Sale pending');
+      return;
+    }
     if (ledger.sale?.key === key) ledger.sale = null;
     if (!ledger.fulfilledKeys.includes(key)) {
-      ledger.fulfilledKeys = [...ledger.fulfilledKeys, key].slice(-100);
+      ledger.fulfilledKeys = [...ledger.fulfilledKeys, key];
+      if (credited != null) this.noteCredit(credited);
       takeUnits(this.state, itemId, units, slot);
       setTicketBalance(this.state, balance);
       const events: SimEvent[] = [];
       progressQuests(this.state, this.ctx, { type: 'sell' }, events);
       this.play(events);
-      const name = this.ctx.content.items.get(itemId)?.name ?? itemId;
+      const name = item?.name ?? itemId;
       this.say(`You sell ${units.toLocaleString('en-US')} × ${name}.`);
     }
     this.save();

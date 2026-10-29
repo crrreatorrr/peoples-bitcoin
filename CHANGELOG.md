@@ -11,6 +11,8 @@
 - Stream batches are sealed in a separate hub ledger before they are sent, so a second tab
   cannot mint another key for the same pending Tickets. A quest reward hits the wallet once.
   `capped: true` is a successful earn. A transport failure is retried on the next init.
+- Acked shop buys and sells are inventory deltas in that ledger. A save merges them into the
+  stored inventory, so one tab cannot wipe the other's pistol or restore a stack that was sold.
 - Shop Ticket prices now come from Gameplay's v3 CSV (100 rows), including Blue Sproto Coffee
   before that item exists. Drop tables can name tertiary rolls and shared tables. The coin
   drop is still `usd / 25` as `pb_drop`, not the live price.
