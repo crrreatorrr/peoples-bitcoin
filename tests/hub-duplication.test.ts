@@ -464,17 +464,47 @@ describe('stream earns', () => {
     state.hubSession.mode = 'hub';
     addStreamUsd(state, 'pb_drop', 25 * 8);
     script.earnError = new HubSdkError('rpc_failed', 'down');
+    script.stickyError = true;
     const { hub } = attach(state, ctx);
     await hub.start();
     await settle();
     expect(script.earns).toHaveLength(1);
     const first = script.earns[0]!;
     expect(first).toMatchObject({ amount: 8, reason: 'pb_drop' });
+    expect(state.player.ledger.batches.pb_drop).toMatchObject({ id: first.key, amount: 8 });
+
     hub.checkpoint();
+    await settle();
+    hub.checkpoint();
+    await settle();
+    expect(script.earns).toHaveLength(1);
+    expect(state.player.ledger.batches.pb_drop).toMatchObject({ id: first.key, amount: 8 });
+
+    await hub.start();
     await settle();
     expect(script.earns).toHaveLength(2);
     expect(script.earns[1]).toEqual(first);
+    expect(state.player.ledger.batches.pb_drop).toMatchObject({ id: first.key, amount: 8 });
+    hub.checkpoint();
+    await settle();
+    expect(script.earns).toHaveLength(2);
+
+    const before = script.serverBalance;
+    script.stickyError = false;
+    script.earnError = null;
+    await hub.start();
+    await settle();
+    expect(script.earns).toHaveLength(3);
+    expect(script.earns[2]).toEqual(first);
+    expect(script.serverBalance - before).toBe(8);
     expect(state.player.ledger.batches.pb_drop).toBeUndefined();
+
+    state.player.ledger.batches.pb_drop = { id: first.key, amount: first.amount };
+    await hub.start();
+    await settle();
+    expect(script.earns).toHaveLength(4);
+    expect(script.earns[3]).toEqual(first);
+    expect(script.serverBalance - before).toBe(8);
   });
 
   it('does not send a batch when the save fails', async () => {
