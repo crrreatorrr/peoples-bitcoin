@@ -103,7 +103,7 @@ export interface StreamPocket {
 export interface EarnBatch {
   id: string;
   amount: number;
-  /** Set after a transport failure. The next init resends it; checkpoints do not. */
+  /** Older saves may set this. Resend uses the same id whenever the known room allows. */
   retryAtInit?: boolean;
 }
 
@@ -172,11 +172,6 @@ export interface HubSession {
   sessionCapLeft: number | null;
   /** Tickets this game can still credit today. Null until getTicketBalance. */
   dailyCapLeft: number | null;
-  /**
-   * A stream batch was rejected at a size the known room still allows.
-   * New batches wait for the next balance refresh so the same size is not resent.
-   */
-  streamHold: boolean;
 }
 
 export interface DialogueState {
@@ -432,7 +427,6 @@ export function freshHubSession(): HubSession {
     verseCapLeft: null,
     sessionCapLeft: null,
     dailyCapLeft: null,
-    streamHold: false,
   };
 }
 

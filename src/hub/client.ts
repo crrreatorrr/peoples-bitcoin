@@ -65,8 +65,6 @@ export class HubClient {
     // That migrated number is not in any earn batch, so it is not banked.
     const balance = await this.bridge.getTicketBalance();
     if (balance != null) this.applySnapshot(balance);
-    // A cap rejection holds new batches until the next balance refresh.
-    this.state.hubSession.streamHold = false;
     const opened = this.sealSync();
     if (!this.save()) {
       this.undo(opened);
@@ -114,7 +112,7 @@ export class HubClient {
     // Disk seals win over a stale in-memory pending balance.
     reconcileSeals(this.state);
     for (const reason of STREAM_REASONS) {
-      if (this.state.hubSession.streamHold) break;
+      // An open batch keeps its key. New Tickets for this stream stay in pending.
       if (this.state.player.ledger.batches[reason]) continue;
       const id = uuidv7();
       const batch = openStreamBatch(this.state, reason, id);
@@ -365,8 +363,8 @@ export class HubClient {
     const sid = this.bridge.sessionId();
     for (const reason of STREAM_REASONS) {
       const batch = this.state.player.ledger.batches[reason];
-      // A transport failure is retried on the next init, not on every checkpoint.
-      if (batch && (when === 'session' || !batch.retryAtInit)) {
+      // Same key and amount. A cap or a lost response must not mint another id.
+      if (batch && roomAllows(this.state, batch.amount)) {
         await this.sendBatch(reason, batch.id, batch.amount);
       }
     }
@@ -398,24 +396,18 @@ export class HubClient {
     } catch (err) {
       const code = errorCode(err);
       this.rememberCaps(err);
-      if (isCap(code) || code === 'amount_over_rule') {
-        // The server rejected the whole batch. Put it back and seal a smaller
-        // one later, instead of deleting the Tickets.
-        this.releaseBatch(reason, id, amount);
-        this.say(ticketLimitMessage(capRemaining(err)));
-        this.save();
-      } else if (isStreamTerminal(code)) {
+      if (isStreamTerminal(code)) {
         console.warn('[hub] earn batch dropped', { reason, id, amount, code });
         dropStreamBatch(this.state, reason, id, null);
         ackSeal(this.lockOwner, id);
         this.say('Could not bank Tickets.');
         this.save();
       } else {
-        const batch = this.state.player.ledger.batches[reason];
-        if (batch?.id === id) batch.retryAtInit = true;
-        this.bridge.noteFailure(err);
+        // session_ticket_cap, daily cap, and transport errors keep this seal.
+        if (isCap(code)) this.say(ticketLimitMessage(capRemaining(err)));
+        else this.bridge.noteFailure(err);
         this.save();
-        console.warn('[hub] earn batch will retry on the next init', { reason, id, code });
+        console.warn('[hub] earn batch kept', { reason, id, amount, code });
       }
     } finally {
       this.inflight.delete(token);
@@ -493,17 +485,6 @@ export class HubClient {
     } finally {
       this.inflight.delete(token);
     }
-  }
-
-  private releaseBatch(reason: StreamReason, id: string, amount: number): void {
-    undoStreamBatch(this.state, reason, id);
-    this.state.player.ledger.appliedSealIds = this.state.player.ledger.appliedSealIds.filter(
-      (sealId) => sealId !== id,
-    );
-    forgetSeal(this.lockOwner, id);
-    const room = earnRoom(this.state);
-    if (room == null || room >= amount) this.state.hubSession.streamHold = true;
-    console.warn('[hub] earn batch returned to pending', { reason, id, amount, room });
   }
 
   private finishPurchase(key: string, itemId: string, units: number, balance: number): void {
@@ -729,17 +710,17 @@ function isCap(code: string): boolean {
   return code.endsWith('_cap');
 }
 
-/** Smallest known earn room. Null when the server has not said. */
-function earnRoom(state: GameState): number | null {
+/** True when every cap we know about can still take `amount`. Unknown caps do not block. */
+function roomAllows(state: GameState, amount: number): boolean {
   const rooms = [state.hubSession.sessionCapLeft, state.hubSession.dailyCapLeft].filter(
     (n): n is number => typeof n === 'number',
   );
-  return rooms.length > 0 ? Math.min(...rooms) : null;
+  return rooms.every((room) => room >= amount);
 }
 
-/** A mismatched body is not resent. Cap rejections go back to pending instead. */
+/** A mismatched or over-rule body is dropped. Caps and transport errors keep the seal. */
 function isStreamTerminal(code: string): boolean {
-  return code === 'idempotency_mismatch';
+  return code === 'idempotency_mismatch' || code === 'amount_over_rule';
 }
 
 function isShopTerminal(code: string): boolean {

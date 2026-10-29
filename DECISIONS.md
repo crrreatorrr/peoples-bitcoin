@@ -389,9 +389,10 @@ Three audits (gameplay duels in the real sim, every NPC variant, the story as a 
   typechecks; the game never reads it.
 - **Streams** (enemy USD, lobbying and fundraising USD, sell-only item value) are 1 Ticket per
   25 USD-equivalent. The fraction stays in the save. Whole Tickets bank in batches of at most 200
-  with reasons `pb_drop`, `pb_lobby`, and `pb_sell`. A mismatched batch or a `*_cap` / `amount_over_rule`
-  error is dropped and logged. A success body with `capped: true` is still a success. `rpc_failed`
-  stays sealed and is resent on the next init, not on every checkpoint. Standalone fractions live
+  with reasons `pb_drop`, `pb_lobby`, and `pb_sell`. `idempotency_mismatch` and `amount_over_rule`
+  drop the batch. A success body with `capped: true` is still a success. A cap or transport
+  failure keeps the sealed id and amount and retries that same body when the known room allows.
+  Standalone fractions live
   in `offlineRemainder` and are never sent.
 - **Sealed batches** live in `localStorage` key `peoples-bitcoin.hub-ledger`, separate from the
   game save. `sealSync` takes `peoples-bitcoin.hub-ledger.lock` (a short owner lease), merges
@@ -403,9 +404,11 @@ Three audits (gameplay duels in the real sim, every NPC variant, the story as a 
   Inventories are not merged. A server lease replaces this later.
 - **Over-cap earns.** The server rejects a whole batch that does not fit (`pb_*` and the session
   cap are 200, `pb_quest` is 158). Stream batches are at most 200 and at most the room
-  `getTicketBalance` left. A rejected stream batch goes back to `pending` and is not deleted.
-  If that size still fits the room we know, new batches wait for the next balance refresh.
-  A quest keeps `pb:quest:<id>` and is sent again on the next session start, so it pays once.
+  `getTicketBalance` left. `session_ticket_cap`, `daily_ticket_cap`, and a transport error leave
+  that sealed batch in place. It is sent again with the same id and amount once the known room
+  can take it. Further Tickets for that stream stay in `pending` until the batch resolves.
+  `idempotency_mismatch` and `amount_over_rule` drop the batch. A quest keeps `pb:quest:<id>`
+  and is sent again on the next session start, so it pays once.
 - **Quest and step rewards** are `round(sqrt(usd))`, each its own `earnTickets` with reason
   `pb_quest`. `questEarnName` builds `pb:quest:<questId>` and adds a step or choice id when
   that reward is separate. `questEarnWireKey` is the UUIDv5 of that name. The wallet is credited
