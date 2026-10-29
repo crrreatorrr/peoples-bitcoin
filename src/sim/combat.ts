@@ -317,4 +317,16 @@ function dropLoot(
     const row = table.table.find((candidate) => (pick -= candidate.weight) < 0);
     if (row?.item) drop(row.item, nextInt(state.rng, row.min, row.max));
   }
+  for (const t of table.tertiary) {
+    if (chance(state.rng, 1 / t.oneIn)) drop(t.item, t.qty);
+  }
+  for (const s of table.shared) {
+    if (!chance(state.rng, 1 / s.oneIn)) continue;
+    const sub = ctx.content.drops.get(s.table);
+    const subTotal = sub ? sub.table.reduce((sum, row) => sum + row.weight, 0) : 0;
+    if (!sub || subTotal <= 0) continue;
+    let pick = nextFloat(state.rng) * subTotal;
+    const row = sub.table.find((candidate) => (pick -= candidate.weight) < 0);
+    if (row?.item) drop(row.item, nextInt(state.rng, row.min, row.max));
+  }
 }

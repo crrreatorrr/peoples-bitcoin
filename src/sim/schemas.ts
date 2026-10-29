@@ -375,6 +375,18 @@ export const DropTableSchema = z.object({
       }),
     )
     .default([]),
+  /** Independent 1/oneIn rolls each kill (clue-like, pet-like). */
+  tertiary: z
+    .array(
+      z.object({
+        item: Id,
+        qty: z.number().int().positive().default(1),
+        oneIn: z.number().int().positive(),
+      }),
+    )
+    .default([]),
+  /** Shared tables (other DropTable ids) rolled once each on a 1/oneIn hit. Shared tables must not have `shared`. */
+  shared: z.array(z.object({ table: Id, oneIn: z.number().int().positive() })).default([]),
 });
 
 /** Using an inventory item on an object or NPC (uses.json). */
