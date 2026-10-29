@@ -56,7 +56,7 @@ export class Hud {
     this.hpOrb.append(span('orb-icon', glyph('orb_hp')), this.hpValue);
 
     this.runOrb.className = 'orb orb-run';
-    this.runOrb.title = 'Toggle run';
+    this.runOrb.title = 'Motion (run energy): toggle run';
     this.runOrb.append(span('orb-icon', glyph('orb_run')), this.runValue);
     this.runOrb.addEventListener('click', onToggleRun);
     this.specialOrb.className = 'orb orb-special';

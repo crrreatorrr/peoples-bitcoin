@@ -7,8 +7,8 @@
     "actions": ["Talk-to"],
     "wanderRadius": 1,
     "lines": [
-      "President. Morelight, Chief of Staff. The mustache and I are at your service.",
-      "If you're ever lost, follow the yellow arrow. If the arrow is lost, come and find me."
+      "President. Morelight, Chief of Staff. The mustache and I are at your service, and neither of us believes the official story.",
+      "If you're ever lost, follow the yellow arrow. If the arrow is lost, assume it was tampered with, and come and find me."
     ],
     "dialogue": [
       {
@@ -16,20 +16,21 @@
         "status": "started",
         "step": ["warden"],
         "lines": [
-          "The gates have stood up and called themselves the Lockdown Warden. Of course they have.",
-          "It's a law, President. Bullets bounce off laws. You need a veto, swung or fired."
+          "The gate stones have stood up and called themselves the Lockdown Warden. Tartarian masonry, Bureau programming. Of course they have.",
+          "It's a law, President. A law the Bureau wrote and nobody voted for. Bullets bounce off laws. You need a veto, swung or fired."
         ]
       },
       {
         "quest": "quest_way_out",
         "status": "complete",
         "lines": [
-          "You've seen it now, President. The world out there.",
-          "The Chamber works both ways, and the Chamber Key works any time. I commute now. It's lovely.",
+          "You've seen it now, President. Domes on the skyline. A star fort across the lake. Tartaria was never a myth. It was just behind a wall.",
+          "The Chamber works both ways, and the Chamber Key works any time. I commute now. The Bureau hates it. It's lovely.",
           {
             "player": "And the Treasury?"
           },
-          "Still here. Still ours. But the gates aren't the edge of the world anymore."
+          "Still here. Still ours. Still sitting on a mud-flooded Tartarian ground floor. But the gates aren't the edge of the world anymore.",
+          "Somewhere out here is the rest of the corkboard: where the printed money goes, and who's waiting for it upstairs. I'd like to hand-deliver the answer."
         ]
       },
       {
@@ -37,19 +38,21 @@
         "status": "started",
         "step": ["decide"],
         "lines": [
-          "Everything's ready, President. The Coordinates, the Power Cell, the Permit, the press. And the Contractor says he's dug up something for us.",
-          "Once we switch that Chamber on, we go where Expedition One meant to go. Somewhere nobody has been since the Lockdown. Are you sure?",
+          "Everything's ready, President. The Coordinates, the Power Cell, the Permit, the press. And Foreman Hallows dug up blueprints in a handwriting older than handwriting.",
+          "Once we switch that Chamber on, we go where Expedition One meant to go: the old world. Star forts. Domes. Everything the Bureau and its friends upstairs paved over. Are you sure?",
           {
             "options": [
               {
-                "text": "Let's get out of here.",
-                "lines": ["Then let's go. Carefully. And with snacks."],
+                "text": "Let's go find Tartaria.",
+                "lines": [
+                  "Then let's go. Carefully. With snacks. And a little foil in the hat lining, just in case."
+                ],
                 "choice": "wayout_ready"
               },
               {
                 "text": "Give me a minute.",
                 "lines": [
-                  "Take all the time you need. The walls aren't going anywhere. That's the problem."
+                  "Take all the time you need. The walls aren't going anywhere. That was always the point of them."
                 ]
               }
             ]
@@ -61,8 +64,8 @@
         "status": "started",
         "step": ["announce"],
         "lines": [
-          "First, the people. Read the Signed Press Release to the Reporter by the podiums. Use it on her.",
-          "Nobody should wake up to find their President gone without a word."
+          "First, the people. Read the Signed Press Release to Lorna Coinlore by the podiums. Use it on her.",
+          "If the President vanishes without a word, the Bureau writes the word for us. Let's write it first."
         ]
       },
       {
@@ -70,7 +73,7 @@
         "status": "started",
         "step": ["blueprints"],
         "lines": [
-          "The Contractor says the bunker dig turned up old blueprints. For the Chamber. Ask him for them."
+          "Foreman Hallows' bunker dig hit the old ground floor. Mud-flood, President. Twenty feet of it. And under the mud: blueprints. For the Chamber. Ask him for them."
         ]
       },
       {
@@ -78,13 +81,13 @@
         "status": "started",
         "step": ["install_blueprints", "install_drive", "install_cell", "install_permit", "fuel"],
         "lines": [
-          "The Chamber is at the far north end of the Trenches, past Captain Motion's barricade.",
+          "The Chamber is at the far north end of the Trenches, past Captain Motion's barricade. Look at the stonework while you're there. Nobody builds like that anymore. Nobody's allowed to.",
           "Use each part on it: the blueprints, the Coordinates Drive, the Power Cell, the Exit Permit. Then feed it 5 Scrap Hash.",
-          "And President, one more thing. The Scout says the stones by the Chamber have started to move. The old gates, standing up.",
+          "And President, one more thing. Scout Greenhill says the stones by the Chamber have started to move. The old gates, standing up.",
           {
             "player": "The Lockdown?"
           },
-          "The Lockdown Act itself. Laws don't fall to bullets, President. They fall to a veto.",
+          "The Lockdown Act itself. The Bureau carved it into Tartarian gate stone so no vote could ever wear it down. Laws don't fall to bullets, President. They fall to a veto.",
           "Fill every spare pocket with Talking Points before you feed it. Whatever wakes up will not wait for you to pack.",
           "When the doors open, step through. I'll be right behind you."
         ]
@@ -93,7 +96,9 @@
         "quest": "quest_way_out",
         "status": "started",
         "step": ["enter"],
-        "lines": ["The doors are open? Then go, President. I'll be right behind you. Probably."]
+        "lines": [
+          "The doors are open? Then go, President. Tartaria's waiting. I'll be right behind you. Probably."
+        ]
       },
       {
         "quest": "quest_motion_denied",
@@ -104,12 +109,13 @@
           {
             "player": "The Captain from Expedition One?"
           },
-          "The same. He led them north on day one. Whatever he found up there, he never came back to report it.",
+          "The same. He led them north on day one, toward the star-shaped building on the Treasury's oldest map. Whatever he found up there, he never came back to report it.",
+          "They say two men in grey suits visited him the first night. Nobody saw them come down the Trench. Nobody saw them go back up.",
           "He's guarded that last barricade ever since. Running.",
           {
             "player": "Running where?"
           },
-          "In circles. Very fast circles. The Scout knows him better than anyone. Talk to the Scout first."
+          "In circles. Very fast circles. Scout Greenhill knows him better than anyone. Talk to Scout Greenhill first."
         ]
       },
       {
@@ -119,7 +125,7 @@
         "lines": [
           "The Captain hits fast and never stops moving. Don't trade blows with him; catch him from across the trench.",
           "The Treasury keeps a rifle for exactly this sort of man. Long range. Longer paperwork. You'll find it at the Terminal.",
-          "And President? Bring him down gently if you can. He was one of ours."
+          "And President? Bring him down gently if you can. He was one of ours, before the grey suits got to him."
         ]
       },
       {
@@ -129,13 +135,13 @@
           {
             "player": "He stopped. He said the Chamber's dead, and he kept running so nobody would see."
           },
-          "...A year of laps, to hide a broken machine. Poor man.",
-          "But dead isn't gone, President. The Scout's been up to look. The Chamber is whole. It's just asleep.",
+          "Dead? Or TOLD it was dead? The grey suits said if anyone saw it, there'd be 'consequences for the money supply'. So he ran laps for a year. For them.",
+          "But dead isn't gone, President. Scout Greenhill's been up to look. The Chamber is whole. Tartarian work. It's just asleep.",
           "Expedition One had the courage. What they didn't have was the parts.",
-          "Coordinates, from the Sysadmin's lost files. A Power Cell, which the Party Planner's gala could pay for.",
-          "An Exit Permit, which only the Broker can sign; the Fixer knows him. And the public on our side, which is the Spin Doctor's department.",
-          "And finish the Contractor's bunker. He keeps digging up drawings of 'some big machine'.",
-          "Bring me all four, and we finish what Expedition One started."
+          "Coordinates, from Sysadmin Opal's lost files. A Power Cell, which Madame Flurry's gala could pay for.",
+          "An Exit Permit, which only the Broker can sign; the Inducer knows him. And the public on our side, which is Doctor Merge's department.",
+          "And finish Foreman Hallows' bunker. He keeps digging up drawings of 'some big machine' under the mud.",
+          "Bring me all four, and we finish what Expedition One started. Every part is a piece of the truth, President. I've started a corkboard. I've run out of string."
         ]
       },
       {
@@ -143,7 +149,8 @@
         "status": "complete",
         "lines": [
           "The Chief has gone quiet. For the first time in recorded history, a Wrong-Namer has stopped talking.",
-          "I had a plaque made. It says 'It's $BITCOIN.' You can hang it in the bunker.",
+          "And look what fell out of his megaphone: a little transmitter. Bureau issue. Every 'TRICKETS!' down there was a broadcast.",
+          "I had a plaque made. It says 'They're Tickets.' You can hang it in the bunker.",
           {
             "player": "What's left?"
           },
@@ -159,8 +166,9 @@
           {
             "player": "Who are they?"
           },
-          "People who decided the walls are a comfort. There is no outside, they say. It's all a con. $BITCON, they call our coin.",
-          "They turn back anyone heading north. Shouting, mostly. Megaphones, occasionally.",
+          "People who decided the walls are a comfort. There is no outside, they say. It's all a trick. TRICKETS, they call our coin.",
+          "Funny thing. They all started saying it on the same morning, in the same words. Real crowds don't do that. Scripts do.",
+          "They turn back anyone heading north, toward the old building. Shouting, mostly. Megaphones, occasionally.",
           "Start with a Heckler. Then knock over a Sockpuppet. Then their Chief, at the second barricade, has nobody left to agree with him.",
           "Correct them, President. Firmly. With whatever you're holding."
         ]
@@ -171,7 +179,7 @@
         "step": ["puppets"],
         "lines": [
           "One Heckler down! Now the Sockpuppets. They hide behind cardboard and agree with each other.",
-          "Knock one over and the whole act falls apart."
+          "Check the cardboard, President. Same font as the Lockdown Act. Knock one over and the whole act falls apart."
         ]
       },
       {
@@ -180,6 +188,7 @@
         "step": ["chief"],
         "lines": [
           "The Chief guards the second barricade. He calls for Sockpuppets when he's losing, so finish him fast.",
+          "He was Expedition One's map-reader. He saw where the old map pointed. Then he came back down and found a megaphone waiting on his bunk.",
           "He's had a year of people shouting at him, President. What he has never once heard is a President calling the room to order."
         ]
       },
@@ -188,13 +197,18 @@
         "status": "complete",
         "lines": [
           "The Sludge Mother is gone? Splendid. I'll have the Trenches hosed down. Twice.",
-          "And President, the Scout sent word. Expedition One's Captain is still up there, past the barricades.",
+          "I had a sample tested. Panic, mostly. And ink. Fresh money-printer ink, President, in a Treasury that hasn't printed a note since the Lockdown.",
+          {
+            "player": "So who's printing?"
+          },
+          "Excellent question. It's the first card on the corkboard.",
+          "And Scout Greenhill sent word. Expedition One's Captain is still up there, past the barricades.",
           {
             "player": "Still alive?"
           },
           "Still running, apparently. Which is more than any of us expected.",
           "The next stretch belongs to the Wrong-Namers. Catch your breath and come back to me.",
-          "While you catch your breath: the Sysadmin, the Party Planner, the Fixer and the Spin Doctor have all been asking for you. I may have asked each of them a favor. Don't ask what for. Yet."
+          "While you catch your breath: Sysadmin Opal, Madame Flurry, the Inducer and Doctor Merge have all been asking for you. I may have asked each of them a favor. Don't ask what for. Yet. The walls have ears. Possibly antennae."
         ]
       },
       {
@@ -202,19 +216,20 @@
         "status": "started",
         "step": ["scout"],
         "lines": [
-          "You made it through training in one piece. The mustache and I are proud.",
+          "You made it through training in one piece. The mustache and I are proud. And look what turned up on the Trench steps: a shard of the old ledger. The very first page, from before the Printer. It's going on the corkboard.",
           "Now, the real job. The north end of the wall is the only stretch nobody has checked since the Lockdown.",
           {
             "player": "Why not?"
           },
-          "Because the only way there is the Trenches. On the first day of the Lockdown, twelve brave fools called Expedition One started digging them, heading north.",
+          "Because the oldest map in the Treasury shows something up there. A dome. Star-shaped walls. Tartarian, President: the grand old world that nobody is allowed to remember.",
+          "On the first day of the Lockdown, twelve brave fools called Expedition One started digging the Trenches to reach it.",
           {
             "player": "What happened to them?"
           },
-          "A few came back up. None of them will say what they found. Most of them say 'it's all $BITCON' now.",
+          "A few came back up. None of them will say what they found. Most of them say 'it's all TRICKETS' now. In unison. Suspicious.",
           "And since then, something has clogged the Trenches. Our people call it the Sludge Mother.",
-          "The Scout keeps a camp just inside the entrance. The Scout was there on day one. Start there.",
-          "The Scout won't come up and won't talk to me. Says I'm 'management'."
+          "Scout Greenhill keeps a camp just inside the entrance. Scout Greenhill was there on day one. Start there.",
+          "Scout Greenhill won't come up and won't talk to me. Says I'm 'management'. Says management is how they get you."
         ]
       },
       {
@@ -235,8 +250,8 @@
           {
             "player": "Where is everyone? And why is the treasury... empty?"
           },
-          "A small accounting incident. The Treasurer bought the wrong coin. With all of it.",
-          "The ticker crashed, and the gates sealed themselves. We call it the Lockdown. Nobody has left the Treasury since.",
+          "A small accounting incident. Treasurer Bickworth bought the wrong coin. With all of it. Or the right one. Depends who you ask, and who's listening.",
+          "The Bureau of Monetary Weather forecast a crash, and the gates sealed themselves. We call it the Lockdown. Nobody has left the Treasury since.",
           {
             "player": "Nobody? Ever?"
           },
@@ -244,8 +259,10 @@
           {
             "player": "Who ran against me?"
           },
-          "Nobody could get in. A landslide. Now, I have a plan for getting out. But first, the basics: Mining, Fundraising, Lobbying. You can't escape on an empty stomach.",
-          "See The Treasurer in the main hall, just north. Follow the yellow arrow. It has never steered me wrong.",
+          "Nobody could get in. A landslide.",
+          "Between us, President: look at these pillars. Older than the country. Columns like that are Tartarian. Somebody built this Treasury on top of something much grander, then sealed us inside it.",
+          "I have a plan for getting out and finding the rest. But first, the basics: Mining, Fundraising, Lobbying. You can't escape on an empty stomach.",
+          "See Treasurer Bickworth in the main hall, just north. Follow the yellow arrow. It has never steered me wrong.",
           "Come back to me whenever you're lost. I'll be right here, guarding the mustache."
         ]
       },
@@ -254,13 +271,13 @@
         "status": "started",
         "step": ["talk_sysadmin", "mine", "sell"],
         "lines": [
-          "The Treasurer gave you the petty cash? Good. Don't spend it on snacks.",
-          "Now make some real money. The Sysadmin looks after the old server racks on the east lawn.",
-          "Mine some Hash, then sell it at the Trading Terminal in the hall. It pays in $BITCOIN at today's price.",
+          "Treasurer Bickworth gave you the petty cash? Good. Don't spend it on snacks.",
+          "Now make some real money. Sysadmin Opal looks after the old server racks on the east lawn. Ignore the foil. Mostly.",
+          "Mine some Hash, then sell it at the Trading Terminal in the hall. It pays in Tickets, at a fixed price.",
           {
-            "player": "And what's today's price?"
+            "player": "And what if the price changes?"
           },
-          "Check the ticker in the corner. It changes. Constantly. That's half the fun and all of the stress."
+          "It doesn't. Fixed prices, paid in Tickets. One billion Tickets, never one more, and the Sprotos guard the count. The Bureau can't forecast it, can't print it, and certain people upstairs can't stand it."
         ]
       },
       {
@@ -269,11 +286,11 @@
         "step": ["talk_sergeant", "buy_pistol", "equip", "kill", "melee", "troll", "sandbag"],
         "lines": [
           "Money in your pocket and Hash on your shoes. Now, self-defense.",
-          "The Drill Sergeant runs the training yard to the south-west. Spam Bots, Sludgelings, Comment Trolls. All very beatable.",
+          "Sergeant Retain runs the training yard to the south-west. Spam Bots, Sludgelings, Comment Trolls. All very beatable.",
           {
             "player": "Do I really need to fight?"
           },
-          "Out there? Constantly. In here? Only things that say 'gm' forty times a minute.",
+          "Out there? Constantly. In here? Only things that say 'gm' forty times a minute. The Sergeant insists they're listening devices. He insists loudly.",
           "Buy a Campaign Pistol at the Terminal, wield it and clear the yard. Then try your gavel. A President should know both."
         ]
       },
@@ -283,8 +300,8 @@
         "step": ["talk_planner", "fundraise", "spin", "eat"],
         "lines": [
           "You fight like a natural. Now, let's talk about donors.",
-          "The Party Planner hosts dinners in the west garden. Work the room and you'll dig up scandals.",
-          "Take them to The Spin Doctor's podium and spin them into Talking Points. Recite one when you're hurt.",
+          "Madame Flurry hosts dinners in the west garden. Work the room and you'll dig up scandals. Some guests never blink. Try not to stare.",
+          "Take them to Doctor Merge's podium and spin them into Talking Points. Recite one when you're hurt.",
           {
             "player": "I heal by... talking?"
           },
@@ -297,11 +314,11 @@
         "step": ["talk_fixer", "lobby"],
         "lines": [
           "Next, the lobbyists. Someone has to hand them business cards, and it can't be me. I'm far too tall to be discreet.",
-          "The Fixer lurks on the east lawn. Do favors for the lobbyists and they'll pay you. Usually.",
+          "The Inducer lurks on the east lawn. Do favors for the lobbyists and they'll pay you. Usually.",
           {
             "player": "Usually?"
           },
-          "Some pay in $BITCOIN. Some pay in leverage. Learn the difference before they do."
+          "Some pay in Tickets. Some pay in leverage. And the big ones take meetings in a room with no windows, with clients who have no ears. Learn the difference before they do."
         ]
       },
       {
@@ -310,11 +327,11 @@
         "step": ["talk_handler", "summon"],
         "lines": [
           "Every President needs a security detail. Ours is... small. And blue.",
-          "The Sproto Handler in the main hall has a contract for you. Summon a Sproto and it fights at your side.",
+          "Handler Creed in the main hall has a contract for you. Summon a Sproto and it fights at your side.",
           {
             "player": "Are they safe?"
           },
-          "Perfectly. They've only bitten the Treasurer twice. He had it coming."
+          "Perfectly. They've only bitten Treasurer Bickworth twice. Both times he was holding a grey envelope. Sprotos know things, President."
         ]
       },
       {
@@ -323,7 +340,7 @@
         "step": ["bank"],
         "lines": [
           "You're carrying half the lawn. Use a Bank Booth in the main hall and deposit what you don't need.",
-          "The bank holds four hundred stacks. I've seen Presidents fill it with Scrap Hash. Don't be that President."
+          "The bank holds four hundred stacks. I've seen Presidents fill it with Scrap Hash. Don't be that President. And never keep the truth in only one place."
         ]
       },
       {
@@ -331,8 +348,8 @@
         "status": "started",
         "step": ["talk_contractor"],
         "lines": [
-          "One more thing. The ticker goes red sometimes. Very red. You'll want a hole to hide in.",
-          "The Contractor in the main hall can build you a bunker. Go and ask about it."
+          "One more thing. The Bureau forecasts storms sometimes. Monetary ones. You'll want a hole to hide in.",
+          "Foreman Hallows in the main hall can build you a bunker. Go and ask about it. Tell him to keep anything odd he digs up."
         ]
       },
       {
@@ -341,20 +358,20 @@
         "step": ["trenches"],
         "lines": [
           "You've learned everything I can teach you in a garden. Time for the real thing.",
-          "The Trenches run north from the south-east lawn. Somewhere past the far end is the only part of the wall nobody's checked.",
+          "The Trenches run north from the south-east lawn. Past the far end is the only part of the wall nobody's checked, and the oldest building on the oldest map.",
           "Step inside and your training is done. Then come back to me. I'll have work for you.",
           {
             "player": "What kind of work?"
           },
-          "The kind that gets us out of here."
+          "The kind that gets us out of here. And finds out who wanted us in."
         ]
       }
     ]
   },
   {
     "id": "npc_treasurer",
-    "name": "The Treasurer",
-    "examine": "Bought the wrong coin. Feels terrible about it.",
+    "name": "Treasurer Bickworth",
+    "examine": "Ticky Bickworth, Treasurer. Bought the wrong coin. Or the right one. Feels terrible about it either way.",
     "model": "npc_treasurer",
     "actions": ["Talk-to"],
     "wanderRadius": 2,
@@ -364,7 +381,8 @@
       {
         "player": "How bad is it?"
       },
-      "We bought $BITCOIN. The People's Bitcoin. One billion of them. Not the other one. The ticker crashed, and the gates sealed: the Lockdown.",
+      "We bought Tickets. With the entire reserve. Fixed supply, guarded by Sprotos, the one currency nobody can print. The Bureau forecast a crash, and the gates sealed: the Lockdown.",
+      "Odd thing. That morning there was a memo on my desk. Grey envelope, smelled of ozone, unsigned: 'DUMP TICKETS. BUY THE PRINTABLE ONE.' I may have read it upside down.",
       "We can't sell, and we can't leave, so we earn. Mine, fundraise, lobby, and sell what we make at the Trading Terminal in this hall.",
       "Here's what's left of the petty cash. Please spend it wisely. Please."
     ],
@@ -374,7 +392,7 @@
         "status": "complete",
         "lines": [
           "President! You opened the door. Half the Treasury has queued at the Trenches.",
-          "The other half says it's a con. I'm staying. Someone has to watch the ticker.",
+          "The other half says it's a con. I'm staying. Someone has to count the reserve. And the post. Another grey envelope came this morning. It just said 'UNFORTUNATE.'",
           {
             "player": "You could come and see the lake."
           },
@@ -385,12 +403,13 @@
         "quest": "quest_tutorial",
         "status": "complete",
         "lines": [
-          "President! The reserve is less empty. I only checked the ticker eleven times today.",
-          "The Terminal pays whatever the ticker says. Sell your Hash when it's green, buy your gear when it's red.",
+          "President! The reserve is less empty. I only counted it eleven times today.",
+          "The Terminal pays a fixed price, in Tickets. No ticker, no forecast, no surprises. The Bureau finds that deeply upsetting.",
           {
             "player": "Any more accounting incidents I should know about?"
           },
-          "None! Er. Well. The Lockdown. But that one is technically a security incident. The gates saw the ticker, panicked and passed a law. Nobody voted for it. Not even the gates."
+          "None! Er. Well. The Lockdown. But that one is technically a security incident. The gates heard the Bureau's forecast, panicked and passed a law. Nobody voted for it. Not even the gates.",
+          "Morelight says somebody wrote it for them. Somebody who can print every coin but ours, and didn't like that we bought it. I say that's a lot of somebodies."
         ]
       }
     ],
@@ -400,12 +419,12 @@
       {
         "player": "Any more petty cash?"
       },
-      "You have all of it, President. That was all of it."
+      "You have all of it, President. That was all of it. Nobody can print more Tickets. That's rather the point, apparently."
     ]
   },
   {
     "id": "npc_sysadmin",
-    "name": "The Sysadmin",
+    "name": "Sysadmin Opal",
     "examine": "Has not seen daylight since the last fiscal year.",
     "model": "npc_sysadmin",
     "actions": ["Talk-to"],
@@ -416,6 +435,10 @@
         "player": "What do I do with Hash?"
       },
       "Sell it at the Terminal. Or load it into a Hash Cannon, if you like explosions. I like explosions.",
+      {
+        "player": "Why is your headset wrapped in foil?"
+      },
+      "Signal hygiene. Something on our network pings the sky every night at 3:33. I'm not saying it's aliens. I'm saying it isn't us.",
       "Inventory full? Bank it or sell it. Better picks from the Terminal mine faster."
     ],
     "dialogue": [
@@ -424,7 +447,8 @@
         "status": "complete",
         "lines": [
           "You did it. The racks are cool, the Rogue Process is gone, and OUTSIDE.TXT is safe.",
-          "The Coordinates Drive is Morelight's now. Whatever's out there, it has an address.",
+          "I read the rest of it. Two parts. Coordinates, to a building shaped like a star. And a ledger: every note the Printer has ever made, and where it went. Most of it went... up. Orbit up.",
+          "The Coordinates Drive is Morelight's now. Whatever's out there, it has an address. The ledger I've printed out. On paper. They can't hack paper.",
           "Keep the Overclocked Pick. It runs hot. Like me, watching that fight from under the desk.",
           {
             "player": "Any mining tips?"
@@ -440,12 +464,13 @@
         "lines": [
           "Bad news. The liquid-cooled racks in the west wing are cooking themselves, and something on the network is fighting me.",
           "It's guarding a file. OUTSIDE.TXT. From before the Lockdown. Nobody's opened it in four hundred and twelve days. I'd know. I count too.",
-          "First, coolant. Fill this canister at the Gremlin Fountain. That water has never frozen and never boiled. Use the canister on the statue.",
+          "And the thing guarding it isn't ours. It phones home every night at 3:33. Home isn't on any map. Home is roughly... straight up.",
+          "First, coolant. Fill this canister at the Gremlin Fountain. That water has never frozen and never boiled. Tartarian plumbing. Use the canister on the statue.",
           "Then use the coolant on a Liquid-Cooled Rack in the west wing.",
           {
             "player": "Anything else I should know?"
           },
-          "If anything asks for my password, it's my cat's name. Lord Fluffington the Third. Don't tell anyone."
+          "If anything asks for my password, it's my cat's name. Lord Fluffington the Third. Don't tell anyone. Especially not the sky."
         ]
       },
       {
@@ -453,11 +478,11 @@
         "status": "started",
         "step": ["rogue"],
         "lines": [
-          "That red window! A Rogue Process. It's loose in the west wing, guarding OUTSIDE.TXT.",
+          "That red window! A Rogue Process. It's loose in the west wing, guarding OUTSIDE.TXT. Its code comments are in a language with eleven vowels.",
           {
             "player": "How do I shut it down?"
           },
-          "Not one shot at a time. It patches itself between hits. Every bullet just gets logged, and then it recovers.",
+          "Not one shot at a time. It patches itself between hits. Every bullet just gets logged, uploaded, and then it recovers.",
           "Flood it, President. More hits than it can patch. You want a gun that fires like a press scrum asks questions."
         ]
       },
@@ -466,24 +491,26 @@
         "status": "started",
         "step": ["password"],
         "lines": [
-          "It's down! Now I just need the admin password to recover the file. Which was it? You heard me say it.",
+          "It's down! The uplink's dark. Now I just need the admin password to recover the file. Which was it? You heard me say it.",
           {
             "options": [
               {
                 "text": "password123",
-                "lines": ["No, that's the Treasurer's. Think, President."]
+                "lines": ["No, that's Treasurer Bickworth's. Think, President."]
               },
               {
                 "text": "Lord Fluffington the Third",
                 "lines": [
                   "YES. Logging in... recovering OUTSIDE.TXT...",
-                  "It's coordinates. Coordinates to somewhere that isn't here."
+                  "It's coordinates. Coordinates to somewhere that isn't here. Somewhere old. And under it, a second file... a ledger. Oh no. So THAT'S where the money goes."
                 ],
                 "choice": "meltdown_password"
               },
               {
-                "text": "$BITCON",
-                "lines": ["That's what the Wrong-Namers chant. Never type that in here."]
+                "text": "TRICKETS",
+                "lines": [
+                  "That's what the Wrong-Namers chant. Never type that in here. It's a Bureau keyword; every screen in the wing would light up."
+                ]
               }
             ]
           }
@@ -491,14 +518,14 @@
       }
     ],
     "repeat": [
-      "Still here. Still not touching the blinking ones.",
+      "Still here. Still not touching the blinking ones. Still wearing the foil.",
       "Mine the Dusty Server Racks with the pick I gave you, then sell the Hash at the Terminal or bank it.",
       "Better picks from the Terminal mine faster. Mine is rusty. So am I."
     ]
   },
   {
     "id": "npc_party_planner",
-    "name": "The Party Planner",
+    "name": "Madame Flurry",
     "examine": "Knows every donor and every dessert.",
     "model": "npc_party_planner",
     "actions": ["Talk-to"],
@@ -510,7 +537,7 @@
         "player": "And what do I do with scandals?"
       },
       "Spin them at the Press Podium. Raw, they're a liability. Spun, they're lunch.",
-      "Oh, and every so often a whale pledges a fortune. Smile and nod, darling. Smile and nod."
+      "Oh, and every so often a whale pledges a fortune. Smile and nod, darling. Smile and nod. And if a guest has no ears, don't mention it. They tip beautifully."
     ],
     "dialogue": [
       {
@@ -518,7 +545,7 @@
         "status": "started",
         "step": ["gatecrasher"],
         "lines": [
-          "You got the list! But now HIM. The Gatecrasher. He's crashed every party since the Lockdown.",
+          "You got the list! But now HIM. The Plus-One. He's crashed every party since the Lockdown. Darling, HOW? The gates are SEALED. Somebody lets him in.",
           "Bouncers bounce off him. Bullets bounce off him. I threw a canapé at him. Nothing.",
           {
             "player": "So how do I get him out?"
@@ -531,6 +558,7 @@
         "status": "complete",
         "lines": [
           "Darling, the disco ball is still spinning. The Power Cell is yours. Whatever Morelight's building, it had better have a dance floor.",
+          "Between us: the donors had been hoarding that Cell for years. A lobbyist said it came out of 'an old dome, very old, don't ask'. I didn't ask. I charged corkage.",
           "At Fundraising 20 you can work a Gala Table. At 40, the Yacht Party Deck. Bring a Rolodex, or better, a Black Book.",
           "Juicier scandals spin into better Talking Points. Everyone wins. Except the press."
         ],
@@ -540,7 +568,8 @@
         "quest": "quest_gala_night",
         "status": "complete",
         "lines": [
-          "Darling, the masks were a triumph. Nobody knew who anybody was. The Power Cell is yours; Morelight says it's for 'a door'.",
+          "Darling, the masks were a triumph. Nobody knew who anybody was. Two guests never took theirs off. I'm no longer sure they were masks. The Power Cell is yours; Morelight says it's for 'a door'.",
+          "Between us: the donors had been hoarding that Cell for years. A lobbyist said it came out of 'an old dome, very old, don't ask'. I didn't ask. I charged corkage.",
           "At Fundraising 20 you can work a Gala Table. At 40, the Yacht Party Deck. Bring a Rolodex, or better, a Black Book.",
           "Juicier scandals spin into better Talking Points. Everyone wins. Except the press."
         ],
@@ -550,7 +579,8 @@
         "quest": "quest_gala_night",
         "status": "complete",
         "lines": [
-          "Darling, a garden party under a sealed sky. Poetic. The Power Cell is yours. Go and find a real sky.",
+          "Darling, a garden party under a sealed sky. Poetic. The Power Cell is yours. Go and find a real sky, and whatever keeps flying over it at three in the morning.",
+          "Between us: the donors had been hoarding that Cell for years. A lobbyist said it came out of 'an old dome, very old, don't ask'. I didn't ask. I charged corkage.",
           "At Fundraising 20 you can work a Gala Table. At 40, the Yacht Party Deck. Bring a Rolodex, or better, a Black Book.",
           "Juicier scandals spin into better Talking Points. Everyone wins. Except the press."
         ],
@@ -562,12 +592,14 @@
         "step": ["theme"],
         "lines": [
           "Darling! The gala of the year. Morelight needs a Power Cell for some 'little project', and power cells are not cheap.",
-          "So we throw a party, the donors pay, and you, President, are the host. First things first: the theme.",
+          "The donors have one. Ancient thing. They keep it in a velvet box and whisper to it. So we throw a party, the donors pay, and you, President, are the host. First things first: the theme.",
           {
             "options": [
               {
                 "text": "Masquerade.",
-                "lines": ["Masks! Mystery! Nobody will recognize the Treasurer. Perfect."],
+                "lines": [
+                  "Masks! Mystery! Nobody will recognize Treasurer Bickworth. Or the lobbyists' plus-ones. Perfect."
+                ],
                 "choice": "gala_masquerade"
               },
               {
@@ -590,7 +622,7 @@
         "step": ["catering"],
         "lines": [
           "Catering! Bring me 5 Minor Scandals for the gossip table and 3 Soundbites for the toasts.",
-          "A gala without gossip is just dinner, darling."
+          "A gala without gossip is just dinner, darling. And a dinner without gossip is just a meeting with forks."
         ]
       },
       {
@@ -599,6 +631,7 @@
         "step": ["crashers"],
         "lines": [
           "CRASHERS! Party Crashers in my garden! And one of them stole the guest list!",
+          "Every donor, every lobbyist, and the plus-ones nobody will name. Somebody does not want that list read, darling.",
           "Throw them out, President. Firmly. Bring me back that list."
         ]
       },
@@ -606,7 +639,9 @@
         "quest": "quest_gala_night",
         "status": "started",
         "step": ["return"],
-        "lines": ["Where's my guest list, darling? Bring it here before anyone else 'borrows' it."]
+        "lines": [
+          "Where's my guest list, darling? Bring it here before anyone else 'borrows' it. Or photographs it."
+        ]
       }
     ],
     "repeat": [
@@ -616,7 +651,7 @@
   },
   {
     "id": "npc_spin_doctor",
-    "name": "The Spin Doctor",
+    "name": "Doctor Merge",
     "examine": "Can make anything sound like good news.",
     "model": "npc_spin_doctor",
     "actions": ["Talk-to"],
@@ -627,14 +662,15 @@
         "player": "What does a Talking Point do?"
       },
       "Recite one in a fight and you feel better. It's science. Political science.",
-      "Spin badly and the story blows up in your face. Practice, President. Practice."
+      "Spin badly and the story blows up in your face. Practice, President. Practice. The other side has had centuries of it."
     ],
     "dialogue": [
       {
         "quest": "quest_way_out",
         "status": "complete",
         "lines": [
-          "'President Opens Door, Walks Through It.' Ninth day on the front page. I may frame it."
+          "'President Opens Door, Walks Through It.' Ninth day on the front page. I may frame it.",
+          "The Bureau's statement says 'routine maintenance'. Nobody believes it. I've never been prouder of the public."
         ]
       },
       {
@@ -643,6 +679,7 @@
         "step": ["pundit"],
         "lines": [
           "Disaster! The Pundit has stormed the podium. He's telling everyone that 'the people' don't want a door.",
+          "Look at his ear, President. That isn't a hearing aid. Someone's feeding him lines from very, very far away.",
           {
             "player": "Then I'll argue with him."
           },
@@ -655,6 +692,7 @@
         "status": "complete",
         "lines": [
           "Front page, President! 'A DOOR FOR EVERYONE.' I couldn't have written it better. I tried.",
+          "The Pundit's earpiece is in my drawer. Every hour it whispers 'stay calm, stay inside, stay tuned'. I've started taking notes.",
           "Take the Teleprompter. Read it and you're home. And keep that press release for when you need the people.",
           "Juicy scandals become Zingers at Spin 20. Mega scandals become Mic Drops at 40. Practice, President."
         ]
@@ -664,8 +702,8 @@
         "status": "started",
         "step": ["prep"],
         "lines": [
-          "If the President vanishes, the Treasury will panic. If the President explains, the Treasury will cheer.",
-          "So: a press conference. The Reporter is waiting by the podiums. But first, practice.",
+          "If the President vanishes, the Treasury will panic. If the President explains, the Treasury will cheer. And whoever sealed the gates will have to explain why everyone's cheering.",
+          "So: a press conference. Lorna Coinlore is waiting by the podiums. But first, practice.",
           "Bring me 3 Soundbites. We'll warm up your voice."
         ]
       },
@@ -674,11 +712,11 @@
         "status": "started",
         "step": ["q1", "q2", "q3"],
         "lines": [
-          "The Reporter is by the podiums. Remember: never confirm, never deny, always pivot.",
+          "Lorna Coinlore is by the podiums. Remember: never confirm, never deny, always pivot.",
           {
             "player": "Pivot to what?"
           },
-          "Optimism, President. Always optimism."
+          "Optimism, President. Always optimism. And if anyone asks about aliens, smile like you know something. It drives them mad."
         ]
       }
     ],
@@ -689,18 +727,18 @@
   },
   {
     "id": "npc_fixer",
-    "name": "The Fixer",
-    "examine": "Knows a guy. Is the guy.",
+    "name": "The Inducer",
+    "examine": "Knows a guy. Is the guy. Pays people, which round here is called 'inducing'.",
     "model": "npc_fixer",
     "actions": ["Talk-to"],
     "lines": [
       "...You didn't see me. I'm not here. These cards aren't here either. Take them.",
-      "Lobbyists pay for favors. Hand out cards, shake hands, get paid in $BITCOIN.",
+      "Lobbyists pay for favors. Hand out cards, shake hands, get paid in Tickets.",
       {
         "player": "That sounds... legal?"
       },
       "Completely. Mostly. Sometimes they find photos. Then the favor's free and you smile anyway.",
-      "Bigger lobbyists pay better, if your Lobbying is up to it. Now walk away slowly."
+      "Bigger lobbyists pay better, if your Lobbying is up to it. The biggest ones have clients who arrive by an elevator that only goes up. Now walk away slowly."
     ],
     "dialogue": [
       {
@@ -712,8 +750,8 @@
           {
             "player": "So I shoot him?"
           },
-          "Bullets? He's priced those in. He's bought every gun on the market.",
-          "What a man like that can't handle is paperwork. The heavy kind, in a briefcase, swung hard. Beat him with his own filing.",
+          "Bullets? He's priced those in. He's bought every gun on the market, with fresh notes, still warm from somebody's printer. Count his fingers next time he waves.",
+          "What a thing like that can't handle is paperwork. The heavy kind, in a briefcase, swung hard. Beat him with his own filing.",
           "He's on the east lawn, near the Broker."
         ]
       },
@@ -721,7 +759,7 @@
         "quest": "quest_hostile_takeover",
         "status": "complete",
         "lines": [
-          "You burned them. Clean hands. The Broker signed anyway; he respects that. I think it scared him."
+          "You burned them. Clean hands. The Broker signed anyway; he respects that. I think it scared him. Men like him only fear one other kind of man, and they aren't from round here."
         ],
         "choice": "takeover_burn"
       },
@@ -729,7 +767,7 @@
         "quest": "quest_hostile_takeover",
         "status": "complete",
         "lines": [
-          "You used them. The Broker signed so fast he broke the pen. Remind me never to get on your bad side."
+          "You used them. The Broker signed so fast he broke the pen. Remind me never to get on your bad side. Or on the side of whoever he reports to."
         ],
         "choice": "takeover_leverage"
       },
@@ -739,7 +777,7 @@
         "step": ["deliver"],
         "lines": [
           "...You want out. Everyone wants out. The Lockdown Act says nobody leaves without an Exit Permit.",
-          "Only the Broker can stamp one. He wants this envelope delivered first. Don't open it.",
+          "Only the Broker can stamp one. Nobody knows who he works for. I know who he works WITH, and you won't like them. He wants this envelope delivered first. Don't open it.",
           "He stands by the lobbyists on the east lawn. Use the envelope on him."
         ]
       },
@@ -757,7 +795,8 @@
         "status": "started",
         "step": ["decision"],
         "lines": [
-          "You got the negatives. Now you've got options.",
+          "You got the negatives. Hold the last frames up to the light: the Broker, shaking hands with the Corporate Raider. Seven fingers. Per hand.",
+          "Lobbyists, a Bureau, and something from upstairs. Now you've got options.",
           {
             "options": [
               {
@@ -770,7 +809,7 @@
               {
                 "text": "Use them on the Broker.",
                 "lines": [
-                  "Ruthless. Look at the end of the roll: the Broker, shaking hands with the Corporate Raider.",
+                  "Ruthless. A lobbyist caught shaking hands with whatever that is? He'd sign anything.",
                   "He'll sign, and he'll pay. Here's your permit. Don't spend it all at once."
                 ],
                 "choice": "takeover_leverage"
@@ -785,7 +824,7 @@
         "lines": [
           "You again. Good. The lobbyists like you.",
           "K Street Veterans pay better from Lobbying 20. The Shadow Brokers want 40, and they're worth it.",
-          "Keep your photos boring, President. Blackmail is bad for business."
+          "Keep your photos boring, President. Blackmail is bad for business. And never take a meeting in a room with no windows."
         ]
       }
     ],
@@ -796,8 +835,8 @@
   },
   {
     "id": "npc_drill_sergeant",
-    "name": "The Drill Sergeant",
-    "examine": "Has never once used an indoor voice.",
+    "name": "Sergeant Retain",
+    "examine": "Has never once used an indoor voice. Has never once sold, either.",
     "model": "npc_drill_sergeant",
     "actions": ["Talk-to"],
     "lines": [
@@ -813,7 +852,7 @@
         "player": "So what works?"
       },
       "WHAT DID YOU JUST BUY AT THE TERMINAL, RECRUIT? Use it! From a distance!",
-      "Start on the Spam Bots, then the Sludgelings, then the Comment Trolls! DISMISSED!"
+      "Start on the Spam Bots, then the Sludgelings, then the Comment Trolls! Those Spam Bots are SURVEILLANCE, recruit! Nobody says 'gm' that much for free! DISMISSED!"
     ],
     "dialogue": [
       {
@@ -821,12 +860,12 @@
         "status": "complete",
         "lines": [
           "AT EASE, PRESIDENT! You passed basic!",
-          "The Trenches are through the entrance on the south-east lawn! Every barricade has a boss in front of it!",
+          "The Trenches are through the entrance on the south-east lawn! Every barricade has a boss in front of it! And SOMEBODY keeps putting them there!",
           "Rounds run out fast! Buy them by the hundred and pack Talking Points to heal! NOW GIVE ME TWENTY!",
           {
             "player": "Twenty push-ups?"
           },
-          "Twenty Scrap Hash! For the budget! DISMISSED!"
+          "Twenty Scrap Hash! For the budget! The printer won't fund us, so we fund ourselves! DISMISSED!"
         ]
       }
     ],
@@ -838,8 +877,8 @@
   },
   {
     "id": "npc_sproto_handler",
-    "name": "The Sproto Handler",
-    "examine": "Covered in tiny bite marks. Proud of every one.",
+    "name": "Handler Creed",
+    "examine": "Covered in tiny bite marks. Proud of every one. Knows the Sproto rifleman's creed by heart.",
     "model": "npc_sproto_handler",
     "actions": ["Talk-to"],
     "lines": [
@@ -849,6 +888,7 @@
         "player": "What are they, exactly?"
       },
       "Loyal, blue and extremely brave. Do NOT call them gremlins.",
+      "And older than they look. They glow near old stone, they can smell a forged note at forty paces, and nobody, NOBODY, can print one. They guard the Ticket count, too: one billion, never one more. Sproto Powers, President. Officially, they don't exist.",
       "One at a time. Specials cost Summoning points; check the Summoning tab. Here's a Recruit contract."
     ],
     "dialogue": [
@@ -856,7 +896,7 @@
         "quest": "quest_tutorial",
         "status": "complete",
         "lines": [
-          "Your Recruit won't stop talking about you. Well. Squeaking.",
+          "Your Recruit won't stop talking about you. Well. Squeaking. Every night at 3:33 it squeaks at the sky, right when the racks ping. They're arguing with something up there.",
           "Medics at Summoning 10, Grunts at 20, Snipers at 30, Heavies at 45. Contracts are on the Terminal.",
           "Watch your Summoning points. A special at the right moment wins fights."
         ]
@@ -869,12 +909,12 @@
   },
   {
     "id": "npc_contractor",
-    "name": "The Contractor",
+    "name": "Foreman Hallows",
     "examine": "Has a pencil behind each ear.",
     "model": "npc_contractor",
     "actions": ["Talk-to"],
     "lines": [
-      "Every President needs a bunker. Somewhere to hide when the ticker goes red.",
+      "Every President needs a bunker. Somewhere to hide when the Monetary Weather turns.",
       {
         "player": "Can you build one?"
       },
@@ -882,7 +922,7 @@
       {
         "player": "Soundbites? For a bunker?"
       },
-      "Morale. My crew won't dig without a good speech. Bring both and the hatch is yours."
+      "Morale. My crew won't dig without a good speech. Not down there. The ground under this hall isn't soil, President. It's mud. Old mud. Flood mud. Bring both and the hatch is yours."
     ],
     "dialogue": [
       {
@@ -890,7 +930,8 @@
         "status": "started",
         "step": ["inspector"],
         "lines": [
-          "Bad news. The Building Inspector heard about the dig. He's standing on the hatch with a clipboard.",
+          "Bad news. Inspector Greysuit heard about the dig. He's standing on the hatch with a clipboard.",
+          "Nobody called him. His badge just says 'Bureau'. Bureau of what, I asked. He wrote me up for asking.",
           {
             "player": "Can't we just move him?"
           },
@@ -904,7 +945,7 @@
         "status": "started",
         "step": ["install_blueprints"],
         "lines": [
-          "Blueprints? For the Chamber? I found these while digging your bunker. Thought they were a pizza menu.",
+          "Blueprints? For the Chamber? I found these twenty feet down, under the mud, in a room with the night sky painted on the ceiling. Thought they were a pizza menu.",
           "Here. Take them to the Chamber and follow along. Don't touch the red lever. Or do. I'm not your boss."
         ]
       },
@@ -912,33 +953,36 @@
         "quest": "quest_way_out",
         "status": "started",
         "step": ["install_drive", "install_cell", "install_permit", "fuel", "warden", "enter"],
-        "lines": ["Chamber lit up yet? If it plays music, somebody pulled the red lever."]
+        "lines": [
+          "Chamber lit up yet? If it plays music, somebody pulled the red lever. If it plays music in a key that doesn't exist, that's Tartarian. Leave it."
+        ]
       },
       {
         "quest": "quest_way_out",
         "status": "complete",
         "lines": [
-          "Heard the Chamber works. And to think I nearly ordered a pizza off those blueprints."
+          "Heard the Chamber works. And to think I nearly ordered a pizza off those blueprints.",
+          "I've read the rest of them. The people who drew these didn't need wires. They pulled power out of the air. No wonder somebody buried them."
         ]
       },
       {
         "quest": "quest_bunker",
         "status": "complete",
         "lines": [
-          "The Inspector signed off. The hatch is yours, President. Climb down any time.",
+          "Inspector Greysuit signed off. The hatch is yours, President. Climb down any time.",
           "Build spots are marked down there. Click one to see what you can build.",
           "Bigger builds need a Pro or Elite Toolkit, plus Concrete, Steel Beams and Circuit Boards from the Terminal.",
           {
             "player": "Find anything interesting while digging?"
           },
-          "Old papers. Drawings of some big machine. Probably nothing. I'll hang on to them."
+          "A floor. Under your floor. Marble, twenty feet down, with doorways for people twice our height. And old papers: drawings of some big machine. Probably nothing. I'll hang on to them."
         ]
       }
     ]
   },
   {
     "id": "npc_scout",
-    "name": "The Scout",
+    "name": "Scout Greenhill",
     "examine": "Lookout for Expedition One. Has been in the Trenches longer than the Trenches.",
     "model": "npc_scout",
     "actions": ["Talk-to"],
@@ -949,26 +993,26 @@
           {
             "text": "Who are you?",
             "lines": [
-              "The Scout. I was the lookout for Expedition One.",
+              "Scout Greenhill. I was the lookout for Expedition One.",
               "Twelve of us went north on the first day of the Lockdown. I'm the one who came back down.",
               {
                 "player": "And the others?"
               },
-              "Went home. Gave up. Got lost. One of them is still up there, if you listen at night."
+              "Went home. Gave up. Got lost. Got visited. One of them is still up there, if you listen at night."
             ]
           },
           {
             "text": "What are the Trenches?",
             "lines": [
               "We dug them along the inside of the wall, heading for the north end. Took us a week.",
-              "Since then the Treasury's been tipping its worst down here. Panic. Doubt. People who sell at the first sign of trouble.",
+              "Since then the Treasury's been tipping its worst down here. Panic. Doubt. People who sell at the first sign of trouble. And something black and wet that smells like a print shop.",
               "It gets nastier the further north you go. Each barricade opens once you beat whatever stands in front of it."
             ]
           },
           {
             "text": "What's at the north end?",
             "lines": [
-              "The old maps call it a Teleport Chamber. Out of service.",
+              "The new maps call it a Teleport Chamber. Out of service. The old maps call it something else, and draw a star around it.",
               "I heard it hum once. Just once. That's why I'm still here."
             ]
           },
@@ -976,7 +1020,7 @@
             "text": "Any advice?",
             "lines": [
               "If you go down, your pack stays where you fell. Come back for it quick.",
-              "And Talking Points. Never leave the Treasury without them."
+              "And Talking Points. Never leave the Treasury without them. And don't trust anyone in a grey suit. Nobody down here owns one."
             ]
           }
         ]
@@ -992,21 +1036,23 @@
           {
             "player": "Are you coming?"
           },
-          "Soon. Somebody has to walk the Captain through. He's not used to going slowly."
+          "Soon. Somebody has to walk the Captain through. He's not used to going slowly. And I want a good look at those domes first. From cover."
         ]
       },
       {
         "quest": "quest_way_out",
         "status": "started",
         "step": ["enter"],
-        "lines": ["The stones went quiet. Go on, President. Someone should get to see it."]
+        "lines": [
+          "The stones went quiet. Go on, President. Someone should get to see it. The real sky."
+        ]
       },
       {
         "quest": "quest_way_out",
         "status": "started",
         "lines": [
           "Morelight's really doing it? Waking the Chamber?",
-          "Careful up there. The old gate stones by the Chamber stood up last night. They keep saying 'NOBODY LEAVES'.",
+          "Careful up there. The old gate stones by the Chamber stood up last night. They keep saying 'NOBODY LEAVES'. Same voice as the Wrong-Namers' megaphones.",
           "The Captain says bullets just bounce off. He says what that thing fears is a big, loud No.",
           "Go on up. I'll keep the Trenches quiet behind you."
         ],
@@ -1027,6 +1073,7 @@
         "status": "complete",
         "lines": [
           "The Captain's still sitting by the Chamber. First time I've seen him sit.",
+          "He told me about the grey suits. Two of them, the first night. Said the Chamber was 'decommissioned by order', and if anyone found out otherwise there'd be 'consequences for the money supply'. What does that even mean?",
           "Morelight says it needs four parts. I'll keep the Captain company. Somebody has to stop him getting up."
         ]
       },
@@ -1046,12 +1093,12 @@
         "step": ["captain"],
         "lines": [
           "So it's the Captain's turn.",
-          "He was our leader. Best runner in the Treasury. We reached the north end in a week, and there it was: the Chamber. Cold. Dead.",
-          "The Captain wouldn't accept it. 'Keep moving,' he said. 'Momentum is everything.' He's been running laps in front of it ever since.",
+          "He was our leader. Best runner in the Treasury. We reached the north end in a week, and there it was: the Chamber. Cold. Dead. Built from stone nobody could name.",
+          "That night two men in grey suits walked up the Trench. We never heard them come down it. They talked to the Captain for an hour. In the morning he said: 'Keep moving. Momentum is everything.' He's been running laps in front of it ever since.",
           {
             "player": "Why guard it?"
           },
-          "So nobody else sees it doesn't work. So nobody else gives up. I think that's what he tells himself.",
+          "So nobody else looks at it. So nobody else asks questions. I think that's what they told him to tell himself.",
           "He moves twice as fast as anyone. Up close, he's gone before you swing. Don't chase him.",
           "Catch him from across the trench, mid-lap. You need reach. Real reach.",
           {
@@ -1065,6 +1112,7 @@
         "status": "complete",
         "lines": [
           "Quiet up there. Quieter than it's been in a year. Thank you.",
+          "I found a crate of spare megaphones behind their barricade. Stamped 'PROPERTY OF THE BUREAU. DO NOT RETURN.'",
           "Only the Captain left now. Morelight will want to talk to you about him."
         ]
       },
@@ -1073,7 +1121,7 @@
         "status": "started",
         "step": ["report"],
         "lines": [
-          "The shouting stopped mid-word. Go tell Morelight before they find a new megaphone."
+          "The shouting stopped mid-word. Go tell Morelight before they find a new megaphone. They seem to get them delivered."
         ]
       },
       {
@@ -1081,7 +1129,7 @@
         "status": "started",
         "lines": [
           "Wrong-Namers everywhere between here and the second barricade. My ears are still ringing.",
-          "They weren't always like this. Some of them were Treasury clerks. Got scared of the walls, then got more scared of what's past them.",
+          "They weren't always like this. Some of them were Treasury clerks. Got scared of the walls, then somebody handed them megaphones and a script. The same script. Every one.",
           "Their Chief guards the second barricade. Shoot at him and he just shouts louder.",
           "Somebody needs to call that man to order, President. You've got a gavel. Use it."
         ],
@@ -1092,7 +1140,7 @@
         "status": "complete",
         "lines": [
           "The first barricade's open. First time in four hundred days. I counted.",
-          "Past it, more Trenches, and the Wrong-Namers' Chief. He'll tell you there's nothing out there. Don't listen."
+          "Past it, more Trenches, and the Wrong-Namers' Chief. He'll tell you there's nothing out there. Don't listen. He's the one who read the map."
         ]
       },
       {
@@ -1109,7 +1157,8 @@
         "step": ["mother"],
         "lines": [
           "Morelight sent you? Good. I was running out of patience and snacks.",
-          "Twelve of us dug these Trenches. Then the panic of the Lockdown came down after us and pooled up. That's her. The Sludge Mother.",
+          "Twelve of us dug these Trenches to reach the old building on the map. Then the panic of the Lockdown came down after us and pooled up. That's her. The Sludge Mother.",
+          "Panic, and something else. Ink. Fresh money-printer ink, by the gallon. Somebody's still printing, President, and they dump the runoff down here.",
           "She squats at the first barricade, straight north. When she's hurt she calls up Sludgelings.",
           {
             "player": "Any advice?"
@@ -1126,14 +1175,14 @@
   },
   {
     "id": "npc_reporter",
-    "name": "The Reporter",
-    "examine": "Treasury Times, live. Always live.",
+    "name": "Lorna Coinlore",
+    "examine": "Treasury Times, live. Always live. Keeps the archive of everything the Treasury would rather forget.",
     "model": "npc_reporter",
     "actions": ["Talk-to"],
     "wanderRadius": 0,
     "lines": [
       "Treasury Times, live. No comment? Everyone has a comment.",
-      "Since the Lockdown, the news is the only thing that gets around."
+      "Since the Lockdown, the news is the only thing that gets around. That, and the grey envelopes."
     ],
     "dialogue": [
       {
@@ -1141,6 +1190,7 @@
         "status": "complete",
         "lines": [
           "Treasury Times, special edition! THE DOOR IS OPEN. The queue starts at the Trenches. Bring snacks.",
+          "Page two: DOMES SIGHTED ON HORIZON. Bureau says 'weather balloons'.",
           "President, a word for the people who stayed?",
           {
             "player": "The door works both ways."
@@ -1153,7 +1203,7 @@
         "status": "started",
         "step": ["announce"],
         "lines": [
-          "President! Big news? Hand it over. Use the press release on me and I'll read it live."
+          "President! Big news? Hand it over. Use the press release on me and I'll read it live, before anyone can stop the presses."
         ]
       },
       {
@@ -1162,7 +1212,7 @@
         "step": ["pundit"],
         "lines": [
           "We're still live, and the Pundit just took my microphone! He says the voters are on his side.",
-          "If only someone could actually count them."
+          "Funny. Nobody's ever seen him in the canteen where we vote. If only someone could actually count them."
         ]
       },
       {
@@ -1173,7 +1223,7 @@
           {
             "player": "Off the record: watch the north end of the Trenches."
           },
-          "I KNEW it. I'll keep it quiet. Mostly."
+          "I KNEW it. Is it the old building? The star-shaped one on the map? I'll keep it quiet. Mostly."
         ]
       },
       {
@@ -1188,7 +1238,7 @@
                 "text": "Yes. Completely.",
                 "lines": [
                   "Honesty! In politics! I need to sit down.",
-                  "(Somewhere, the Spin Doctor faints. Try again.)"
+                  "(Somewhere, Doctor Merge faints. Try again.)"
                 ]
               },
               {
@@ -1198,7 +1248,9 @@
               },
               {
                 "text": "What's a coin?",
-                "lines": ["I'll... print that, I guess. Let's try again."]
+                "lines": [
+                  "I'll... print that, I guess. Assuming anyone's still allowed to print anything. Let's try again."
+                ]
               }
             ]
           }
@@ -1209,7 +1261,7 @@
         "status": "started",
         "step": ["q2"],
         "lines": [
-          "Second question: why can't the Treasury just sell its $BITCOIN?",
+          "Second question: our sources say someone, somewhere, is printing money by the truckload. So why can't the Treasury just sell its Tickets and buy some?",
           {
             "options": [
               {
@@ -1218,7 +1270,9 @@
               },
               {
                 "text": "Because selling would crash the coin and the country. So we took a Vow.",
-                "lines": ["A vow! The people love a vow. Last question!"],
+                "lines": [
+                  "A vow! The people love a vow. And nobody can print a vow. Last question!"
+                ],
                 "choice": "press_q2"
               },
               {
@@ -1234,7 +1288,7 @@
         "status": "started",
         "step": ["q3"],
         "lines": [
-          "Final question: rumor says you're planning to leave the Treasury. Is that true?",
+          "Final question: rumor says you're planning to leave the Treasury, to go looking for some lost civilization. Is that true?",
           {
             "options": [
               {
@@ -1248,7 +1302,7 @@
               {
                 "text": "Leave? I'm opening a door. For everyone.",
                 "lines": [
-                  "A door for everyone. The Treasury is going to love that. That's a wrap!"
+                  "A door for everyone. The Treasury is going to love that. Certain people upstairs are going to hate it. That's a wrap!"
                 ],
                 "choice": "press_q3"
               }
@@ -1260,7 +1314,10 @@
         "quest": "quest_press_conference",
         "status": "started",
         "step": ["debrief"],
-        "lines": ["That's a wrap. You were... surprisingly good. Go see your Spin Doctor."]
+        "lines": [
+          "That's a wrap. You were... surprisingly good. Go see Doctor Merge.",
+          "And President? The Pundit's earpiece kept talking after he went down. Not in English."
+        ]
       }
     ]
   },
@@ -1276,23 +1333,25 @@
       {
         "player": "Where are we?"
       },
-      "Somewhere new. The coordinates only got us this far. But look across the lake: towers, lights. Somebody over there is doing magic.",
+      "Somewhere new. The coordinates only got us this far. But look across the lake: spires, domes, star-shaped walls. Tartaria, President. Standing. And somebody over there is doing magic in it.",
       "There's a rowboat at the water's edge with a note on it. It says 'TO THE ACADEMY. ROW YOURSELF.'",
+      "The trail west goes to my ranch, by the way. I do a show on Sundays. And the road east goes to the Hatchery. Busy people, out here.",
       "The Chamber works both ways, so go home whenever you like.",
       {
         "player": "And you?"
       },
-      "I'm going to stand here a while. Guarding the mustache. From a much better view."
+      "I'm going to stand here a while. Guarding the mustache. From a much better view. Counting the lights in the sky that aren't stars."
     ],
     "dialogue": [
       {
         "quest": "quest_moonward",
         "status": "complete",
         "lines": [
-          "A wizard academy. Of course there's a wizard academy. And of course its treasurer ran off with the gold.",
-          "Some things are the same everywhere, President. Good to know we're useful out here too.",
-          "The Scout brought the Captain through while you were at school. He walked the whole way. He won't stop telling people.",
-          "Two treasuries saved. Which leaves the RoadMap: one arrow, pointing up. The signpost says the rest is unexplored. I say that's the same thing."
+          "A wizard academy, inside a Tartarian star fort. Of course. And of course its treasurer was wiring the gold to the same people who sealed ours.",
+          "Some things are the same everywhere, President. The Bureau has branch offices. Good to know we're useful out here too.",
+          "Scout Greenhill brought the Captain through while you were at school. He walked the whole way. He won't stop telling people.",
+          "Two treasuries saved. Which leaves the RoadMap: one arrow, pointing up. The signpost says the rest is unexplored. I say that's the same thing.",
+          "And tune in Sunday. The Sproto Ranch is just down the west trail. We're going to tell the people everything."
         ]
       }
     ]
@@ -1304,18 +1363,21 @@
     "model": "npc_archmage",
     "actions": ["Talk-to"],
     "wanderRadius": 0,
-    "lines": ["Welcome to Moonward, President. Mind the students; they duel in the halls."],
+    "lines": [
+      "Welcome to Moonward, President. Mind the students; they duel in the halls. The halls were here long before any of us."
+    ],
     "dialogue": [
       {
         "quest": "quest_moonward",
         "status": "complete",
         "lines": [
           "The rug is unraveled and the gold is back in the vault. Moonward is open again, and every student wants your autograph.",
+          "We found the Bursar's ledger in the rug's lining. Every payment went three ways: a Bureau, a lobbying firm, and a set of coordinates in the night sky.",
           {
             "player": "What happens now?"
           },
-          "Now we teach. And you keep exploring, President. The world out here is bigger than either of us thought.",
-          "Come back any time. The Staffwright will keep your COOM topped up."
+          "Now we teach. And you keep exploring, President. The world out here is bigger than either of us thought, and older than anyone is allowed to say.",
+          "Come back any time. Staffwright Kundalina will keep your COOM topped up."
         ]
       },
       {
@@ -1329,11 +1391,15 @@
             "player": "Was the rowboat yours?"
           },
           "The crystal ball showed me your Chamber waking. I left a boat. The oars are on loan; we have a budget crisis.",
+          {
+            "player": "These walls are shaped like a star."
+          },
+          "Tartarian, yes. The founders didn't build Moonward; they found it. The towers drink power from the air. That's all magic is, President: old engineering nobody's allowed to patent.",
           "Our Bursar wove the whole endowment into one magnificent rug. Then he pulled it.",
           {
             "player": "He pulled the rug."
           },
-          "Right out from under us. He calls himself the Rugmancer now, and he's spellbound our Battlemages to keep everyone out.",
+          "Right out from under us. He calls himself the Rugmancer now, and he's spellbound our Battlemages to keep everyone out. Two gentlemen in grey robes visited him first. We don't issue grey robes.",
           "First, you'll want to cast. Here: an Apprentice Staff, and some COOM to fire from it.",
           {
             "player": "COOM?"
@@ -1368,20 +1434,20 @@
           {
             "player": "The Battlemage woke up and said the spell comes from the north tower."
           },
-          "Of course it does. He always did like the view from up there. Unobstructed. Unaudited.",
+          "Of course it does. The north tower is the old antenna. Tartarian. He's been using it to beam the gold's whereabouts to someone up there. Unobstructed. Unaudited.",
           "Go up and take back the endowment. He'll call Apprentices to defend him. Spellbound ones. Go easy on them; they're only students.",
           {
             "player": "Any advice?"
           },
           "Ordinary spells just get woven into his rug. It's spun from doubt, President. Every gloomy forecast since he took the gold.",
-          "Only hope unravels doubt. Ask the Staffwright for the staff that runs on it. Not the moon one. Hope."
+          "Only hope unravels doubt. Ask Staffwright Kundalina for the staff that runs on it. Not the moon one. Hope."
         ]
       }
     ]
   },
   {
     "id": "npc_staffwright",
-    "name": "The Staffwright",
+    "name": "Staffwright Kundalina",
     "examine": "Makes staffs. Sells COOM. Asks no questions.",
     "model": "npc_staffwright",
     "actions": ["Talk-to"],
@@ -1410,14 +1476,14 @@
         "status": "complete",
         "lines": [
           "The President who unraveled the Rugmancer! For you, the good COOM. It's the same COOM. Same price, too.",
-          "Business is booming now the gold's back. Everyone wants a staff."
+          "Business is booming now the gold's back. Everyone wants a staff. Nobody asks why the crystals hum when the lights fly over."
         ]
       }
     ]
   },
   {
     "id": "npc_student",
-    "name": "Moonward Student",
+    "name": "Unascended Student",
     "examine": "A mature student. Third attempt at the same degree.",
     "model": "npc_student",
     "actions": ["Talk-to"],
@@ -1427,7 +1493,7 @@
       {
         "player": "Shouldn't you be studying?"
       },
-      "Nobody's taught a class since the Rugmancer took the gold. We just duel. And read. Mostly duel."
+      "Nobody's taught a class since the Rugmancer took the gold. We just duel. And read. My thesis is on mud-floods. My supervisor calls it 'career-limiting'."
     ],
     "dialogue": [
       {
@@ -1435,7 +1501,7 @@
         "status": "complete",
         "lines": [
           "Classes start again tomorrow! Real ones! With teachers who aren't spellbound!",
-          "Professor Ironcloak says he'll make an example of the first student who duels in the library. It's going to be me."
+          "Professor Ironguide says he'll make an example of the first student who duels in the library. It's going to be me."
         ]
       },
       {
@@ -1450,7 +1516,7 @@
   },
   {
     "id": "npc_professor",
-    "name": "Professor Ironcloak",
+    "name": "Professor Ironguide",
     "examine": "Taught battle magic for forty years. Now teaches it to anyone who stands still.",
     "model": "npc_professor",
     "actions": ["Talk-to"],
@@ -1467,6 +1533,7 @@
         "status": "complete",
         "lines": [
           "The spell is gone from my head. Like waking from a very long lecture. Thank you, President.",
+          "I remember a grey robe and a voice: 'keep them out of the tower'. After that, only rule one, rule two and rule three.",
           "If you want to keep your casting sharp, the Apprentices still duel all day. Teach them some manners."
         ]
       }
@@ -1481,7 +1548,7 @@
     "wanderRadius": 0,
     "lines": [
       "Sitting. It's harder than it looks.",
-      "Eleven people believed me, and I ran laps so they would never see it fail. Don't do that, President.",
+      "Eleven people believed me, and I ran laps so they would never look too closely. Two grey suits told me to. Said the money supply depended on it. Don't run for people like that, President.",
       {
         "player": "Why did you stay?"
       },
@@ -1492,7 +1559,7 @@
         "quest": "quest_way_out",
         "status": "complete",
         "lines": [
-          "The Scout says I walk through next. Walk. Slowly. Like a normal person.",
+          "Scout Greenhill says I walk through next. Walk. Slowly. Like a normal person.",
           "Go on ahead, President. I have four hundred days of sitting to catch up on."
         ]
       },
@@ -1501,7 +1568,208 @@
         "status": "started",
         "lines": [
           "The Chamber, waking up? After all those laps?",
-          "The stones out there won't listen to bullets. I tried. For a year. A law needs a big, loud No."
+          "The stones out there won't listen to bullets. I tried. For a year. A law needs a big, loud No. And that law was never ours."
+        ]
+      }
+    ]
+  },
+  {
+    "id": "npc_morelight_ranch",
+    "name": "Morelight",
+    "examine": "Chief of Staff, ranch owner and Sunday-night broadcaster. Wearing a cowboy hat over the mustache's objections.",
+    "model": "npc_morelight_ranch",
+    "actions": ["Talk-to"],
+    "wanderRadius": 1,
+    "lines": [
+      "Welcome to the Sproto Ranch, President. Hat on, boots muddy, cameras rolling.",
+      "Every Sunday we go live from right here. No script, no sponsors, no Bureau. Just the truth and a lot of small blue animals."
+    ],
+    "dialogue": [
+      {
+        "quest": "quest_sproto_ranch",
+        "status": "complete",
+        "lines": [
+          "RIP MORELIGHT THE GRIZZ BEAR EATED HIM. That's the headline the Bureau had ready to print. Pre-written. I found the press release inside the bear.",
+          {
+            "player": "FAKE NEWS."
+          },
+          "FAKE NEWS. Live, on air, in front of every Sproto on the Ranch. Ratings have never been better.",
+          "And did you see them glow when you summoned? There's Tartarian stone under the corral. The Sprotos were made to guard it, President. That's the Sproto Power nobody's allowed to mention: they can't be printed, faked or bought, and they know exactly who can.",
+          "Next stop: the Hatchery, down the east road from the Chamber. Every new coin there is paired with Tickets, so the Printer's people get nothing. Which is how you know it's working."
+        ]
+      },
+      {
+        "quest": "quest_sproto_ranch",
+        "status": "started",
+        "step": ["hat"],
+        "lines": [
+          "President! Welcome to the Sproto Ranch. My ranch, my corral, and every Sunday, my show.",
+          "It's live, it's unfiltered, and it's the only broadcast out here the Bureau doesn't own. Tonight we tell the people the truth about the money: who prints it, where it goes, and why there's a dome under my barn.",
+          {
+            "player": "What do I need to do?"
+          },
+          "Ranch rules for guests. Wear a hat. Take a slug of moonshine. Say the words. Then we let the Sprotos out.",
+          "Hat first. Any hat; put it on fresh for the camera. The camera adds ten pounds and the Bureau adds a satellite. A brim helps with both."
+        ]
+      },
+      {
+        "quest": "quest_sproto_ranch",
+        "status": "started",
+        "step": ["moonshine"],
+        "lines": [
+          "Lovely hat. Now: moonshine. The Ranch's finest.",
+          {
+            "player": "Is it actually moonshine?"
+          },
+          "It's a Hopium Soda in a jug. Don't tell the viewers. Bring me one; Staffwright Kundalina sells them across the lake, and so does the Terminal back home."
+        ]
+      },
+      {
+        "quest": "quest_sproto_ranch",
+        "status": "started",
+        "step": ["yeehaw"],
+        "lines": [
+          "*glug* Smooth. Tastes like tomorrow. We're live in three, two...",
+          "Good evening, Ranch! Welcome to the Sproto Ranch Show. My guest tonight: the President, who has seen the domes with their own eyes. President, say the words.",
+          {
+            "options": [
+              {
+                "text": "Yeehaw.",
+                "lines": ["Quieter than a tax return. The Sprotos are asleep. Again, with feeling."]
+              },
+              {
+                "text": "YEEHAW!",
+                "lines": [
+                  "THAT'S the words! Look at the chat. Look at the Sprotos. Look at the Bureau's satellite, quietly changing orbit."
+                ],
+                "choice": "ranch_yeehaw"
+              },
+              {
+                "text": "Is this being recorded?",
+                "lines": ["Always, President. By us, for once. Try again."]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "quest": "quest_sproto_ranch",
+        "status": "started",
+        "step": ["summon"],
+        "lines": [
+          "The viewers loved it. Now, the real show. Summon a Sproto. Out here, on the old stone, you'll see what they can really do.",
+          "Officially they're a security detail. Unofficially, they're the last guardians of Tartaria, and they glow when they're home."
+        ]
+      },
+      {
+        "quest": "quest_sproto_ranch",
+        "status": "started",
+        "step": ["grizz"],
+        "lines": [
+          "Look at it glow! That, folks, is Sproto Power. Unprintable. Uncounterfeitable. Very small.",
+          "And... oh dear. There's a bear in the corral. A very upright bear. With a zip.",
+          {
+            "player": "Is that a real bear?"
+          },
+          "That's The Grizz. The Bureau's been trying to make 'Morelight eaten by bear' happen for months. They've already written the headline.",
+          "Bullets won't bother it; it was issued to ignore them. Hit it with something powered by a grudge: the Gremlin Blaster from the Terminal. Or the Archmage's staff, if Hodlwyn lent you his. Tartarian air goes straight through a zip."
+        ]
+      }
+    ]
+  },
+  {
+    "id": "npc_hatchery_dev",
+    "name": "Dev Yolk",
+    "examine": "Built a launchpad in a weekend and hasn't slept since. Every coin that hatches here is paired with Tickets.",
+    "model": "npc_hatchery_dev",
+    "actions": ["Talk-to"],
+    "wanderRadius": 1,
+    "lines": [
+      "Welcome to the Hatchery. Every coin that hatches here is paired with Tickets. No exceptions, no backdoors, no Bureau.",
+      "Come back when you're ready to launch something."
+    ],
+    "dialogue": [
+      {
+        "quest": "quest_hatchery",
+        "status": "complete",
+        "lines": [
+          "Your coin's live, President, and every trade feeds Tickets instead of the sky.",
+          "Here's what they'll never say on the news: new money doesn't have to be printed upstairs. It can be hatched, down here, by people. Paired with Tickets, the one currency the Printer can't touch.",
+          {
+            "player": "And the Extractor?"
+          },
+          "Returned to sender. His people pay no fees here and take none. They say ten Tickets trade for one Verse, somewhere past the edge of the map. Down here, nobody can print either. Come back any time; there's always another egg."
+        ]
+      },
+      {
+        "quest": "quest_hatchery",
+        "status": "started",
+        "step": ["materials"],
+        "lines": [
+          "You must be the President. Morelight said you'd come. Welcome to the Hatchery: the launchpad where every coin is paired with Tickets.",
+          {
+            "player": "Why does that matter?"
+          },
+          "Because everywhere else, new coins are printed out of thin air and the fees float off to whoever owns the Printer. Lobbyists. A Bureau. And a client upstairs with very large eyes.",
+          "Here, every coin is paired with Tickets, and the fees go back into Tickets. Nothing leaves the planet. The Printer hates it.",
+          "We set up shop in an old star fort. The incubators were already here. Tartarian. Warm to the touch, no power cable. Don't ask.",
+          "Let's hatch you a coin. Bring me 10 Scrap Hash to mint it, and 2 Zingers. A ticker without a joke never hatches."
+        ]
+      },
+      {
+        "quest": "quest_hatchery",
+        "status": "started",
+        "step": ["name"],
+        "lines": [
+          "The mint's warming up. Now, the important part: the name.",
+          {
+            "options": [
+              {
+                "text": "$TARTARIA",
+                "lines": ["Bold. The domes approve."],
+                "choice": "hatch_tartaria"
+              },
+              {
+                "text": "$SPROTO",
+                "lines": ["The little blue ones will be insufferable about it. Perfect."],
+                "choice": "hatch_sproto"
+              },
+              {
+                "text": "$DISCLOSURE",
+                "lines": ["Ha! Now the Bureau has to report on it. In its own newsletter."],
+                "choice": "hatch_disclosure"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "quest": "quest_hatchery",
+        "status": "started",
+        "step": ["pair"],
+        "lines": [
+          "Named and minted. Now pair it: sell something at the Hatchery's Trading Terminal and the incubator matches it with Tickets. That's the handshake.",
+          "Every sale here buys a few Tickets back. That's the whole trick. The Printer can't print it, so it can't print around us."
+        ]
+      },
+      {
+        "quest": "quest_hatchery",
+        "status": "started",
+        "step": ["rugs"],
+        "lines": [
+          "Uh-oh. Rug Pullers on the launchpad. They follow every new coin around, trying to yank the floor out from under it.",
+          "Chase one off before your coin's first candle."
+        ]
+      },
+      {
+        "quest": "quest_hatchery",
+        "status": "started",
+        "step": ["extractor"],
+        "lines": [
+          "And there he is. The Extractor. Grey suit, grey face, very large eyes, and a business card from a launchpad that doesn't exist.",
+          "He skims the fees off every launch and beams them up. Calls it a 'platform cost'. The platform is in orbit.",
+          "Bullets slide off him like he's paid to ignore them. But he can't extract from hands that won't let go: the Diamond Hands Minigun. Or talk him into the ground with a Filibuster Mace. His people have no concept of a filibuster.",
+          "He hires Rug Pullers by the minute when he's losing. Don't let them pile up."
         ]
       }
     ]

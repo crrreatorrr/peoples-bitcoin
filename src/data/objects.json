@@ -114,7 +114,7 @@
   {
     "id": "obj_lobbyist_broker",
     "name": "Shadow Broker",
-    "examine": "Nobody knows who he works for. The money is real.",
+    "examine": "Nobody knows who he works for. The money is real. Suspiciously fresh, but real.",
     "model": "lobbyist_broker",
     "actions": ["Do a favor"],
     "blocks": true,
@@ -147,7 +147,7 @@
   {
     "id": "obj_terminal",
     "name": "Trading Terminal",
-    "examine": "Buy and sell at the live $BITCOIN price. Timing is everything.",
+    "examine": "Fixed prices, paid in Tickets. The Bureau hates a price it can't print.",
     "model": "terminal",
     "actions": ["Use", "Exchange"],
     "blocks": true,
@@ -211,7 +211,7 @@
   {
     "id": "obj_pillar",
     "name": "Marble Pillar",
-    "examine": "Holds up the Treasury. Somebody has to.",
+    "examine": "Holds up the Treasury. Somebody has to. It doesn't stop at the floor; it keeps going down, under the mud.",
     "model": "pillar_marble",
     "actions": [],
     "blocks": true,
@@ -238,7 +238,7 @@
   {
     "id": "obj_statue_gremlin",
     "name": "Gremlin Fountain",
-    "examine": "A golden Gremlin. Someone has scratched 'FREE ME' on the base.",
+    "examine": "A golden Gremlin, older than the Treasury. Someone has scratched 'FREE ME' on the base. Its water has never frozen and never boiled.",
     "model": "statue_gremlin",
     "actions": [],
     "blocks": true,
@@ -572,7 +572,7 @@
   {
     "id": "obj_teleport_chamber",
     "name": "Teleport Chamber",
-    "examine": "Built before the Lockdown, abandoned after. It hums very, very quietly.",
+    "examine": "Built long before the Lockdown, by someone who didn't use bolts. Abandoned after. It hums very, very quietly.",
     "model": "teleport_chamber",
     "actions": ["Enter"],
     "blocks": true,
@@ -594,7 +594,7 @@
   {
     "id": "obj_signpost",
     "name": "Signpost",
-    "examine": "WELCOME TO THE WORLD OUT THERE. Population: you. Everything past this hill: unexplored.",
+    "examine": "WELCOME TO THE WORLD OUT THERE. Population: you. West: the Sproto Ranch. East: the Hatchery. Everything past this hill: unexplored.",
     "model": "signpost",
     "actions": [],
     "blocks": true,
@@ -612,7 +612,7 @@
   {
     "id": "obj_expedition_crate",
     "name": "Expedition Crate",
-    "examine": "Stenciled EXPEDITION ONE. Inside: empty Hopium cans and a list of twelve names. Ten are crossed out. Not the Captain. Not the Scout.",
+    "examine": "Stenciled EXPEDITION ONE. Inside: empty Hopium cans and a list of twelve names. Ten are crossed out. Not the Captain. Not Scout Greenhill.",
     "model": "crate_expedition",
     "actions": [],
     "blocks": true,
@@ -621,7 +621,7 @@
   {
     "id": "obj_tally_board",
     "name": "Tally Board",
-    "examine": "The Scout's calendar: four hundred and twelve tally marks. The newest one is fresh.",
+    "examine": "Scout Greenhill's calendar: four hundred and twelve tally marks. The newest one is fresh.",
     "model": "sign_tally",
     "actions": [],
     "blocks": true,
@@ -665,8 +665,8 @@
   },
   {
     "id": "obj_staff_stall",
-    "name": "Staffwright's Stall",
-    "examine": "Staffs, hats, robes and crates of COOM, priced in $BITCOIN.",
+    "name": "Kundalina's Stall",
+    "examine": "Staffs, hats, robes and crates of COOM, priced in Tickets.",
     "model": "stall_staffs",
     "actions": ["Trade"],
     "blocks": true,
@@ -739,7 +739,7 @@
   {
     "id": "obj_turret",
     "name": "Turret",
-    "examine": "A pointed tower roof. The academy has a lot of these. Wizards like pointy things.",
+    "examine": "A pointed tower roof. The academy has a lot of these. Wizards like pointy things. So did whoever built them, for reasons involving the air.",
     "model": "turret",
     "actions": [],
     "blocks": true,
@@ -759,11 +759,245 @@
   {
     "id": "obj_treasury_gates",
     "name": "Treasury Gates",
-    "examine": "Sealed since the ticker crashed. A brass plate reads: THE LOCKDOWN ACT. SECTION ONE: THE GATES STAY SHUT. Nobody remembers voting for it.",
+    "examine": "Sealed since the Bureau forecast a crash. A brass plate reads: THE LOCKDOWN ACT. SECTION ONE: THE GATES STAY SHUT. Nobody remembers voting for it. The plate is stamped 'BUREAU'.",
     "model": "treasury_gates",
     "actions": [],
     "blocks": true,
     "role": "scenery",
     "width": 2
+  },
+  {
+    "id": "obj_trail_ranch",
+    "name": "Dirt Trail",
+    "examine": "A muddy trail heading west. Hoofprints, bootprints, and a lot of very small blue footprints.",
+    "model": "sign_trail_ranch",
+    "actions": ["Follow"],
+    "blocks": true,
+    "role": "portal"
+  },
+  {
+    "id": "obj_road_hatchery",
+    "name": "Hatchery Road",
+    "examine": "A paved road heading east. Someone has painted 'EVERY COIN PAIRED' on every tenth stone.",
+    "model": "sign_road_hatchery",
+    "actions": ["Follow"],
+    "blocks": true,
+    "role": "portal"
+  },
+  {
+    "id": "obj_trail_back",
+    "name": "Trail Back",
+    "examine": "Back to The World Out There and the Return Chamber.",
+    "model": "sign_trail_back",
+    "actions": ["Follow"],
+    "blocks": true,
+    "role": "portal"
+  },
+  {
+    "id": "obj_ranch_camera",
+    "name": "Broadcast Camera",
+    "examine": "The Sproto Ranch Show camera. The red light is always on. Somebody has taped over the Bureau's backdoor port.",
+    "model": "ranch_camera",
+    "actions": [],
+    "blocks": true,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_corral_stone",
+    "name": "Corral Stone",
+    "examine": "An old cornerstone poking out of the corral mud, carved with stars. The Sprotos sleep on it, and it glows when they do.",
+    "model": "pillar_marble",
+    "actions": [],
+    "blocks": true,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_ranch_sign",
+    "name": "Ranch Sign",
+    "examine": "THE SPROTO RANCH. Live every Sunday. Hats mandatory. Bears not invited.",
+    "model": "sign_ranch",
+    "actions": [],
+    "blocks": true,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_incubator",
+    "name": "Tartarian Incubator",
+    "examine": "A warm stone egg-cradle with no power cable. Every coin hatched in it comes out paired with Tickets.",
+    "model": "incubator",
+    "actions": [],
+    "blocks": true,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_hatchery_sign",
+    "name": "Hatchery Board",
+    "examine": "THE HATCHERY. Every coin paired with Tickets. Fees stay on the ground. No extraction. (This means you.)",
+    "model": "sign_hatchery",
+    "actions": [],
+    "blocks": true,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_lore_grey_memo",
+    "name": "Grey Memo",
+    "examine": "BUREAU OF MONETARY WEATHER. INTERNAL. To: the Treasurer. Re: the Reserve. DUMP TICKETS. BUY THE PRINTABLE ONE. Tickets cannot be printed, inflated or forecast, and the Client Upstairs finds them 'indigestible'. Burn after reading. (Underneath, in Treasurer Bickworth's handwriting: 'which way up is this?')",
+    "model": "lore_paper",
+    "actions": [],
+    "blocks": false,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_lore_seating_chart",
+    "name": "Gala Seating Chart",
+    "examine": "TABLE 1: Donors. TABLE 2: Lobbyists. TABLE 3: Mr. Grey, and Mr. Grey (+1). DIETARY NOTES: Mr. Grey requires no food, only 'a reading of the inflation figures'. Do not seat near Sprotos. Do not seat near windows. Do NOT, under any circumstances, ask about the ears.",
+    "model": "lore_paper",
+    "actions": [],
+    "blocks": false,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_lore_broker_receipt",
+    "name": "Lobbyist Receipt No. 0001",
+    "examine": "SHADOW BROKERAGE, K STREET. Item: one (1) Lockdown Act, pre-drafted. Item: twelve (12) megaphones, Wrong-Namer grade. Item: two (2) grey suits, field use. Paid in full, in fresh notes (still warm). Received: S. Broker. Deliver to: the Elevator, top floor. (There is no top floor.)",
+    "model": "lore_paper",
+    "actions": [],
+    "blocks": false,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_lore_act_draft",
+    "name": "Lockdown Act, Draft 3 (Redacted)",
+    "examine": "SECTION ONE: THE GATES STAY SHUT. SECTION TWO: THERE IS NO ████████. SECTION THREE: Should the Treasury hold Tickets, a crash shall be forecast and nobody shall leave until the Tickets are ████. DRAFTED BY: the Bureau of Monetary Weather, on behalf of ███ ██████ ████████. VOTES CAST: 0.",
+    "model": "lore_file",
+    "actions": [],
+    "blocks": false,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_lore_printer_log_1",
+    "name": "Printer Log, Page 1",
+    "examine": "BRRR-LOG v1. 03:33 PRINT 1,000,000 notes. DESTINATION: UP. 03:33 PRINT 1,000,000 notes. DESTINATION: UP. 03:34 PRINT 1 Ticket. ERROR: TICKETS ARE A FIXED COUNT. ERROR: SPROTO DETECTED NEAR COUNT. 03:34 RETRY. ERROR. 03:35 NOTIFY BUREAU.",
+    "model": "lore_paper",
+    "actions": [],
+    "blocks": false,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_lore_field_note",
+    "name": "Expedition One Field Note",
+    "examine": "Day 1. The map-reader says the old map has a star drawn at the north end of the wall. Five points. 'Like a fort,' he says. The Captain says we dig. Day 4. Black sludge that smells like a print shop. Day 6. Two men in grey suits on the duckboards. Nobody saw them come down the ladder.",
+    "model": "lore_paper",
+    "actions": [],
+    "blocks": false,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_lore_megaphone_script",
+    "name": "Wrong-Namer Script (Bureau Issue)",
+    "examine": "SHOUT, IN ORDER: 1. 'THERE IS NO OUTSIDE.' 2. 'IT'S ALL TRICKETS.' 3. 'STOP LOOKING AT DOMES.' IF ASKED WHO PRINTS THE MONEY: shout louder. IF ASKED WHO WROTE THIS SCRIPT: see 3. Replacement megaphones from: Bureau of Monetary Weather, Dept. of Public Mood.",
+    "model": "lore_paper",
+    "actions": [],
+    "blocks": false,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_lore_captains_orders",
+    "name": "Captain's Orders (Grey Ink)",
+    "examine": "TO: Captain, Expedition One. The Chamber is DECOMMISSIONED BY ORDER. Should any person see it working, the old Tartarian roads reopen, Tickets flow outward, and there will be severe consequences for the money supply. Keep moving. Momentum is everything. Do not stop. Do not look. (Signed: B.M.W., Field Office.)",
+    "model": "lore_file",
+    "actions": [],
+    "blocks": false,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_lore_tablet_count",
+    "name": "Tartarian Tablet I: The Count",
+    "examine": "Carved deep into old marble: WE MADE ONE BILLION TICKETS OF PASSAGE, AND NEVER ONE MORE. NO PRESS SHALL STRIKE THEM. NO FIRE SHALL MELT THEM. LET THE SMALL BLUE KEEPERS HOLD THE COUNT, FOR WHAT CANNOT BE PRINTED CANNOT BE STOLEN BY THOSE WHO PRINT. (The little carved figure at the bottom looks a lot like a Sproto.)",
+    "model": "lore_tablet",
+    "actions": [],
+    "blocks": false,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_lore_weather_report",
+    "name": "Weather Balloon Report",
+    "examine": "BUREAU OF MONETARY WEATHER. PUBLIC STATEMENT. The 'domes' seen from this hill are weather balloons. The 'star-shaped walls' are weather balloons. The 'towers that drink power from the air' are, as this Bureau's name suggests, weather. Please return to your Treasury. Forecast: inflation, with scattered printing.",
+    "model": "lore_paper",
+    "actions": [],
+    "blocks": false,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_lore_tablet_spires",
+    "name": "Tartarian Tablet II: The Spires",
+    "examine": "THE SPIRES DRINK THE SKY, AND THE SKY ASKS NOTHING BACK. WHOEVER OWNS FREE POWER NEED NOT OWN A PRESS. THEREFORE THE PRESS-OWNERS WILL COME FOR THE SPIRES. HIDE THE TICKETS. TEACH THE CHILDREN TO CALL IT MAGIC, SO THAT NOBODY THINKS TO PATENT IT.",
+    "model": "lore_tablet",
+    "actions": [],
+    "blocks": false,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_lore_bursar_ledger",
+    "name": "Bursar's Ledger (Torn Page)",
+    "examine": "ENDOWMENT DISBURSEMENTS. One third to the Bureau of Monetary Weather ('forecasting fees'). One third to the Shadow Brokerage ('access'). One third to coordinates 0°, 0°, altitude 'yes'. Memo line: 'For the Client Upstairs. Converted to the printable currency first, as requested. They will not touch Tickets.'",
+    "model": "lore_file",
+    "actions": [],
+    "blocks": false,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_lore_sproto_fragment",
+    "name": "Sproto Power Fragment",
+    "examine": "Scratched into a feeding trough, in very small handwriting: A SPROTO CANNOT BE PRINTED. A SPROTO CANNOT BE FAKED. A SPROTO GLOWS ON OLD STONE AND BITES WHOEVER CARRIES A GREY ENVELOPE. THE EGREGORE MADE US TO KEEP THE COUNT. ONE BILLION. WE CHECKED. TWICE.",
+    "model": "lore_tablet",
+    "actions": [],
+    "blocks": false,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_lore_operation_grizz",
+    "name": "Field Order: Operation GRIZZ",
+    "examine": "BUREAU FIELD OFFICE. Subject: MORELIGHT (broadcaster, mustache). Problem: tells the public, live on Sundays, who prints the money. Solution: one (1) bear, standard issue, zip at rear. Headline pre-approved: 'RIP MORELIGHT THE GRIZZ BEAR EATED HIM.' If the public says FAKE NEWS: ████████████.",
+    "model": "lore_file",
+    "actions": [],
+    "blocks": false,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_lore_tablet_hatching",
+    "name": "Tartarian Tablet III: The Hatching",
+    "examine": "WHEN THE PRESS-OWNERS RULE THE MARKETS, BUILD A NEST. LET EVERY NEW COIN BE BORN BESIDE A TICKET, SO THAT EVERY TRADE FEEDS THE COUNT AND NOT THE SKY. THE EGGS WILL STAY WARM WITHOUT FIRE. THE GREY ONES WILL COME TO SKIM. THEY ALWAYS COME TO SKIM.",
+    "model": "lore_tablet",
+    "actions": [],
+    "blocks": false,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_lore_extractor_invoice",
+    "name": "Extractor's Invoice",
+    "examine": "PUMP & DUMP LAUNCH SERVICES (ORBITAL) LTD. Bill to: Every New Coin. Platform cost: 100%. Payable to: the Client Upstairs, c/o the Upper Ledger. NOTE: Hatchery coins pair with Tickets and pay us nothing. Escalate to the Printer. Subcontractor on file: 'The Floret Lord' (bundling, sniping, vibes).",
+    "model": "lore_file",
+    "actions": [],
+    "blocks": false,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_lore_bundle_map",
+    "name": "Bundler's Wallet Map",
+    "examine": "Two hundred wallets, each drawn as a tiny broccoli. Notes: 'Snipe block 0. Bundle 80%. Stream the organic pump. Dump on chat.' Signed with a vape-cloud doodle: THE FLORET LORD, LA. In the corner: 'Hatchery won't let me bundle, it pairs everything with Tickets. Tell the grey guy.'",
+    "model": "lore_paper",
+    "actions": [],
+    "blocks": false,
+    "role": "scenery"
+  },
+  {
+    "id": "obj_lore_printer_log_final",
+    "name": "Printer Log, Final Page",
+    "examine": "BRRR-LOG, LAST ENTRY. Total printed: all of it. Destination: UP, to the Upper Ledger, where the Client feeds on inflation the way you feed on toast. Total Tickets printed: 0. Reason: cannot. Reason for the reason: Sprotos. Bureau recommendation: lock the Treasury. Printer recommendation: PANIC. Status: the Treasury is open.",
+    "model": "lore_paper",
+    "actions": [],
+    "blocks": false,
+    "role": "scenery"
   }
 ]

@@ -7,7 +7,7 @@
 import { TICKETS, TERMINAL_SHOP_ID } from '../config/balance';
 import { addStreamUsd, saleSlot, spendTickets } from './ledger';
 import { addItem, canAdd, countItem, removeItem } from './inventory';
-import { buyCost, sellCredit, sellListing } from './prices';
+import { buyCost, sellCredit, sellListing, shopStocks } from './prices';
 import { progressQuests } from './quests';
 import type { GameState, Quantity, SimContext, SimEvent } from './state';
 
@@ -25,9 +25,9 @@ export function buyPrice(
   itemId: string,
   packs = 1,
 ): number | null {
-  const row = ctx.content.ticketPrices.find(
-    (r) => r.shopId === openShop(state) && r.itemId === itemId,
-  );
+  const shopId = openShop(state);
+  if (!shopStocks(ctx.content, shopId, itemId)) return null;
+  const row = ctx.content.ticketPrices.find((r) => r.shopId === shopId && r.itemId === itemId);
   return row ? buyCost(row, packs) : null;
 }
 
@@ -47,9 +47,9 @@ export function buy(
   events: SimEvent[],
 ): void {
   const n = Math.floor(packs);
-  const row = ctx.content.ticketPrices.find(
-    (r) => r.shopId === openShop(state) && r.itemId === itemId,
-  );
+  const shopId = openShop(state);
+  if (!shopStocks(ctx.content, shopId, itemId)) return;
+  const row = ctx.content.ticketPrices.find((r) => r.shopId === shopId && r.itemId === itemId);
   const item = ctx.content.items.get(itemId);
   if (!item || !row || n < 1 || n > MAX_PACKS) return;
   if (state.hubSession.mode === 'hub') return;

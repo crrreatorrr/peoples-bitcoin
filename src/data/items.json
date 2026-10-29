@@ -1178,6 +1178,22 @@
     }
   },
   {
+    "id": "item_leaked_memo",
+    "name": "Leaked Memo",
+    "examine": "A Bureau memo marked CONFIDENTIAL in letters you could read from orbit. Somebody upstairs wants this found.",
+    "stackable": false,
+    "model": "icon_leaked_memo",
+    "value": 0
+  },
+  {
+    "id": "pet_sproto_pup",
+    "name": "Sproto Pup",
+    "examine": "Small, blue, unprintable. It glows on old stone, growls at grey suits, and has decided you're its person.",
+    "stackable": false,
+    "model": "icon_sproto_pup",
+    "value": 0
+  },
+  {
     "id": "item_ticket_treasury",
     "name": "Treasury Ticket",
     "examine": "One trip home to the main path. Teleport takes a moment.",
@@ -1193,7 +1209,7 @@
   {
     "id": "item_ticket_trenches",
     "name": "Trenches Camp Ticket",
-    "examine": "One trip to the Scout's camp in the Trenches.",
+    "examine": "One trip to Scout Greenhill's camp in the Trenches.",
     "stackable": true,
     "model": "icon_ticket_trenches",
     "value": 24.15,
@@ -1863,7 +1879,7 @@
   {
     "id": "item_empty_canister",
     "name": "Empty Canister",
-    "examine": "A coolant canister. Empty. The Sysadmin wants it filled at the Gremlin Fountain.",
+    "examine": "A coolant canister. Empty. Sysadmin Opal wants it filled at the Gremlin Fountain.",
     "stackable": false,
     "model": "icon_empty_canister",
     "value": 0
@@ -1879,7 +1895,7 @@
   {
     "id": "item_coordinates_drive",
     "name": "Coordinates Drive",
-    "examine": "OUTSIDE.TXT: a set of coordinates to somewhere that is not the Treasury.",
+    "examine": "OUTSIDE.TXT: a set of coordinates to somewhere that is not the Treasury, and a ledger nobody was meant to read.",
     "stackable": false,
     "model": "icon_coordinates_drive",
     "value": 0
@@ -1895,7 +1911,7 @@
   {
     "id": "item_power_cell",
     "name": "Power Cell",
-    "examine": "Bought with the gala money. Hums with enough juice to wake a sleeping machine.",
+    "examine": "Bought with the gala money. Dug out of an old dome by people who never said which. Hums with enough juice to wake a sleeping machine.",
     "stackable": false,
     "model": "icon_power_cell",
     "value": 0
@@ -1903,7 +1919,7 @@
   {
     "id": "item_sealed_envelope",
     "name": "Sealed Envelope",
-    "examine": "The Broker's envelope. The Fixer said not to open it.",
+    "examine": "The Broker's envelope. Grey. Smells faintly of ozone. The Inducer said not to open it.",
     "stackable": false,
     "model": "icon_sealed_envelope",
     "value": 0
@@ -1919,7 +1935,7 @@
   {
     "id": "item_photo_negatives",
     "name": "Photo Negatives",
-    "examine": "The blackmail photo negatives. Most of the roll is you. The last few frames are the Broker.",
+    "examine": "The blackmail photo negatives. Most of the roll is you. The last few frames are the Broker, shaking a hand with too many fingers.",
     "stackable": false,
     "model": "icon_photo_negatives",
     "value": 0
@@ -1927,7 +1943,7 @@
   {
     "id": "item_exit_permit",
     "name": "Exit Permit",
-    "examine": "Signed and stamped by the Broker. The Lockdown Act says nobody leaves without one.",
+    "examine": "Signed and stamped by the Broker. The Lockdown Act says nobody leaves without one. The Act doesn't say who wrote the Act.",
     "stackable": false,
     "model": "icon_exit_permit",
     "value": 0
@@ -1935,7 +1951,7 @@
   {
     "id": "item_press_release",
     "name": "Signed Press Release",
-    "examine": "THE PRESIDENT IS OPENING A DOOR. FOR EVERYONE. (Read it to the Reporter.)",
+    "examine": "THE PRESIDENT IS OPENING A DOOR. FOR EVERYONE. (Read it to Lorna Coinlore.)",
     "stackable": false,
     "model": "icon_press_release",
     "value": 0
@@ -1943,7 +1959,7 @@
   {
     "id": "item_chamber_blueprints",
     "name": "Chamber Blueprints",
-    "examine": "Plans for a Teleport Chamber, drawn before the Lockdown.",
+    "examine": "Plans for a Teleport Chamber, drawn long before the Lockdown on paper that won't tear. Found under the mud-flood.",
     "stackable": false,
     "model": "icon_chamber_blueprints",
     "value": 0

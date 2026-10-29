@@ -206,7 +206,7 @@
             "y": 11
           },
           "requires": "bunker",
-          "lockedMessage": "The hatch is sealed. The Contractor in the hall can help with that."
+          "lockedMessage": "The hatch is sealed. Foreman Hallows in the hall can help with that."
         },
         {
           "objectId": "obj_rack_dusty",
@@ -487,6 +487,31 @@
           "objectId": "obj_treasury_gates",
           "x": 27,
           "y": 50
+        },
+        {
+          "objectId": "obj_lore_grey_memo",
+          "x": 26,
+          "y": 11
+        },
+        {
+          "objectId": "obj_lore_seating_chart",
+          "x": 8,
+          "y": 19
+        },
+        {
+          "objectId": "obj_lore_broker_receipt",
+          "x": 47,
+          "y": 36
+        },
+        {
+          "objectId": "obj_lore_act_draft",
+          "x": 23,
+          "y": 48
+        },
+        {
+          "objectId": "obj_lore_printer_log_1",
+          "x": 17,
+          "y": 8
         }
       ],
       "npcs": [
@@ -952,6 +977,21 @@
           "objectId": "obj_chamber_sign",
           "x": 17,
           "y": 9
+        },
+        {
+          "objectId": "obj_lore_field_note",
+          "x": 19,
+          "y": 116
+        },
+        {
+          "objectId": "obj_lore_megaphone_script",
+          "x": 17,
+          "y": 53
+        },
+        {
+          "objectId": "obj_lore_captains_orders",
+          "x": 15,
+          "y": 10
         }
       ],
       "npcs": [
@@ -1322,6 +1362,11 @@
           "objectId": "obj_hotspot_bed",
           "x": 17,
           "y": 10
+        },
+        {
+          "objectId": "obj_lore_tablet_count",
+          "x": 10,
+          "y": 8
         }
       ],
       "npcs": [],
@@ -1408,6 +1453,31 @@
             "x": 30,
             "y": 46
           }
+        },
+        {
+          "objectId": "obj_trail_ranch",
+          "x": 2,
+          "y": 10,
+          "to": {
+            "zone": "zone_ranch",
+            "x": 20,
+            "y": 9
+          }
+        },
+        {
+          "objectId": "obj_road_hatchery",
+          "x": 21,
+          "y": 10,
+          "to": {
+            "zone": "zone_hatchery",
+            "x": 3,
+            "y": 9
+          }
+        },
+        {
+          "objectId": "obj_lore_weather_report",
+          "x": 16,
+          "y": 7
         }
       ],
       "npcs": [
@@ -1812,6 +1882,16 @@
           "objectId": "obj_great_rug",
           "x": 28,
           "y": 4
+        },
+        {
+          "objectId": "obj_lore_tablet_spires",
+          "x": 25,
+          "y": 17
+        },
+        {
+          "objectId": "obj_lore_bursar_ledger",
+          "x": 33,
+          "y": 5
         }
       ],
       "npcs": [
@@ -1937,6 +2017,270 @@
           "icon": "mapicon_boss",
           "x": 29,
           "y": 6
+        }
+      ]
+    },
+    {
+      "id": "zone_ranch",
+      "name": "The Sproto Ranch",
+      "width": 24,
+      "height": 18,
+      "spawn": {
+        "x": 20,
+        "y": 9
+      },
+      "legend": {
+        ".": "grass",
+        ",": "path",
+        "%": "hedge",
+        "#": "fence",
+        "m": "mud",
+        "W": "wall",
+        "-": "floor"
+      },
+      "tiles": [
+        "%%%%%%%%%%%%%%%%%%%%%%%%",
+        "%......................%",
+        "%.WWWWWWW..............%",
+        "%.W-----W..#########...%",
+        "%.W-----W..#mmmmmmm#...%",
+        "%.W-----W..#mmmmmmm#...%",
+        "%.W-----W..#mmmmmmm#...%",
+        "%.WWW-WWW..####m####...%",
+        "%.....,........,.......%",
+        "%.....,,,,,,,,,,,,,,,..%",
+        "%......................%",
+        "%......................%",
+        "%......................%",
+        "%......................%",
+        "%......................%",
+        "%......................%",
+        "%......................%",
+        "%%%%%%%%%%%%%%%%%%%%%%%%"
+      ],
+      "objects": [
+        {
+          "objectId": "obj_trail_back",
+          "x": 22,
+          "y": 9,
+          "to": {
+            "zone": "zone_outside",
+            "x": 3,
+            "y": 10
+          }
+        },
+        {
+          "objectId": "obj_ranch_sign",
+          "x": 18,
+          "y": 11
+        },
+        {
+          "objectId": "obj_ranch_camera",
+          "x": 9,
+          "y": 11
+        },
+        {
+          "objectId": "obj_corral_stone",
+          "x": 13,
+          "y": 5
+        },
+        {
+          "objectId": "obj_bench",
+          "x": 12,
+          "y": 11
+        },
+        {
+          "objectId": "obj_tree",
+          "x": 3,
+          "y": 14
+        },
+        {
+          "objectId": "obj_tree",
+          "x": 19,
+          "y": 15
+        },
+        {
+          "objectId": "obj_lore_sproto_fragment",
+          "x": 14,
+          "y": 6
+        },
+        {
+          "objectId": "obj_lore_operation_grizz",
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "npcs": [
+        {
+          "npcId": "npc_morelight_ranch",
+          "x": 10,
+          "y": 10
+        }
+      ],
+      "enemies": [
+        {
+          "enemyId": "enemy_grizz",
+          "x": 17,
+          "y": 5,
+          "quest": {
+            "quest": "quest_sproto_ranch",
+            "step": "grizz"
+          }
+        },
+        {
+          "enemyId": "enemy_bear_raider",
+          "x": 3,
+          "y": 15
+        }
+      ],
+      "mapIcons": [
+        {
+          "icon": "mapicon_boss",
+          "x": 17,
+          "y": 5
+        }
+      ]
+    },
+    {
+      "id": "zone_hatchery",
+      "name": "The Hatchery",
+      "width": 24,
+      "height": 18,
+      "spawn": {
+        "x": 3,
+        "y": 9
+      },
+      "legend": {
+        ".": "grass",
+        ",": "path",
+        "%": "hedge",
+        "W": "wall",
+        "_": "concrete",
+        "c": "carpet"
+      },
+      "tiles": [
+        "%%%%%%%%%%%%%%%%%%%%%%%%",
+        "%......................%",
+        "%..WWWWWWWWWWWWWWWWWW..%",
+        "%..W________________W..%",
+        "%..W________________W..%",
+        "%..W______cccc______W..%",
+        "%..W______cccc______W..%",
+        "%..W________________W..%",
+        "%..WWWWWWWW__WWWWWWWW..%",
+        "%,,,,,,,,,,,,,,,,,,,,,,%",
+        "%......................%",
+        "%......................%",
+        "%......................%",
+        "%......................%",
+        "%......................%",
+        "%......................%",
+        "%......................%",
+        "%%%%%%%%%%%%%%%%%%%%%%%%"
+      ],
+      "objects": [
+        {
+          "objectId": "obj_trail_back",
+          "x": 1,
+          "y": 9,
+          "to": {
+            "zone": "zone_outside",
+            "x": 20,
+            "y": 10
+          }
+        },
+        {
+          "objectId": "obj_hatchery_sign",
+          "x": 10,
+          "y": 10
+        },
+        {
+          "objectId": "obj_terminal",
+          "x": 6,
+          "y": 4
+        },
+        {
+          "objectId": "obj_incubator",
+          "x": 8,
+          "y": 6
+        },
+        {
+          "objectId": "obj_incubator",
+          "x": 15,
+          "y": 6
+        },
+        {
+          "objectId": "obj_incubator",
+          "x": 17,
+          "y": 4
+        },
+        {
+          "objectId": "obj_lore_tablet_hatching",
+          "x": 10,
+          "y": 6
+        },
+        {
+          "objectId": "obj_lore_extractor_invoice",
+          "x": 18,
+          "y": 4
+        },
+        {
+          "objectId": "obj_lore_bundle_map",
+          "x": 19,
+          "y": 12
+        },
+        {
+          "objectId": "obj_lore_printer_log_final",
+          "x": 5,
+          "y": 6
+        }
+      ],
+      "npcs": [
+        {
+          "npcId": "npc_hatchery_dev",
+          "x": 14,
+          "y": 10
+        }
+      ],
+      "enemies": [
+        {
+          "enemyId": "enemy_rug_puller",
+          "x": 8,
+          "y": 15,
+          "quest": {
+            "quest": "quest_hatchery",
+            "step": "rugs"
+          }
+        },
+        {
+          "enemyId": "enemy_rug_puller",
+          "x": 20,
+          "y": 15,
+          "quest": {
+            "quest": "quest_hatchery",
+            "step": "rugs"
+          }
+        },
+        {
+          "enemyId": "enemy_extractor",
+          "x": 12,
+          "y": 4,
+          "quest": {
+            "quest": "quest_hatchery",
+            "step": "extractor"
+          }
+        }
+      ],
+      "mapIcons": [
+        {
+          "icon": "mapicon_terminal",
+          "x": 6,
+          "y": 4
+        },
+        {
+          "icon": "mapicon_boss",
+          "x": 12,
+          "y": 4
         }
       ]
     }

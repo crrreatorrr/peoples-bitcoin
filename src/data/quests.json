@@ -4,7 +4,7 @@
     "name": "Empty Treasury",
     "ordered": false,
     "autoStart": true,
-    "completeMessage": "ATTENTION ATTENTION: Inauguration complete! You've learned every skill. Morelight has work for you.",
+    "completeMessage": "ATTENTION ATTENTION: Inauguration complete! You've learned every skill. Morelight has work for you. And a corkboard.",
     "reward": {
       "usd": 669
     },
@@ -22,7 +22,7 @@
       },
       {
         "id": "talk_treasurer",
-        "text": "Ask The Treasurer in the main hall what happened to the money.",
+        "text": "Ask Treasurer Bickworth in the main hall what happened to the money, and who told him to spend it.",
         "trigger": {
           "type": "talk",
           "npc": "npc_treasurer"
@@ -36,7 +36,7 @@
       },
       {
         "id": "talk_sysadmin",
-        "text": "Find The Sysadmin by the server racks on the east lawn.",
+        "text": "Find Sysadmin Opal by the server racks on the east lawn.",
         "trigger": {
           "type": "talk",
           "npc": "npc_sysadmin"
@@ -76,7 +76,7 @@
       },
       {
         "id": "talk_sergeant",
-        "text": "Report to The Drill Sergeant at the training yard (south-west).",
+        "text": "Report to Sergeant Retain at the training yard (south-west).",
         "trigger": {
           "type": "talk",
           "npc": "npc_drill_sergeant"
@@ -159,7 +159,7 @@
       },
       {
         "id": "talk_planner",
-        "text": "Meet The Party Planner in the west garden.",
+        "text": "Meet Madame Flurry in the west garden.",
         "trigger": {
           "type": "talk",
           "npc": "npc_party_planner"
@@ -208,7 +208,7 @@
       },
       {
         "id": "talk_fixer",
-        "text": "Find The Fixer on the east lawn. Try not to be seen.",
+        "text": "Find The Inducer on the east lawn. Try not to be seen.",
         "trigger": {
           "type": "talk",
           "npc": "npc_fixer"
@@ -238,7 +238,7 @@
       },
       {
         "id": "talk_handler",
-        "text": "Meet The Sproto Handler in the main hall.",
+        "text": "Meet Handler Creed in the main hall.",
         "trigger": {
           "type": "talk",
           "npc": "npc_sproto_handler"
@@ -275,7 +275,7 @@
       },
       {
         "id": "talk_contractor",
-        "text": "Ask The Contractor in the main hall about a bunker.",
+        "text": "Ask Foreman Hallows in the main hall about a bunker.",
         "trigger": {
           "type": "talk",
           "npc": "npc_contractor"
@@ -296,14 +296,14 @@
         }
       }
     ],
-    "summary": "Four hundred days ago the Treasurer bought the wrong coin, the ticker crashed, and the gates sealed: the Lockdown. Today you were sworn in. Morelight will show you how to earn your way back up."
+    "summary": "Four hundred days ago Treasurer Bickworth bought the wrong coin, the Bureau forecast a crash, and the gates sealed: the Lockdown. Officially, an accident. Today you were sworn in. Morelight will show you how to earn your way back up, and why the pillars look so old."
   },
   {
     "id": "quest_bunker",
     "name": "Bunker Down",
     "ordered": true,
     "startNpc": "npc_contractor",
-    "completeMessage": "Quest complete: Bunker Down! The hatch in the main hall is yours. Construction unlocked.",
+    "completeMessage": "Quest complete: Bunker Down! The hatch in the main hall is yours. Construction unlocked. Under the mud, the old floor keeps going.",
     "reward": {
       "unlock": "bunker",
       "items": [
@@ -323,7 +323,7 @@
     "steps": [
       {
         "id": "agree",
-        "text": "Ask The Contractor in the main hall about building a bunker.",
+        "text": "Ask Foreman Hallows in the main hall about building a bunker.",
         "trigger": {
           "type": "talk",
           "npc": "npc_contractor"
@@ -334,7 +334,7 @@
       },
       {
         "id": "materials",
-        "text": "Bring The Contractor 10 Scrap Hash and 2 Soundbites.",
+        "text": "Bring Foreman Hallows 10 Scrap Hash and 2 Soundbites.",
         "trigger": {
           "type": "deliver",
           "npc": "npc_contractor",
@@ -355,7 +355,7 @@
       },
       {
         "id": "inspector",
-        "text": "Get the Building Inspector off the hatch. He only respects regulation equipment.",
+        "text": "Get Inspector Greysuit (badge: 'Bureau') off the hatch. He only respects regulation equipment.",
         "trigger": {
           "type": "kill",
           "enemy": "enemy_building_inspector"
@@ -366,7 +366,7 @@
       },
       {
         "id": "report",
-        "text": "Tell the Contractor the Inspector has signed off.",
+        "text": "Tell Foreman Hallows that Inspector Greysuit has signed off.",
         "trigger": {
           "type": "talk",
           "npc": "npc_contractor"
@@ -376,7 +376,7 @@
         }
       }
     ],
-    "summary": "Every President needs somewhere to hide when the ticker goes red. The Contractor can dig one under the main hall. Who knows what's down there."
+    "summary": "Every President needs somewhere to hide when the Monetary Weather turns. Foreman Hallows can dig one under the main hall. Who knows what's under the mud down there."
   },
   {
     "id": "quest_sludge_duty",
@@ -385,7 +385,7 @@
     "ordered": true,
     "startNpc": "npc_morelight",
     "requires": ["quest_tutorial"],
-    "summary": "On the first day of the Lockdown, Expedition One dug the Trenches toward the north end of the wall. Nobody came back up. Now the Sludge Mother squats in the way.",
+    "summary": "On the first day of the Lockdown, Expedition One dug the Trenches toward a star-shaped building on the oldest map. Nobody came back up the same. Now the Sludge Mother, panic stirred with fresh printer ink, squats in the way.",
     "steps": [
       {
         "id": "briefing",
@@ -400,7 +400,7 @@
       },
       {
         "id": "scout",
-        "text": "Find The Scout's camp just inside the Trenches.",
+        "text": "Find Scout Greenhill's camp just inside the Trenches.",
         "trigger": {
           "type": "talk",
           "npc": "npc_scout"
@@ -445,7 +445,7 @@
         }
       ]
     },
-    "completeMessage": "Quest complete: Sludge Duty! The first barricade is open. Somewhere north, someone is still running."
+    "completeMessage": "Quest complete: Sludge Duty! The first barricade is open. Somewhere north, someone is still running. Somewhere, someone is still printing."
   },
   {
     "id": "quest_name_calling",
@@ -454,7 +454,7 @@
     "ordered": true,
     "startNpc": "npc_morelight",
     "requires": ["quest_sludge_duty"],
-    "summary": "All along the Trenches, the Wrong-Namers turn back anyone heading north, and their Chief holds the second barricade. There is no outside, they say; it's all $BITCON. Morelight disagrees.",
+    "summary": "All along the Trenches, the Wrong-Namers turn back anyone heading north, all shouting the same script. There is no outside, they say; it's all TRICKETS. Morelight thinks somebody handed out the megaphones.",
     "steps": [
       {
         "id": "briefing",
@@ -525,7 +525,7 @@
         }
       ]
     },
-    "completeMessage": "Quest complete: Name Calling! The second barricade is open. Past it, someone is still running laps."
+    "completeMessage": "Quest complete: Name Calling! The second barricade is open, and the megaphones were Bureau issue. Past it, someone is still running laps."
   },
   {
     "id": "quest_motion_denied",
@@ -534,7 +534,7 @@
     "ordered": true,
     "startNpc": "npc_morelight",
     "requires": ["quest_name_calling"],
-    "summary": "Captain Motion led Expedition One north and never came back. He guards the last barricade and hasn't stopped running since. The Scout wants him stopped, and home.",
+    "summary": "Captain Motion led Expedition One north and found the Chamber. Then two men in grey suits paid him a visit. He hasn't stopped running since. Scout Greenhill wants him stopped, and home.",
     "steps": [
       {
         "id": "briefing",
@@ -549,7 +549,7 @@
       },
       {
         "id": "scout",
-        "text": "Ask The Scout about Captain Motion.",
+        "text": "Ask Scout Greenhill about Captain Motion.",
         "trigger": {
           "type": "talk",
           "npc": "npc_scout"
@@ -595,7 +595,7 @@
         }
       ]
     },
-    "completeMessage": "Quest complete: Motion Denied! Captain Motion has finally sat down. The Trenches are yours."
+    "completeMessage": "Quest complete: Motion Denied! Captain Motion has finally sat down, and finally talked. The Chamber was never dead. Just classified."
   },
   {
     "id": "quest_server_meltdown",
@@ -604,11 +604,11 @@
     "ordered": true,
     "startNpc": "npc_sysadmin",
     "requires": ["quest_tutorial"],
-    "summary": "The liquid-cooled racks are overheating, and something on the network is guarding a file from before the Lockdown: OUTSIDE.TXT.",
+    "summary": "The liquid-cooled racks are overheating, and something on the network that phones home to the sky is guarding a file from before the Lockdown: OUTSIDE.TXT.",
     "steps": [
       {
         "id": "briefing",
-        "text": "Ask The Sysadmin what is wrong with the racks.",
+        "text": "Ask Sysadmin Opal what is wrong with the racks.",
         "trigger": {
           "type": "talk",
           "npc": "npc_sysadmin"
@@ -650,7 +650,7 @@
       },
       {
         "id": "rogue",
-        "text": "Shut down the Rogue Process in the west wing. It patches itself between hits.",
+        "text": "Shut down the Rogue Process in the west wing before it phones home. It patches itself between hits.",
         "trigger": {
           "type": "kill",
           "enemy": "enemy_rogue_process"
@@ -661,7 +661,7 @@
       },
       {
         "id": "password",
-        "text": "Help The Sysadmin remember the admin password.",
+        "text": "Help Sysadmin Opal remember the admin password.",
         "trigger": {
           "type": "choice",
           "ids": ["meltdown_password"]
@@ -691,7 +691,7 @@
         }
       ]
     },
-    "completeMessage": "Quest complete: Server Meltdown! The Sysadmin recovered OUTSIDE.TXT: coordinates to the world out there."
+    "completeMessage": "Quest complete: Server Meltdown! Sysadmin Opal recovered OUTSIDE.TXT: coordinates to the world out there, and a ledger showing where the printed money really goes. (Up.)"
   },
   {
     "id": "quest_gala_night",
@@ -700,11 +700,11 @@
     "ordered": true,
     "startNpc": "npc_party_planner",
     "requires": ["quest_tutorial"],
-    "summary": "The Party Planner is throwing the gala of the year to buy Morelight a Power Cell. You're the host. Nothing can go wrong.",
+    "summary": "Madame Flurry is throwing the gala of the year to buy Morelight the donors' Power Cell, an ancient battery dug out of an old dome. You're the host. Nothing can go wrong.",
     "steps": [
       {
         "id": "briefing",
-        "text": "Hear The Party Planner out about the gala.",
+        "text": "Hear Madame Flurry out about the gala.",
         "trigger": {
           "type": "talk",
           "npc": "npc_party_planner"
@@ -726,7 +726,7 @@
       },
       {
         "id": "catering",
-        "text": "Bring The Party Planner 5 Minor Scandals and 3 Soundbites.",
+        "text": "Bring Madame Flurry 5 Minor Scandals and 3 Soundbites.",
         "trigger": {
           "type": "deliver",
           "npc": "npc_party_planner",
@@ -758,7 +758,7 @@
       },
       {
         "id": "gatecrasher",
-        "text": "Throw out the Gatecrasher himself. Nothing so far has moved him.",
+        "text": "Throw out the Plus-One himself. Nothing so far has moved him.",
         "trigger": {
           "type": "kill",
           "enemy": "enemy_gatecrasher"
@@ -769,7 +769,7 @@
       },
       {
         "id": "return",
-        "text": "Return the Guest List to The Party Planner.",
+        "text": "Return the Guest List to Madame Flurry.",
         "trigger": {
           "type": "deliver",
           "npc": "npc_party_planner",
@@ -805,7 +805,7 @@
         }
       ]
     },
-    "completeMessage": "Quest complete: Gala Night! The donors paid for a Power Cell. It hums like it wants to go somewhere."
+    "completeMessage": "Quest complete: Gala Night! The donors paid for a Power Cell. It hums like it remembers where it came from."
   },
   {
     "id": "quest_hostile_takeover",
@@ -814,11 +814,11 @@
     "ordered": true,
     "startNpc": "npc_fixer",
     "requires": ["quest_tutorial", "quest_sludge_duty"],
-    "summary": "Nobody leaves without an Exit Permit, and only the Broker can sign one. The Fixer smells a setup.",
+    "summary": "Nobody leaves without an Exit Permit, and only the Broker can sign one. Nobody knows who he works for. The Inducer knows who he works with, and smells a setup.",
     "steps": [
       {
         "id": "briefing",
-        "text": "Ask The Fixer about Exit Permits.",
+        "text": "Ask The Inducer about Exit Permits.",
         "trigger": {
           "type": "talk",
           "npc": "npc_fixer"
@@ -916,7 +916,7 @@
         }
       ]
     },
-    "completeMessage": "Quest complete: Hostile Takeover! The Raider is out, the Permit is signed, and the Treasury is still yours."
+    "completeMessage": "Quest complete: Hostile Takeover! The Raider is out, the Permit is signed, and the Treasury is still yours. His money was still warm from the printer."
   },
   {
     "id": "quest_press_conference",
@@ -925,11 +925,11 @@
     "ordered": true,
     "startNpc": "npc_spin_doctor",
     "requires": ["quest_tutorial"],
-    "summary": "If the President vanishes, the Treasury will panic. The Spin Doctor wants you to face the press first.",
+    "summary": "If the President vanishes, the Treasury will panic, and the Bureau will tell the story for you. Doctor Merge wants you to face the press first.",
     "steps": [
       {
         "id": "briefing",
-        "text": "Ask The Spin Doctor about the press conference.",
+        "text": "Ask Doctor Merge about the press conference.",
         "trigger": {
           "type": "talk",
           "npc": "npc_spin_doctor"
@@ -940,7 +940,7 @@
       },
       {
         "id": "prep",
-        "text": "Bring The Spin Doctor 3 Soundbites to practice with.",
+        "text": "Bring Doctor Merge 3 Soundbites to practice with.",
         "trigger": {
           "type": "deliver",
           "npc": "npc_spin_doctor",
@@ -957,7 +957,7 @@
       },
       {
         "id": "q1",
-        "text": "Answer the Reporter's first question (by the podiums).",
+        "text": "Answer Lorna Coinlore's first question (by the podiums).",
         "trigger": {
           "type": "choice",
           "ids": ["press_q1"]
@@ -968,7 +968,7 @@
       },
       {
         "id": "q2",
-        "text": "Answer the Reporter's second question.",
+        "text": "Answer Lorna Coinlore's second question.",
         "trigger": {
           "type": "choice",
           "ids": ["press_q2"]
@@ -979,7 +979,7 @@
       },
       {
         "id": "q3",
-        "text": "Answer the Reporter's final question.",
+        "text": "Answer Lorna Coinlore's final question.",
         "trigger": {
           "type": "choice",
           "ids": ["press_q3"]
@@ -990,7 +990,7 @@
       },
       {
         "id": "pundit",
-        "text": "Shut down the Pundit at the podiums.",
+        "text": "Shut down the Pundit at the podiums. Mind the earpiece.",
         "trigger": {
           "type": "kill",
           "enemy": "enemy_pundit"
@@ -1001,7 +1001,7 @@
       },
       {
         "id": "debrief",
-        "text": "Tell The Spin Doctor how it went.",
+        "text": "Tell Doctor Merge how it went.",
         "trigger": {
           "type": "talk",
           "npc": "npc_spin_doctor"
@@ -1031,7 +1031,7 @@
         }
       ]
     },
-    "completeMessage": "Quest complete: Press Conference! 'A DOOR FOR EVERYONE' is on every front page."
+    "completeMessage": "Quest complete: Press Conference! 'A DOOR FOR EVERYONE' is on every front page. The Bureau's rebuttal: 'no comment'."
   },
   {
     "id": "quest_way_out",
@@ -1047,7 +1047,7 @@
       "quest_hostile_takeover",
       "quest_press_conference"
     ],
-    "summary": "Expedition One found the Teleport Chamber, and it was dead. Morelight has four parts, a plan to wake it, and the whole Treasury watching.",
+    "summary": "Expedition One found the Teleport Chamber, a Tartarian gate the Bureau declared dead. Morelight has a list of parts, a corkboard full of string, a plan to wake it, and the whole Treasury watching.",
     "steps": [
       {
         "id": "briefing",
@@ -1073,7 +1073,7 @@
       },
       {
         "id": "announce",
-        "text": "Read the Signed Press Release to the Reporter (use it on her).",
+        "text": "Read the Signed Press Release to Lorna Coinlore (use it on her).",
         "trigger": {
           "type": "use",
           "item": "item_press_release",
@@ -1085,7 +1085,7 @@
       },
       {
         "id": "blueprints",
-        "text": "Ask The Contractor about the old blueprints.",
+        "text": "Ask Foreman Hallows about the old blueprints.",
         "trigger": {
           "type": "talk",
           "npc": "npc_contractor"
@@ -1164,7 +1164,7 @@
       },
       {
         "id": "warden",
-        "text": "Bring down the Lockdown Warden at the Teleport Chamber.",
+        "text": "Bring down the Lockdown Warden at the Teleport Chamber: the Bureau's law, carved in Tartarian stone.",
         "trigger": {
           "type": "kill",
           "enemy": "enemy_lockdown_warden"
@@ -1207,7 +1207,7 @@
         }
       ]
     },
-    "completeMessage": "Quest complete: The Way Out! For the first time since the Lockdown, someone has left the Treasury. On purpose."
+    "completeMessage": "Quest complete: The Way Out! For the first time since the Lockdown, someone has left the Treasury. On purpose. On the horizon: domes."
   },
   {
     "id": "quest_moonward",
@@ -1216,7 +1216,7 @@
     "ordered": true,
     "startNpc": "npc_archmage",
     "requires": ["quest_way_out"],
-    "summary": "Across the lake from The World Out There stands Moonward Academy, whose Bursar pulled the rug on its gold. The Archmage needs a President who knows about lost treasuries.",
+    "summary": "Across the lake from The World Out There stands Moonward Academy, a Tartarian star fort full of wizards. Its Bursar pulled the rug on the gold and sent it somewhere very high up. The Archmage needs a President who knows about lost treasuries.",
     "steps": [
       {
         "id": "briefing",
@@ -1323,6 +1323,227 @@
         }
       ]
     },
-    "completeMessage": "Quest complete: Moonward Enrollment! The rug is unraveled, the gold is back, and Moonward Academy is open again."
+    "completeMessage": "Quest complete: Moonward Enrollment! The rug is unraveled, the gold is back, and Moonward Academy is open again. The Bursar's ledger points at the sky."
+  },
+  {
+    "id": "quest_sproto_ranch",
+    "name": "Live from the Sproto Ranch",
+    "points": 3,
+    "ordered": true,
+    "startNpc": "npc_morelight_ranch",
+    "requires": ["quest_way_out"],
+    "summary": "Every Sunday, Morelight goes live from the Sproto Ranch: the one broadcast out here the Bureau doesn't own. Tonight you're the guest, the Sprotos are restless, and someone has booked a bear.",
+    "steps": [
+      {
+        "id": "briefing",
+        "text": "Find Morelight at the Sproto Ranch, down the west trail from The World Out There.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_morelight_ranch"
+        },
+        "hint": {
+          "npc": "npc_morelight_ranch"
+        }
+      },
+      {
+        "id": "hat",
+        "text": "Ranch rules: put on a hat for the camera (any hat; take it off and put it back on if you're already wearing one).",
+        "trigger": {
+          "type": "equip",
+          "slot": "head"
+        },
+        "hint": {}
+      },
+      {
+        "id": "moonshine",
+        "text": "Bring Morelight a Hopium Soda. On the Ranch, that's moonshine.",
+        "trigger": {
+          "type": "deliver",
+          "npc": "npc_morelight_ranch",
+          "items": [
+            {
+              "item": "item_hopium_soda",
+              "qty": 1
+            }
+          ]
+        },
+        "hint": {
+          "npc": "npc_morelight_ranch"
+        }
+      },
+      {
+        "id": "yeehaw",
+        "text": "Say the words, live on the Sproto Ranch Show.",
+        "trigger": {
+          "type": "choice",
+          "ids": ["ranch_yeehaw"]
+        },
+        "hint": {
+          "npc": "npc_morelight_ranch"
+        }
+      },
+      {
+        "id": "summon",
+        "text": "Summon a Sproto on the Ranch and see what it can really do.",
+        "trigger": {
+          "type": "summon"
+        },
+        "hint": {}
+      },
+      {
+        "id": "grizz",
+        "text": "Run The Grizz out of the corral before the Bureau's headline comes true.",
+        "trigger": {
+          "type": "kill",
+          "enemy": "enemy_grizz"
+        },
+        "hint": {
+          "enemy": "enemy_grizz"
+        }
+      },
+      {
+        "id": "report",
+        "text": "Tell Morelight, on air, that the bear is gone.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_morelight_ranch"
+        },
+        "hint": {
+          "npc": "npc_morelight_ranch"
+        }
+      }
+    ],
+    "reward": {
+      "xp": {
+        "summoning": 4000,
+        "spin": 2000
+      },
+      "items": [
+        {
+          "item": "contract_heavy",
+          "qty": 1
+        },
+        {
+          "item": "item_tp_mic_drop",
+          "qty": 5
+        }
+      ]
+    },
+    "completeMessage": "Quest complete: Live from the Sproto Ranch! RIP MORELIGHT THE GRIZZ BEAR EATED HIM? FAKE NEWS. The show goes on, and the Sprotos are glowing."
+  },
+  {
+    "id": "quest_hatchery",
+    "name": "The Hatchery",
+    "points": 3,
+    "ordered": true,
+    "startNpc": "npc_hatchery_dev",
+    "requires": ["quest_sproto_ranch"],
+    "summary": "Down the east road stands the Hatchery, a launchpad in an old star fort where every new coin is paired with Tickets, so the Printer's people get nothing. Somebody from upstairs wants a cut.",
+    "steps": [
+      {
+        "id": "briefing",
+        "text": "Find Dev Yolk, down the east road from The World Out There.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_hatchery_dev"
+        },
+        "hint": {
+          "npc": "npc_hatchery_dev"
+        }
+      },
+      {
+        "id": "materials",
+        "text": "Bring Dev Yolk 10 Scrap Hash to mint your coin and 2 Zingers for its ticker.",
+        "trigger": {
+          "type": "deliver",
+          "npc": "npc_hatchery_dev",
+          "items": [
+            {
+              "item": "item_scrap_hash",
+              "qty": 10
+            },
+            {
+              "item": "item_tp_zinger",
+              "qty": 2
+            }
+          ]
+        },
+        "hint": {
+          "npc": "npc_hatchery_dev"
+        }
+      },
+      {
+        "id": "name",
+        "text": "Name your coin.",
+        "trigger": {
+          "type": "choice",
+          "ids": ["hatch_tartaria", "hatch_sproto", "hatch_disclosure"]
+        },
+        "hint": {
+          "npc": "npc_hatchery_dev"
+        }
+      },
+      {
+        "id": "pair",
+        "text": "Pair your coin with Tickets: sell something at the Hatchery's Trading Terminal.",
+        "trigger": {
+          "type": "sell"
+        },
+        "hint": {
+          "object": "obj_terminal"
+        }
+      },
+      {
+        "id": "rugs",
+        "text": "Chase a Rug Puller off the launchpad.",
+        "trigger": {
+          "type": "kill",
+          "enemy": "enemy_rug_puller"
+        },
+        "hint": {
+          "enemy": "enemy_rug_puller"
+        }
+      },
+      {
+        "id": "extractor",
+        "text": "Stop The Extractor beaming the Hatchery's fees into orbit.",
+        "trigger": {
+          "type": "kill",
+          "enemy": "enemy_extractor"
+        },
+        "hint": {
+          "enemy": "enemy_extractor"
+        }
+      },
+      {
+        "id": "report",
+        "text": "Tell Dev Yolk the launchpad is clear.",
+        "trigger": {
+          "type": "talk",
+          "npc": "npc_hatchery_dev"
+        },
+        "hint": {
+          "npc": "npc_hatchery_dev"
+        }
+      }
+    ],
+    "reward": {
+      "xp": {
+        "lobbying": 3000,
+        "fundraising": 3000,
+        "spin": 3000
+      },
+      "items": [
+        {
+          "item": "item_ticker_amulet",
+          "qty": 1
+        },
+        {
+          "item": "item_tp_mic_drop",
+          "qty": 10
+        }
+      ]
+    },
+    "completeMessage": "Quest complete: The Hatchery! Your coin is live, paired with Tickets, and the fees stay on the ground. The Printer just lost a customer."
   }
 ]

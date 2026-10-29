@@ -1763,3 +1763,67 @@ describe('two tabs', () => {
     expect(script.spends).toEqual([]);
   });
 });
+
+describe('M8 content-only items on the hub', () => {
+  const coffee = 'item_blue_sproto_coffee';
+
+  it('does not buy, sell, or grant Coffee', async () => {
+    const { state, ctx } = newGame();
+    state.hubSession.mode = 'hub';
+    state.player.interface = { kind: 'terminal', shopId: 'shop_terminal' };
+    state.player.inventory[0] = { itemId: coffee, qty: 1 };
+    const { hub, said } = attach(state, ctx);
+    await hub.start();
+    const wallet = state.player.currencies.tickets;
+    hub.buy('shop_terminal', coffee, 1);
+    hub.sell(0, 1);
+    await settle();
+    expect(script.spends).toEqual([]);
+    expect(script.sells).toEqual([]);
+    expect(said).toContain('Unavailable');
+    expect(countItem(state.player.inventory, coffee)).toBe(1);
+    expect(state.player.currencies.tickets).toBe(wallet);
+    expect(state.player.ledger.purchase).toBeNull();
+    expect(state.player.ledger.sale).toBeNull();
+  });
+
+  it('treats unknown_item on a spend as terminal', async () => {
+    const { state, ctx } = newGame();
+    const { hub, said } = attach(state, ctx);
+    await hub.start();
+    const wallet = state.player.currencies.tickets;
+    script.shopError = new HubSdkError('unknown_item', 'Unknown item');
+    hub.buy('shop_terminal', 'item_rounds', 1);
+    await settle();
+    expect(script.spends).toHaveLength(1);
+    expect(said).toContain('Unavailable');
+    expect(countItem(state.player.inventory, 'item_rounds')).toBe(0);
+    expect(state.player.currencies.tickets).toBe(wallet);
+    expect(state.player.ledger.purchase).toBeNull();
+    hub.checkpoint();
+    await hub.start();
+    await settle();
+    expect(script.spends).toHaveLength(1);
+    expect(state.player.ledger.purchase).toBeNull();
+    expect(state.player.currencies.tickets).toBe(wallet);
+    expect(countItem(state.player.inventory, 'item_rounds')).toBe(0);
+  });
+
+  it('does not buy or grant the Memo or the Pup', async () => {
+    const { state, ctx } = newGame();
+    state.hubSession.mode = 'hub';
+    state.player.interface = { kind: 'terminal', shopId: 'shop_terminal' };
+    const { hub, said } = attach(state, ctx);
+    await hub.start();
+    const wallet = state.player.currencies.tickets;
+    hub.buy('shop_terminal', 'item_leaked_memo', 1);
+    hub.buy('shop_terminal', 'pet_sproto_pup', 1);
+    await settle();
+    expect(said).toContain('Unavailable');
+    expect(script.spends).toEqual([]);
+    expect(script.sells).toEqual([]);
+    expect(countItem(state.player.inventory, 'item_leaked_memo')).toBe(0);
+    expect(countItem(state.player.inventory, 'pet_sproto_pup')).toBe(0);
+    expect(state.player.currencies.tickets).toBe(wallet);
+  });
+});

@@ -1450,6 +1450,28 @@
     "sprite": "icons/icon_hopium_soda.png",
     "pixel": "icons/px/icon_hopium_soda.png"
   },
+  "icon_blue_sproto_coffee": {
+    "placeholder": "icon",
+    "color": "#2f6fd1",
+    "accent": "#f2c11e",
+    "label": "C",
+    "sprite": "icons/icon_blue_sproto_coffee.png",
+    "pixel": "icons/px/icon_blue_sproto_coffee.png"
+  },
+  "icon_leaked_memo": {
+    "placeholder": "icon",
+    "color": "#8a8f98",
+    "accent": "#b3262e",
+    "label": "M",
+    "pixel": "icons/px/icon_leaked_memo.png"
+  },
+  "icon_sproto_pup": {
+    "placeholder": "icon",
+    "color": "#3f7fd9",
+    "accent": "#ff6fa8",
+    "label": "P",
+    "pixel": "icons/px/icon_sproto_pup.png"
+  },
   "icon_ticket_treasury": {
     "placeholder": "icon",
     "color": "#3fa8ff",
@@ -2059,5 +2081,103 @@
     },
     "sprite": "sprites/enemy_captain_motion.png",
     "path": "models/enemy_captain_motion.glb"
+  },
+  "npc_morelight_ranch": {
+    "placeholder": "humanoid",
+    "scale": 1.16,
+    "look": {
+      "skin": "#f2d2bc",
+      "hair": "#2a2018",
+      "hairStyle": "short",
+      "mustache": "#2a2018",
+      "top": "#e8e2d0",
+      "shirt": "#9fc3e8",
+      "tie": "#2f4f8a",
+      "pants": "#3a3f4a",
+      "shoes": "#2a1c10",
+      "legs": 1.12,
+      "left": "clipboard",
+      "hat": "boonie",
+      "hatColor": "#8a5a2b"
+    }
+  },
+  "npc_hatchery_dev": {
+    "placeholder": "humanoid",
+    "look": {
+      "top": "#f2c11e",
+      "hood": true,
+      "pants": "#2b2b33",
+      "shoes": "#e8e8e8",
+      "hair": "#3a2a1c",
+      "glasses": "round",
+      "hat": "headset",
+      "left": "tablet"
+    }
+  },
+  "enemy_extractor": {
+    "placeholder": "humanoid",
+    "scale": 1.05,
+    "look": {
+      "skin": "#9aa3a8",
+      "eyes": "#111418",
+      "hairStyle": "bald",
+      "top": "#5c636c",
+      "shirt": "#e8e8e8",
+      "tie": "#2b2b33",
+      "pants": "#5c636c",
+      "shoes": "#1a1a1a",
+      "right": "briefcase",
+      "headSize": 1.25
+    }
+  },
+  "sign_trail_ranch": {
+    "placeholder": "signpost",
+    "color": "#7a5530",
+    "label": "SPROTO RANCH/WEST"
+  },
+  "sign_road_hatchery": {
+    "placeholder": "signpost",
+    "color": "#7a5530",
+    "label": "HATCHERY/EAST"
+  },
+  "sign_trail_back": {
+    "placeholder": "signpost",
+    "color": "#7a5530",
+    "label": "CHAMBER/THIS WAY"
+  },
+  "sign_ranch": {
+    "placeholder": "signpost",
+    "color": "#8a5a2b",
+    "label": "SPROTO/RANCH"
+  },
+  "sign_hatchery": {
+    "placeholder": "signpost",
+    "color": "#5c636c",
+    "label": "THE/HATCHERY"
+  },
+  "ranch_camera": {
+    "placeholder": "prop",
+    "color": "#2b2b33",
+    "height": 1.4
+  },
+  "incubator": {
+    "placeholder": "chamber",
+    "color": "#c9b48a",
+    "accent": "#f2c11e"
+  },
+  "lore_paper": {
+    "placeholder": "prop",
+    "color": "#e8e2d0",
+    "height": 0.12
+  },
+  "lore_file": {
+    "placeholder": "prop",
+    "color": "#c9a25a",
+    "height": 0.18
+  },
+  "lore_tablet": {
+    "placeholder": "prop",
+    "color": "#9a9488",
+    "height": 0.7
   }
 }
