@@ -429,4 +429,5 @@ Three audits (gameplay duels in the real sim, every NPC variant, the story as a 
 - **Relic effects** from `init` sit on `hubSession` for the page only. They are not saved. No PB
   effect keys are applied yet; the matrix is still empty.
 - **Exit** goes to the absolute `VITE_HUB_URL` (default `/hub/`) with `#from=peoples-bitcoin`.
-  Vite `base` is `./`.
+  Vite `base` defaults to `/peoples-bitcoin/` in production and `/play/peoples-bitcoin/` in dev.
+  `VITE_BASE` overrides it. Bundled asset URLs use that base. Exit stays `/hub/#from=peoples-bitcoin`.
