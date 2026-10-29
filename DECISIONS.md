@@ -421,7 +421,10 @@ Three audits (gameplay duels in the real sim, every NPC variant, the story as a 
   `tools/pb_shop_prices.csv` (not recomputed from items). A row whose item is not in this
   build is kept and ignored. Ammo is
   packs of 100. A sell worth 0 Tickets is refused locally. Sell-only goods never call `sellItem`.
-  A hub session buys and sells with `spendTickets` / `sellItem` and reads `getTicketBalance`.
+  A buy is refused unless that shop's stock list includes the item. A price row for an
+  unstocked item does not sell: standalone `buy()` returns without touching the wallet, and a
+  hub session says Unavailable and does not call `spendTickets`. A hub session buys and sells
+  with `spendTickets` / `sellItem` and reads `getTicketBalance`.
   If those methods are missing at runtime the shop shows Offline and does not buy optimistically.
   No hub session means the standalone shop, which never syncs or exchanges.
 - **Exchange** is a right-click on the Treasury terminals, steps of 10 up to 500, limited by the
