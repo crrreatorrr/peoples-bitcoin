@@ -390,9 +390,10 @@ Three audits (gameplay duels in the real sim, every NPC variant, the story as a 
   with reasons `pb_drop`, `pb_lobby`, and `pb_sell`. A capped or mismatched batch is dropped and
   logged. Standalone fractions live in `offlineRemainder` and are never sent.
 - **Quest and step rewards** are `round(sqrt(usd))`, each its own `earnTickets` with reason
-  `pb_quest`. The idempotency key is UUIDv5 of `pb:quest:<questId>[:<stepId>[:<choiceId>]]`
-  under namespace `6f0e2a44-9c1b-4d55-8e77-3a1b9c0d4e21` (`src/hub/uuid.ts`). `session_ticket_cap`
-  keeps that earn and resends it on the next `init`. Other terminal errors drop it.
+  `pb_quest`. `questEarnName` builds `pb:quest:<questId>` and adds a step or choice id when
+  that reward is separate. `questEarnWireKey` is the UUIDv5 of that name. `session_ticket_cap`
+  leaves the earn capped and resends it only when the hub session id changes. `idempotency_mismatch`,
+  `amount_over_rule`, and any other `*_cap` code mark it acked and do not resend.
 - **Shop prices** are `src/data/shop_prices.tickets.json`, one row per shop stock line. Ammo is
   packs of 100. A sell worth 0 Tickets is refused locally. Sell-only goods never call `sellItem`.
   Hub shop calls wait for SDK 0.2.0 (`spendTickets` / `sellItem` / `getTicketBalance`); until then

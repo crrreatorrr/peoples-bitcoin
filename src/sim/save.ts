@@ -58,7 +58,8 @@ const LedgerSchema = z.object({
       name: z.string(),
       amount: z.number().positive(),
       key: z.string().nullable(),
-      status: z.enum(['pending', 'capped', 'acked', 'dropped']),
+      status: z.enum(['pending', 'capped', 'acked']),
+      cappedSessionId: z.string().nullable().default(null),
     }),
   ),
   purchase: ShopOrderSchema.nullable(),
@@ -177,7 +178,9 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
       },
     };
   },
-  // v7: the bitcoin wallet becomes Tickets. Hub batches start empty.
+  // v7: the bitcoin wallet becomes Tickets, display only. emptyLedger() has no
+  // pending earn, so this amount is never passed to earnTickets. A hub session
+  // replaces it from getTicketBalance in HubClient.start.
   6: (save) => {
     const player = asRecord(save.player);
     const currencies = asRecord(player.currencies);
@@ -221,7 +224,10 @@ export function serialize(state: GameState, now: number): SaveData {
         },
         offlineRemainder: { ...p.ledger.offlineRemainder },
         batches: { ...p.ledger.batches },
-        questEarns: p.ledger.questEarns.map((row) => ({ ...row })),
+        questEarns: p.ledger.questEarns.map((row) => ({
+          ...row,
+          cappedSessionId: row.cappedSessionId,
+        })),
         purchase: p.ledger.purchase ? { ...p.ledger.purchase } : null,
         sale: p.ledger.sale ? { ...p.ledger.sale } : null,
         fulfilledKeys: [...p.ledger.fulfilledKeys],
@@ -307,7 +313,10 @@ export function deserialize(raw: unknown, content: Content): GameState | null {
     },
     offlineRemainder: { ...savedLedger.offlineRemainder },
     batches: { ...savedLedger.batches },
-    questEarns: savedLedger.questEarns.map((row) => ({ ...row })),
+    questEarns: savedLedger.questEarns.map((row) => ({
+      ...row,
+      cappedSessionId: row.cappedSessionId ?? null,
+    })),
     purchase: savedLedger.purchase ? { ...savedLedger.purchase } : null,
     sale: savedLedger.sale ? { ...savedLedger.sale } : null,
     fulfilledKeys: [...savedLedger.fulfilledKeys],

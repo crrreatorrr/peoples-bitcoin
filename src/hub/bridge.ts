@@ -142,6 +142,18 @@ export class HubBridge {
     }
   }
 
+  /** Hub session id cached by the SDK, or '' when there is no session. */
+  sessionId(): string {
+    try {
+      const raw = sessionStorage.getItem(`hub:${HUB_GAME_ID}:session`);
+      if (!raw) return '';
+      const sid = (JSON.parse(raw) as { sid?: unknown }).sid;
+      return typeof sid === 'string' ? sid : '';
+    } catch {
+      return '';
+    }
+  }
+
   async getTicketBalance(): Promise<number | null> {
     const fn = (this.sdk as ShopSdk).getTicketBalance;
     if (this.mode !== 'hub' || typeof fn !== 'function') return null;

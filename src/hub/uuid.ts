@@ -91,6 +91,15 @@ function formatUuid(bytes: Uint8Array): string {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
+/**
+ * Idempotency key for one quest reward. `name` comes from `questEarnName`
+ * (`pb:quest:<questId>`, plus a step or choice id when the reward is not the
+ * quest's only payout).
+ */
+export function questEarnWireKey(name: string): string {
+  return uuidv5(name);
+}
+
 /** UUIDv5 of `name` under the quest namespace. */
 export function uuidv5(name: string, namespace = QUEST_EARN_NAMESPACE): string {
   const ns = parseUuid(namespace);

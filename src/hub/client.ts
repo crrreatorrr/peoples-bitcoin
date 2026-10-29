@@ -32,7 +32,7 @@ import {
   ticketLimitMessage,
   type ExchangeCallResult,
 } from './bridge';
-import { uuidv5, uuidv7 } from './uuid';
+import { questEarnWireKey, uuidv7 } from './uuid';
 
 const QUEST_REASON = 'pb_quest';
 
@@ -56,6 +56,8 @@ export class HubClient {
     if (outcome === 'timeout') console.warn('[hub] init timed out; running standalone');
     this.applyLink();
     if (this.state.hubSession.mode !== 'hub') return;
+    // Server wallet replaces the save, including a v7 1:1 bitcoin migration.
+    // That migrated number is not in any earn batch, so it is not banked.
     const balance = await this.bridge.getTicketBalance();
     if (balance != null) setTicketBalance(this.state, balance);
     const opened = this.sealSync();
@@ -63,7 +65,7 @@ export class HubClient {
       this.undo(opened);
       return;
     }
-    await this.sendPending(true);
+    await this.sendPending('session');
     if (this.state.player.quests.quest_tutorial?.complete) await this.reportRelic(this.state.tick);
     await this.flushScore();
   }
@@ -95,7 +97,7 @@ export class HubClient {
       this.undo(opened);
       return;
     }
-    void this.sendPending(false);
+    void this.sendPending('checkpoint');
   }
 
   /** Opens batches and assigns quest keys. Caller saves before any send. */
@@ -108,8 +110,9 @@ export class HubClient {
       if (openStreamBatch(this.state, reason, id)) opened.push({ reason, id });
     }
     for (const row of this.state.player.ledger.questEarns) {
-      if ((row.status === 'pending' || row.status === 'capped') && !row.key)
-        row.key = uuidv5(row.name);
+      if ((row.status === 'pending' || row.status === 'capped') && !row.key) {
+        row.key = questEarnWireKey(row.name);
+      }
     }
     return opened;
   }
@@ -253,7 +256,7 @@ export class HubClient {
   async exitToHub(): Promise<void> {
     const opened = this.sealSync();
     if (!this.save()) this.undo(opened);
-    await this.sendPending(false);
+    await this.sendPending('checkpoint');
     await this.flushScore();
     this.bridge.exit('exit_to_hub');
   }
@@ -300,14 +303,19 @@ export class HubClient {
     for (const row of opened) undoStreamBatch(this.state, row.reason, row.id);
   }
 
-  private async sendPending(includeCappedQuests: boolean): Promise<void> {
+  private async sendPending(when: 'checkpoint' | 'session'): Promise<void> {
     if (this.state.hubSession.mode !== 'hub') return;
+    const sid = this.bridge.sessionId();
     for (const reason of STREAM_REASONS) {
       const batch = this.state.player.ledger.batches[reason];
       if (batch) await this.sendBatch(reason, batch.id, batch.amount);
     }
     for (const row of this.state.player.ledger.questEarns) {
-      if (row.status === 'pending' || (includeCappedQuests && row.status === 'capped')) {
+      const newSession = sid !== '' && sid !== row.cappedSessionId;
+      if (
+        row.status === 'pending' ||
+        (when === 'session' && row.status === 'capped' && newSession)
+      ) {
         await this.sendQuest(row);
       }
     }
@@ -332,7 +340,7 @@ export class HubClient {
       this.save();
     } catch (err) {
       const code = errorCode(err);
-      if (isTerminalEarn(code)) {
+      if (isStreamTerminal(code)) {
         console.warn('[hub] earn batch dropped', { reason, id, amount, code });
         dropStreamBatch(this.state, reason, id, null);
         this.say(isCap(code) ? ticketLimitMessage(capRemaining(err)) : 'Could not bank Tickets.');
@@ -349,46 +357,40 @@ export class HubClient {
   private async sendQuestNamed(name: string): Promise<void> {
     const row = this.state.player.ledger.questEarns.find((earn) => earn.name === name);
     if (!row) return;
-    if (!row.key) row.key = uuidv5(row.name);
+    if (!row.key) row.key = questEarnWireKey(row.name);
     if (!this.save()) return;
     await this.sendQuest(row);
   }
 
   private async sendQuest(row: QuestEarn): Promise<void> {
     if (this.state.hubSession.mode !== 'hub') return;
-    if (!row.key) row.key = uuidv5(row.name);
+    if (!row.key) row.key = questEarnWireKey(row.name);
     const token = `quest:${row.key}`;
     if (this.inflight.has(token)) return;
     if (!this.save()) return;
     this.inflight.add(token);
     try {
       const result = await this.bridge.earnTickets(row.amount, QUEST_REASON, row.key);
-      if (result.capped) {
-        row.status = 'capped';
-        console.warn('[hub] quest earn capped; resend at the next session start', row);
-        this.say(ticketLimitMessage());
-      } else {
-        row.status = 'acked';
-        if (result.balance != null) setTicketBalance(this.state, result.balance);
-      }
+      row.status = 'acked';
+      row.cappedSessionId = null;
+      if (result.balance != null) setTicketBalance(this.state, result.balance);
       this.save();
     } catch (err) {
       const code = errorCode(err);
       if (code === 'session_ticket_cap') {
         row.status = 'capped';
-        console.warn('[hub] quest earn session_ticket_cap; keeping it', {
+        row.cappedSessionId = this.bridge.sessionId() || row.cappedSessionId;
+        console.warn('[hub] quest earn session_ticket_cap; resend on the next session', {
           name: row.name,
           key: row.key,
+          cappedSessionId: row.cappedSessionId,
         });
         this.say(ticketLimitMessage(capRemaining(err)));
         this.save();
-      } else if (isTerminalEarn(code)) {
-        row.status = 'dropped';
-        console.warn('[hub] quest earn dropped', { name: row.name, code });
-        this.state.player.currencies.tickets = Math.max(
-          0,
-          this.state.player.currencies.tickets - row.amount,
-        );
+      } else if (isQuestTerminal(code)) {
+        row.status = 'acked';
+        row.cappedSessionId = null;
+        console.warn('[hub] quest earn acked and dropped', { name: row.name, code });
         this.save();
       } else {
         this.bridge.noteFailure(err);
@@ -651,11 +653,21 @@ export class HubClient {
 }
 
 function isCap(code: string): boolean {
-  return code === 'session_ticket_cap' || code === 'verse_cap' || code.includes('cap');
+  return code.endsWith('_cap');
 }
 
-function isTerminalEarn(code: string): boolean {
-  return isCap(code) || code === 'idempotency_mismatch';
+/** Stream batches are not resent after a terminal rejection. */
+function isStreamTerminal(code: string): boolean {
+  return code === 'idempotency_mismatch' || code === 'amount_over_rule' || code.endsWith('_cap');
+}
+
+/**
+ * Quest earns: session_ticket_cap stays pending. These codes are finished
+ * (acked) and not resent.
+ */
+function isQuestTerminal(code: string): boolean {
+  if (code === 'session_ticket_cap') return false;
+  return code === 'idempotency_mismatch' || code === 'amount_over_rule' || code.endsWith('_cap');
 }
 
 function takeUnits(state: GameState, itemId: string, units: number, slot: number): void {
