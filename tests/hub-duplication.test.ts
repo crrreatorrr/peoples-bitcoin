@@ -74,6 +74,10 @@ class ScriptedHub {
   loseSell = false;
   /** Server committed the earn, then the client sees rpc_failed. */
   loseEarn = false;
+  /** How many times getTicketBalance has been called. */
+  balancePulls = 0;
+  /** Runs at the start of each balance read, before the snapshot is built. */
+  onBalance: (() => void) | null = null;
   stickyError = false;
   earnError: HubSdkError | null = null;
   exchangeError: HubSdkError | null = null;
@@ -192,6 +196,8 @@ class ScriptedHub {
       },
       exit: () => {},
       getTicketBalance: async (): Promise<TicketBalanceResult> => {
+        this.balancePulls += 1;
+        this.onBalance?.();
         const result: TicketBalanceResult = {
           balance: this.serverBalance,
           sessionCapLeft: 0,
@@ -1370,12 +1376,215 @@ describe('earn caps from getTicketBalance', () => {
       expect(state.player.ledger.batches.pb_drop, code).toBeUndefined();
       expect(state.player.ledger.streams.pb_drop.pending, code).toBe(0);
       expect(script.serverBalance, code).toBe(before);
-      expect(state.player.currencies.tickets, code).toBe(before - 4);
+      expect(state.player.currencies.tickets, code).toBe(before);
       hub.checkpoint();
       await hub.start();
       await settle();
       expect(script.earns, code).toHaveLength(1);
       expect(script.serverBalance, code).toBe(before);
+      expect(state.player.currencies.tickets, code).toBe(before);
+    }
+  });
+
+  it('holds the seal when the init retry hits a cap and credits it once', async () => {
+    const { state, ctx } = newGame();
+    state.hubSession.mode = 'hub';
+    addStreamUsd(state, 'pb_drop', 25 * 80);
+    script.earnError = new HubSdkError('rpc_failed', 'down');
+    const { hub } = attach(state, ctx);
+    await hub.start();
+    await settle();
+    const first = script.earns[0]!;
+    expect(state.player.ledger.batches.pb_drop).toMatchObject({
+      id: first.key,
+      amount: 80,
+      retryAtInit: true,
+    });
+    hub.checkpoint();
+    await settle();
+    hub.checkpoint();
+    await settle();
+    expect(script.earns).toHaveLength(1);
+
+    script.earnError = new HubSdkError('session_ticket_cap', 'cap', undefined, 0);
+    await hub.start();
+    await settle();
+    expect(script.earns).toHaveLength(2);
+    expect(script.earns[1]).toEqual(first);
+    expect(state.player.ledger.batches.pb_drop).toMatchObject({
+      id: first.key,
+      amount: 80,
+      retryAtInit: false,
+    });
+    hub.checkpoint();
+    await settle();
+    expect(script.earns).toHaveLength(2);
+
+    script.earnError = null;
+    state.hubSession.sessionCapLeft = 1000;
+    const before = script.serverBalance;
+    hub.checkpoint();
+    await settle();
+    expect(script.earns).toHaveLength(3);
+    expect(script.earns[2]).toEqual(first);
+    expect(script.serverBalance - before).toBe(80);
+    hub.checkpoint();
+    await hub.start();
+    await settle();
+    expect(script.serverBalance - before).toBe(80);
+    expect(state.player.ledger.batches.pb_drop).toBeUndefined();
+  });
+
+  it('sends a transport failure once per init and never on a checkpoint', async () => {
+    for (const code of ['rpc_failed', 'offline'] as const) {
+      script = new ScriptedHub();
+      installStorage();
+      const { state, ctx } = newGame();
+      state.hubSession.mode = 'hub';
+      addStreamUsd(state, 'pb_drop', 25 * 12);
+      script.stickyError = true;
+      script.earnError = new HubSdkError(code, code);
+      const { hub } = attach(state, ctx);
+      await hub.start();
+      await settle();
+      const first = script.earns[0]!;
+      expect(first, code).toMatchObject({ amount: 12, reason: 'pb_drop' });
+      expect(state.player.ledger.batches.pb_drop, code).toMatchObject({
+        id: first.key,
+        amount: 12,
+        retryAtInit: true,
+      });
+      hub.checkpoint();
+      await settle();
+      hub.checkpoint();
+      await settle();
+      expect(script.earns, code).toHaveLength(1);
+
+      await hub.start();
+      await settle();
+      expect(script.earns, code).toHaveLength(2);
+      expect(script.earns[1], code).toEqual(first);
+      expect(state.player.ledger.batches.pb_drop, code).toMatchObject({
+        id: first.key,
+        amount: 12,
+        retryAtInit: true,
+      });
+      hub.checkpoint();
+      await settle();
+      hub.checkpoint();
+      await settle();
+      expect(script.earns, code).toHaveLength(2);
+
+      script.stickyError = false;
+      script.earnError = null;
+      const before = script.serverBalance;
+      await hub.start();
+      await settle();
+      expect(script.earns, code).toHaveLength(3);
+      expect(script.earns[2], code).toEqual(first);
+      expect(script.serverBalance - before, code).toBe(12);
+      await hub.start();
+      await settle();
+      expect(script.serverBalance - before, code).toBe(12);
+    }
+  });
+
+  it('keeps retryAtInit across a reload and a writer takeover', async () => {
+    const { state, ctx } = newGame();
+    state.hubSession.mode = 'hub';
+    addStreamUsd(state, 'pb_drop', 25 * 22);
+    let frozen = false;
+    const { hub } = attach(state, ctx, () => !frozen && saveGame(state));
+    claimWriter(() => {
+      if (frozen) return;
+      saveGame(state);
+      frozen = true;
+    });
+    script.earnError = new HubSdkError('rpc_failed', 'down');
+    await hub.start();
+    await settle();
+    const key = script.earns[0]!.key;
+    expect(state.player.ledger.batches.pb_drop).toMatchObject({
+      id: key,
+      amount: 22,
+      retryAtInit: true,
+    });
+    hub.checkpoint();
+    await settle();
+    expect(script.earns).toHaveLength(1);
+
+    const loaded = loadSavedGame(content()).state!;
+    expect(loaded.player.ledger.batches.pb_drop).toMatchObject({
+      id: key,
+      amount: 22,
+      retryAtInit: true,
+    });
+    expect(localStorage.getItem('peoples-bitcoin.hub-ledger')).toContain(key);
+    loaded.hubSession.mode = 'hub';
+    const { hub: reloaded } = attach(loaded, ctx);
+    reloaded.checkpoint();
+    await settle();
+    expect(script.earns).toHaveLength(1);
+    expect(loaded.player.ledger.batches.pb_drop).toMatchObject({
+      id: key,
+      amount: 22,
+      retryAtInit: true,
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    claimWriter(() => {});
+    await settle();
+    expect(frozen).toBe(true);
+    hub.checkpoint();
+    await settle();
+    expect(script.earns).toHaveLength(1);
+
+    const other = loadSavedGame(content()).state!;
+    expect(other.player.ledger.batches.pb_drop).toMatchObject({
+      id: key,
+      amount: 22,
+      retryAtInit: true,
+    });
+    script.earnError = null;
+    const before = script.serverBalance;
+    const { hub: newer } = attach(other, ctx);
+    await newer.start();
+    await settle();
+    expect(script.earns).toHaveLength(2);
+    expect(script.earns[1]).toEqual({ amount: 22, reason: 'pb_drop', key });
+    expect(script.serverBalance - before).toBe(22);
+    hub.checkpoint();
+    newer.checkpoint();
+    await settle();
+    expect(script.earns).toHaveLength(2);
+    expect(script.serverBalance - before).toBe(22);
+  });
+
+  it('sets the wallet from getTicketBalance after a terminal drop', async () => {
+    for (const code of ['idempotency_mismatch', 'amount_over_rule'] as const) {
+      script = new ScriptedHub();
+      installStorage();
+      const { state, ctx } = newGame();
+      state.hubSession.mode = 'hub';
+      state.player.currencies.tickets = 50;
+      addStreamUsd(state, 'pb_drop', 25 * 4);
+      script.earnError = new HubSdkError(code, code);
+      script.onBalance = () => {
+        if (script.balancePulls === 2) script.serverBalance = 4242;
+      };
+      const { hub } = attach(state, ctx);
+      await hub.start();
+      await settle();
+      expect(script.earns, code).toHaveLength(1);
+      expect(state.player.ledger.batches.pb_drop, code).toBeUndefined();
+      expect(state.player.ledger.streams.pb_drop.pending, code).toBe(0);
+      expect(state.player.currencies.tickets, code).toBe(4242);
+      expect(state.hubSession.serverBalance, code).toBe(4242);
+      hub.checkpoint();
+      await hub.start();
+      await settle();
+      expect(script.earns, code).toHaveLength(1);
+      expect(state.player.currencies.tickets, code).toBe(script.serverBalance);
     }
   });
 
