@@ -272,8 +272,54 @@ export function createLiveHubSdk(env, client) {
                 throw new HubSdkError('bad_amount', 'Exchange amount must be positive');
             }
             if (!active)
-                return { verse: 0, ticketsLeft: 0, receiptId: 'noop' };
+                return { verse: 0, ticketsLeft: 0, balance: 0, receiptId: 'noop', verseCapLeft: 0 };
             return sendOnce(active, 'tickets.exchange', key, { tickets: Math.floor(tickets) });
+        },
+        async spendTickets(shopId, itemId, packs, key) {
+            if (!key)
+                throw new HubSdkError('bad_key', 'Idempotency key is required');
+            if (!shopId || !itemId)
+                throw new HubSdkError('unknown_item', 'Unknown item');
+            if (!Number.isFinite(packs) || packs <= 0 || Math.floor(packs) !== packs) {
+                throw new HubSdkError('bad_amount', 'Quantity must be a positive integer');
+            }
+            const packsOut = Math.floor(packs);
+            if (!active)
+                return { shop_id: shopId, item_id: itemId, packs: packsOut, units: packsOut, spent: 0, balance: 0 };
+            return sendOnce(active, 'tickets.spend', key, {
+                game: active.game,
+                shop_id: shopId,
+                item_id: itemId,
+                packs: packsOut,
+            });
+        },
+        async sellItem(shopId, itemId, packs, key) {
+            if (!key)
+                throw new HubSdkError('bad_key', 'Idempotency key is required');
+            if (!shopId || !itemId)
+                throw new HubSdkError('unknown_item', 'Unknown item');
+            if (!Number.isFinite(packs) || packs <= 0 || Math.floor(packs) !== packs) {
+                throw new HubSdkError('bad_amount', 'Quantity must be a positive integer');
+            }
+            const packsOut = Math.floor(packs);
+            if (!active)
+                return { shop_id: shopId, item_id: itemId, packs: packsOut, units: packsOut, credited: 0, balance: 0 };
+            return sendOnce(active, 'tickets.sell', key, {
+                game: active.game,
+                shop_id: shopId,
+                item_id: itemId,
+                packs: packsOut,
+            });
+        },
+        async getTicketBalance() {
+            if (!active)
+                return { balance: 0, sessionCapLeft: 0, dailyCapLeft: 0 };
+            const body = await client.rpc('tickets.balance', { game: active.game }, { token: active.token });
+            return {
+                balance: typeof body.balance === 'number' ? body.balance : 0,
+                sessionCapLeft: typeof body.sessionCapLeft === 'number' ? body.sessionCapLeft : 0,
+                dailyCapLeft: typeof body.dailyCapLeft === 'number' ? body.dailyCapLeft : 0,
+            };
         },
         exit(reason) {
             if (!active)

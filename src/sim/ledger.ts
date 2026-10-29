@@ -109,7 +109,14 @@ export function openStreamBatch(
   if (state.player.ledger.batches[reason]) return null;
   const pocket = state.player.ledger.streams[reason];
   if (pocket.pending <= 0) return null;
-  const amount = Math.min(TICKETS.batchMax, pocket.pending);
+  const rooms = [
+    TICKETS.batchMax,
+    state.hubSession.sessionCapLeft,
+    state.hubSession.dailyCapLeft,
+  ].filter((n): n is number => typeof n === 'number');
+  const cap = Math.min(...rooms);
+  if (cap <= 0) return null;
+  const amount = Math.min(cap, pocket.pending);
   pocket.pending -= amount;
   const batch: EarnBatch = { id, amount };
   state.player.ledger.batches[reason] = batch;

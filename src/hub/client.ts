@@ -31,7 +31,9 @@ import {
   errorCode,
   ticketLimitMessage,
   type ExchangeCallResult,
+  type TicketSnapshot,
 } from './bridge';
+import { HubSdkError } from '@metaverse/hub-sdk';
 import { questEarnWireKey, uuidv7 } from './uuid';
 
 const QUEST_REASON = 'pb_quest';
@@ -59,7 +61,7 @@ export class HubClient {
     // Server wallet replaces the save, including a v7 1:1 bitcoin migration.
     // That migrated number is not in any earn batch, so it is not banked.
     const balance = await this.bridge.getTicketBalance();
-    if (balance != null) setTicketBalance(this.state, balance);
+    if (balance != null) this.applySnapshot(balance);
     const opened = this.sealSync();
     if (!this.save()) {
       this.undo(opened);
@@ -286,6 +288,34 @@ export class HubClient {
     }
   }
 
+  private applySnapshot(snap: TicketSnapshot): void {
+    setTicketBalance(this.state, snap.balance);
+    this.state.hubSession.sessionCapLeft = snap.sessionCapLeft;
+    this.state.hubSession.dailyCapLeft = snap.dailyCapLeft;
+  }
+
+  /** Shrink the rooms we last heard from the server after a credit lands. */
+  private noteCredit(amount: number): void {
+    if (!(amount > 0)) return;
+    const link = this.state.hubSession;
+    if (link.sessionCapLeft != null)
+      link.sessionCapLeft = Math.max(0, link.sessionCapLeft - amount);
+    if (link.dailyCapLeft != null) link.dailyCapLeft = Math.max(0, link.dailyCapLeft - amount);
+  }
+
+  private rememberCaps(err: unknown): void {
+    if (!(err instanceof HubSdkError)) return;
+    const link = this.state.hubSession;
+    if (typeof err.sessionCapLeft === 'number') link.sessionCapLeft = err.sessionCapLeft;
+    if (typeof err.dailyCapLeft === 'number') link.dailyCapLeft = err.dailyCapLeft;
+    if (typeof err.capLeft === 'number' && err.code === 'session_ticket_cap') {
+      link.sessionCapLeft = err.capLeft;
+    }
+    if (typeof err.capLeft === 'number' && err.code === 'daily_ticket_cap') {
+      link.dailyCapLeft = err.capLeft;
+    }
+  }
+
   private applyLink(): void {
     const link = this.state.hubSession;
     link.mode = this.bridge.mode;
@@ -336,10 +366,12 @@ export class HubClient {
         this.say(ticketLimitMessage());
       } else {
         ackStreamBatch(this.state, reason, id, result.balance);
+        this.noteCredit(amount);
       }
       this.save();
     } catch (err) {
       const code = errorCode(err);
+      this.rememberCaps(err);
       if (isStreamTerminal(code)) {
         console.warn('[hub] earn batch dropped', { reason, id, amount, code });
         dropStreamBatch(this.state, reason, id, null);
@@ -374,9 +406,11 @@ export class HubClient {
       row.status = 'acked';
       row.cappedSessionId = null;
       if (result.balance != null) setTicketBalance(this.state, result.balance);
+      if (!result.capped) this.noteCredit(row.amount);
       this.save();
     } catch (err) {
       const code = errorCode(err);
+      this.rememberCaps(err);
       if (code === 'session_ticket_cap') {
         row.status = 'capped';
         row.cappedSessionId = this.bridge.sessionId() || row.cappedSessionId;
@@ -406,9 +440,6 @@ export class HubClient {
     if (!order) return;
     const token = `buy:${order.key}`;
     if (this.inflight.has(token)) return;
-    const row = this.ctx.content.ticketPrices.find(
-      (price) => price.shopId === order.shopId && price.itemId === order.itemId,
-    );
     this.inflight.add(token);
     try {
       const result = await this.bridge.spendTickets(
@@ -416,7 +447,6 @@ export class HubClient {
         order.itemId,
         order.packs,
         order.key,
-        row?.packSize ?? 1,
       );
       this.finishPurchase(order.key, order.itemId, result.units, result.balance);
     } catch (err) {
@@ -442,23 +472,17 @@ export class HubClient {
 
   private failPurchase(key: string, err: unknown): void {
     const code = errorCode(err);
-    if (
-      code === 'insufficient_tickets' ||
-      code === 'unknown_item' ||
-      code === 'zero_value' ||
-      isCap(code) ||
-      code === 'idempotency_mismatch'
-    ) {
+    this.rememberCaps(err);
+    if (isShopTerminal(code)) {
       if (this.state.player.ledger.purchase?.key === key) this.state.player.ledger.purchase = null;
       this.save();
       if (code === 'insufficient_tickets') this.say('Not enough Tickets.');
       else if (code === 'unknown_item') this.say('Unavailable');
-      else if (isCap(code)) {
-        console.warn('[hub] purchase hit the cap', { key, code });
+      else if (code === 'zero_value') this.say('Worth 0 Tickets');
+      else if (isCap(code) || code === 'amount_over_rule') {
+        console.warn('[hub] purchase refused', { key, code });
         this.say(ticketLimitMessage(capRemaining(err)));
-      } else if (code === 'idempotency_mismatch') {
-        console.warn('[hub] purchase idempotency_mismatch', { key });
-      } else this.say('Worth 0 Tickets');
+      } else console.warn('[hub] purchase idempotency_mismatch', { key });
       return;
     }
     this.bridge.noteFailure(err);
@@ -481,13 +505,8 @@ export class HubClient {
     }
     this.inflight.add(token);
     try {
-      const result = await this.bridge.sellItem(
-        order.shopId,
-        order.itemId,
-        order.packs,
-        order.key,
-        row?.packSize ?? 1,
-      );
+      const result = await this.bridge.sellItem(order.shopId, order.itemId, order.packs, order.key);
+      if (result.credited != null) this.noteCredit(result.credited);
       this.finishSale(order.key, order.itemId, order.slot, result.units, result.balance);
     } catch (err) {
       this.failSale(order.key, err);
@@ -520,13 +539,8 @@ export class HubClient {
 
   private failSale(key: string, err: unknown): void {
     const code = errorCode(err);
-    const keep =
-      code === 'insufficient_tickets' ||
-      code === 'unknown_item' ||
-      code === 'zero_value' ||
-      isCap(code) ||
-      code === 'idempotency_mismatch';
-    if (!keep) {
+    this.rememberCaps(err);
+    if (!isShopTerminal(code)) {
       this.bridge.noteFailure(err);
       this.say('Sale pending');
       return;
@@ -535,8 +549,8 @@ export class HubClient {
     this.save();
     if (code === 'zero_value') this.say('Worth 0 Tickets');
     else if (code === 'unknown_item') this.say('Unavailable');
-    else if (isCap(code)) {
-      console.warn('[hub] sale refused by the cap', { key, code });
+    else if (isCap(code) || code === 'amount_over_rule') {
+      console.warn('[hub] sale refused', { key, code });
       this.say(ticketLimitMessage(capRemaining(err)));
     } else if (code === 'idempotency_mismatch') {
       console.warn('[hub] sale idempotency_mismatch', { key });
@@ -665,6 +679,17 @@ function isStreamTerminal(code: string): boolean {
  * Quest earns: session_ticket_cap stays pending. These codes are finished
  * (acked) and not resent.
  */
+function isShopTerminal(code: string): boolean {
+  return (
+    code === 'unknown_item' ||
+    code === 'insufficient_tickets' ||
+    code === 'zero_value' ||
+    code === 'amount_over_rule' ||
+    code === 'idempotency_mismatch' ||
+    code.endsWith('_cap')
+  );
+}
+
 function isQuestTerminal(code: string): boolean {
   if (code === 'session_ticket_cap') return false;
   return code === 'idempotency_mismatch' || code === 'amount_over_rule' || code.endsWith('_cap');

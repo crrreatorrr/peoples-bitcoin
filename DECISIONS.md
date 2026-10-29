@@ -377,10 +377,11 @@ Three audits (gameplay duels in the real sim, every NPC variant, the story as a 
 
 ## Hub Tickets (2026-10-29)
 
-- **Game id** is `peoples-bitcoin` for init, logs, and the exit fragment. hub-sdk 0.1.0's
-  allow-list does not include that id yet, so `init` throws and the game stays standalone until
-  the SDK does. The relic event id stays `pb.quest_complete` and the board id stays `pb_total_xp`;
-  those are hub event and board names, not the game id.
+- **Game id** is `peoples-bitcoin` for init, logs, and the exit fragment. hub-sdk 0.2.0
+  accepts that id and exposes `spendTickets`, `sellItem`, and `getTicketBalance`. The relic
+  event id stays `pb.quest_complete` and the board id stays `pb_total_xp`; those are hub event
+  and board names, not the game id. `getTicketBalance` also returns `sessionCapLeft` and
+  `dailyCapLeft`; earn batches are clamped to those rooms when they are present.
 - **Tickets replace the wallet.** Save v7 copies the old `bitcoin` number across 1:1. The live
   USD price is no longer stepped or shown. `src/sim/economy.ts` still exports the old walk so the
   existing economy tests load. `currencies.bitcoin` is always 0 in memory so that suite still

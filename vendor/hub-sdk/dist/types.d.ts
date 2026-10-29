@@ -1,5 +1,5 @@
 /** Game ids stored on the server and used in `/hub#from=<game>` and `play/<game>`. */
-export declare const GAME_IDS: readonly ["hpos10i", "nobu", "pb", "sproto"];
+export declare const GAME_IDS: readonly ["hpos10i", "nobu", "peoples-bitcoin", "sproto"];
 export type GameId = (typeof GAME_IDS)[number];
 /** Earn-once relics. The primary key on the server is (user, relic). */
 export declare const RELIC_IDS: readonly ["hpos10i_core", "genesis_shard", "cones_tip", "tinubu_crown"];
@@ -41,7 +41,34 @@ export interface ExchangeResult {
     /** Verse wallet balance after the exchange. */
     verse: number;
     ticketsLeft: number;
+    /** Ticket wallet after the exchange. Same number as ticketsLeft. */
+    balance: number;
     receiptId: string;
+    /** Verse this game can still earn today. Omitted by older servers. */
+    verseCapLeft?: number;
+}
+export interface SpendResult {
+    shop_id: string;
+    item_id: string;
+    packs: number;
+    units: number;
+    spent: number;
+    balance: number;
+}
+export interface SellResult {
+    shop_id: string;
+    item_id: string;
+    packs: number;
+    units: number;
+    credited: number;
+    balance: number;
+}
+export interface TicketBalanceResult {
+    balance: number;
+    /** Tickets this session can still credit before `session_ticket_cap`. */
+    sessionCapLeft: number;
+    /** Tickets this game can still credit today before `daily_ticket_cap`. */
+    dailyCapLeft: number;
 }
 export interface EventResult {
     granted?: RelicId;
@@ -57,6 +84,11 @@ export interface HubSdk {
     submitScore(boardId: string, value: number, meta?: object): Promise<void>;
     earnTickets(amount: number, reason: string, key: string): Promise<EarnResult>;
     exchange(tickets: number, key: string): Promise<ExchangeResult>;
+    /** Buy `packs` from `shopId` at the server price per pack. The caller mints `key` once. */
+    spendTickets(shopId: string, itemId: string, packs: number, key: string): Promise<SpendResult>;
+    /** Sell `packs` back to `shopId` at the server sell price per pack. The caller mints `key` once. */
+    sellItem(shopId: string, itemId: string, packs: number, key: string): Promise<SellResult>;
+    getTicketBalance(): Promise<TicketBalanceResult>;
     exit(reason?: string): void;
 }
 export declare function isGameId(value: string): value is GameId;
@@ -67,4 +99,3 @@ declare global {
         hubSdk?: HubSdk;
     }
 }
-//# sourceMappingURL=types.d.ts.map

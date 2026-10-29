@@ -1,6 +1,7 @@
 import { resolveHubEnv } from './env';
 import { HubSdkError } from './errors';
 import { relicForEvent } from './events';
+import { pbShopRow } from './pbShop';
 import { createLiveHubSdk } from './live';
 import { createNakamaClient, LOCAL_NAKAMA } from './nakama';
 import { getOrCreateDeviceId, readNumber, writeNumber } from './storage';
@@ -109,6 +110,35 @@ function createMockHubSdk(env) {
     }
     function capLeft(game) {
         return Math.max(0, MOCK_TICKET_EARN_CAP - readNumber(resolved.local, earnKey(game)));
+    }
+    function sessionCreditKey(sid) {
+        return `hub:sessionCredit:${sid}`;
+    }
+    /** Same 200 session cap and 1000 daily earn window the server uses for every game. */
+    function creditRooms(session) {
+        const sessionEarned = readNumber(resolved.session, sessionCreditKey(session.sid));
+        return {
+            sessionRoom: Math.max(0, 200 - sessionEarned),
+            dailyRoom: capLeft(session.game),
+        };
+    }
+    function rejectCap(code, left) {
+        throw new HubSdkError(code, code, undefined, left);
+    }
+    function applyCredit(session, amount, whole) {
+        const rooms = creditRooms(session);
+        if (whole && amount > rooms.sessionRoom)
+            rejectCap('session_ticket_cap', rooms.sessionRoom);
+        if (whole && amount > rooms.dailyRoom)
+            rejectCap('daily_ticket_cap', rooms.dailyRoom);
+        const applied = whole ? amount : Math.min(amount, rooms.dailyRoom);
+        if (applied > 0) {
+            writeNumber(resolved.local, earnKey(session.game), readNumber(resolved.local, earnKey(session.game)) + applied);
+            writeNumber(resolved.session, sessionCreditKey(session.sid), readNumber(resolved.session, sessionCreditKey(session.sid)) + applied);
+        }
+        const balance = readNumber(resolved.local, ticketsKey(session.game)) + applied;
+        writeNumber(resolved.local, ticketsKey(session.game), balance);
+        return { applied, balance };
     }
     function profile(session) {
         return {
@@ -247,13 +277,8 @@ function createMockHubSdk(env) {
             const session = active;
             const whole = Math.floor(amount);
             return withIdem(session.playerId, key, 'tickets.earn', stable({ amount: whole, reason }), () => {
-                const room = capLeft(session.game);
-                const applied = Math.min(whole, room);
-                const earned = readNumber(resolved.local, earnKey(session.game)) + applied;
-                const balance = readNumber(resolved.local, ticketsKey(session.game)) + applied;
-                writeNumber(resolved.local, earnKey(session.game), earned);
-                writeNumber(resolved.local, ticketsKey(session.game), balance);
-                return { balance, capped: applied < whole };
+                const credited = applyCredit(session, whole, false);
+                return { balance: credited.balance, capped: credited.applied < whole };
             });
         },
         async exchange(tickets, key) {
@@ -263,7 +288,7 @@ function createMockHubSdk(env) {
                 throw new HubSdkError('bad_amount', 'Exchange amount must be positive');
             }
             if (!active)
-                return { verse: 0, ticketsLeft: 0, receiptId: 'noop' };
+                return { verse: 0, ticketsLeft: 0, balance: 0, receiptId: 'noop', verseCapLeft: 0 };
             const session = active;
             const requested = Math.floor(tickets);
             return withIdem(session.playerId, key, 'tickets.exchange', stable({ tickets: requested }), () => {
@@ -285,8 +310,66 @@ function createMockHubSdk(env) {
                 writeNumber(resolved.local, ticketsKey(session.game), ticketsLeft);
                 writeNumber(resolved.local, 'hub:verse', verse);
                 writeNumber(resolved.local, verseDayKey(session.game), today + verseOut);
-                return { verse, ticketsLeft, receiptId: crypto.randomUUID() };
+                return { verse, ticketsLeft, balance: ticketsLeft, receiptId: crypto.randomUUID(), verseCapLeft: VERSE_DAILY_CAP - (today + verseOut) };
             });
+        },
+        async spendTickets(shopId, itemId, packs, key) {
+            if (!key)
+                throw new HubSdkError('bad_key', 'Idempotency key is required');
+            if (!shopId || !itemId)
+                throw new HubSdkError('unknown_item', 'Unknown item');
+            if (!Number.isFinite(packs) || packs <= 0 || Math.floor(packs) !== packs) {
+                throw new HubSdkError('bad_amount', 'Quantity must be a positive integer');
+            }
+            const whole = Math.floor(packs);
+            if (!active)
+                return { shop_id: shopId, item_id: itemId, packs: whole, units: whole, spent: 0, balance: 0 };
+            const session = active;
+            return withIdem(session.playerId, key, 'tickets.spend', stable({ shopId, itemId, packs: whole }), () => {
+                const row = session.game === 'peoples-bitcoin' ? pbShopRow(shopId, itemId) : undefined;
+                if (!row)
+                    throw new HubSdkError('unknown_item', 'Unknown item');
+                const spent = row.price * whole;
+                const balance = readNumber(resolved.local, ticketsKey(session.game));
+                if (balance < spent)
+                    throw new HubSdkError('insufficient_tickets', 'Not enough Tickets');
+                const next = balance - spent;
+                writeNumber(resolved.local, ticketsKey(session.game), next);
+                return { shop_id: shopId, item_id: itemId, packs: whole, units: row.packSize * whole, spent, balance: next };
+            });
+        },
+        async sellItem(shopId, itemId, packs, key) {
+            if (!key)
+                throw new HubSdkError('bad_key', 'Idempotency key is required');
+            if (!shopId || !itemId)
+                throw new HubSdkError('unknown_item', 'Unknown item');
+            if (!Number.isFinite(packs) || packs <= 0 || Math.floor(packs) !== packs) {
+                throw new HubSdkError('bad_amount', 'Quantity must be a positive integer');
+            }
+            const whole = Math.floor(packs);
+            if (!active)
+                return { shop_id: shopId, item_id: itemId, packs: whole, units: whole, credited: 0, balance: 0 };
+            const session = active;
+            return withIdem(session.playerId, key, 'tickets.sell', stable({ shopId, itemId, packs: whole }), () => {
+                const row = session.game === 'peoples-bitcoin' ? pbShopRow(shopId, itemId) : undefined;
+                if (!row)
+                    throw new HubSdkError('unknown_item', 'Unknown item');
+                const credited = row.sellPrice * whole;
+                if (credited <= 0)
+                    throw new HubSdkError('zero_value', 'This item cannot be sold');
+                const next = applyCredit(session, credited, true);
+                return { shop_id: shopId, item_id: itemId, packs: whole, units: row.packSize * whole, credited, balance: next.balance };
+            });
+        },
+        async getTicketBalance() {
+            if (!active)
+                return { balance: 0, sessionCapLeft: 0, dailyCapLeft: 0 };
+            const rooms = creditRooms(active);
+            return {
+                balance: readNumber(resolved.local, ticketsKey(active.game)),
+                sessionCapLeft: rooms.sessionRoom,
+                dailyCapLeft: rooms.dailyRoom,
+            };
         },
         exit(_reason) {
             if (!active)

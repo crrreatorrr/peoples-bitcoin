@@ -35,7 +35,7 @@ export function relicForEvent(game, eventId, data) {
             return own;
         return undefined;
     }
-    if (eventId === HubEvent.PbQuestComplete && game === 'pb') {
+    if (eventId === HubEvent.PbQuestComplete && game === 'peoples-bitcoin') {
         if (payload.questId === 'quest_tutorial')
             return own;
         return undefined;

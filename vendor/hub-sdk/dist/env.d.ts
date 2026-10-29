@@ -37,4 +37,3 @@ export interface ResolvedEnv {
     clearBeforeUnload: () => void;
 }
 export declare function resolveHubEnv(env: HubSdkEnv): ResolvedEnv;
-//# sourceMappingURL=env.d.ts.map

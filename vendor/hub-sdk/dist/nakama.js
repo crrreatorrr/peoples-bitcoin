@@ -64,8 +64,13 @@ export function createNakamaClient(options) {
             if (!response.ok)
                 throw new HubSdkError('rpc_failed', text || `HTTP ${response.status}`, response.status);
             const parsed = (text ? JSON.parse(text) : {});
-            if (parsed.error)
-                throw new HubSdkError(parsed.error, parsed.message || parsed.error);
+            if (parsed.error) {
+                const num = (value) => (typeof value === 'number' ? value : undefined);
+                const sessionCapLeft = num(parsed.sessionCapLeft);
+                const dailyCapLeft = num(parsed.dailyCapLeft);
+                const capLeft = num(parsed.capLeft) ?? sessionCapLeft ?? dailyCapLeft;
+                throw new HubSdkError(parsed.error, parsed.message || parsed.error, undefined, capLeft, sessionCapLeft, dailyCapLeft);
+            }
             return parsed;
         },
     };

@@ -1,14 +1,15 @@
 /**
- * Adapter over @metaverse/hub-sdk 0.1.0. Shop methods are the 0.2.0 shapes;
- * until that SDK is vendored they are missing and the shop stays offline.
- * The game id is peoples-bitcoin. A hub that rejects it leaves the game standalone.
+ * Adapter over @metaverse/hub-sdk 0.2.0. Shop calls are the SDK methods
+ * spendTickets(shopId, itemId, packs, key) and sellItem with the same arguments.
+ * With no hub session the SDK no-ops and this game shops locally instead.
  */
 import {
   createHubSdk,
   HubSdkError,
-  type GameId,
   type HubSdk,
   type InitResult,
+  type SpendResult,
+  type SellResult,
 } from '@metaverse/hub-sdk';
 
 /** Public game id. Exit fragment, init, and logs all use this. */
@@ -32,6 +33,14 @@ export function absoluteHubUrl(base = hubUrl()): string {
 export interface ShopCallResult {
   units: number;
   balance: number;
+  /** Tickets the server credited on a sale. Buys leave this null. */
+  credited: number | null;
+}
+
+export interface TicketSnapshot {
+  balance: number;
+  sessionCapLeft: number | null;
+  dailyCapLeft: number | null;
 }
 
 export interface EarnCallResult {
@@ -47,12 +56,6 @@ export interface ExchangeCallResult {
   verseCapLeft: number | null;
 }
 
-type ShopSdk = HubSdk & {
-  spendTickets?(shopId: string, itemId: string, packs: number, key: string): Promise<unknown>;
-  sellItem?(shopId: string, itemId: string, packs: number, key: string): Promise<unknown>;
-  getTicketBalance?(): Promise<unknown>;
-};
-
 export function errorCode(err: unknown): string {
   if (err instanceof HubSdkError) return err.code;
   if (err && typeof err === 'object' && 'code' in err) {
@@ -63,6 +66,11 @@ export function errorCode(err: unknown): string {
 }
 
 export function capRemaining(err: unknown): number | undefined {
+  if (err instanceof HubSdkError) {
+    for (const value of [err.capLeft, err.sessionCapLeft, err.dailyCapLeft]) {
+      if (typeof value === 'number' && Number.isFinite(value)) return value;
+    }
+  }
   const sources: unknown[] = [err];
   if (err && typeof err === 'object' && 'message' in err) {
     const message = (err as { message: unknown }).message;
@@ -119,16 +127,14 @@ export class HubBridge {
     this.sdk = sdk;
   }
 
-  /** True when the vendored SDK actually has the shop RPCs. */
+  /** A hub session is up and shop calls can reach the server. */
   shopReady(): boolean {
-    const shop = this.sdk as ShopSdk;
-    return this.mode === 'hub' && this.reachable && typeof shop.spendTickets === 'function';
+    return this.mode === 'hub' && this.reachable;
   }
 
   async init(): Promise<void> {
     try {
-      // 0.1.0's allow-list does not include this id yet. A rejection is standalone.
-      this.profile = await this.sdk.init(HUB_GAME_ID as GameId);
+      this.profile = await this.sdk.init(HUB_GAME_ID);
       const saved = sessionStorage.getItem(`hub:${HUB_GAME_ID}:session`);
       this.mode = saved ? 'hub' : 'standalone';
       this.reachable = this.mode === 'hub';
@@ -154,13 +160,16 @@ export class HubBridge {
     }
   }
 
-  async getTicketBalance(): Promise<number | null> {
-    const fn = (this.sdk as ShopSdk).getTicketBalance;
-    if (this.mode !== 'hub' || typeof fn !== 'function') return null;
+  async getTicketBalance(): Promise<TicketSnapshot | null> {
+    if (this.mode !== 'hub') return null;
     try {
-      const balance = num(asRecord(await fn.call(this.sdk)).balance);
+      const result = await this.sdk.getTicketBalance();
       this.reachable = true;
-      return balance;
+      return {
+        balance: result.balance,
+        sessionCapLeft: finite(result.sessionCapLeft),
+        dailyCapLeft: finite(result.dailyCapLeft),
+      };
     } catch (err) {
       this.noteFailure(err);
       return null;
@@ -194,14 +203,10 @@ export class HubBridge {
     itemId: string,
     packs: number,
     key: string,
-    packSize: number,
   ): Promise<ShopCallResult> {
-    const fn = (this.sdk as ShopSdk).spendTickets;
-    if (typeof fn !== 'function')
-      throw new HubSdkError('offline', 'spendTickets is not in this SDK');
-    const raw = await fn.call(this.sdk, shopId, itemId, packs, key);
+    const result = await this.sdk.spendTickets(shopId, itemId, packs, key);
     this.reachable = true;
-    return shopResult(raw, packs, packSize);
+    return shopResult(result);
   }
 
   async sellItem(
@@ -209,13 +214,10 @@ export class HubBridge {
     itemId: string,
     packs: number,
     key: string,
-    packSize: number,
   ): Promise<ShopCallResult> {
-    const fn = (this.sdk as ShopSdk).sellItem;
-    if (typeof fn !== 'function') throw new HubSdkError('offline', 'sellItem is not in this SDK');
-    const raw = await fn.call(this.sdk, shopId, itemId, packs, key);
+    const result = await this.sdk.sellItem(shopId, itemId, packs, key);
     this.reachable = true;
-    return shopResult(raw, packs, packSize);
+    return shopResult(result);
   }
 
   async reportQuest(key: string, tick: number): Promise<void> {
@@ -250,10 +252,14 @@ export class HubBridge {
   }
 }
 
-function shopResult(raw: unknown, packs: number, packSize: number): ShopCallResult {
-  const rec = asRecord(raw);
-  const balance = num(rec.balance);
-  if (balance == null) throw new HubSdkError('bad_result', 'Shop call returned no balance');
-  const units = num(rec.units) ?? packs * packSize;
-  return { units, balance };
+function finite(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function shopResult(raw: SpendResult | SellResult): ShopCallResult {
+  if (typeof raw.balance !== 'number' || typeof raw.units !== 'number') {
+    throw new HubSdkError('bad_result', 'Shop call returned no balance');
+  }
+  const credited = 'credited' in raw ? raw.credited : null;
+  return { units: raw.units, balance: raw.balance, credited };
 }
