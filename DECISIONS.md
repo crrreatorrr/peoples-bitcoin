@@ -377,8 +377,9 @@ Three audits (gameplay duels in the real sim, every NPC variant, the story as a 
 
 ## Hub Tickets (2026-10-29)
 
-- **Game id** is `peoples-bitcoin` for init, logs, and the exit fragment. hub-sdk 0.2.0
-  accepts that id and exposes `spendTickets`, `sellItem`, and `getTicketBalance`. The relic
+- **Game id** is `peoples-bitcoin` for init, logs, and the exit fragment. hub-sdk 0.3.0
+  accepts that id and exposes `spendTickets`, `sellItem`, `getTicketBalance`, and `earnTickets`.
+  `init` and `getTicketBalance` also return `serverTime`. The relic
   event id stays `pb.quest_complete` and the board id stays `pb_total_xp`; those are hub event
   and board names, not the game id. `getTicketBalance` also returns `sessionCapLeft` and
   `dailyCapLeft`; earn batches are clamped to those rooms when they are present.

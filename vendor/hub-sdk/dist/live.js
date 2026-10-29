@@ -2,7 +2,7 @@ import { resolveHubEnv } from './env';
 import { HubSdkError } from './errors';
 import { getOrCreateDeviceId } from './storage';
 import { readTicketParam, stripTicketParam } from './ticket';
-import { GAME_IDS, isBoardId, isGameId, isRelicId, } from './types';
+import { GAME_IDS, canonicalGameId, isBoardId, isRelicId, } from './types';
 /** IndexedDB database for earn, event, and exchange writes that have not been acked. */
 export const HUB_OUTBOX_DB = 'hub-outbox';
 const OUTBOX_STORE = 'writes';
@@ -21,6 +21,9 @@ function asRelics(value) {
     if (!Array.isArray(value))
         return [];
     return value.filter((item) => typeof item === 'string' && isRelicId(item));
+}
+function clockMs(value) {
+    return typeof value === 'number' && Number.isFinite(value) ? value : 0;
 }
 function cloneBody(body) {
     return JSON.parse(JSON.stringify(body));
@@ -143,16 +146,17 @@ export function createLiveHubSdk(env, client) {
         resolved.session.setItem(sessionKey(session.game), JSON.stringify(session));
         active = session;
     }
-    function profileOf(session) {
+    function profileOf(session, serverTime) {
         return {
             playerId: session.playerId,
             ranked: session.ranked,
             relics: [...session.relics],
             effects: { ...session.effects },
             ticketsCapLeft: session.ticketsCapLeft,
+            serverTime,
         };
     }
-    function standalone() {
+    function standalone(serverTime) {
         active = null;
         return {
             playerId: getOrCreateDeviceId(resolved.local),
@@ -160,6 +164,7 @@ export function createLiveHubSdk(env, client) {
             relics: [],
             effects: {},
             ticketsCapLeft: 0,
+            serverTime,
         };
     }
     function noteGrant(session, response) {
@@ -190,17 +195,20 @@ export function createLiveHubSdk(env, client) {
     }
     return {
         async init(gameId) {
-            if (!isGameId(gameId))
+            const game = canonicalGameId(gameId);
+            if (!game)
                 throw new HubSdkError('bad_game', `Unknown game "${gameId}"`);
             const token = readTicketParam(resolved.readHash());
+            let serverTime = 0;
             if (token) {
-                const body = await client.rpc('session.redeem', { ticket: token, gameId }, { httpKey: true });
+                const body = await client.rpc('session.redeem', { ticket: token, gameId: game }, { httpKey: true });
                 if (!body.token || !body.playerId || !body.sid) {
                     throw new HubSdkError('ticket_invalid', 'Redeem did not return a session');
                 }
                 resolved.writeHash(stripTicketParam(resolved.readHash()));
+                serverTime = clockMs(body.serverTime);
                 writeCached({
-                    game: gameId,
+                    game,
                     playerId: body.playerId,
                     ranked: body.ranked === true,
                     sid: body.sid,
@@ -211,7 +219,7 @@ export function createLiveHubSdk(env, client) {
                 });
             }
             else {
-                const cached = readCached(gameId);
+                const cached = readCached(game);
                 if (!cached) {
                     active = null;
                 }
@@ -223,6 +231,7 @@ export function createLiveHubSdk(env, client) {
                             cached.playerId = profile.playerId;
                         if (typeof profile.ticketsCapLeft === 'number')
                             cached.ticketsCapLeft = profile.ticketsCapLeft;
+                        serverTime = clockMs(profile.serverTime);
                         writeCached(cached);
                     }
                     catch {
@@ -231,7 +240,7 @@ export function createLiveHubSdk(env, client) {
                 }
             }
             await drain();
-            return active ? profileOf(active) : standalone();
+            return active ? profileOf(active, serverTime) : standalone(serverTime);
         },
         async reportEvent(eventId, data, key) {
             if (!key)
@@ -313,12 +322,13 @@ export function createLiveHubSdk(env, client) {
         },
         async getTicketBalance() {
             if (!active)
-                return { balance: 0, sessionCapLeft: 0, dailyCapLeft: 0 };
+                return { balance: 0, sessionCapLeft: 0, dailyCapLeft: 0, serverTime: 0 };
             const body = await client.rpc('tickets.balance', { game: active.game }, { token: active.token });
             return {
                 balance: typeof body.balance === 'number' ? body.balance : 0,
                 sessionCapLeft: typeof body.sessionCapLeft === 'number' ? body.sessionCapLeft : 0,
                 dailyCapLeft: typeof body.dailyCapLeft === 'number' ? body.dailyCapLeft : 0,
+                serverTime: clockMs(body.serverTime),
             };
         },
         exit(reason) {

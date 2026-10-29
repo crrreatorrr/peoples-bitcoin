@@ -1,15 +1,18 @@
 /**
- * Adapter over @metaverse/hub-sdk 0.2.0. Shop calls are the SDK methods
+ * Adapter over @metaverse/hub-sdk 0.3.0. Shop calls are
  * spendTickets(shopId, itemId, packs, key) and sellItem with the same arguments.
+ * earnTickets(amount, reason, key) and getTicketBalance() use that build's results.
  * With no hub session the SDK no-ops and this game shops locally instead.
  */
 import {
   createHubSdk,
   HubSdkError,
+  type EarnResult,
   type HubSdk,
   type InitResult,
   type SpendResult,
   type SellResult,
+  type TicketBalanceResult,
 } from '@metaverse/hub-sdk';
 
 /** Public game id. Exit fragment, init, and logs all use this. */
@@ -169,7 +172,7 @@ export class HubBridge {
   async getTicketBalance(): Promise<TicketSnapshot | null> {
     if (this.mode !== 'hub') return null;
     try {
-      const result = await this.sdk.getTicketBalance();
+      const result: TicketBalanceResult = await this.sdk.getTicketBalance();
       this.reachable = true;
       return {
         balance: result.balance,
@@ -183,12 +186,9 @@ export class HubBridge {
   }
 
   async earnTickets(amount: number, reason: string, key: string): Promise<EarnCallResult> {
-    const result = (await this.sdk.earnTickets(amount, reason, key)) as {
-      balance?: unknown;
-      capped?: unknown;
-    };
+    const result: EarnResult = await this.sdk.earnTickets(amount, reason, key);
     this.reachable = true;
-    return { balance: num(result?.balance), capped: result?.capped === true };
+    return { balance: result.balance, capped: result.capped };
   }
 
   async exchange(tickets: number, key: string): Promise<ExchangeCallResult> {
