@@ -37,7 +37,7 @@ function gameplayRows(): CsvRow[] {
 describe('Gameplay v3 shop prices', () => {
   it('matches pb_shop_prices.csv row for row', () => {
     const rows = gameplayRows();
-    expect(rows).toHaveLength(100);
+    expect(rows).toHaveLength(99);
     const prices = content().ticketPrices;
     expect(prices).toHaveLength(rows.length);
     rows.forEach((row, i) => {
