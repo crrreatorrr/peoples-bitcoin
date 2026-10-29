@@ -33,7 +33,7 @@ export function buildSettingsPanel(
     'Middle-drag, arrow keys, sideways swipe: camera',
     'Mouse wheel: zoom',
     'Shift-click item: drop',
-    'Run orb (top right): toggle run',
+    'Motion orb (top right): toggle run',
   ]) {
     const li = document.createElement('li');
     li.textContent = line;

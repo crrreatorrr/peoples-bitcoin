@@ -251,7 +251,7 @@
             "player": "Where is everyone? And why is the treasury... empty?"
           },
           "A small accounting incident. Treasurer Bickworth bought the wrong coin. With all of it. Or the right one. Depends who you ask, and who's listening.",
-          "The ticker crashed, and the gates sealed themselves. We call it the Lockdown. Nobody has left the Treasury since.",
+          "The Bureau of Monetary Weather forecast a crash, and the gates sealed themselves. We call it the Lockdown. Nobody has left the Treasury since.",
           {
             "player": "Nobody? Ever?"
           },
@@ -273,11 +273,11 @@
         "lines": [
           "Treasurer Bickworth gave you the petty cash? Good. Don't spend it on snacks.",
           "Now make some real money. Sysadmin Opal looks after the old server racks on the east lawn. Ignore the foil. Mostly.",
-          "Mine some Hash, then sell it at the Trading Terminal in the hall. It pays in Tickets at today's price.",
+          "Mine some Hash, then sell it at the Trading Terminal in the hall. It pays in Tickets, at a fixed price.",
           {
-            "player": "And what's today's price?"
+            "player": "And what if the price changes?"
           },
-          "Check the ticker in the corner. It changes. Constantly. One billion Tickets, never one more, and the Sprotos guard the count. That's half the fun, all of the stress, and the reason certain people upstairs can't stand it."
+          "It doesn't. Fixed prices, paid in Tickets. One billion Tickets, never one more, and the Sprotos guard the count. The Bureau can't forecast it, can't print it, and certain people upstairs can't stand it."
         ]
       },
       {
@@ -348,7 +348,7 @@
         "status": "started",
         "step": ["talk_contractor"],
         "lines": [
-          "One more thing. The ticker goes red sometimes. Very red. You'll want a hole to hide in.",
+          "One more thing. The Bureau forecasts storms sometimes. Monetary ones. You'll want a hole to hide in.",
           "Foreman Hallows in the main hall can build you a bunker. Go and ask about it. Tell him to keep anything odd he digs up."
         ]
       },
@@ -381,7 +381,7 @@
       {
         "player": "How bad is it?"
       },
-      "We bought Tickets. With the entire reserve. Fixed supply, guarded by Sprotos, the one currency nobody can print. The ticker crashed, and the gates sealed: the Lockdown.",
+      "We bought Tickets. With the entire reserve. Fixed supply, guarded by Sprotos, the one currency nobody can print. The Bureau forecast a crash, and the gates sealed: the Lockdown.",
       "Odd thing. That morning there was a memo on my desk. Grey envelope, smelled of ozone, unsigned: 'DUMP TICKETS. BUY THE PRINTABLE ONE.' I may have read it upside down.",
       "We can't sell, and we can't leave, so we earn. Mine, fundraise, lobby, and sell what we make at the Trading Terminal in this hall.",
       "Here's what's left of the petty cash. Please spend it wisely. Please."
@@ -392,7 +392,7 @@
         "status": "complete",
         "lines": [
           "President! You opened the door. Half the Treasury has queued at the Trenches.",
-          "The other half says it's a con. I'm staying. Someone has to watch the ticker. And the post. Another grey envelope came this morning. It just said 'UNFORTUNATE.'",
+          "The other half says it's a con. I'm staying. Someone has to count the reserve. And the post. Another grey envelope came this morning. It just said 'UNFORTUNATE.'",
           {
             "player": "You could come and see the lake."
           },
@@ -403,12 +403,12 @@
         "quest": "quest_tutorial",
         "status": "complete",
         "lines": [
-          "President! The reserve is less empty. I only checked the ticker eleven times today.",
-          "The Terminal pays whatever the ticker says. Sell your Hash when it's green, buy your gear when it's red.",
+          "President! The reserve is less empty. I only counted it eleven times today.",
+          "The Terminal pays a fixed price, in Tickets. No ticker, no forecast, no surprises. The Bureau finds that deeply upsetting.",
           {
             "player": "Any more accounting incidents I should know about?"
           },
-          "None! Er. Well. The Lockdown. But that one is technically a security incident. The gates saw the ticker, panicked and passed a law. Nobody voted for it. Not even the gates.",
+          "None! Er. Well. The Lockdown. But that one is technically a security incident. The gates heard the Bureau's forecast, panicked and passed a law. Nobody voted for it. Not even the gates.",
           "Morelight says somebody wrote it for them. Somebody who can print every coin but ours, and didn't like that we bought it. I say that's a lot of somebodies."
         ]
       }
@@ -914,7 +914,7 @@
     "model": "npc_contractor",
     "actions": ["Talk-to"],
     "lines": [
-      "Every President needs a bunker. Somewhere to hide when the ticker goes red.",
+      "Every President needs a bunker. Somewhere to hide when the Monetary Weather turns.",
       {
         "player": "Can you build one?"
       },

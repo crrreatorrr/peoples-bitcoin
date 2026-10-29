@@ -759,7 +759,7 @@
   {
     "id": "obj_treasury_gates",
     "name": "Treasury Gates",
-    "examine": "Sealed since the ticker crashed. A brass plate reads: THE LOCKDOWN ACT. SECTION ONE: THE GATES STAY SHUT. Nobody remembers voting for it. The plate is stamped 'BUREAU'.",
+    "examine": "Sealed since the Bureau forecast a crash. A brass plate reads: THE LOCKDOWN ACT. SECTION ONE: THE GATES STAY SHUT. Nobody remembers voting for it. The plate is stamped 'BUREAU'.",
     "model": "treasury_gates",
     "actions": [],
     "blocks": true,
@@ -868,7 +868,7 @@
   {
     "id": "obj_lore_act_draft",
     "name": "Lockdown Act, Draft 3 (Redacted)",
-    "examine": "SECTION ONE: THE GATES STAY SHUT. SECTION TWO: THERE IS NO ████████. SECTION THREE: Should the Treasury hold Tickets, the ticker shall crash and nobody shall leave until the Tickets are ████. DRAFTED BY: the Bureau of Monetary Weather, on behalf of ███ ██████ ████████. VOTES CAST: 0.",
+    "examine": "SECTION ONE: THE GATES STAY SHUT. SECTION TWO: THERE IS NO ████████. SECTION THREE: Should the Treasury hold Tickets, a crash shall be forecast and nobody shall leave until the Tickets are ████. DRAFTED BY: the Bureau of Monetary Weather, on behalf of ███ ██████ ████████. VOTES CAST: 0.",
     "model": "lore_file",
     "actions": [],
     "blocks": false,
