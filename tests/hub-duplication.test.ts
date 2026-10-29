@@ -72,6 +72,8 @@ class ScriptedHub {
   loseExchange = false;
   loseSpend = false;
   loseSell = false;
+  /** Server committed the earn, then the client sees rpc_failed. */
+  loseEarn = false;
   stickyError = false;
   earnError: HubSdkError | null = null;
   exchangeError: HubSdkError | null = null;
@@ -136,6 +138,15 @@ class ScriptedHub {
           await new Promise<void>((resolve) => {
             this.releaseHold = resolve;
           });
+        }
+        if (this.loseEarn) {
+          this.loseEarn = false;
+          const prior = this.ledger.get(key);
+          if (!prior) {
+            this.serverBalance += amount;
+            this.ledger.set(key, { amount, reason });
+          }
+          throw new HubSdkError('rpc_failed', 'lost response');
         }
         if (this.earnError) {
           const err = this.earnError;
@@ -1164,7 +1175,8 @@ describe('earn caps from getTicketBalance', () => {
     await settle();
     expect(script.earns).toEqual([expect.objectContaining({ amount: 80, reason: 'pb_drop' })]);
     const key = script.earns[0]!.key;
-    expect(state.player.ledger.streams.pb_drop.pending).toBe(80);
+    // The 80 stays on the seal. It is not returned to pending.
+    expect(state.player.ledger.streams.pb_drop.pending).toBe(0);
     expect(state.player.ledger.batches.pb_drop).toMatchObject({ id: key, amount: 80 });
 
     script.earnError = null;
@@ -1177,6 +1189,194 @@ describe('earn caps from getTicketBalance', () => {
     await hub.start();
     await settle();
     expect(script.serverBalance - before).toBe(80);
+  });
+
+  it('keeps a capped or lost seal and resends it once there is room', async () => {
+    for (const code of ['session_ticket_cap', 'daily_ticket_cap', 'rpc_failed'] as const) {
+      script = new ScriptedHub();
+      installStorage();
+      const { state, ctx } = newGame();
+      state.hubSession.mode = 'hub';
+      addStreamUsd(state, 'pb_drop', 25 * 80);
+      script.earnError = new HubSdkError(
+        code,
+        code,
+        undefined,
+        code === 'rpc_failed' ? undefined : 0,
+      );
+      const { hub } = attach(state, ctx);
+      await hub.start();
+      await settle();
+      const first = script.earns[0]!;
+      expect(first, code).toMatchObject({ amount: 80, reason: 'pb_drop' });
+      expect(state.player.ledger.batches.pb_drop, code).toMatchObject({
+        id: first.key,
+        amount: 80,
+      });
+      const sealed = script.earns.length;
+      script.earnError = null;
+      // A lost response still has room, so the next start resends this key.
+      // A cap has no room until the balance snapshot says so, and start mints nothing.
+      if (code !== 'rpc_failed') {
+        script.sessionCapLeft = code === 'session_ticket_cap' ? 0 : 1000;
+        if (code === 'daily_ticket_cap') script.dailyCapLeft = 0;
+        await hub.start();
+        await settle();
+        expect(script.earns, code).toHaveLength(sealed);
+        expect(state.player.ledger.batches.pb_drop, code).toMatchObject({
+          id: first.key,
+          amount: 80,
+        });
+        script.sessionCapLeft = 1000;
+        script.dailyCapLeft = 1000;
+      }
+      const before = script.serverBalance;
+      await hub.start();
+      await settle();
+      expect(script.earns, code).toHaveLength(sealed + 1);
+      expect(script.earns.at(-1), code).toEqual(first);
+      // One idempotency record: the replay credits 80 once and a later start does not.
+      expect(script.serverBalance - before, code).toBe(80);
+      await hub.start();
+      await settle();
+      expect(script.serverBalance - before, code).toBe(80);
+      expect(state.player.ledger.batches.pb_drop, code).toBeUndefined();
+    }
+  });
+
+  it('seals tickets that arrive while a batch is open only after it confirms', async () => {
+    const { state, ctx } = newGame();
+    state.hubSession.mode = 'hub';
+    addStreamUsd(state, 'pb_drop', 25 * 80);
+    script.earnError = new HubSdkError('session_ticket_cap', 'cap', undefined, 0);
+    const { hub } = attach(state, ctx);
+    await hub.start();
+    await settle();
+    const first = script.earns[0]!;
+    addStreamUsd(state, 'pb_drop', 25 * 30);
+    expect(state.player.ledger.streams.pb_drop.pending).toBe(30);
+    expect(state.player.ledger.batches.pb_drop).toMatchObject({ id: first.key, amount: 80 });
+    script.sessionCapLeft = 0;
+    script.earnError = null;
+    hub.checkpoint();
+    await settle();
+    expect(script.earns).toHaveLength(1);
+    expect(state.player.ledger.streams.pb_drop.pending).toBe(30);
+    script.sessionCapLeft = 1000;
+    const before = script.serverBalance;
+    await hub.start();
+    await settle();
+    hub.checkpoint();
+    await settle();
+    expect(script.earns.map((row) => row.amount)).toEqual([80, 80, 30]);
+    expect(script.earns[1]!.key).toBe(first.key);
+    expect(script.earns[2]!.key).not.toBe(first.key);
+    expect(script.serverBalance - before).toBe(110);
+    expect(state.player.ledger.streams.pb_drop.pending).toBe(0);
+  });
+
+  it('keeps an open seal across a reload', async () => {
+    const { state, ctx } = newGame();
+    state.hubSession.mode = 'hub';
+    addStreamUsd(state, 'pb_drop', 25 * 80);
+    script.earnError = new HubSdkError('session_ticket_cap', 'cap', undefined, 0);
+    const { hub } = attach(state, ctx);
+    await hub.start();
+    await settle();
+    const key = script.earns[0]!.key;
+    saveGame(state);
+    const loaded = loadSavedGame(content()).state!;
+    expect(loaded.player.ledger.batches.pb_drop).toMatchObject({ id: key, amount: 80 });
+    expect(localStorage.getItem('peoples-bitcoin.hub-ledger')).toContain(key);
+    script.sessionCapLeft = 0;
+    script.earnError = null;
+    const { hub: again } = attach(loaded, ctx);
+    await again.start();
+    await settle();
+    expect(script.earns).toHaveLength(1);
+    expect(loaded.player.ledger.batches.pb_drop).toMatchObject({ id: key, amount: 80 });
+  });
+
+  it('the new tab resends an open seal and the old tab does not', async () => {
+    const { state, ctx } = newGame();
+    state.hubSession.mode = 'hub';
+    addStreamUsd(state, 'pb_drop', 25 * 40);
+    let frozen = false;
+    const { hub } = attach(state, ctx, () => !frozen && saveGame(state));
+    claimWriter(() => {
+      if (frozen) return;
+      saveGame(state);
+      frozen = true;
+    });
+    script.earnError = new HubSdkError('rpc_failed', 'down');
+    await hub.start();
+    await settle();
+    const key = script.earns[0]!.key;
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    claimWriter(() => {});
+    await settle();
+    expect(frozen).toBe(true);
+    hub.checkpoint();
+    await settle();
+    expect(script.earns).toHaveLength(1);
+    const other = loadSavedGame(content()).state!;
+    script.earnError = null;
+    const before = script.serverBalance;
+    const { hub: newer } = attach(other, ctx);
+    await newer.start();
+    await settle();
+    expect(script.earns).toHaveLength(2);
+    expect(script.earns[1]).toEqual({ amount: 40, reason: 'pb_drop', key });
+    expect(script.serverBalance - before).toBe(40);
+    hub.checkpoint();
+    await settle();
+    expect(script.earns).toHaveLength(2);
+    expect(script.serverBalance - before).toBe(40);
+  });
+
+  it('credits a lost earn response once from the idempotency store', async () => {
+    const { state, ctx } = newGame();
+    state.hubSession.mode = 'hub';
+    addStreamUsd(state, 'pb_drop', 25 * 15);
+    script.loseEarn = true;
+    const { hub } = attach(state, ctx);
+    await hub.start();
+    await settle();
+    const first = script.earns[0]!;
+    expect(state.player.ledger.batches.pb_drop).toMatchObject({ id: first.key, amount: 15 });
+    const before = script.serverBalance;
+    expect(before).toBe(1015);
+    await hub.start();
+    await settle();
+    expect(script.earns).toHaveLength(2);
+    expect(script.earns[1]).toEqual(first);
+    expect(script.serverBalance).toBe(before);
+    expect(state.player.ledger.batches.pb_drop).toBeUndefined();
+  });
+
+  it('drops a mismatched or over-rule batch without retrying', async () => {
+    for (const code of ['idempotency_mismatch', 'amount_over_rule'] as const) {
+      script = new ScriptedHub();
+      installStorage();
+      const { state, ctx } = newGame();
+      state.hubSession.mode = 'hub';
+      addStreamUsd(state, 'pb_drop', 25 * 4);
+      script.earnError = new HubSdkError(code, code);
+      const { hub } = attach(state, ctx);
+      const before = script.serverBalance;
+      await hub.start();
+      await settle();
+      expect(script.earns, code).toHaveLength(1);
+      expect(state.player.ledger.batches.pb_drop, code).toBeUndefined();
+      expect(state.player.ledger.streams.pb_drop.pending, code).toBe(0);
+      expect(script.serverBalance, code).toBe(before);
+      expect(state.player.currencies.tickets, code).toBe(before - 4);
+      hub.checkpoint();
+      await hub.start();
+      await settle();
+      expect(script.earns, code).toHaveLength(1);
+      expect(script.serverBalance, code).toBe(before);
+    }
   });
 
   it('sends nothing when a cap room is zero and leaves the pending amount', async () => {
