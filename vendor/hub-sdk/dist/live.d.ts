@@ -9,4 +9,3 @@ export declare const HUB_OUTBOX_DB = "hub-outbox";
  * session every call no-ops so the game still runs standalone.
  */
 export declare function createLiveHubSdk(env: HubSdkEnv, client: NakamaClient): HubSdk;
-//# sourceMappingURL=live.d.ts.map

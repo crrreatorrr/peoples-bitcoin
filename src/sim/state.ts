@@ -161,6 +161,10 @@ export interface HubSession {
   effects: Record<string, number | boolean | string>;
   serverBalance: number | null;
   verseCapLeft: number | null;
+  /** Tickets this session can still credit. Null until getTicketBalance. */
+  sessionCapLeft: number | null;
+  /** Tickets this game can still credit today. Null until getTicketBalance. */
+  dailyCapLeft: number | null;
 }
 
 export interface DialogueState {
@@ -413,6 +417,8 @@ export function freshHubSession(): HubSession {
     effects: {},
     serverBalance: null,
     verseCapLeft: null,
+    sessionCapLeft: null,
+    dailyCapLeft: null,
   };
 }
 

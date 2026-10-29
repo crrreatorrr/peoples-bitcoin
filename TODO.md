@@ -2,9 +2,6 @@
 
 ## Next
 
-- [ ] hub-sdk 0.1.0 rejects game id `peoples-bitcoin` (its allow-list is older). When 0.2.0 lands,
-      shop `spendTickets` / `sellItem` / `getTicketBalance` start working; until then a hub session
-      shows Offline and does not buy optimistically. Standalone play is unchanged.
 - [ ] Gun specials from DESIGN.md §8: shotgun 3-tile cone, minigun spin-up, railgun Hopium scaling
 - [ ] Boss mechanics beyond adds: Sludge Mother floor sludge, Wrong-Namer Chief ticker typing,
       Captain Motion rage-quit run

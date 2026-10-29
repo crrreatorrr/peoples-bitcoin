@@ -61,4 +61,3 @@ export interface RecoveryRedeemResult {
 }
 export declare function userIdFromToken(token: string): string;
 export declare function createNakamaClient(options: NakamaClientOptions): NakamaClient;
-//# sourceMappingURL=nakama.d.ts.map
