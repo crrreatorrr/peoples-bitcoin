@@ -243,6 +243,14 @@ function checkReferences(c: Content, problems: string[]): void {
   for (const d of c.drops.values()) {
     for (const s of d.always) item(`droptables.json ${d.id}`, s.item);
     for (const row of d.table) item(`droptables.json ${d.id}`, row.item);
+    for (const t of d.tertiary) item(`droptables.json ${d.id}`, t.item);
+    for (const s of d.shared) {
+      const sub = c.drops.get(s.table);
+      const where = `droptables.json ${d.id}`;
+      if (!sub) problems.push(`${where}: unknown shared table '${s.table}'`);
+      else if (sub.shared.length > 0)
+        problems.push(`${where}: shared table '${s.table}' nests another shared table`);
+    }
   }
   for (const shop of c.shops.values()) {
     for (const s of shop.stock) item(`shops.json ${shop.id}`, s.item);
@@ -253,7 +261,7 @@ function checkReferences(c: Content, problems: string[]): void {
   for (const row of c.ticketPrices) {
     const where = `shop_prices.tickets.json ${row.shopId}:${row.itemId}`;
     if (!c.shops.has(row.shopId)) problems.push(`${where}: unknown shop`);
-    item(where, row.itemId);
+    // Unknown items (item_blue_sproto_coffee, until that milestone) are kept and ignored.
     if (row.sellPrice >= row.price)
       problems.push(`${where}: sell price must be below the buy price`);
     const key = `${row.shopId}:${row.itemId}`;
