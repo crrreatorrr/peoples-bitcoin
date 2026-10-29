@@ -374,3 +374,33 @@ Three audits (gameplay duels in the real sim, every NPC variant, the story as a 
   UI-only; the sim still sees one line, advanced after the last page.
 - **Click cross (owner):** a 2D overlay at the click's screen position (the right-click point for
   menu choices), not a 3D marker on the target's tile, as in OSRS.
+
+## Hub Tickets (2026-10-29)
+
+- **Game id** is `peoples-bitcoin` for init, logs, and the exit fragment. hub-sdk 0.1.0's
+  allow-list does not include that id yet, so `init` throws and the game stays standalone until
+  the SDK does. The relic event id stays `pb.quest_complete` and the board id stays `pb_total_xp`;
+  those are hub event and board names, not the game id.
+- **Tickets replace the wallet.** Save v7 copies the old `bitcoin` number across 1:1. The live
+  USD price is no longer stepped or shown. `src/sim/economy.ts` still exports the old walk so the
+  existing economy tests load. `currencies.bitcoin` is always 0 in memory so that suite still
+  typechecks; the game never reads it.
+- **Streams** (enemy USD, lobbying and fundraising USD, sell-only item value) are 1 Ticket per
+  25 USD-equivalent. The fraction stays in the save. Whole Tickets bank in batches of at most 200
+  with reasons `pb_drop`, `pb_lobby`, and `pb_sell`. A capped or mismatched batch is dropped and
+  logged. Standalone fractions live in `offlineRemainder` and are never sent.
+- **Quest and step rewards** are `round(sqrt(usd))`, each its own `earnTickets` with reason
+  `pb_quest`. The idempotency key is UUIDv5 of `pb:quest:<questId>[:<stepId>[:<choiceId>]]`
+  under namespace `6f0e2a44-9c1b-4d55-8e77-3a1b9c0d4e21` (`src/hub/uuid.ts`). `session_ticket_cap`
+  keeps that earn and resends it on the next `init`. Other terminal errors drop it.
+- **Shop prices** are `src/data/shop_prices.tickets.json`, one row per shop stock line. Ammo is
+  packs of 100. A sell worth 0 Tickets is refused locally. Sell-only goods never call `sellItem`.
+  Hub shop calls wait for SDK 0.2.0 (`spendTickets` / `sellItem` / `getTicketBalance`); until then
+  a hub session shows Offline and does not buy optimistically. No hub session means the standalone
+  shop, which never syncs or exchanges.
+- **Exchange** is a right-click on the Treasury terminals, steps of 10 up to 500, limited by the
+  last server balance when we have one. The slot is persisted before the call.
+- **Relic effects** from `init` sit on `hubSession` for the page only. They are not saved. No PB
+  effect keys are applied yet; the matrix is still empty.
+- **Exit** goes to the absolute `VITE_HUB_URL` (default `/hub/`) with `#from=peoples-bitcoin`.
+  Vite `base` is `./`.

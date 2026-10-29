@@ -1,12 +1,11 @@
 /**
- * $BITCOIN price model (DESIGN.md §6): a multiplicative random walk with drift and
- * a pull back toward a normal price,
- * updated every few ticks, clamped to a floor, with a fixed-length history for
- * the ticker sparkline.
+ * Unused price walk kept so the existing economy tests still load.
+ * The game no longer steps it, shows it, or charges it. Tickets come from
+ * streams, quest rewards, and the shop table.
  */
 import { ECONOMY } from '../config/balance';
 import { nextGaussian, type RngState } from './rng';
-import type { EconomyState, GameState } from './state';
+import type { EconomyState } from './state';
 
 export function createEconomy(): EconomyState {
   return {
@@ -48,16 +47,4 @@ export function stepEconomy(econ: EconomyState, rng: RngState, tick: number): vo
 
 export function marketCapUsd(econ: EconomyState): number {
   return econ.priceUsd * ECONOMY.supply;
-}
-
-/** $BITCOIN needed to cover `usd` at the current price. */
-export function usdToBitcoin(econ: EconomyState, usd: number): number {
-  return usd / econ.priceUsd;
-}
-
-/** Pays the player `usd` worth of $BITCOIN at the live price; returns the amount paid. */
-export function payUsd(state: GameState, usd: number): number {
-  const amount = Math.floor(usdToBitcoin(state.economy, usd));
-  state.player.currencies.bitcoin += amount;
-  return amount;
 }

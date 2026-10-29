@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — Hub Tickets
+
+- **Tickets** are the wallet. The live price ticker is gone. Shop prices are per pack in
+  `src/data/shop_prices.tickets.json`. Saves are format v7.
+- **Hub:** quest relic event, batched Ticket earns, an Exchange window on the Treasury terminals,
+  and Exit to Hub. Without a hub session the game still runs, and that standalone shop never syncs.
+- Story JSON was left alone, including lines that still say `$BITCOIN`.
+
 ## 0.6.1 — Gameplay, dialogue and story QA (2026-10-28)
 
 - **Fixed blockers:** wrong-weapon hits on bosses rounded down to 0 (now a tenth on average);

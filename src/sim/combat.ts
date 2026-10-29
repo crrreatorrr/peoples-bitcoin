@@ -7,7 +7,7 @@ import { COMBAT, GROUND_ITEMS } from '../config/balance';
 import { bark, barkOnAggro, barkOnHurt } from './barks';
 import { damageAfterWeakness } from './weakness';
 import { effectiveLevel } from './boosts';
-import { payUsd } from './economy';
+import { addStreamUsd } from './ledger';
 import { attackProfile, consumeAmmo } from './equipment';
 import {
   chebyshev,
@@ -291,12 +291,12 @@ function dropLoot(
   const table = ctx.content.drops.get(def.drops);
   if (!table) return;
   const [min, max] = table.usd;
-  const paid = payUsd(state, min + (max - min) * nextFloat(state.rng));
+  const paid = addStreamUsd(state, 'pb_drop', min + (max - min) * nextFloat(state.rng));
   if (paid > 0) {
     events.push({
       type: 'message',
       kind: 'game',
-      text: `You loot ${paid.toLocaleString('en-US')} $BITCOIN.`,
+      text: `You loot ${paid.toLocaleString('en-US')} Tickets.`,
     });
   }
   const despawn = state.tick + GROUND_ITEMS.despawnTicks;

@@ -151,7 +151,20 @@ export const ECONOMY = {
   recentDecay: 0.98,
 } as const;
 
-export const START_CURRENCIES = { bitcoin: 0 } as const;
+export const START_CURRENCIES = { tickets: 0, bitcoin: 0 } as const;
+
+/**
+ * Repeatable Ticket sources (drops, lobbying, sell-only goods).
+ * Shop prices are data in shop_prices.tickets.json, not derived here.
+ */
+export const TICKETS = {
+  /** 1 Ticket per this many USD-equivalent. Fractional leftovers stay in the save. */
+  usdPerTicket: 25,
+  /** One earnTickets call is at most a session cap. */
+  batchMax: 200,
+  exchangeStep: 10,
+  exchangeMax: 500,
+} as const;
 
 // ── Bank, ground items, chat, NPCs ───────────────────────────────────────────
 export const BANK = {

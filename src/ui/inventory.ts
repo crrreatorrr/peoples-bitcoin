@@ -29,6 +29,8 @@ export interface InventoryHandlers {
   selected(): number | null;
   deposit(slot: number, qty: Quantity): void;
   sell(slot: number, qty: Quantity): void;
+  /** False hides Sell. Shop goods worth 0 Tickets use this. */
+  canSell(itemId: string): boolean;
   value(itemId: string): void;
   openMenu(options: MenuOption[], x: number, y: number): void;
   mode(): InventoryMode;
@@ -179,11 +181,10 @@ export class InventoryPanel {
       return [deposit(mode.qty), ...QUANTITIES.filter((q) => q !== mode.qty).map(deposit), examine];
     }
     if (mode.kind === 'terminal') {
-      return [
-        opt('Value', () => this.h.value(item.itemId)),
-        ...QUANTITIES.map((q) => opt(`Sell-${qtyLabel(q)}`, () => this.h.sell(index, q))),
-        examine,
-      ];
+      const sells = this.h.canSell(item.itemId)
+        ? QUANTITIES.map((q) => opt(`Sell-${qtyLabel(q)}`, () => this.h.sell(index, q)))
+        : [];
+      return [opt('Value', () => this.h.value(item.itemId)), ...sells, examine];
     }
     const main = primaryUse(def);
     const use = opt('Use', () => this.h.select(index));

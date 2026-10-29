@@ -1,14 +1,14 @@
 /**
  * Gathering skills (Mining, Fundraising, Lobbying) share one model: stand at a
  * node with the right tool and roll for success every few ticks. A success can
- * give an item, money (USD paid in $BITCOIN at the live price) or both, plus a
+ * give an item, Tickets (1 per 25 USD-equivalent) or both, plus a
  * rare bonus. Lobbying favors sometimes go unpaid (blackmail). Nodes deplete
  * and respawn. Node stats come from skills.json.
  */
 import { GATHERING } from '../config/balance';
 import { effectiveLevel } from './boosts';
 import type { GatherNode } from './content';
-import { payUsd } from './economy';
+import { addStreamUsd } from './ledger';
 import { xpMultiplier } from './equipment';
 import { giveItem } from './ground';
 import { bestTool, canAdd } from './inventory';
@@ -79,7 +79,7 @@ export function tickGathering(
     if (stats.unpaid && chance(state.rng, stats.unpaid.chance)) {
       events.push({ type: 'message', kind: 'warning', text: stats.unpaid.message });
     } else {
-      amount = payUsd(state, rollUsd(stats.payUsd, roll));
+      amount = addStreamUsd(state, 'pb_lobby', rollUsd(stats.payUsd, roll));
     }
   }
   const text = stats.message
@@ -90,7 +90,8 @@ export function tickGathering(
   if (stats.rare && chance(state.rng, stats.rare.chance)) {
     events.push({ type: 'message', kind: 'levelup', text: stats.rare.message });
     if (stats.rare.item) giveItem(state, ctx, stats.rare.item, 1, events);
-    if (stats.rare.usd) payUsd(state, rollUsd(stats.rare.usd, nextFloat(state.rng)));
+    if (stats.rare.usd)
+      addStreamUsd(state, 'pb_lobby', rollUsd(stats.rare.usd, nextFloat(state.rng)));
   }
 
   grantXp(

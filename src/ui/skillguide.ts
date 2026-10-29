@@ -3,6 +3,7 @@
  * gathering nodes, Spin recipes, bunker builds, Sprotos, and any item that
  * needs the skill to wield, wear or use.
  */
+import { TICKETS } from '../config/balance';
 import type { Content } from '../sim/content';
 import { span } from './tooltips';
 
@@ -85,7 +86,11 @@ export class SkillGuide {
     for (const a of skill.actions) {
       const obj = c.objects.get(a.objectId);
       const out = a.output ? c.items.get(a.output) : undefined;
-      const gives = out ? out.name : a.payUsd ? `$${a.payUsd[0]}–${a.payUsd[1]} per favor` : '';
+      const gives = out
+        ? out.name
+        : a.payUsd
+          ? `${(a.payUsd[0] / TICKETS.usdPerTicket).toFixed(2)}–${(a.payUsd[1] / TICKETS.usdPerTicket).toFixed(2)} Tickets per favor`
+          : '';
       rows.push({
         level: a.levelReq,
         icon: obj?.model ?? '',

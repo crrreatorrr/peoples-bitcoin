@@ -4,7 +4,7 @@
  * steps can be done in any order (hints only, never locked); quest steps go in
  * order. Rewards are paid per step and on completion.
  */
-import { payUsd } from './economy';
+import { grantQuestTickets } from './ledger';
 import { giveItem } from './ground';
 import { countItem, removeItem } from './inventory';
 import type { Content } from './content';
@@ -67,10 +67,10 @@ export function progressQuests(
         }
         progress.done.push(step.id);
         events.push({ type: 'message', kind: 'quest', text: `Done: ${step.text}` });
-        grantReward(state, ctx, step.reward, events);
+        grantReward(state, ctx, step.reward, events, questId, step.id);
         if (ev.type === 'choice') {
           progress.choices.push(ev.id);
-          grantReward(state, ctx, step.choiceRewards[ev.id], events);
+          grantReward(state, ctx, step.choiceRewards[ev.id], events, questId, step.id, ev.id);
         }
         advanced = quest.ordered; // the next ordered step may match the same event
         break;
@@ -78,8 +78,9 @@ export function progressQuests(
     }
     if (progress.done.length === quest.steps.length) {
       progress.complete = true;
-      grantReward(state, ctx, quest.reward, events);
+      grantReward(state, ctx, quest.reward, events, questId);
       events.push({ type: 'message', kind: 'quest', text: quest.completeMessage });
+      events.push({ type: 'questComplete', questId, tick: state.tick });
     }
   }
 }
@@ -267,20 +268,17 @@ export function grantReward(
   ctx: SimContext,
   reward: Reward | undefined,
   events: SimEvent[],
+  questId?: string,
+  stepId?: string,
+  choiceId?: string,
 ): void {
   if (!reward) return;
   if (reward.unlock && !state.player.unlocks.includes(reward.unlock)) {
     state.player.unlocks.push(reward.unlock);
   }
   for (const s of reward.items) giveItem(state, ctx, s.item, s.qty, events);
-  if (reward.usd > 0) {
-    const paid = payUsd(state, reward.usd);
-    events.push({
-      type: 'message',
-      kind: 'quest',
-      text: `You receive ${paid.toLocaleString('en-US')} $BITCOIN.`,
-    });
-  }
+  if (reward.usd > 0 && questId)
+    grantQuestTickets(state, questId, reward.usd, events, stepId, choiceId);
   for (const [skillId, xp] of Object.entries(reward.xp)) {
     grantXp(state.player, skillId, ctx.content.skills.get(skillId)?.name ?? skillId, xp, events);
   }

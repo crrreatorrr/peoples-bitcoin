@@ -42,7 +42,9 @@ Clicks act on press, like OSRS.
   drag to rearrange, right-click for options. **Use** an item, then click an object or NPC to use
   it on that ("Use X -> Y").
 - **Trading Terminal** (main hall) and other shops (the Staffwright's Stall at Moonward): left-click
-  shows the price, right-click buys; with a shop open, inventory clicks sell
+  shows the Ticket price, right-click buys a pack; with a shop open, inventory clicks sell.
+  Right-click a Treasury terminal and choose Exchange to turn Tickets into Verse (hub session).
+- **Settings → Exit to Hub** leaves for the hub (`VITE_HUB_URL`, default `/hub/`)
 - **Equipment tab:** combat styles, Auto Retaliate; click (or right-click) a slot to remove gear
 - **Quests tab:** quest list and points; click a quest for its journal. Follow the yellow arrow.
 - **Bank:** use a bank booth in the Treasury hall. 1/5/10/All set the left-click amount;
@@ -83,4 +85,7 @@ See [ART_GUIDE.md](ART_GUIDE.md).
 
 ## Deploy
 
-The client is a static site: `npm run build` and deploy `dist/` (Vercel works with zero config).
+The client is a static site: `npm run build` and deploy `dist/`. Vite's `base` is `./`, so the
+build works under `/peoples-bitcoin/`. Set `VITE_HUB_URL` to the absolute hub origin in production
+(default `/hub/` for local dev). Nakama's `/v2` is same-origin; the dev server proxies it to
+`127.0.0.1:7350`.
