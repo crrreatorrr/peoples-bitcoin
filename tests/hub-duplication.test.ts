@@ -3,15 +3,24 @@
  * and relic event is counted. A case that the client still gets wrong is left failing.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { HubSdkError, relicForEvent, type HubSdk } from '@metaverse/hub-sdk';
+import {
+  HubSdkError,
+  relicForEvent,
+  type HubSdk,
+  type SellResult,
+  type SpendResult,
+  type TicketBalanceResult,
+} from '@metaverse/hub-sdk';
 import { TICKETS } from '../src/config/balance';
 import { HubClient } from '../src/hub/client';
 import { questEarnWireKey, uuidv5 } from '../src/hub/uuid';
+import { countItem } from '../src/sim/inventory';
 import { addStreamUsd, grantQuestTickets, questEarnName } from '../src/sim/ledger';
 import { loadSavedGame, saveGame } from '../src/persist';
 import { deserialize, serialize } from '../src/sim/save';
-import type { GameState, SimContext, SimEvent } from '../src/sim/state';
-import { content, newGame } from './helpers';
+import type { GameState, Intent, SimContext, SimEvent } from '../src/sim/state';
+import { runTick } from '../src/sim/tick';
+import { content, give, newGame } from './helpers';
 
 const SAVE_KEY = 'peoples-bitcoin.save';
 const SESSION_KEY = 'hub:peoples-bitcoin:session';
@@ -53,15 +62,26 @@ interface EventCall {
 class ScriptedHub {
   sid = 'sess-1';
   serverBalance = 1000;
-  shop = true;
+  /** When false, init succeeds and leaves no hub session, so the shop stays local. */
+  linked = true;
+  sessionCapLeft: number | null = 1000;
+  dailyCapLeft: number | null = 1000;
   earnCapped = false;
   holdNext = false;
   loseExchange = false;
+  loseSpend = false;
+  loseSell = false;
   stickyError = false;
   earnError: HubSdkError | null = null;
   exchangeError: HubSdkError | null = null;
   eventError: HubSdkError | null = null;
   initError: HubSdkError | null = null;
+  shopError: HubSdkError | null = null;
+  spendUnits: number | null = null;
+  sellUnits: number | null = null;
+  spendBalance: number | null = null;
+  sellBalance: number | null = null;
+  sellCredited: number | null = null;
   earns: EarnCall[] = [];
   exchanges: ExchangeCall[] = [];
   spends: ShopCall[] = [];
@@ -70,6 +90,7 @@ class ScriptedHub {
   releaseHold: (() => void) | null = null;
   private readonly ledger = new Map<string, { amount: number; reason: string }>();
   private readonly receipts = new Map<string, { receiptId: string; tickets: number }>();
+  private readonly shopResults = new Map<string, SpendResult | SellResult>();
 
   asSdk(): HubSdk {
     const sdk: HubSdk & {
@@ -84,10 +105,14 @@ class ScriptedHub {
     } = {
       init: async () => {
         if (this.initError) throw this.initError;
-        sessionStorage.setItem(
-          SESSION_KEY,
-          JSON.stringify({ sid: this.sid, token: 't', playerId: 'p' }),
-        );
+        if (this.linked) {
+          sessionStorage.setItem(
+            SESSION_KEY,
+            JSON.stringify({ sid: this.sid, token: 't', playerId: 'p' }),
+          );
+        } else {
+          sessionStorage.removeItem(SESSION_KEY);
+        }
         return { playerId: 'p', ranked: false, relics: [], effects: {}, ticketsCapLeft: 1000 };
       },
       reportEvent: async (eventId, data, key) => {
@@ -100,7 +125,7 @@ class ScriptedHub {
           this.eventError = null;
           throw err;
         }
-        return { granted: relicForEvent('pb', eventId, data) };
+        return { granted: relicForEvent('peoples-bitcoin', eventId, data) };
       },
       submitScore: async () => {},
       earnTickets: async (amount, reason, key) => {
@@ -154,19 +179,92 @@ class ScriptedHub {
         };
       },
       exit: () => {},
-      getTicketBalance: async () => ({ balance: this.serverBalance }),
-    };
-    if (this.shop) {
-      const shop =
-        (kind: 'spends' | 'sells') =>
-        async (shopId: string, itemId: string, packs: number, key: string) => {
-          this[kind].push({ shopId, itemId, packs, key });
-          return { units: packs, balance: this.serverBalance };
+      getTicketBalance: async (): Promise<TicketBalanceResult> => {
+        const result: TicketBalanceResult = {
+          balance: this.serverBalance,
+          sessionCapLeft: 0,
+          dailyCapLeft: 0,
         };
-      sdk.spendTickets = shop('spends');
-      sdk.sellItem = shop('sells');
-    }
+        if (this.sessionCapLeft == null)
+          delete (result as { sessionCapLeft?: number }).sessionCapLeft;
+        else result.sessionCapLeft = this.sessionCapLeft;
+        if (this.dailyCapLeft == null) delete (result as { dailyCapLeft?: number }).dailyCapLeft;
+        else result.dailyCapLeft = this.dailyCapLeft;
+        return result;
+      },
+      spendTickets: async (shopId, itemId, packs, key) => {
+        this.spends.push({ shopId, itemId, packs, key });
+        this.assertKeySaved(key);
+        const id = `spend:${key}`;
+        if (this.loseSpend) {
+          this.loseSpend = false;
+          const result = this.spendResult(shopId, itemId, packs);
+          this.shopResults.set(id, result);
+          throw new HubSdkError('rpc_failed', 'lost response');
+        }
+        if (this.shopError) {
+          const err = this.shopError;
+          if (!this.stickyError) this.shopError = null;
+          throw err;
+        }
+        const prev = this.shopResults.get(id);
+        if (prev) return prev as SpendResult;
+        const result = this.spendResult(shopId, itemId, packs);
+        this.shopResults.set(id, result);
+        this.serverBalance = result.balance;
+        return result;
+      },
+      sellItem: async (shopId, itemId, packs, key) => {
+        this.sells.push({ shopId, itemId, packs, key });
+        this.assertKeySaved(key);
+        const id = `sell:${key}`;
+        if (this.loseSell) {
+          this.loseSell = false;
+          const result = this.sellResult(shopId, itemId, packs);
+          this.shopResults.set(id, result);
+          throw new HubSdkError('rpc_failed', 'lost response');
+        }
+        if (this.shopError) {
+          const err = this.shopError;
+          if (!this.stickyError) this.shopError = null;
+          throw err;
+        }
+        const prev = this.shopResults.get(id);
+        if (prev) return prev as SellResult;
+        const result = this.sellResult(shopId, itemId, packs);
+        this.shopResults.set(id, result);
+        this.serverBalance = result.balance;
+        return result;
+      },
+    };
     return sdk;
+  }
+
+  private assertKeySaved(key: string): void {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw || !raw.includes(key)) throw new Error('shop key was sent before it was saved');
+  }
+
+  private spendResult(shopId: string, itemId: string, packs: number): SpendResult {
+    return {
+      shop_id: shopId,
+      item_id: itemId,
+      packs,
+      units: this.spendUnits ?? packs,
+      spent: 0,
+      balance: this.spendBalance ?? this.serverBalance,
+    };
+  }
+
+  private sellResult(shopId: string, itemId: string, packs: number): SellResult {
+    return {
+      shop_id: shopId,
+      item_id: itemId,
+      packs,
+      units: this.sellUnits ?? packs,
+      credited: this.sellCredited ?? 0,
+      balance: this.sellBalance ?? this.serverBalance,
+    };
   }
 }
 
@@ -215,16 +313,15 @@ beforeEach(() => {
   holder.sdk = null;
 });
 
-function attach(state: GameState, ctx: SimContext, save: () => boolean = () => saveGame(state)) {
+function attach(
+  state: GameState,
+  ctx: SimContext,
+  save: () => boolean = () => saveGame(state),
+  queue: (intent: Intent) => void = () => {},
+) {
   holder.sdk = script.asSdk();
   const said: string[] = [];
-  const hub = new HubClient(
-    state,
-    ctx,
-    (text) => said.push(text),
-    () => {},
-    save,
-  );
+  const hub = new HubClient(state, ctx, (text) => said.push(text), queue, save);
   return { hub, said };
 }
 
@@ -268,7 +365,7 @@ describe('relic', () => {
     const first = script.events[0]!;
     expect(first.eventId).toBe('pb.quest_complete');
     expect(first.data).toEqual({ questId: 'quest_tutorial', tick: 42 });
-    expect(relicForEvent('pb', first.eventId, first.data)).toBe('genesis_shard');
+    expect(relicForEvent('peoples-bitcoin', first.eventId, first.data)).toBe('genesis_shard');
     expect(first.key).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
     );
@@ -727,8 +824,17 @@ describe('exchange', () => {
   });
 });
 
-describe('shop on SDK 0.1.0', () => {
-  it('rejects peoples-bitcoin with bad_game and does not queue a later replay', async () => {
+describe('shop on SDK 0.2.0', () => {
+  const shopCodes = [
+    'unknown_item',
+    'insufficient_tickets',
+    'zero_value',
+    'amount_over_rule',
+    'session_ticket_cap',
+    'daily_ticket_cap',
+  ];
+
+  it('init(peoples-bitcoin) succeeds, and a session-less shop never replays', async () => {
     const actual = await vi.importActual<typeof import('@metaverse/hub-sdk')>('@metaverse/hub-sdk');
     const real = actual.createHubSdk({
       useMock: true,
@@ -736,60 +842,267 @@ describe('shop on SDK 0.1.0', () => {
       session: actual.memoryKeyValue(),
       readHash: () => '',
     });
-    await expect(
-      (real.init as (gameId: string) => Promise<unknown>)('peoples-bitcoin'),
-    ).rejects.toMatchObject({ code: 'bad_game' });
+    const profile = await real.init('peoples-bitcoin');
+    expect(profile.playerId).toBeTruthy();
+    expect(profile.relics).toEqual([]);
 
     const { state, ctx } = newGame();
-    script.initError = new HubSdkError('bad_game', 'Unknown game "peoples-bitcoin"');
-    const { hub } = attach(state, ctx);
+    script.linked = false;
+    const intents: Intent[] = [];
+    const { hub } = attach(
+      state,
+      ctx,
+      () => saveGame(state),
+      (intent) => intents.push(intent),
+    );
     await hub.start();
     expect(state.hubSession.mode).toBe('standalone');
     expect(hub.shopStatus()).toBe('local');
 
+    state.player.interface = { kind: 'terminal', shopId: 'shop_terminal' };
+    state.player.currencies.tickets = 10;
+    hub.buy('shop_terminal', 'item_rounds', 1);
+    runTick(state, ctx, intents.splice(0));
+    expect(countItem(state.player.inventory, 'item_rounds')).toBe(100);
+    expect(state.player.currencies.tickets).toBe(7);
+    hub.sell(0, 'all');
+    runTick(state, ctx, intents.splice(0));
+    expect(countItem(state.player.inventory, 'item_rounds')).toBe(0);
+    expect(state.player.currencies.tickets).toBe(8);
     addStreamUsd(state, 'pb_drop', 25 * 3 + 10);
-    const events: SimEvent[] = [];
-    grantQuestTickets(state, 'quest_tutorial', 100, events);
-    hub.onEvents(events);
+    const carry = state.player.ledger.offlineRemainder.pb_drop;
     hub.checkpoint();
     await settle();
+    expect(script.spends).toEqual([]);
+    expect(script.sells).toEqual([]);
     expect(script.earns).toEqual([]);
-    expect(state.player.ledger.questEarns).toEqual([]);
-    expect(state.player.ledger.batches).toEqual({});
     expect(state.player.ledger.purchase).toBeNull();
-    const carry = state.player.ledger.offlineRemainder.pb_drop;
+    expect(state.player.ledger.sale).toBeNull();
 
-    script.initError = null;
+    script.linked = true;
     script.serverBalance = 4;
     const { hub: linked } = attach(state, ctx);
     await linked.start();
     await settle();
-    expect(script.earns).toEqual([]);
     expect(script.spends).toEqual([]);
+    expect(script.sells).toEqual([]);
+    expect(script.earns).toEqual([]);
     expect(state.player.currencies.tickets).toBe(4);
     expect(state.player.ledger.offlineRemainder.pb_drop).toBeCloseTo(carry, 8);
   });
 
-  it('shows Offline and changes nothing when the shop RPCs are missing', async () => {
+  it('persists a spend key and grants response units once', async () => {
     const { state, ctx } = newGame();
-    state.player.inventory[0] = { itemId: 'item_rounds', qty: 100 };
-    script.shop = false;
-    const { hub, said } = attach(state, ctx);
+    script.spendUnits = 40;
+    script.spendBalance = 90;
+    const { hub } = attach(state, ctx);
     await hub.start();
-    expect(state.hubSession.mode).toBe('hub');
-    expect(hub.shopStatus()).toBe('offline');
-    const tickets = state.player.currencies.tickets;
+    script.loseSpend = true;
     hub.buy('shop_terminal', 'item_rounds', 1);
+    await settle();
+    const order = state.player.ledger.purchase;
+    expect(order).toMatchObject({ shopId: 'shop_terminal', itemId: 'item_rounds', packs: 1 });
+    expect(countItem(state.player.inventory, 'item_rounds')).toBe(0);
+    expect(state.player.currencies.tickets).toBe(1000);
+    const key = order!.key;
+    expect(script.spends).toEqual([
+      { shopId: 'shop_terminal', itemId: 'item_rounds', packs: 1, key },
+    ]);
+
+    saveGame(state);
+    const loaded = loadSavedGame(content()).state!;
+    const { hub: reloaded } = attach(loaded, ctx);
+    await reloaded.start();
+    await settle();
+    expect(script.spends).toHaveLength(2);
+    expect(script.spends[1]).toEqual(script.spends[0]);
+    expect(countItem(loaded.player.inventory, 'item_rounds')).toBe(40);
+    expect(loaded.player.currencies.tickets).toBe(90);
+    expect(loaded.player.ledger.purchase).toBeNull();
+
+    loaded.player.ledger.purchase = {
+      key,
+      shopId: 'shop_terminal',
+      itemId: 'item_rounds',
+      packs: 1,
+    };
+    reloaded.checkpoint();
+    await settle();
+    expect(countItem(loaded.player.inventory, 'item_rounds')).toBe(40);
+    expect(loaded.player.currencies.tickets).toBe(90);
+  });
+
+  it('persists a sell key and removes response units once', async () => {
+    const { state, ctx } = newGame();
+    give(state, 'item_rounds', 100);
+    script.sellUnits = 40;
+    script.sellBalance = 111;
+    script.sellCredited = 11;
+    const { hub } = attach(state, ctx);
+    await hub.start();
+    script.loseSell = true;
     hub.sell(0, 'all');
     await settle();
-    expect(said).toContain('Offline');
-    expect(state.player.currencies.tickets).toBe(tickets);
-    expect(state.player.inventory[0]).toEqual({ itemId: 'item_rounds', qty: 100 });
-    expect(state.player.ledger.purchase).toBeNull();
-    expect(state.player.ledger.sale).toBeNull();
-    expect(script.spends).toEqual([]);
-    expect(script.sells).toEqual([]);
+    const order = state.player.ledger.sale;
+    expect(order).toMatchObject({ shopId: 'shop_terminal', itemId: 'item_rounds', packs: 1 });
+    expect(countItem(state.player.inventory, 'item_rounds')).toBe(100);
+    expect(state.player.currencies.tickets).toBe(1000);
+    const key = order!.key;
+
+    saveGame(state);
+    const loaded = loadSavedGame(content()).state!;
+    const { hub: reloaded } = attach(loaded, ctx);
+    await reloaded.start();
+    await settle();
+    expect(script.sells).toHaveLength(2);
+    expect(script.sells[1]).toMatchObject({
+      shopId: 'shop_terminal',
+      itemId: 'item_rounds',
+      packs: 1,
+      key,
+    });
+    expect(countItem(loaded.player.inventory, 'item_rounds')).toBe(60);
+    expect(loaded.player.currencies.tickets).toBe(111);
+
+    loaded.player.ledger.sale = { ...order!, slot: 0 };
+    reloaded.checkpoint();
+    await settle();
+    expect(countItem(loaded.player.inventory, 'item_rounds')).toBe(60);
+    expect(loaded.player.currencies.tickets).toBe(111);
+  });
+
+  it('drops every shop terminal code without a retry', async () => {
+    for (const code of shopCodes) {
+      script = new ScriptedHub();
+      installStorage();
+      const { state, ctx } = newGame();
+      give(state, 'gun_campaign_pistol');
+      const { hub } = attach(state, ctx);
+      await hub.start();
+      const before = state.player.currencies.tickets;
+      script.shopError = new HubSdkError(code, code);
+      hub.buy('shop_terminal', 'item_rounds', 1);
+      await settle();
+      expect(countItem(state.player.inventory, 'item_rounds'), code).toBe(0);
+      expect(state.player.currencies.tickets, code).toBe(before);
+      expect(state.player.ledger.purchase, code).toBeNull();
+      const buys = script.spends.length;
+      hub.checkpoint();
+      await hub.start();
+      await settle();
+      expect(script.spends, code).toHaveLength(buys);
+
+      script.shopError = new HubSdkError(code, code);
+      hub.sell(0, 1);
+      await settle();
+      expect(countItem(state.player.inventory, 'gun_campaign_pistol'), code).toBe(1);
+      expect(state.player.currencies.tickets, code).toBe(before);
+      expect(state.player.ledger.sale, code).toBeNull();
+      const sales = script.sells.length;
+      hub.checkpoint();
+      await hub.start();
+      await settle();
+      expect(script.sells, code).toHaveLength(sales);
+    }
+  });
+
+  it('retries rpc_failed shop calls with the same key', async () => {
+    const { state, ctx } = newGame();
+    give(state, 'gun_campaign_pistol');
+    script.spendUnits = 100;
+    script.spendBalance = 970;
+    const { hub } = attach(state, ctx);
+    await hub.start();
+    script.shopError = new HubSdkError('rpc_failed', 'down');
+    script.stickyError = true;
+    hub.buy('shop_terminal', 'item_rounds', 1);
+    await settle();
+    expect(state.player.ledger.purchase).not.toBeNull();
+    expect(countItem(state.player.inventory, 'item_rounds')).toBe(0);
+    const key = state.player.ledger.purchase!.key;
+    script.stickyError = false;
+    script.shopError = null;
+    hub.checkpoint();
+    await settle();
+    expect(script.spends.map((row) => row.key)).toEqual([key, key]);
+    expect(countItem(state.player.inventory, 'item_rounds')).toBe(100);
+    expect(state.player.currencies.tickets).toBe(970);
+  });
+
+  it('follows the server balance across a sell and a buy', async () => {
+    const { state, ctx } = newGame();
+    give(state, 'item_rounds', 100);
+    script.serverBalance = 100;
+    script.sellBalance = 100;
+    script.sellCredited = 11;
+    script.sellUnits = 100;
+    const { hub } = attach(state, ctx);
+    await hub.start();
+    expect(state.player.currencies.tickets).toBe(100);
+    hub.sell(0, 'all');
+    await settle();
+    expect(state.player.currencies.tickets).toBe(100);
+    expect(countItem(state.player.inventory, 'item_rounds')).toBe(0);
+
+    script.spendBalance = 80;
+    script.spendUnits = 1;
+    hub.buy('shop_terminal', 'gun_campaign_pistol', 1);
+    await settle();
+    expect(state.player.currencies.tickets).toBe(80);
+    expect(countItem(state.player.inventory, 'gun_campaign_pistol')).toBe(1);
+  });
+});
+
+describe('earn caps from getTicketBalance', () => {
+  it('clamps a batch to the smaller cap and keeps the rest pending', async () => {
+    const { state, ctx } = newGame();
+    state.hubSession.mode = 'hub';
+    addStreamUsd(state, 'pb_drop', 25 * 450);
+    script.sessionCapLeft = 50;
+    script.dailyCapLeft = 80;
+    const { hub } = attach(state, ctx);
+    await hub.start();
+    await settle();
+    expect(script.earns.map((row) => row.amount)).toEqual([50]);
+    expect(state.player.ledger.streams.pb_drop.pending).toBe(400);
+    hub.checkpoint();
+    await settle();
+    expect(script.earns).toHaveLength(1);
+    expect(state.player.ledger.streams.pb_drop.pending).toBe(400);
+    expect(state.player.ledger.batches.pb_drop).toBeUndefined();
+  });
+
+  it('uses the 200 batch cap when the cap fields are missing', async () => {
+    const { state, ctx } = newGame();
+    state.hubSession.mode = 'hub';
+    addStreamUsd(state, 'pb_drop', 25 * 450);
+    script.sessionCapLeft = null;
+    script.dailyCapLeft = null;
+    const { hub } = attach(state, ctx);
+    await hub.start();
+    await settle();
+    hub.checkpoint();
+    await settle();
+    hub.checkpoint();
+    await settle();
+    expect(script.earns.map((row) => row.amount)).toEqual([200, 200, 50]);
+    expect(script.earns.reduce((sum, row) => sum + row.amount, 0)).toBe(450);
+    expect(state.player.ledger.streams.pb_drop.pending).toBe(0);
+  });
+
+  it('sends nothing when a cap room is zero and leaves the pending amount', async () => {
+    const { state, ctx } = newGame();
+    state.hubSession.mode = 'hub';
+    addStreamUsd(state, 'pb_drop', 25 * 40);
+    script.sessionCapLeft = 0;
+    script.dailyCapLeft = 100;
+    const { hub } = attach(state, ctx);
+    await hub.start();
+    await settle();
+    hub.checkpoint();
+    await settle();
     expect(script.earns).toEqual([]);
+    expect(state.player.ledger.streams.pb_drop.pending).toBe(40);
   });
 });
 
@@ -816,5 +1129,72 @@ describe('two tabs', () => {
     const byKey = new Map(drops.map((row) => [row.key, row.amount]));
     expect(byKey.size, 'both tabs minted a batch for the same 5 Tickets').toBe(1);
     expect([...byKey.values()]).toEqual([5]);
+  });
+
+  it('credits one purchase when two tabs send the same shop key', async () => {
+    const { state, ctx } = newGame();
+    const key = '018f3b2e-7c4a-7b11-8d2e-6a5b4c3d2e1f';
+    state.player.ledger.purchase = {
+      key,
+      shopId: 'shop_terminal',
+      itemId: 'item_rounds',
+      packs: 1,
+    };
+    saveGame(state);
+    const snap = localStorage.getItem(SAVE_KEY)!;
+    script.spendUnits = 100;
+    script.spendBalance = 75;
+
+    const first = loadSavedGame(content()).state!;
+    const { hub: tabA } = attach(first, ctx);
+    await tabA.start();
+    await settle();
+
+    localStorage.setItem(SAVE_KEY, snap);
+    const second = loadSavedGame(content()).state!;
+    const { hub: tabB } = attach(second, ctx);
+    await tabB.start();
+    await settle();
+
+    const final = loadSavedGame(content()).state!;
+    expect(script.spends.every((row) => row.key === key && row.packs === 1)).toBe(true);
+    expect(countItem(final.player.inventory, 'item_rounds')).toBe(100);
+  });
+
+  it('keeps both results when two tabs buy and sell different things', async () => {
+    const { state, ctx } = newGame();
+    give(state, 'item_rounds', 100);
+    saveGame(state);
+    const snap = localStorage.getItem(SAVE_KEY)!;
+
+    const buyer = loadSavedGame(content()).state!;
+    script.spendUnits = 1;
+    script.spendBalance = 75;
+    const { hub: tabA } = attach(buyer, ctx);
+    await tabA.start();
+    tabA.buy('shop_terminal', 'gun_campaign_pistol', 1);
+    await settle();
+    expect(countItem(buyer.player.inventory, 'gun_campaign_pistol')).toBe(1);
+
+    localStorage.setItem(SAVE_KEY, snap);
+    const seller = loadSavedGame(content()).state!;
+    script.sellUnits = 100;
+    script.sellBalance = 111;
+    script.sellCredited = 1;
+    const { hub: tabB } = attach(seller, ctx);
+    await tabB.start();
+    tabB.sell(0, 'all');
+    await settle();
+    expect(countItem(seller.player.inventory, 'item_rounds')).toBe(0);
+    expect(script.spends).toHaveLength(1);
+    expect(script.sells).toHaveLength(1);
+    expect(script.spends[0]!.key).not.toBe(script.sells[0]!.key);
+
+    const final = loadSavedGame(content()).state!;
+    expect(
+      countItem(final.player.inventory, 'gun_campaign_pistol'),
+      'both tabs share one save',
+    ).toBe(1);
+    expect(countItem(final.player.inventory, 'item_rounds'), 'both tabs share one save').toBe(0);
   });
 });
