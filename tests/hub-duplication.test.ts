@@ -13,6 +13,7 @@ import {
 } from '@metaverse/hub-sdk';
 import { TICKETS } from '../src/config/balance';
 import { HubClient } from '../src/hub/client';
+import { claimWriter } from '../src/hub/singleWriter';
 import { questEarnWireKey, uuidv5 } from '../src/hub/uuid';
 import { countItem } from '../src/sim/inventory';
 import { addStreamUsd, grantQuestTickets, questEarnName } from '../src/sim/ledger';
@@ -291,11 +292,18 @@ function installStorage(): void {
   const session = memoryStorage();
   Object.defineProperty(globalThis, 'localStorage', { value: local, configurable: true });
   Object.defineProperty(globalThis, 'sessionStorage', { value: session, configurable: true });
+  const listeners: Record<string, Array<(event: Event) => void>> = {};
   Object.defineProperty(globalThis, 'window', {
     value: {
       localStorage: local,
       sessionStorage: session,
       location: { href: 'http://game.test/' },
+      addEventListener(type: string, fn: (event: Event) => void) {
+        (listeners[type] ??= []).push(fn);
+      },
+      removeEventListener(type: string, fn: (event: Event) => void) {
+        listeners[type] = (listeners[type] ?? []).filter((listener) => listener !== fn);
+      },
     },
     configurable: true,
   });
@@ -627,13 +635,8 @@ describe('stream earns', () => {
     expect(banked + carry).toBeCloseTo(expected, 6);
   });
 
-  it('drops mismatch, amount_over_rule, and cap errors without resending', async () => {
-    for (const code of [
-      'idempotency_mismatch',
-      'amount_over_rule',
-      'verse_cap',
-      'session_ticket_cap',
-    ]) {
+  it('drops an idempotency mismatch and does not resend it', async () => {
+    for (const code of ['idempotency_mismatch']) {
       script = new ScriptedHub();
       installStorage();
       const { state, ctx } = newGame();
@@ -715,6 +718,33 @@ describe('quest earns', () => {
     await hub.start();
     await settle();
     expect(script.earns).toHaveLength(1);
+    expect(script.earns[0]!.key).toBe(questEarnWireKey('pb:quest:quest_tutorial'));
+  });
+
+  it('credits one pb:quest key when a second tab replays it', async () => {
+    const { state, ctx } = newGame();
+    const { hub } = attach(state, ctx);
+    await hub.start();
+    script.holdNext = true;
+    const events: SimEvent[] = [];
+    grantQuestTickets(state, 'quest_tutorial', 100, events);
+    hub.onEvents(events);
+    await vi.waitFor(() => {
+      expect(script.earns).toHaveLength(1);
+    });
+    const key = script.earns[0]!.key;
+    expect(key).toBe(questEarnWireKey('pb:quest:quest_tutorial'));
+    saveGame(state);
+    const other = loadSavedGame(content()).state!;
+    const { hub: tabB } = attach(other, ctx);
+    const before = script.serverBalance;
+    await tabB.start();
+    await settle();
+    script.releaseHold?.();
+    await settle();
+    const quests = script.earns.filter((row) => row.reason === 'pb_quest');
+    expect(quests.every((row) => row.key === key && row.amount === 10)).toBe(true);
+    expect(script.serverBalance - before).toBe(10);
   });
 
   it('does not add the quest reward to the wallet a second time', async () => {
@@ -776,7 +806,7 @@ describe('quest earns', () => {
     expect(script.serverBalance - 1000).toBe(sent.amount);
   });
 
-  it('acks idempotency_mismatch, amount_over_rule, and other cap errors', async () => {
+  it('finishes a mismatched quest earn and keeps a capped one for the next session', async () => {
     for (const code of ['idempotency_mismatch', 'amount_over_rule', 'verse_cap', 'daily_cap']) {
       script = new ScriptedHub();
       installStorage();
@@ -788,7 +818,11 @@ describe('quest earns', () => {
       grantQuestTickets(state, 'quest_bunker', 100, events);
       hub.onEvents(events);
       await settle();
-      expect(state.player.ledger.questEarns[0]?.status, code).toBe('acked');
+      const capped = code !== 'idempotency_mismatch';
+      expect(state.player.ledger.questEarns[0]?.status, code).toBe(capped ? 'capped' : 'acked');
+      expect(state.player.ledger.questEarns[0]?.key, code).toBe(
+        questEarnWireKey('pb:quest:quest_bunker'),
+      );
       const calls = script.earns.length;
       hub.checkpoint();
       await hub.start();
@@ -1120,6 +1154,31 @@ describe('earn caps from getTicketBalance', () => {
     expect(state.player.ledger.streams.pb_drop.pending).toBe(0);
   });
 
+  it('puts a rejected batch back on the same key', async () => {
+    const { state, ctx } = newGame();
+    state.hubSession.mode = 'hub';
+    addStreamUsd(state, 'pb_drop', 25 * 80);
+    script.earnError = new HubSdkError('session_ticket_cap', 'cap');
+    const { hub } = attach(state, ctx);
+    await hub.start();
+    await settle();
+    expect(script.earns).toEqual([expect.objectContaining({ amount: 80, reason: 'pb_drop' })]);
+    const key = script.earns[0]!.key;
+    expect(state.player.ledger.streams.pb_drop.pending).toBe(80);
+    expect(state.player.ledger.batches.pb_drop).toMatchObject({ id: key, amount: 80 });
+
+    script.earnError = null;
+    const before = script.serverBalance;
+    await hub.start();
+    await settle();
+    expect(script.earns).toHaveLength(2);
+    expect(script.earns[1]).toEqual({ amount: 80, reason: 'pb_drop', key });
+    expect(script.serverBalance - before).toBe(80);
+    await hub.start();
+    await settle();
+    expect(script.serverBalance - before).toBe(80);
+  });
+
   it('sends nothing when a cap room is zero and leaves the pending amount', async () => {
     const { state, ctx } = newGame();
     state.hubSession.mode = 'hub';
@@ -1191,40 +1250,79 @@ describe('two tabs', () => {
     expect(countItem(final.player.inventory, 'item_rounds')).toBe(100);
   });
 
-  it('keeps both results when two tabs buy and sell different things', async () => {
+  it('the newest tab takes the writer lock and the old tab saves once', async () => {
+    let lostA = 0;
+    let lostB = 0;
+    claimWriter(() => {
+      lostA += 1;
+    });
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    claimWriter(() => {
+      lostB += 1;
+    });
+    await settle();
+    expect(lostA).toBe(1);
+    expect(lostB).toBe(0);
+    expect(localStorage.getItem('peoples-bitcoin.writer')).toContain('"at"');
+  });
+
+  it('stops the old tab during an in-flight flush and credits the earn once', async () => {
     const { state, ctx } = newGame();
-    give(state, 'item_rounds', 100);
+    state.hubSession.mode = 'hub';
+    addStreamUsd(state, 'pb_drop', 25 * 8);
     saveGame(state);
-    const snap = localStorage.getItem(SAVE_KEY)!;
-
-    const buyer = loadSavedGame(content()).state!;
-    script.spendUnits = 1;
-    script.spendBalance = 75;
-    const { hub: tabA } = attach(buyer, ctx);
-    await tabA.start();
-    tabA.buy('shop_terminal', 'gun_campaign_pistol', 1);
+    let frozen = false;
+    let freezeSaves = 0;
+    const { hub } = attach(state, ctx, () => !frozen && saveGame(state));
+    claimWriter(() => {
+      if (frozen) return;
+      saveGame(state);
+      freezeSaves += 1;
+      frozen = true;
+    });
+    script.holdNext = true;
+    const starting = hub.start();
+    await vi.waitFor(() => {
+      expect(script.earns).toHaveLength(1);
+    });
+    const key = script.earns[0]!.key;
+    const before = script.serverBalance;
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    claimWriter(() => {});
     await settle();
-    expect(countItem(buyer.player.inventory, 'gun_campaign_pistol')).toBe(1);
-
-    localStorage.setItem(SAVE_KEY, snap);
-    const seller = loadSavedGame(content()).state!;
-    script.sellUnits = 100;
-    script.sellBalance = 111;
-    script.sellCredited = 1;
-    const { hub: tabB } = attach(seller, ctx);
-    await tabB.start();
-    tabB.sell(0, 'all');
+    expect(frozen).toBe(true);
+    expect(freezeSaves).toBe(1);
+    script.releaseHold?.();
+    await starting;
     await settle();
-    expect(countItem(seller.player.inventory, 'item_rounds')).toBe(0);
-    expect(script.spends).toHaveLength(1);
-    expect(script.sells).toHaveLength(1);
-    expect(script.spends[0]!.key).not.toBe(script.sells[0]!.key);
+    expect(script.serverBalance - before).toBe(8);
 
-    const final = loadSavedGame(content()).state!;
-    expect(
-      countItem(final.player.inventory, 'gun_campaign_pistol'),
-      'both tabs share one save',
-    ).toBe(1);
-    expect(countItem(final.player.inventory, 'item_rounds'), 'both tabs share one save').toBe(0);
+    hub.checkpoint();
+    await settle();
+    expect(script.earns.filter((row) => row.reason === 'pb_drop')).toHaveLength(1);
+
+    const other = loadSavedGame(content()).state!;
+    const { hub: newer } = attach(other, ctx);
+    await newer.start();
+    await settle();
+    const drops = script.earns.filter((row) => row.reason === 'pb_drop');
+    expect(new Set(drops.map((row) => row.key))).toEqual(new Set([key]));
+    expect(script.serverBalance - before).toBe(8);
+  });
+
+  it('replaces a stale wallet on load and does not invent inventory', async () => {
+    const { state, ctx } = newGame();
+    give(state, 'item_rounds', 10);
+    state.player.currencies.tickets = 9999;
+    saveGame(state);
+    const loaded = loadSavedGame(content()).state!;
+    script.serverBalance = 4;
+    const { hub } = attach(loaded, ctx);
+    await hub.start();
+    await settle();
+    expect(loaded.player.currencies.tickets).toBe(4);
+    expect(countItem(loaded.player.inventory, 'item_rounds')).toBe(10);
+    expect(script.earns).toEqual([]);
+    expect(script.spends).toEqual([]);
   });
 });
