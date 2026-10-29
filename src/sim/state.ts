@@ -103,7 +103,7 @@ export interface StreamPocket {
 export interface EarnBatch {
   id: string;
   amount: number;
-  /** Older saves may set this. Resend uses the same id whenever the known room allows. */
+  /** Set after a transport failure. The next init resends this id; checkpoints do not. */
   retryAtInit?: boolean;
 }
 

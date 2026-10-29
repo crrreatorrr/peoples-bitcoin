@@ -363,10 +363,10 @@ export class HubClient {
     const sid = this.bridge.sessionId();
     for (const reason of STREAM_REASONS) {
       const batch = this.state.player.ledger.batches[reason];
-      // Same key and amount. A cap or a lost response must not mint another id.
-      if (batch && roomAllows(this.state, batch.amount)) {
-        await this.sendBatch(reason, batch.id, batch.amount);
-      }
+      // Same key and amount. Transport failures wait for the next init.
+      if (!batch || !roomAllows(this.state, batch.amount)) continue;
+      if (batch.retryAtInit && when !== 'session') continue;
+      await this.sendBatch(reason, batch.id, batch.amount);
     }
     for (const row of this.state.player.ledger.questEarns) {
       const newSession = sid !== '' && sid !== row.cappedSessionId;
@@ -398,16 +398,24 @@ export class HubClient {
       this.rememberCaps(err);
       if (isStreamTerminal(code)) {
         console.warn('[hub] earn batch dropped', { reason, id, amount, code });
-        dropStreamBatch(this.state, reason, id, null);
+        dropStreamBatch(this.state, reason, id, this.state.hubSession.serverBalance);
         ackSeal(this.lockOwner, id);
+        const fresh = await this.bridge.getTicketBalance();
+        if (fresh != null) this.applySnapshot(fresh);
         this.say('Could not bank Tickets.');
         this.save();
-      } else {
-        // session_ticket_cap, daily cap, and transport errors keep this seal.
-        if (isCap(code)) this.say(ticketLimitMessage(capRemaining(err)));
-        else this.bridge.noteFailure(err);
+      } else if (isCap(code)) {
+        const batch = this.state.player.ledger.batches[reason];
+        if (batch?.id === id) batch.retryAtInit = false;
+        this.say(ticketLimitMessage(capRemaining(err)));
         this.save();
         console.warn('[hub] earn batch kept', { reason, id, amount, code });
+      } else {
+        const batch = this.state.player.ledger.batches[reason];
+        if (batch?.id === id) batch.retryAtInit = true;
+        this.bridge.noteFailure(err);
+        this.save();
+        console.warn('[hub] earn batch will retry on the next init', { reason, id, code });
       }
     } finally {
       this.inflight.delete(token);
