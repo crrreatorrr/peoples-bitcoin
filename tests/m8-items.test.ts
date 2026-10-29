@@ -89,6 +89,10 @@ describe('M8 items stay off every grant path', () => {
       expect(mentions(file), name).toEqual([]);
     }
     expect(mentions(pricesJson), 'prices').toEqual([]);
+    expect(pricesJson).toHaveLength(99);
+    expect(pricesJson.some((row) => row.item_id === COFFEE)).toBe(false);
+    expect(content().ticketPrices).toHaveLength(99);
+    expect(content().ticketPrices.some((row) => row.itemId === COFFEE)).toBe(false);
     for (const shop of content().shops.values()) {
       for (const id of HELD)
         expect(
@@ -164,5 +168,22 @@ describe('bosses still roll the existing tables', () => {
       expect(countItem(state.player.inventory, MEMO)).toBe(0);
       expect(countItem(state.player.inventory, PUP)).toBe(0);
     }
+  });
+});
+
+describe('Coffee has no price row', () => {
+  it('is absent, unbuyable, and leaves the 99-row table alone', () => {
+    expect(pricesJson).toHaveLength(99);
+    expect(pricesJson.some((row) => row.item_id === COFFEE)).toBe(false);
+    expect(content().items.has(COFFEE)).toBe(false);
+    expect(content().ticketPrices).toHaveLength(99);
+
+    const { state, ctx } = newGame();
+    state.player.interface = { kind: 'terminal', shopId: 'shop_terminal' };
+    state.player.currencies.tickets = 100;
+    runTick(state, ctx, [{ type: 'buy', itemId: COFFEE, qty: 1 }]);
+    expect(state.player.currencies.tickets).toBe(100);
+    expect(countItem(state.player.inventory, COFFEE)).toBe(0);
+    expect(state.zone.groundItems.some((pile) => pile.itemId === COFFEE)).toBe(false);
   });
 });

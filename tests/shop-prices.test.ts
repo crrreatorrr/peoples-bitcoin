@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { createHubSdk, HubSdkError, memoryKeyValue, mintMockTicket } from '@metaverse/hub-sdk';
 import csvText from '../tools/pb_shop_prices.csv?raw';
 import { giveItem } from '../src/sim/ground';
 import { countItem } from '../src/sim/inventory';
@@ -140,6 +141,43 @@ describe('Gameplay v3 shop prices', () => {
     expect(loaded!.player.ledger.offlineRemainder.pb_sell).toBe(0);
     // Load does not grant the item. A pending shop order is kept and not paid here.
     expect(loaded!.player.ledger.purchase).toMatchObject({ itemId: COFFEE, packs: 1 });
+  });
+
+  it('returns unknown_item when spending an item with no price row', async () => {
+    const missing = 'item_not_on_the_price_table';
+    expect(content().ticketPrices.some((row) => row.itemId === missing)).toBe(false);
+    expect(gameplayRows().some((row) => row.item_id === missing)).toBe(false);
+
+    const now = 1_700_000_000_000;
+    const ticket = await mintMockTicket({
+      game: 'peoples-bitcoin',
+      playerId: 'qa-no-row',
+      now,
+      jti: 'qa-no-row-jti',
+    });
+    const sdk = createHubSdk({
+      useMock: true,
+      local: memoryKeyValue(),
+      session: memoryKeyValue(),
+      now: () => now,
+      serverNow: () => now,
+      readHash: () => `#t=${ticket}`,
+      writeHash: () => {},
+    });
+    await sdk.init('peoples-bitcoin');
+    const earned = await sdk.earnTickets(20, 'qa', '018f3b2e-7c4a-7b11-8d2e-6a5b4c3d2e10');
+    expect(earned.balance).toBe(20);
+
+    let caught: unknown;
+    try {
+      await sdk.spendTickets('shop_terminal', missing, 1, '018f3b2e-7c4a-7b11-8d2e-6a5b4c3d2e11');
+      caught = null;
+    } catch (err) {
+      caught = err;
+    }
+    expect(caught).toBeInstanceOf(HubSdkError);
+    expect(caught).toMatchObject({ code: 'unknown_item' });
+    expect((await sdk.getTicketBalance()).balance).toBe(20);
   });
 
   it('matches client shop stock to hub shop_price 262c809 both ways', () => {
