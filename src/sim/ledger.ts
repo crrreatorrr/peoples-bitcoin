@@ -6,7 +6,11 @@
 import { TICKETS } from '../config/balance';
 import type { EarnBatch, GameState, SimEvent, StreamReason } from './state';
 
-/** Stable earn name. The UUIDv5 of this string is derived in one hub helper. */
+/**
+ * One name per reward, always under `pb:quest:<questId>`. A step or a choice
+ * adds its id so that reward is its own earn. The wire key is UUIDv5 of this
+ * string (`questEarnWireKey` in src/hub/uuid.ts).
+ */
 export function questEarnName(questId: string, stepId?: string, choiceId?: string): string {
   const parts = ['pb:quest', questId];
   if (stepId) parts.push(stepId);
@@ -84,7 +88,13 @@ export function grantQuestTickets(
   if (state.hubSession.mode !== 'hub') return amount;
   const name = questEarnName(questId, stepId, choiceId);
   if (state.player.ledger.questEarns.some((row) => row.name === name)) return amount;
-  state.player.ledger.questEarns.push({ name, amount, key: null, status: 'pending' });
+  state.player.ledger.questEarns.push({
+    name,
+    amount,
+    key: null,
+    status: 'pending',
+    cappedSessionId: null,
+  });
   events.push({ type: 'questEarn', name, amount });
   return amount;
 }

@@ -109,8 +109,15 @@ export interface EarnBatch {
 export interface QuestEarn {
   name: string;
   amount: number;
+  /** UUIDv5 of `name`, filled before the first send and reused. */
   key: string | null;
-  status: 'pending' | 'capped' | 'acked' | 'dropped';
+  /**
+   * `capped` is still owed: `session_ticket_cap` only. It is resent when the
+   * hub session id changes. `acked` includes earns we dropped for good.
+   */
+  status: 'pending' | 'capped' | 'acked';
+  /** Hub session id that returned session_ticket_cap, if we know it. */
+  cappedSessionId: string | null;
 }
 
 export interface ShopOrder {
