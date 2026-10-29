@@ -12,7 +12,7 @@ import {
   setTicketBalance,
   undoStreamBatch,
 } from '../sim/ledger';
-import { sellListing } from '../sim/prices';
+import { sellListing, shopStocks } from '../sim/prices';
 import { progressQuests } from '../sim/quests';
 import {
   STREAM_REASONS,
@@ -139,6 +139,10 @@ export class HubClient {
   }
 
   buy(shopId: string, itemId: string, packs: number): void {
+    if (!shopStocks(this.ctx.content, shopId, itemId)) {
+      this.say('Unavailable');
+      return;
+    }
     const status = this.shopStatus();
     if (status === 'offline') {
       this.say('Offline');

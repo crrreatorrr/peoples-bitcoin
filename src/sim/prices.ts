@@ -15,6 +15,11 @@ export function listing(
   return content.ticketPrices.find((row) => row.shopId === shopId && row.itemId === itemId);
 }
 
+/** True when this shop's stock list includes the item. A price row alone does not sell it. */
+export function shopStocks(content: Content, shopId: string, itemId: string): boolean {
+  return content.shops.get(shopId)?.stock.some((line) => line.item === itemId) ?? false;
+}
+
 export function shopsStocking(content: Content, itemId: string): TicketListing[] {
   return content.ticketPrices.filter((row) => row.itemId === itemId);
 }
