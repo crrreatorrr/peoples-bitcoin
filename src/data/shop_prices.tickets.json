@@ -28,13 +28,6 @@
     "sell_price": 0
   },
   {
-    "shop_id": "shop_terminal",
-    "item_id": "item_blue_sproto_coffee",
-    "pack_size": 1,
-    "price": 9,
-    "sell_price": 0
-  },
-  {
     "shop_id": "shop_staffwright",
     "item_id": "item_tp_soundbite",
     "pack_size": 1,
