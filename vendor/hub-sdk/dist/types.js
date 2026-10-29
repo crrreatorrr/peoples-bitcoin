@@ -36,6 +36,10 @@ export const MOCK_TICKET_TTL_SECONDS = 60;
 export function isGameId(value) {
     return GAME_IDS.includes(value);
 }
+/** True when `value` is a stored game id. */
+export function canonicalGameId(value) {
+    return isGameId(value) ? value : null;
+}
 export function isRelicId(value) {
     return RELIC_IDS.includes(value);
 }

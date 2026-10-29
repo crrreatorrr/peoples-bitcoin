@@ -103,6 +103,8 @@ export interface StreamPocket {
 export interface EarnBatch {
   id: string;
   amount: number;
+  /** Set after a transport failure. The next init resends this id; checkpoints do not. */
+  retryAtInit?: boolean;
 }
 
 /** One quest or step reward. `name` is the stable id; `key` is its UUIDv5. */
@@ -148,6 +150,11 @@ export interface HubLedger {
   fulfilledKeys: string[];
   exchange: ExchangeOrder | null;
   appliedReceipts: string[];
+  /**
+   * Ids of stream batches sealed in the hub ledger store. A stale tab uses this,
+   * plus that store, so it does not mint a second key for the same pending.
+   */
+  appliedSealIds: string[];
   relicKey: string | null;
   relicTick: number | null;
   relicAcked: boolean;
@@ -403,6 +410,7 @@ export function emptyLedger(): HubLedger {
     fulfilledKeys: [],
     exchange: null,
     appliedReceipts: [],
+    appliedSealIds: [],
     relicKey: null,
     relicTick: null,
     relicAcked: false,

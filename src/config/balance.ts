@@ -160,8 +160,13 @@ export const START_CURRENCIES = { tickets: 0, bitcoin: 0 } as const;
 export const TICKETS = {
   /** 1 Ticket per this many USD-equivalent. Fractional leftovers stay in the save. */
   usdPerTicket: 25,
-  /** One earnTickets call is at most a session cap. */
+  /**
+   * One pb_drop / pb_lobby / pb_sell call. Also the session earn cap.
+   * The server rejects a whole batch that does not fit; it does not pay part.
+   */
   batchMax: 200,
+  /** Server cap for one pb_quest earn. The amount is not split; a rejection retries next session. */
+  questCap: 158,
   exchangeStep: 10,
   exchangeMax: 500,
 } as const;

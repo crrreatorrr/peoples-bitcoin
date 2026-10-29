@@ -32,6 +32,8 @@ export interface InitResult {
     /** Resolved effects for this game only. Empty until the server ships the matrix. */
     effects: Record<string, number | boolean | string>;
     ticketsCapLeft: number;
+    /** Nakama server clock at this response, epoch milliseconds. */
+    serverTime: number;
 }
 export interface EarnResult {
     balance: number;
@@ -69,6 +71,8 @@ export interface TicketBalanceResult {
     sessionCapLeft: number;
     /** Tickets this game can still credit today before `daily_ticket_cap`. */
     dailyCapLeft: number;
+    /** Nakama server clock at this response, epoch milliseconds. */
+    serverTime: number;
 }
 export interface EventResult {
     granted?: RelicId;
@@ -92,6 +96,8 @@ export interface HubSdk {
     exit(reason?: string): void;
 }
 export declare function isGameId(value: string): value is GameId;
+/** True when `value` is a stored game id. */
+export declare function canonicalGameId(value: string): GameId | null;
 export declare function isRelicId(value: string): value is RelicId;
 export declare function isBoardId(value: string): value is BoardId;
 declare global {

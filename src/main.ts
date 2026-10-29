@@ -13,6 +13,8 @@ import {
   UI,
 } from './config/balance';
 import { HubClient } from './hub/client';
+import { clearHubLedger } from './hub/ledgerStore';
+import { claimWriter } from './hub/singleWriter';
 import { GAME_TITLE, PARODY_NOTICE, PRESIDENT_NAME } from './config/branding';
 import { Keyboard } from './input/keyboard';
 import { attachMouse } from './input/mouse';
@@ -91,8 +93,11 @@ async function boot(): Promise<void> {
   let pending: Intent[] = [];
   /** Added to the browser clock; only the dev QA hook moves it. */
   let clockOffset = 0;
+  let frozen = false;
   const clockNow = () => performance.now() + clockOffset;
-  const queue = (intent: Intent) => pending.push(intent);
+  const queue = (intent: Intent) => {
+    if (!frozen) pending.push(intent);
+  };
 
   const chat = new Chat($('#chatbox'), PRESIDENT_NAME, (text) => queue({ type: 'chat', text }));
   const loaded = loadSavedGame(content);
@@ -100,7 +105,15 @@ async function boot(): Promise<void> {
     loaded.state ?? createGameState(content, START_ZONE_ID, Date.now() >>> 0);
   greet(chat, loaded.status);
   let resetting = false;
-  const persist = () => !resetting && saveGame(state);
+  const tabLock = document.querySelector<HTMLElement>('#tab-lock');
+  const freeze = () => {
+    if (frozen) return;
+    saveGame(state);
+    frozen = true;
+    tabLock?.removeAttribute('hidden');
+  };
+  claimWriter(freeze);
+  const persist = () => !resetting && !frozen && saveGame(state);
   const hub = new HubClient(state, ctx, (text, kind) => chat.add(text, kind), queue, persist);
   const openShopId = () =>
     state.player.interface?.kind === 'terminal' ? state.player.interface.shopId : TERMINAL_SHOP_ID;
@@ -339,6 +352,7 @@ async function boot(): Promise<void> {
           hub.logReset();
           resetting = true;
           clearSavedGame();
+          clearHubLedger();
           location.reload();
         },
         () => {
@@ -551,8 +565,12 @@ async function boot(): Promise<void> {
     }
   };
 
-  window.addEventListener('pagehide', () => hub.checkpoint());
-  document.addEventListener('visibilitychange', () => document.hidden && hub.checkpoint());
+  window.addEventListener('pagehide', () => {
+    if (!frozen) hub.checkpoint();
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (!frozen && document.hidden) hub.checkpoint();
+  });
 
   if (import.meta.env.DEV) {
     // QA hook. advance(ms) steps the game clock frame by frame, even in a hidden tab.
@@ -571,6 +589,7 @@ async function boot(): Promise<void> {
   let lastTickAt = clockNow();
   let lastFrameAt = lastTickAt;
   const step = (now: number) => {
+    if (frozen) return;
     // After a long stall (background tab), resume without a burst of ticks.
     if (now - lastTickAt > TICK_MS * MAX_CATCHUP_TICKS) lastTickAt = now - TICK_MS;
     while (now - lastTickAt >= TICK_MS) {
@@ -655,10 +674,13 @@ async function boot(): Promise<void> {
     renderer.render(view.scene, cam.camera);
   };
   const frame = (t: number) => {
+    if (frozen) return;
     requestAnimationFrame(frame);
     step(t + clockOffset);
   };
+  if (frozen) return;
   await hub.start();
+  if (frozen) return;
   requestAnimationFrame(frame);
 }
 

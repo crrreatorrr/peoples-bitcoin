@@ -52,7 +52,14 @@ const LedgerSchema = z.object({
     pb_sell: PocketSchema,
   }),
   offlineRemainder: Remainders,
-  batches: z.record(z.string(), z.object({ id: z.string(), amount: z.number().positive() })),
+  batches: z.record(
+    z.string(),
+    z.object({
+      id: z.string(),
+      amount: z.number().positive(),
+      retryAtInit: z.boolean().optional(),
+    }),
+  ),
   questEarns: z.array(
     z.object({
       name: z.string(),
@@ -67,6 +74,7 @@ const LedgerSchema = z.object({
   fulfilledKeys: z.array(z.string()),
   exchange: z.object({ id: z.string(), tickets: z.number().positive() }).nullable(),
   appliedReceipts: z.array(z.string()),
+  appliedSealIds: z.array(z.string()).default([]),
   relicKey: z.string().nullable(),
   relicTick: z.number().nullable(),
   relicAcked: z.boolean(),
@@ -233,6 +241,7 @@ export function serialize(state: GameState, now: number): SaveData {
         fulfilledKeys: [...p.ledger.fulfilledKeys],
         exchange: p.ledger.exchange ? { ...p.ledger.exchange } : null,
         appliedReceipts: [...p.ledger.appliedReceipts],
+        appliedSealIds: [...p.ledger.appliedSealIds],
         relicKey: p.ledger.relicKey,
         relicTick: p.ledger.relicTick,
         relicAcked: p.ledger.relicAcked,
@@ -322,6 +331,7 @@ export function deserialize(raw: unknown, content: Content): GameState | null {
     fulfilledKeys: [...savedLedger.fulfilledKeys],
     exchange: savedLedger.exchange ? { ...savedLedger.exchange } : null,
     appliedReceipts: [...savedLedger.appliedReceipts],
+    appliedSealIds: [...savedLedger.appliedSealIds],
     relicKey: savedLedger.relicKey,
     relicTick: savedLedger.relicTick,
     relicAcked: savedLedger.relicAcked,
