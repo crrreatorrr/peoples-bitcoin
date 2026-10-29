@@ -2,7 +2,7 @@
   {
     "id": "enemy_spam_bot",
     "name": "Spam Bot",
-    "examine": "It only says 'gm'. Over and over.",
+    "examine": "It only says 'gm'. Over and over. Sergeant Retain insists it's listening.",
     "model": "enemy_spam_bot",
     "level": 1,
     "hp": 4,
@@ -77,7 +77,7 @@
   {
     "id": "enemy_heckler",
     "name": "Wrong-Namer Heckler",
-    "examine": "Turns back anyone heading north. Keeps shouting '$BITCON President!'",
+    "examine": "Turns back anyone heading north. Keeps shouting 'TRICKETS President!'",
     "model": "enemy_heckler",
     "level": 6,
     "hp": 12,
@@ -96,9 +96,10 @@
     "drops": "drops_heckler",
     "barks": {
       "aggro": [
-        "$BITCON PRESIDENT!",
+        "TRICKETS PRESIDENT!",
         "Go home! There's no outside!",
-        "It's a con! It was always a con!"
+        "It's a con! It was always a con!",
+        "Stop asking who prints the money!"
       ],
       "hurt": ["You can't prove there's an outside!"],
       "defeat": ["I'll be back. Louder."]
@@ -107,7 +108,7 @@
   {
     "id": "enemy_sockpuppet",
     "name": "Sockpuppet",
-    "examine": "Hides behind a cardboard shield and a fake account.",
+    "examine": "Hides behind a cardboard shield and a fake account. The account was opened the morning the gates sealed.",
     "model": "enemy_sockpuppet",
     "level": 12,
     "hp": 20,
@@ -177,7 +178,11 @@
     "respawnTicks": 45,
     "drops": "drops_fud_wraith",
     "barks": {
-      "aggro": ["The walls are there for a reason...", "What if outside is worse?"],
+      "aggro": [
+        "The walls are there for a reason...",
+        "What if outside is worse?",
+        "What if Tartaria was just... architecture?"
+      ],
       "defeat": ["...the doubt... fades..."]
     }
   },
@@ -306,7 +311,7 @@
   {
     "id": "enemy_sludge_mother",
     "name": "Sludge Mother",
-    "examine": "Every panicked sell order from the day of the Lockdown, in one heap. She calls her children when hurt.",
+    "examine": "Every panicked sell order from the day of the Lockdown, in one heap, stirred with runoff from somebody's money printer. She calls her children when hurt.",
     "model": "enemy_sludge_mother",
     "level": 25,
     "hp": 120,
@@ -333,10 +338,15 @@
     "barks": {
       "aggro": [
         "Stay down here, little President. It's safe.",
-        "Sell... sell it all... and stay..."
+        "Sell... sell it all... and stay...",
+        "Shh. The ink is supposed to be a secret."
       ],
       "hurt": ["Children! Mother needs you!"],
-      "defeat": ["Just... one more... dip..."],
+      "defeat": [
+        "Just... one more... dip...",
+        "You can't mop up a Printer, little President. It leaks again by morning.",
+        "Tell the Bureau... the drain... is blocked..."
+      ],
       "resist": ["Plop. Mother closes right back up."]
     },
     "weakTo": {
@@ -346,7 +356,7 @@
   {
     "id": "enemy_wrongnamer_chief",
     "name": "Wrong-Namer Chief",
-    "examine": "Expedition One's map-reader, once. Came back down, picked up a megaphone, and now insists there is no outside and it's all $BITCON.",
+    "examine": "Expedition One's map-reader, once. Saw the star on the old map, came back down, found a megaphone waiting on his bunk, and now insists there is no outside and it's all TRICKETS.",
     "model": "enemy_wrongnamer_chief",
     "level": 45,
     "hp": 160,
@@ -371,9 +381,16 @@
       }
     },
     "barks": {
-      "aggro": ["THERE IS NO OUTSIDE! IT'S ALL $BITCON!"],
+      "aggro": [
+        "THERE IS NO OUTSIDE! IT'S ALL TRICKETS!",
+        "THERE ARE NO DOMES! STOP LOOKING AT DOMES!"
+      ],
       "hurt": ["Sockpuppets! Agree with me! LOUDER!"],
-      "defeat": ["Fine! Maybe there's an outside. MAYBE."],
+      "defeat": [
+        "Fine! Maybe there's an outside. MAYBE. ...Don't tell the Bureau I said that.",
+        "The script ran out. The Bureau said it never would.",
+        "Dept. of Public Mood will... send me... a new megaphone..."
+      ],
       "resist": ["HA! Nobody's called ME to order in a year!"]
     },
     "weakTo": {
@@ -389,7 +406,7 @@
   {
     "id": "enemy_captain_motion",
     "name": "Captain Motion",
-    "examine": "Led Expedition One north on the first day of the Lockdown. Hasn't stopped running since.",
+    "examine": "Led Expedition One north on the first day of the Lockdown. Two grey suits told him to keep moving. He hasn't stopped since.",
     "model": "enemy_captain_motion",
     "level": 65,
     "hp": 220,
@@ -412,8 +429,8 @@
         "Can't stop! Won't stop! Momentum is everything!",
         "Turn back! Nothing up here but me and my laps!"
       ],
-      "hurt": ["If I stop, I have to admit it doesn't work!"],
-      "defeat": ["The Chamber's dead. I ran so nobody would see."],
+      "hurt": ["If I stop, somebody looks at it! They said nobody can look!"],
+      "defeat": ["The Chamber's dead. They told me so. I ran so nobody would check."],
       "resist": ["Too slow! Only the Treasury's long arm could catch me!"]
     },
     "weakTo": {
@@ -423,7 +440,7 @@
   {
     "id": "enemy_rogue_process",
     "name": "Rogue Process",
-    "examine": "It runs at 100% CPU and 0% empathy.",
+    "examine": "It runs at 100% CPU, 0% empathy, and phones home to an address in low orbit.",
     "model": "enemy_rogue_process",
     "level": 32,
     "hp": 120,
@@ -445,10 +462,14 @@
       "weapons": ["gun_press_pass_smg", "gun_diamond_minigun"]
     },
     "barks": {
-      "aggro": ["PROCESS STARTED. INTRUDER DETECTED."],
+      "aggro": ["PROCESS STARTED. INTRUDER DETECTED. NOTIFYING MOTHERSHIP."],
       "resist": ["ERROR LOGGED. PATCHED."],
       "hurt": ["CPU AT 200%. REQUESTING MORE CPU."],
-      "defeat": ["SEGMENTATION FAULT."]
+      "defeat": [
+        "SEGMENTATION FAULT. UPLINK... LOST.",
+        "MOTHERSHIP NOT RESPONDING. ESCALATING TO UPPER LEDGER...",
+        "CORE DUMPED. CONTENTS: BUREAU PASSWORDS. OOPS."
+      ]
     }
   },
   {
@@ -529,7 +550,11 @@
     "drops": "drops_battlemage",
     "magic": true,
     "barks": {
-      "aggro": ["Halt! The academy is closed!", "By order of the Bursar!"],
+      "aggro": [
+        "Halt! The academy is closed!",
+        "By order of the Bursar!",
+        "Stay out of the tower! Orders from... above!"
+      ],
       "hurt": ["The Rugmancer will hear of this!"],
       "defeat": ["The spell... lifting... it comes from the north tower..."]
     }
@@ -537,7 +562,7 @@
   {
     "id": "enemy_rugmancer",
     "name": "The Rugmancer",
-    "examine": "Moonward's former Bursar. Wove the academy's whole endowment into one magnificent rug, then pulled it.",
+    "examine": "Moonward's former Bursar. Wove the academy's whole endowment into one magnificent rug, then pulled it. His invoices go to an address in the sky.",
     "model": "enemy_rugmancer",
     "level": 60,
     "hp": 280,
@@ -559,7 +584,11 @@
     "barks": {
       "aggro": ["Welcome, President! Mind the rug.", "You can't pull a rug that's already pulled!"],
       "hurt": ["Apprentices! Defend your Bursar!"],
-      "defeat": ["My beautiful rug... unravelling..."],
+      "defeat": [
+        "My beautiful rug... unravelling...",
+        "The grey robes promised me... a seat upstairs...",
+        "Without the gold... the Client... won't take my calls..."
+      ],
       "resist": ["Woven in! What a delightful pattern."]
     },
     "boss": {
@@ -576,7 +605,7 @@
   {
     "id": "enemy_sergeant_sandbag",
     "name": "Sergeant Sandbag",
-    "examine": "A training dummy in the Drill Sergeant's spare uniform. He swears it isn't modeled on him. Gavels bounce right off, and it doesn't hit back.",
+    "examine": "A training dummy in Sergeant Retain's spare uniform. He swears it isn't modeled on him. Gavels bounce right off, and it doesn't hit back.",
     "model": "enemy_sergeant_sandbag",
     "level": 5,
     "hp": 8,
@@ -605,8 +634,8 @@
   },
   {
     "id": "enemy_building_inspector",
-    "name": "The Building Inspector",
-    "examine": "Clipboard, hard stare, and a rule for everything. Only respects regulation equipment.",
+    "name": "Inspector Greysuit",
+    "examine": "Clipboard, hard stare, a badge that just says 'Bureau', and a rule for everything. Only respects regulation equipment.",
     "model": "enemy_building_inspector",
     "level": 12,
     "hp": 70,
@@ -628,17 +657,25 @@
       "weapons": ["gun_campaign_pistol"]
     },
     "barks": {
-      "aggro": ["This dig is NOT up to code!", "Do you have a permit for that face?"],
+      "aggro": [
+        "This dig is NOT up to code!",
+        "Do you have a permit for that face?",
+        "Nothing under this floor is your concern!"
+      ],
       "resist": ["Is that regulation? It is not. Noted."],
       "hurt": ["I'll have you know I'm a public servant!"],
-      "defeat": ["...Fine. Permit approved."]
+      "defeat": [
+        "...Fine. Permit approved.",
+        "This will be reported. To the Bureau. In triplicate.",
+        "My supervisor's suit is even greyer than mine..."
+      ]
     },
     "boss": {}
   },
   {
     "id": "enemy_gatecrasher",
-    "name": "The Gatecrasher",
-    "examine": "Has crashed every party since the Lockdown. Bouncers bounce off him.",
+    "name": "The Plus-One",
+    "examine": "Has crashed every party since the Lockdown, through gates that are sealed. Bouncers bounce off him. His invitation is on Bureau letterhead.",
     "model": "enemy_gatecrasher",
     "level": 40,
     "hp": 70,
@@ -663,7 +700,11 @@
       "aggro": ["Who invited YOU?", "This party's dead. Let me liven it up."],
       "resist": ["Is that all? Where are the FIREWORKS?"],
       "hurt": ["Okay, okay, now it's a party!"],
-      "defeat": ["Best... party... ever..."]
+      "defeat": [
+        "Best... party... ever...",
+        "My invitation was on Bureau letterhead... they'll send another...",
+        "Tell Mr. Grey... I tried to save him a seat..."
+      ]
     },
     "boss": {
       "adds": {
@@ -676,7 +717,7 @@
   {
     "id": "enemy_corporate_raider",
     "name": "The Corporate Raider",
-    "examine": "Has bought everything in the Treasury except the Treasury. Wants that next.",
+    "examine": "Has bought everything in the Treasury except the Treasury, in notes still warm from the printer. Wants that next. Seven fingers per hand. Don't mention it.",
     "model": "enemy_corporate_raider",
     "level": 35,
     "hp": 150,
@@ -700,18 +741,23 @@
     "barks": {
       "aggro": [
         "Everything has a price, President. Even you.",
-        "Hostile takeover! Nothing personal."
+        "Hostile takeover! Nothing personal.",
+        "My principals are... not from around here."
       ],
       "resist": ["Priced in."],
       "hurt": ["Sell! I mean buy! I mean..."],
-      "defeat": ["I'll... file a complaint..."]
+      "defeat": [
+        "I'll... file a complaint...",
+        "The Broker promised... a quiet acquisition...",
+        "My principals upstairs... do not... accept losses..."
+      ]
     },
     "boss": {}
   },
   {
     "id": "enemy_pundit",
     "name": "The Pundit",
-    "examine": "Talks for a living. Has never once been asked to stop.",
+    "examine": "Talks for a living. Has never once been asked to stop. Nobody has ever identified the voice in his earpiece.",
     "model": "enemy_pundit",
     "level": 35,
     "hp": 140,
@@ -733,17 +779,25 @@
       "weapons": ["gun_ballot_blaster"]
     },
     "barks": {
-      "aggro": ["The people don't want a door, President!", "Breaking news: I'm right!"],
+      "aggro": [
+        "The people don't want a door, President!",
+        "Breaking news: I'm right!",
+        "Stay calm! Stay inside! Stay tuned!"
+      ],
       "resist": ["Says you! The people are with ME!"],
       "hurt": ["I'm being silenced! Live on air!"],
-      "defeat": ["...The people have spoken."]
+      "defeat": [
+        "...The people have spoken.",
+        "My earpiece... it's gone quiet... HELLO? BUREAU?",
+        "Off air... the Client Upstairs hates... dead air..."
+      ]
     },
     "boss": {}
   },
   {
     "id": "enemy_lockdown_warden",
     "name": "The Lockdown Warden",
-    "examine": "The Lockdown Act, given legs. Built from the stones of the sealed gates.",
+    "examine": "The Lockdown Act, given legs. Written by a Bureau nobody elected and carved into Tartarian gate stone, so no vote could ever wear it down.",
     "model": "enemy_lockdown_warden",
     "level": 72,
     "hp": 240,
@@ -765,11 +819,100 @@
       "weapons": ["item_veto_hammer", "gun_golden_veto"]
     },
     "barks": {
-      "aggro": ["NOBODY LEAVES.", "SECTION ONE: THE GATES STAY SHUT."],
+      "aggro": [
+        "NOBODY LEAVES.",
+        "SECTION ONE: THE GATES STAY SHUT.",
+        "SECTION TWO: THERE IS NO TARTARIA."
+      ],
       "resist": ["THE ACT STANDS."],
       "hurt": ["AMENDMENT... PENDING..."],
-      "defeat": ["...REPEALED."]
+      "defeat": [
+        "...REPEALED.",
+        "AUTHORED BY... BUREAU... RATIFIED BY... NOBODY...",
+        "SPONSOR... UPSTAIRS... WILL... REDRAFT..."
+      ]
     },
     "boss": {}
+  },
+  {
+    "id": "enemy_grizz",
+    "name": "The Grizz",
+    "examine": "A bear. Definitely a bear. The zip down its back is a normal bear feature. Sent to make Morelight's disappearance look natural.",
+    "model": "enemy_bear_raider",
+    "level": 62,
+    "hp": 240,
+    "attack": 60,
+    "strength": 45,
+    "defense": 50,
+    "accuracy": 56,
+    "damage": 40,
+    "armor": 48,
+    "speed": 4,
+    "range": 1,
+    "type": "melee",
+    "aggressive": true,
+    "aggroRange": 4,
+    "respawnTicks": 200,
+    "drops": "drops_bear_raider",
+    "boss": {},
+    "barks": {
+      "aggro": ["RAWR. I am a normal bear.", "Breaking: host eaten. Very sad. Stay inside."],
+      "resist": ["Normal bear does not notice normal bullets."],
+      "hurt": ["Zip... stuck... I mean RAWR!"],
+      "defeat": [
+        "FAKE... NEWS...",
+        "Field Office... the bear... is compromised...",
+        "Zip... jammed... tell the Bureau... Morelight lives..."
+      ]
+    },
+    "weakTo": {
+      "weapons": ["gun_gremlin_blaster", "staff_archmage"]
+    },
+    "wanderRadius": 2
+  },
+  {
+    "id": "enemy_extractor",
+    "name": "The Extractor",
+    "examine": "Grey suit, grey face, very large eyes. Represents a launchpad that doesn't exist, and skims every fee it can reach up to orbit.",
+    "model": "enemy_extractor",
+    "level": 70,
+    "hp": 260,
+    "attack": 55,
+    "strength": 50,
+    "defense": 48,
+    "accuracy": 52,
+    "damage": 34,
+    "armor": 46,
+    "speed": 4,
+    "range": 6,
+    "type": "gun",
+    "aggressive": true,
+    "aggroRange": 6,
+    "wanderRadius": 1,
+    "respawnTicks": 200,
+    "drops": "drops_corporate_raider",
+    "barks": {
+      "aggro": [
+        "Greetings, Earth President. Your fees, please.",
+        "A platform cost. The platform is very high up."
+      ],
+      "resist": ["Your projectile has been extracted. Thank you for your contribution."],
+      "hurt": ["Rug Pullers! Contractors! Anyone!"],
+      "defeat": [
+        "Mothership... I've been... paired...",
+        "The Upper Ledger will hear of this. The Printer will hear of this.",
+        "Tickets... cannot be... extracted... how... unfortunate..."
+      ]
+    },
+    "boss": {
+      "adds": {
+        "enemy": "enemy_rug_puller",
+        "everyTicks": 15,
+        "max": 2
+      }
+    },
+    "weakTo": {
+      "weapons": ["gun_diamond_minigun", "item_filibuster_mace"]
+    }
   }
 ]
