@@ -388,20 +388,28 @@ Three audits (gameplay duels in the real sim, every NPC variant, the story as a 
   typechecks; the game never reads it.
 - **Streams** (enemy USD, lobbying and fundraising USD, sell-only item value) are 1 Ticket per
   25 USD-equivalent. The fraction stays in the save. Whole Tickets bank in batches of at most 200
-  with reasons `pb_drop`, `pb_lobby`, and `pb_sell`. A capped or mismatched batch is dropped and
-  logged. Standalone fractions live in `offlineRemainder` and are never sent.
+  with reasons `pb_drop`, `pb_lobby`, and `pb_sell`. A mismatched batch or a `*_cap` / `amount_over_rule`
+  error is dropped and logged. A success body with `capped: true` is still a success. `rpc_failed`
+  stays sealed and is resent on the next init, not on every checkpoint. Standalone fractions live
+  in `offlineRemainder` and are never sent.
+- **Sealed batches** live in `localStorage` key `peoples-bitcoin.hub-ledger`, separate from the
+  game save. `sealSync` takes `peoples-bitcoin.hub-ledger.lock` (a short owner lease), merges
+  disk seals into memory, then compare-and-swaps the store's `v`. A seal is append-only: acking
+  it does not forget the id. A tab whose save still has the pre-seal `pending` subtracts that
+  amount instead of minting a new key. Reset clears this store along with the game save.
 - **Quest and step rewards** are `round(sqrt(usd))`, each its own `earnTickets` with reason
   `pb_quest`. `questEarnName` builds `pb:quest:<questId>` and adds a step or choice id when
-  that reward is separate. `questEarnWireKey` is the UUIDv5 of that name. `session_ticket_cap`
+  that reward is separate. `questEarnWireKey` is the UUIDv5 of that name. The wallet is credited
+  only when that earn row is new. `session_ticket_cap`
   leaves the earn capped and resends it only when the hub session id changes. `idempotency_mismatch`,
   `amount_over_rule`, and any other `*_cap` code mark it acked and do not resend.
 - **Shop prices** are `src/data/shop_prices.tickets.json`, copied from Gameplay's
   `tools/pb_shop_prices.csv` (not recomputed from items). A row whose item is not in this
   build is kept and ignored. Ammo is
   packs of 100. A sell worth 0 Tickets is refused locally. Sell-only goods never call `sellItem`.
-  Hub shop calls wait for SDK 0.2.0 (`spendTickets` / `sellItem` / `getTicketBalance`); until then
-  a hub session shows Offline and does not buy optimistically. No hub session means the standalone
-  shop, which never syncs or exchanges.
+  A hub session buys and sells with `spendTickets` / `sellItem` and reads `getTicketBalance`.
+  If those methods are missing at runtime the shop shows Offline and does not buy optimistically.
+  No hub session means the standalone shop, which never syncs or exchanges.
 - **Exchange** is a right-click on the Treasury terminals, steps of 10 up to 500, limited by the
   last server balance when we have one. The slot is persisted before the call.
 - **Relic effects** from `init` sit on `hubSession` for the page only. They are not saved. No PB

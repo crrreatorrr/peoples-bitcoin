@@ -127,9 +127,15 @@ export class HubBridge {
     this.sdk = sdk;
   }
 
-  /** A hub session is up and shop calls can reach the server. */
+  /** A hub session is up and this SDK build actually has the shop RPCs. */
   shopReady(): boolean {
-    return this.mode === 'hub' && this.reachable;
+    const sdk = this.sdk as { spendTickets?: unknown; sellItem?: unknown };
+    return (
+      this.mode === 'hub' &&
+      this.reachable &&
+      typeof sdk.spendTickets === 'function' &&
+      typeof sdk.sellItem === 'function'
+    );
   }
 
   async init(): Promise<void> {

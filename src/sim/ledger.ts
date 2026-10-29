@@ -79,23 +79,31 @@ export function grantQuestTickets(
 ): number {
   const amount = questTicketAmount(usd);
   if (amount <= 0) return 0;
+  if (state.hubSession.mode === 'hub') {
+    const name = questEarnName(questId, stepId, choiceId);
+    if (state.player.ledger.questEarns.some((row) => row.name === name)) return amount;
+    state.player.currencies.tickets += amount;
+    events.push({
+      type: 'message',
+      kind: 'quest',
+      text: `You receive ${amount.toLocaleString('en-US')} Tickets.`,
+    });
+    state.player.ledger.questEarns.push({
+      name,
+      amount,
+      key: null,
+      status: 'pending',
+      cappedSessionId: null,
+    });
+    events.push({ type: 'questEarn', name, amount });
+    return amount;
+  }
   state.player.currencies.tickets += amount;
   events.push({
     type: 'message',
     kind: 'quest',
     text: `You receive ${amount.toLocaleString('en-US')} Tickets.`,
   });
-  if (state.hubSession.mode !== 'hub') return amount;
-  const name = questEarnName(questId, stepId, choiceId);
-  if (state.player.ledger.questEarns.some((row) => row.name === name)) return amount;
-  state.player.ledger.questEarns.push({
-    name,
-    amount,
-    key: null,
-    status: 'pending',
-    cappedSessionId: null,
-  });
-  events.push({ type: 'questEarn', name, amount });
   return amount;
 }
 

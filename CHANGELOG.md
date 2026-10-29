@@ -8,6 +8,9 @@
   and Exit to Hub. Without a hub session the game still runs, and that standalone shop never syncs.
 - Story JSON was left alone, including lines that still say `$BITCOIN`.
 - hub-sdk 0.2.0 is vendored. A hub session buys and sells through `spendTickets` and `sellItem`.
+- Stream batches are sealed in a separate hub ledger before they are sent, so a second tab
+  cannot mint another key for the same pending Tickets. A quest reward hits the wallet once.
+  `capped: true` is a successful earn. A transport failure is retried on the next init.
 - Shop Ticket prices now come from Gameplay's v3 CSV (100 rows), including Blue Sproto Coffee
   before that item exists. Drop tables can name tertiary rolls and shared tables. The coin
   drop is still `usd / 25` as `pb_drop`, not the live price.

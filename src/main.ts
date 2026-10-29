@@ -13,6 +13,7 @@ import {
   UI,
 } from './config/balance';
 import { HubClient } from './hub/client';
+import { clearHubLedger } from './hub/ledgerStore';
 import { GAME_TITLE, PARODY_NOTICE, PRESIDENT_NAME } from './config/branding';
 import { Keyboard } from './input/keyboard';
 import { attachMouse } from './input/mouse';
@@ -339,6 +340,7 @@ async function boot(): Promise<void> {
           hub.logReset();
           resetting = true;
           clearSavedGame();
+          clearHubLedger();
           location.reload();
         },
         () => {

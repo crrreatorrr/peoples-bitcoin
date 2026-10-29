@@ -34,6 +34,7 @@ import {
   type TicketSnapshot,
 } from './bridge';
 import { HubSdkError } from '@metaverse/hub-sdk';
+import { ackSeal, forgetSeal, reconcileSeals, rememberSeal } from './ledgerStore';
 import { questEarnWireKey, uuidv7 } from './uuid';
 
 const QUEST_REASON = 'pb_quest';
@@ -41,6 +42,8 @@ const QUEST_REASON = 'pb_quest';
 export class HubClient {
   private readonly bridge = new HubBridge();
   private readonly inflight = new Set<string>();
+  /** Owner id for the cross-tab hub-ledger lock. */
+  private readonly lockOwner = uuidv7();
 
   constructor(
     private readonly state: GameState,
@@ -106,10 +109,25 @@ export class HubClient {
   sealSync(): { reason: StreamReason; id: string }[] {
     const opened: { reason: StreamReason; id: string }[] = [];
     if (this.state.hubSession.mode !== 'hub') return opened;
+    // Disk seals win over a stale in-memory pending balance.
+    reconcileSeals(this.state);
     for (const reason of STREAM_REASONS) {
       if (this.state.player.ledger.batches[reason]) continue;
       const id = uuidv7();
-      if (openStreamBatch(this.state, reason, id)) opened.push({ reason, id });
+      const batch = openStreamBatch(this.state, reason, id);
+      if (!batch) continue;
+      const sealed = rememberSeal(this.lockOwner, {
+        id,
+        reason,
+        amount: batch.amount,
+        acked: false,
+      });
+      if (!sealed) {
+        undoStreamBatch(this.state, reason, id);
+        continue;
+      }
+      this.state.player.ledger.appliedSealIds.push(id);
+      opened.push({ reason, id });
     }
     for (const row of this.state.player.ledger.questEarns) {
       if ((row.status === 'pending' || row.status === 'capped') && !row.key) {
@@ -330,7 +348,13 @@ export class HubClient {
   }
 
   private undo(opened: { reason: StreamReason; id: string }[]): void {
-    for (const row of opened) undoStreamBatch(this.state, row.reason, row.id);
+    for (const row of opened) {
+      undoStreamBatch(this.state, row.reason, row.id);
+      this.state.player.ledger.appliedSealIds = this.state.player.ledger.appliedSealIds.filter(
+        (id) => id !== row.id,
+      );
+      forgetSeal(this.lockOwner, row.id);
+    }
   }
 
   private async sendPending(when: 'checkpoint' | 'session'): Promise<void> {
@@ -338,7 +362,10 @@ export class HubClient {
     const sid = this.bridge.sessionId();
     for (const reason of STREAM_REASONS) {
       const batch = this.state.player.ledger.batches[reason];
-      if (batch) await this.sendBatch(reason, batch.id, batch.amount);
+      // A transport failure is retried on the next init, not on every checkpoint.
+      if (batch && (when === 'session' || !batch.retryAtInit)) {
+        await this.sendBatch(reason, batch.id, batch.amount);
+      }
     }
     for (const row of this.state.player.ledger.questEarns) {
       const newSession = sid !== '' && sid !== row.cappedSessionId;
@@ -360,14 +387,10 @@ export class HubClient {
     this.inflight.add(token);
     try {
       const result = await this.bridge.earnTickets(amount, reason, id);
-      if (result.capped) {
-        console.warn('[hub] earn batch hit the cap; dropping it', { reason, id, amount });
-        dropStreamBatch(this.state, reason, id, result.balance);
-        this.say(ticketLimitMessage());
-      } else {
-        ackStreamBatch(this.state, reason, id, result.balance);
-        this.noteCredit(amount);
-      }
+      // A 2xx body is success even when capped is true. The server already applied it.
+      ackStreamBatch(this.state, reason, id, result.balance);
+      ackSeal(this.lockOwner, id);
+      if (!result.capped) this.noteCredit(amount);
       this.save();
     } catch (err) {
       const code = errorCode(err);
@@ -375,11 +398,15 @@ export class HubClient {
       if (isStreamTerminal(code)) {
         console.warn('[hub] earn batch dropped', { reason, id, amount, code });
         dropStreamBatch(this.state, reason, id, null);
+        ackSeal(this.lockOwner, id);
         this.say(isCap(code) ? ticketLimitMessage(capRemaining(err)) : 'Could not bank Tickets.');
         this.save();
       } else {
+        const batch = this.state.player.ledger.batches[reason];
+        if (batch?.id === id) batch.retryAtInit = true;
         this.bridge.noteFailure(err);
-        console.warn('[hub] earn batch will retry', { reason, id, code });
+        this.save();
+        console.warn('[hub] earn batch will retry on the next init', { reason, id, code });
       }
     } finally {
       this.inflight.delete(token);
