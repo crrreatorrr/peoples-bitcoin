@@ -10,6 +10,7 @@ import npcsJson from '../data/npcs.json';
 import objectsJson from '../data/objects.json';
 import questsJson from '../data/quests.json';
 import shopsJson from '../data/shops.json';
+import ticketPricesJson from '../data/shop_prices.tickets.json';
 import skillsJson from '../data/skills.json';
 import sprotosJson from '../data/sprotos.json';
 import usesJson from '../data/uses.json';
@@ -22,6 +23,7 @@ import {
   ObjectsFileSchema,
   QuestsFileSchema,
   ShopsFileSchema,
+  TicketPricesFileSchema,
   SkillsFileSchema,
   SprotosFileSchema,
   UsesFileSchema,
@@ -43,6 +45,14 @@ import {
   type ZoneDef,
 } from './schemas';
 
+export interface TicketPriceRow {
+  shopId: string;
+  itemId: string;
+  packSize: number;
+  price: number;
+  sellPrice: number;
+}
+
 export interface GatherNode {
   skillId: string;
   action: GatherAction;
@@ -58,6 +68,8 @@ export interface Content {
   sprotos: Map<string, SprotoDef>;
   drops: Map<string, DropTable>;
   shops: Map<string, Shop>;
+  /** Buy and sell prices. The client displays these and never sends them. */
+  ticketPrices: TicketPriceRow[];
   quests: Map<string, QuestDef>;
   terrain: Map<string, TerrainDef>;
   zones: Map<string, ZoneDef>;
@@ -78,6 +90,7 @@ export interface RawContent {
   sprotos: unknown;
   drops: unknown;
   shops: unknown;
+  ticketPrices: unknown;
   quests: unknown;
   zones: unknown;
   uses: unknown;
@@ -92,6 +105,7 @@ export const DEFAULT_RAW_CONTENT: RawContent = {
   sprotos: sprotosJson,
   drops: dropsJson,
   shops: shopsJson,
+  ticketPrices: ticketPricesJson,
   quests: questsJson,
   zones: zonesJson,
   uses: usesJson,
@@ -114,6 +128,12 @@ export function loadContent(raw: RawContent = DEFAULT_RAW_CONTENT): Content {
   const sprotos = parse('sprotos.json', SprotosFileSchema, raw.sprotos, problems);
   const drops = parse('droptables.json', DropTablesFileSchema, raw.drops, problems);
   const shops = parse('shops.json', ShopsFileSchema, raw.shops, problems);
+  const ticketPrices = parse(
+    'shop_prices.tickets.json',
+    TicketPricesFileSchema,
+    raw.ticketPrices,
+    problems,
+  );
   const quests = parse('quests.json', QuestsFileSchema, raw.quests, problems);
   const zones = parse('zones.json', ZonesFileSchema, raw.zones, problems);
   const uses = parse('uses.json', UsesFileSchema, raw.uses, problems);
@@ -126,6 +146,7 @@ export function loadContent(raw: RawContent = DEFAULT_RAW_CONTENT): Content {
     !sprotos ||
     !drops ||
     !shops ||
+    !ticketPrices ||
     !quests ||
     !zones ||
     !uses
@@ -142,6 +163,13 @@ export function loadContent(raw: RawContent = DEFAULT_RAW_CONTENT): Content {
     sprotos: indexById('sprotos.json', sprotos, problems),
     drops: indexById('droptables.json', drops, problems),
     shops: indexById('shops.json', shops, problems),
+    ticketPrices: ticketPrices.map((row) => ({
+      shopId: row.shop_id,
+      itemId: row.item_id,
+      packSize: row.pack_size,
+      price: row.price,
+      sellPrice: row.sell_price,
+    })),
     quests: indexById('quests.json', quests, problems),
     terrain: indexById('zones.json terrain', zones.terrain, problems),
     zones: indexById('zones.json', zones.zones, problems),
@@ -215,9 +243,37 @@ function checkReferences(c: Content, problems: string[]): void {
   for (const d of c.drops.values()) {
     for (const s of d.always) item(`droptables.json ${d.id}`, s.item);
     for (const row of d.table) item(`droptables.json ${d.id}`, row.item);
+    for (const t of d.tertiary) item(`droptables.json ${d.id}`, t.item);
+    for (const s of d.shared) {
+      const sub = c.drops.get(s.table);
+      const where = `droptables.json ${d.id}`;
+      if (!sub) problems.push(`${where}: unknown shared table '${s.table}'`);
+      else if (sub.shared.length > 0)
+        problems.push(`${where}: shared table '${s.table}' nests another shared table`);
+    }
   }
   for (const shop of c.shops.values()) {
     for (const s of shop.stock) item(`shops.json ${shop.id}`, s.item);
+  }
+  const seenPrice = new Set<string>();
+  const packOf = new Map<string, number>();
+  const sellOf = new Map<string, number>();
+  for (const row of c.ticketPrices) {
+    const where = `shop_prices.tickets.json ${row.shopId}:${row.itemId}`;
+    if (!c.shops.has(row.shopId)) problems.push(`${where}: unknown shop`);
+    // Unknown items (item_blue_sproto_coffee, until that milestone) are kept and ignored.
+    if (row.sellPrice >= row.price)
+      problems.push(`${where}: sell price must be below the buy price`);
+    const key = `${row.shopId}:${row.itemId}`;
+    if (seenPrice.has(key)) problems.push(`${where}: duplicate row`);
+    seenPrice.add(key);
+    const pack = packOf.get(row.itemId);
+    if (pack !== undefined && pack !== row.packSize) problems.push(`${where}: pack size disagrees`);
+    packOf.set(row.itemId, row.packSize);
+    const sell = sellOf.get(row.itemId);
+    if (sell !== undefined && sell !== row.sellPrice)
+      problems.push(`${where}: sell price disagrees`);
+    sellOf.set(row.itemId, row.sellPrice);
   }
   for (const q of c.quests.values()) {
     if (q.startNpc && !c.npcs.has(q.startNpc))

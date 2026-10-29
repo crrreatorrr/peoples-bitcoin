@@ -1,7 +1,7 @@
 /**
  * The tick loop. One call = one 600 ms game tick. Order (DESIGN.md §3):
  * inputs → movement → actions (skilling, interacting, the player's attacks) →
- * Sproto AI → enemies → death → NPCs → regen/timers → economy → autosave.
+ * Sproto AI → enemies → death → NPCs → regen/timers → autosave.
  */
 import {
   AUTOSAVE_EVERY_TICKS,
@@ -15,7 +15,6 @@ import {
 import { deposit, depositAll, withdraw } from './bank';
 import { build, builtOption, hotspotActions, useStation } from './bunker';
 import { approachEnemy, tickPlayerAttack } from './combat';
-import { stepEconomy } from './economy';
 import { stepEnemies } from './enemies';
 import { drink, expireBoosts } from './boosts';
 import { eat, equipFromInventory, setStyle, unequip } from './equipment';
@@ -63,7 +62,6 @@ export function runTick(state: GameState, ctx: SimContext, intents: readonly Int
     handleDeath(state, ctx, events);
   stepNpcs(state, ctx);
   stepTimers(state, ctx, events);
-  stepEconomy(state.economy, state.rng, state.tick);
   if (state.tick % AUTOSAVE_EVERY_TICKS === 0) events.push({ type: 'autosave' });
   return events;
 }
@@ -110,27 +108,30 @@ function applyIntent(state: GameState, ctx: SimContext, intent: Intent, events: 
       player.autoRetaliate = !player.autoRetaliate;
       break;
     case 'dropItem':
-      dropToGround(state, ctx, intent.slot);
+      if (!saleLocked(state, intent.slot, events)) dropToGround(state, ctx, intent.slot);
       break;
     case 'moveItem':
+      if (saleLocked(state, intent.from, events) || saleLocked(state, intent.to, events)) break;
       swapSlots(player.inventory, intent.from, intent.to);
       break;
     case 'equip':
-      equipFromInventory(state, ctx, intent.slot, events);
+      if (!saleLocked(state, intent.slot, events))
+        equipFromInventory(state, ctx, intent.slot, events);
       break;
     case 'unequip':
       unequip(state, ctx, intent.slot, events);
       break;
     case 'eat':
-      eat(state, ctx, intent.slot, events);
+      if (!saleLocked(state, intent.slot, events)) eat(state, ctx, intent.slot, events);
       break;
     case 'drink':
-      drink(state, ctx, intent.slot, events);
+      if (!saleLocked(state, intent.slot, events)) drink(state, ctx, intent.slot, events);
       break;
     case 'teleport':
-      startTeleport(state, ctx, intent.slot, events);
+      if (!saleLocked(state, intent.slot, events)) startTeleport(state, ctx, intent.slot, events);
       break;
     case 'useItem': {
+      if (saleLocked(state, intent.slot, events)) break;
       const item = player.inventory[intent.slot];
       const target = findEntity(state, intent.targetId);
       if (!item || !target || (target.kind !== 'object' && target.kind !== 'npc')) {
@@ -174,7 +175,7 @@ function applyIntent(state: GameState, ctx: SimContext, intent: Intent, events: 
       advanceDialogue(state);
       break;
     case 'deposit':
-      if (ui?.kind === 'bank') {
+      if (ui?.kind === 'bank' && !saleLocked(state, intent.slot, events)) {
         deposit(player, intent.slot, intent.qty, events);
         progressQuests(state, ctx, { type: 'deposit' }, events);
       }
@@ -281,6 +282,10 @@ function stepActions(state: GameState, ctx: SimContext, events: SimEvent[]): voi
     return;
   }
   player.action = null;
+  if (action.action === 'Exchange' && obj.defId === 'obj_terminal') {
+    player.interface = { kind: 'exchange' };
+    return;
+  }
   switch (def.role) {
     case 'bank':
       player.interface = { kind: 'bank' };
@@ -320,6 +325,12 @@ function stepTimers(state: GameState, ctx: SimContext, events: SimEvent[]): void
     SUMMONING.pointsMax,
     player.summoning.points + SUMMONING.pointsRegenPerTick,
   );
+}
+
+function saleLocked(state: GameState, slot: number, events: SimEvent[]): boolean {
+  if (state.player.ledger.sale?.slot !== slot) return false;
+  events.push({ type: 'message', kind: 'game', text: 'That item is waiting on a sale.' });
+  return true;
 }
 
 function sayPublic(state: GameState, text: string, events: SimEvent[]): void {

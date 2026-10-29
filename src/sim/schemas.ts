@@ -219,7 +219,7 @@ export const GatherActionSchema = z.object({
   levelReq: Level,
   xp: z.number().positive(),
   output: Id.optional(),
-  /** Money paid per success, in USD (converted to $BITCOIN at the live price). */
+  /** Money paid per success, in USD-equivalent (1 Ticket per 25). */
   payUsd: UsdRange.optional(),
   /** Chance a success pays nothing (Lobbying blackmail), and what you're told. */
   unpaid: z.object({ chance: z.number().min(0).max(1), message: z.string() }).optional(),
@@ -375,6 +375,18 @@ export const DropTableSchema = z.object({
       }),
     )
     .default([]),
+  /** Independent 1/oneIn rolls each kill (clue-like, pet-like). */
+  tertiary: z
+    .array(
+      z.object({
+        item: Id,
+        qty: z.number().int().positive().default(1),
+        oneIn: z.number().int().positive(),
+      }),
+    )
+    .default([]),
+  /** Shared tables (other DropTable ids) rolled once each on a 1/oneIn hit. Shared tables must not have `shared`. */
+  shared: z.array(z.object({ table: Id, oneIn: z.number().int().positive() })).default([]),
 });
 
 /** Using an inventory item on an object or NPC (uses.json). */
@@ -396,6 +408,16 @@ export const ShopSchema = z.object({
   name: z.string(),
   stock: z.array(z.object({ item: Id, priceUsd: z.number().positive() })),
 });
+
+/** One shop row from shop_prices.tickets.json. `price` is Tickets per pack. */
+export const TicketPriceSchema = z.object({
+  shop_id: Id,
+  item_id: Id,
+  pack_size: z.number().int().positive(),
+  price: z.number().int().positive(),
+  sell_price: z.number().int().nonnegative(),
+});
+export const TicketPricesFileSchema = z.array(TicketPriceSchema);
 
 export const QuestTriggerSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('talk'), npc: Id }),

@@ -4,6 +4,7 @@
  * complete; clicking one opens its journal.
  */
 import type { Content } from '../sim/content';
+import { questTicketAmount } from '../sim/ledger';
 import { questPoints, type QuestHint } from '../sim/quests';
 import type { QuestDef } from '../sim/schemas';
 import type { GameState, SimContext } from '../sim/state';
@@ -129,7 +130,7 @@ export class QuestJournal {
     const r = quest.reward;
     if (!r) return lines;
     if (r.unlock) lines.push(UNLOCK_TEXT[r.unlock] ?? `Unlocks: ${r.unlock}`);
-    if (r.usd > 0) lines.push(`$${r.usd.toLocaleString('en-US')} worth of $BITCOIN`);
+    if (r.usd > 0) lines.push(`${questTicketAmount(r.usd).toLocaleString('en-US')} Tickets`);
     for (const s of r.items) {
       lines.push(`${s.qty} × ${this.content.items.get(s.item)?.name ?? s.item}`);
     }

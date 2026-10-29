@@ -1,0 +1,348 @@
+import { resolveHubEnv } from './env';
+import { HubSdkError } from './errors';
+import { getOrCreateDeviceId } from './storage';
+import { readTicketParam, stripTicketParam } from './ticket';
+import { GAME_IDS, canonicalGameId, isBoardId, isRelicId, } from './types';
+/** IndexedDB database for earn, event, and exchange writes that have not been acked. */
+export const HUB_OUTBOX_DB = 'hub-outbox';
+const OUTBOX_STORE = 'writes';
+const memoryWrites = new Map();
+function flatEffects(value) {
+    if (!value || typeof value !== 'object' || Array.isArray(value))
+        return {};
+    const out = {};
+    for (const [key, item] of Object.entries(value)) {
+        if (typeof item === 'number' || typeof item === 'boolean' || typeof item === 'string')
+            out[key] = item;
+    }
+    return out;
+}
+function asRelics(value) {
+    if (!Array.isArray(value))
+        return [];
+    return value.filter((item) => typeof item === 'string' && isRelicId(item));
+}
+function clockMs(value) {
+    return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+}
+function cloneBody(body) {
+    return JSON.parse(JSON.stringify(body));
+}
+function useIndexedDb() {
+    return typeof indexedDB !== 'undefined';
+}
+function openOutbox() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(HUB_OUTBOX_DB, 1);
+        request.onupgradeneeded = () => {
+            const db = request.result;
+            if (!db.objectStoreNames.contains(OUTBOX_STORE))
+                db.createObjectStore(OUTBOX_STORE, { keyPath: 'key' });
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error ?? new Error('indexedDB open failed'));
+    });
+}
+function requestDone(request) {
+    return new Promise((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error ?? new Error('indexedDB request failed'));
+    });
+}
+function transactionDone(tx) {
+    return new Promise((resolve, reject) => {
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error ?? new Error('indexedDB transaction failed'));
+        tx.onabort = () => reject(tx.error ?? new Error('indexedDB transaction aborted'));
+    });
+}
+async function withStore(mode, run) {
+    const db = await openOutbox();
+    try {
+        const tx = db.transaction(OUTBOX_STORE, mode);
+        const done = transactionDone(tx);
+        const result = await run(tx.objectStore(OUTBOX_STORE));
+        await done;
+        return result;
+    }
+    finally {
+        db.close();
+    }
+}
+async function readWrite(key) {
+    if (!useIndexedDb())
+        return memoryWrites.get(key) ?? null;
+    return withStore('readonly', (store) => requestDone(store.get(key))).then((row) => row ?? null);
+}
+async function listWrites() {
+    if (!useIndexedDb())
+        return [...memoryWrites.values()];
+    return withStore('readonly', (store) => requestDone(store.getAll()));
+}
+/** Commit the record before any RPC. An existing key is left untouched. */
+async function remember(record) {
+    const existing = await readWrite(record.key);
+    if (existing)
+        return existing;
+    const stored = { ...record, body: cloneBody(record.body) };
+    if (!useIndexedDb()) {
+        memoryWrites.set(stored.key, stored);
+        return stored;
+    }
+    await withStore('readwrite', (store) => {
+        store.put(stored);
+    });
+    return stored;
+}
+async function forget(key) {
+    if (!useIndexedDb()) {
+        memoryWrites.delete(key);
+        return;
+    }
+    await withStore('readwrite', (store) => {
+        store.delete(key);
+    });
+}
+/**
+ * Hub SDK backed by Nakama. `init` reads `#t=<ticket>`, strips it, and exchanges it
+ * for a game-scoped session cached in sessionStorage. Without a ticket or a cached
+ * session every call no-ops so the game still runs standalone.
+ */
+export function createLiveHubSdk(env, client) {
+    const resolved = resolveHubEnv(env);
+    let active = null;
+    function sessionKey(game) {
+        return `hub:${game}:session`;
+    }
+    function readCached(game) {
+        const raw = resolved.session.getItem(sessionKey(game));
+        if (!raw)
+            return null;
+        try {
+            const parsed = JSON.parse(raw);
+            if (parsed.game !== game || !parsed.token || !parsed.playerId || !parsed.sid)
+                return null;
+            if (typeof parsed.ranked !== 'boolean')
+                return null;
+            return {
+                game,
+                playerId: parsed.playerId,
+                ranked: parsed.ranked,
+                sid: parsed.sid,
+                token: parsed.token,
+                effects: flatEffects(parsed.effects),
+                relics: asRelics(parsed.relics),
+                ticketsCapLeft: typeof parsed.ticketsCapLeft === 'number' ? parsed.ticketsCapLeft : 0,
+            };
+        }
+        catch {
+            resolved.session.removeItem(sessionKey(game));
+            return null;
+        }
+    }
+    function writeCached(session) {
+        for (const game of GAME_IDS)
+            resolved.session.removeItem(sessionKey(game));
+        resolved.session.setItem(sessionKey(session.game), JSON.stringify(session));
+        active = session;
+    }
+    function profileOf(session, serverTime) {
+        return {
+            playerId: session.playerId,
+            ranked: session.ranked,
+            relics: [...session.relics],
+            effects: { ...session.effects },
+            ticketsCapLeft: session.ticketsCapLeft,
+            serverTime,
+        };
+    }
+    function standalone(serverTime) {
+        active = null;
+        return {
+            playerId: getOrCreateDeviceId(resolved.local),
+            ranked: false,
+            relics: [],
+            effects: {},
+            ticketsCapLeft: 0,
+            serverTime,
+        };
+    }
+    function noteGrant(session, response) {
+        if (!response || typeof response !== 'object')
+            return;
+        const granted = response.granted;
+        if (typeof granted !== 'string' || !isRelicId(granted) || session.relics.includes(granted))
+            return;
+        session.relics.push(granted);
+        writeCached(session);
+    }
+    /** One attempt. A lost response rejects and leaves the queued record in place. */
+    async function transmit(row) {
+        const response = await client.rpc(row.rpc, { ...row.body, key: row.key }, { token: row.token });
+        await forget(row.key);
+        if (active && row.gameId === active.game && row.rpc === 'session.event')
+            noteGrant(active, response);
+        return response;
+    }
+    async function sendOnce(session, rpc, key, body) {
+        const row = await remember({ rpc, body, key, token: session.token, gameId: session.game });
+        return transmit(row);
+    }
+    async function drain() {
+        const rows = await listWrites();
+        for (const row of rows)
+            await transmit(row);
+    }
+    return {
+        async init(gameId) {
+            const game = canonicalGameId(gameId);
+            if (!game)
+                throw new HubSdkError('bad_game', `Unknown game "${gameId}"`);
+            const token = readTicketParam(resolved.readHash());
+            let serverTime = 0;
+            if (token) {
+                const body = await client.rpc('session.redeem', { ticket: token, gameId: game }, { httpKey: true });
+                if (!body.token || !body.playerId || !body.sid) {
+                    throw new HubSdkError('ticket_invalid', 'Redeem did not return a session');
+                }
+                resolved.writeHash(stripTicketParam(resolved.readHash()));
+                serverTime = clockMs(body.serverTime);
+                writeCached({
+                    game,
+                    playerId: body.playerId,
+                    ranked: body.ranked === true,
+                    sid: body.sid,
+                    token: body.token,
+                    effects: flatEffects(body.effects),
+                    relics: asRelics(body.relics),
+                    ticketsCapLeft: typeof body.ticketsCapLeft === 'number' ? body.ticketsCapLeft : 0,
+                });
+            }
+            else {
+                const cached = readCached(game);
+                if (!cached) {
+                    active = null;
+                }
+                else {
+                    try {
+                        const profile = await client.rpc('profile.get', {}, { token: cached.token });
+                        cached.relics = asRelics(profile.relics);
+                        if (profile.playerId)
+                            cached.playerId = profile.playerId;
+                        if (typeof profile.ticketsCapLeft === 'number')
+                            cached.ticketsCapLeft = profile.ticketsCapLeft;
+                        serverTime = clockMs(profile.serverTime);
+                        writeCached(cached);
+                    }
+                    catch {
+                        active = cached;
+                    }
+                }
+            }
+            await drain();
+            return active ? profileOf(active, serverTime) : standalone(serverTime);
+        },
+        async reportEvent(eventId, data, key) {
+            if (!key)
+                throw new HubSdkError('bad_key', 'Idempotency key is required');
+            if (!data || typeof data !== 'object' || Array.isArray(data)) {
+                throw new HubSdkError('bad_event', 'Event data must be an object');
+            }
+            if (!active)
+                return {};
+            const result = await sendOnce(active, 'session.event', key, { eventId, data });
+            const granted = result && typeof result === 'object' ? result.granted : undefined;
+            return typeof granted === 'string' && isRelicId(granted) ? { granted } : {};
+        },
+        async submitScore(boardId, value, meta) {
+            if (!isBoardId(boardId))
+                throw new HubSdkError('bad_board', `Unknown board "${boardId}"`);
+            if (!Number.isFinite(value) || value < 0)
+                throw new HubSdkError('bad_score', 'Score must be a non-negative number');
+            if (!active || !active.ranked)
+                return;
+            await client.rpc('score.submit', { boardId, value, meta: meta ?? {} }, { token: active.token });
+        },
+        async earnTickets(amount, reason, key) {
+            if (!key)
+                throw new HubSdkError('bad_key', 'Idempotency key is required');
+            if (!Number.isFinite(amount) || amount <= 0)
+                throw new HubSdkError('bad_amount', 'Ticket amount must be positive');
+            if (!reason)
+                throw new HubSdkError('bad_reason', 'A reason is required');
+            if (!active)
+                return { balance: 0, capped: false };
+            return sendOnce(active, 'tickets.earn', key, { amount: Math.floor(amount), reason });
+        },
+        async exchange(tickets, key) {
+            if (!key)
+                throw new HubSdkError('bad_key', 'Idempotency key is required');
+            if (!Number.isFinite(tickets) || tickets <= 0) {
+                throw new HubSdkError('bad_amount', 'Exchange amount must be positive');
+            }
+            if (!active)
+                return { verse: 0, ticketsLeft: 0, balance: 0, receiptId: 'noop', verseCapLeft: 0 };
+            return sendOnce(active, 'tickets.exchange', key, { tickets: Math.floor(tickets) });
+        },
+        async spendTickets(shopId, itemId, packs, key) {
+            if (!key)
+                throw new HubSdkError('bad_key', 'Idempotency key is required');
+            if (!shopId || !itemId)
+                throw new HubSdkError('unknown_item', 'Unknown item');
+            if (!Number.isFinite(packs) || packs <= 0 || Math.floor(packs) !== packs) {
+                throw new HubSdkError('bad_amount', 'Quantity must be a positive integer');
+            }
+            const packsOut = Math.floor(packs);
+            if (!active)
+                return { shop_id: shopId, item_id: itemId, packs: packsOut, units: packsOut, spent: 0, balance: 0 };
+            return sendOnce(active, 'tickets.spend', key, {
+                game: active.game,
+                shop_id: shopId,
+                item_id: itemId,
+                packs: packsOut,
+            });
+        },
+        async sellItem(shopId, itemId, packs, key) {
+            if (!key)
+                throw new HubSdkError('bad_key', 'Idempotency key is required');
+            if (!shopId || !itemId)
+                throw new HubSdkError('unknown_item', 'Unknown item');
+            if (!Number.isFinite(packs) || packs <= 0 || Math.floor(packs) !== packs) {
+                throw new HubSdkError('bad_amount', 'Quantity must be a positive integer');
+            }
+            const packsOut = Math.floor(packs);
+            if (!active)
+                return { shop_id: shopId, item_id: itemId, packs: packsOut, units: packsOut, credited: 0, balance: 0 };
+            return sendOnce(active, 'tickets.sell', key, {
+                game: active.game,
+                shop_id: shopId,
+                item_id: itemId,
+                packs: packsOut,
+            });
+        },
+        async getTicketBalance() {
+            if (!active)
+                return { balance: 0, sessionCapLeft: 0, dailyCapLeft: 0, serverTime: 0 };
+            const body = await client.rpc('tickets.balance', { game: active.game }, { token: active.token });
+            return {
+                balance: typeof body.balance === 'number' ? body.balance : 0,
+                sessionCapLeft: typeof body.sessionCapLeft === 'number' ? body.sessionCapLeft : 0,
+                dailyCapLeft: typeof body.dailyCapLeft === 'number' ? body.dailyCapLeft : 0,
+                serverTime: clockMs(body.serverTime),
+            };
+        },
+        exit(reason) {
+            if (!active)
+                return;
+            const game = active.game;
+            const token = active.token;
+            resolved.session.removeItem(sessionKey(game));
+            active = null;
+            resolved.clearBeforeUnload();
+            resolved.releasePointer();
+            void client.rpc('session.close', { reason: reason ?? '' }, { token, keepalive: true }).catch(() => undefined);
+            const base = resolved.hubUrl.replace(/\/$/, '');
+            resolved.assign(`${base}/#from=${game}`);
+        },
+    };
+}

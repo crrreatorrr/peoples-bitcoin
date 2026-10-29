@@ -4,7 +4,17 @@
  * rendering reads the resulting state every frame.
  */
 import * as THREE from 'three';
-import { INVENTORY_SIZE, MAX_CATCHUP_TICKS, START_ZONE_ID, TICK_MS, UI } from './config/balance';
+import {
+  INVENTORY_SIZE,
+  MAX_CATCHUP_TICKS,
+  START_ZONE_ID,
+  TERMINAL_SHOP_ID,
+  TICK_MS,
+  UI,
+} from './config/balance';
+import { HubClient } from './hub/client';
+import { clearHubLedger } from './hub/ledgerStore';
+import { claimWriter } from './hub/singleWriter';
 import { GAME_TITLE, PARODY_NOTICE, PRESIDENT_NAME } from './config/branding';
 import { Keyboard } from './input/keyboard';
 import { attachMouse } from './input/mouse';
@@ -33,10 +43,11 @@ import {
   type SimEvent,
   type Tile,
 } from './sim/state';
-import { buyPrice, sellPrice } from './sim/terminal';
+import { buyPrice } from './sim/terminal';
 import { entityActions, runTick } from './sim/tick';
 import { levelForXp } from './sim/xp';
 import { BankWindow } from './ui/bank';
+import { ExchangeWindow } from './ui/exchange';
 import { BuildWindow } from './ui/build';
 import { Chat } from './ui/chat';
 import { ClickCross } from './ui/clickcross';
@@ -82,14 +93,30 @@ async function boot(): Promise<void> {
   let pending: Intent[] = [];
   /** Added to the browser clock; only the dev QA hook moves it. */
   let clockOffset = 0;
+  let frozen = false;
   const clockNow = () => performance.now() + clockOffset;
-  const queue = (intent: Intent) => pending.push(intent);
+  const queue = (intent: Intent) => {
+    if (!frozen) pending.push(intent);
+  };
 
   const chat = new Chat($('#chatbox'), PRESIDENT_NAME, (text) => queue({ type: 'chat', text }));
   const loaded = loadSavedGame(content);
   const state: GameState =
     loaded.state ?? createGameState(content, START_ZONE_ID, Date.now() >>> 0);
   greet(chat, loaded.status);
+  let resetting = false;
+  const tabLock = document.querySelector<HTMLElement>('#tab-lock');
+  const freeze = () => {
+    if (frozen) return;
+    saveGame(state);
+    frozen = true;
+    tabLock?.removeAttribute('hidden');
+  };
+  claimWriter(freeze);
+  const persist = () => !resetting && !frozen && saveGame(state);
+  const hub = new HubClient(state, ctx, (text, kind) => chat.add(text, kind), queue, persist);
+  const openShopId = () =>
+    state.player.interface?.kind === 'terminal' ? state.player.interface.shopId : TERMINAL_SHOP_ID;
 
   // ── Rendering ──────────────────────────────────────────────────────────────
   const assets = await AssetLoader.load();
@@ -230,13 +257,21 @@ async function boot(): Promise<void> {
     openMenu,
   });
   const terminal = new TerminalWindow(hudRoot, content, iconUrl, tooltip, {
-    buy: (itemId, qty) => queue({ type: 'buy', itemId, qty }),
+    buy: (itemId, packs) => hub.buy(openShopId(), itemId, packs),
     message: (text) => chat.add(text),
     close: closeInterface,
     examine: itemExamine,
     openMenu,
-    priceOf: (itemId, qty) => buyPrice(state, ctx, itemId, qty),
+    priceOf: (itemId, packs) => buyPrice(state, ctx, itemId, packs),
+    packSize: (itemId) =>
+      content.ticketPrices.find((row) => row.shopId === openShopId() && row.itemId === itemId)
+        ?.packSize ?? 1,
   });
+  const exchange = new ExchangeWindow(
+    hudRoot,
+    (tickets) => hub.requestExchange(tickets),
+    closeInterface,
+  );
   const buildWindow = new BuildWindow(hudRoot, content, iconUrl, {
     build: (buildId) => queue({ type: 'build', buildId }),
     close: closeInterface,
@@ -255,14 +290,9 @@ async function boot(): Promise<void> {
     select: (slot) => (usingSlot = slot),
     selected: () => usingSlot,
     deposit: (slot, qty) => queue({ type: 'deposit', slot, qty }),
-    sell: (slot, qty) => queue({ type: 'sell', slot, qty }),
-    value: (itemId) => {
-      const name = content.items.get(itemId)?.name ?? itemId;
-      const price = sellPrice(state, ctx, itemId, 1);
-      chat.add(
-        `The Terminal will pay ${price.toLocaleString('en-US')} $BITCOIN for a ${name} right now.`,
-      );
-    },
+    sell: (slot, qty) => hub.sell(slot, qty),
+    canSell: (itemId) => hub.canSell(itemId),
+    value: (itemId) => hub.describeValue(itemId),
     openMenu,
     mode: inventoryMode,
   });
@@ -284,8 +314,6 @@ async function boot(): Promise<void> {
   const journal = new QuestJournal(hudRoot, content);
   const quests = new QuestList(ctx, (questId) => journal.open(questId));
 
-  let resetting = false;
-  const persist = () => !resetting && saveGame(state);
   const sidePanel = new SidePanel($('#sidepanel'), [
     {
       id: 'inventory',
@@ -316,11 +344,19 @@ async function boot(): Promise<void> {
       title: 'Settings',
       hotkey: 'F10',
       content: buildSettingsPanel(
-        () => chat.add(persist() ? 'Game saved.' : 'Saving is unavailable in this browser.'),
         () => {
+          hub.checkpoint();
+          chat.add(persist() ? 'Game saved.' : 'Saving is unavailable in this browser.');
+        },
+        () => {
+          hub.logReset();
           resetting = true;
           clearSavedGame();
+          clearHubLedger();
           location.reload();
+        },
+        () => {
+          void hub.exitToHub();
         },
       ),
     },
@@ -381,6 +417,7 @@ async function boot(): Promise<void> {
       usingSlot = null;
       bank.close();
       terminal.close();
+      exchange.close();
       buildWindow.close();
       guide.close();
       journal.close();
@@ -519,17 +556,21 @@ async function boot(): Promise<void> {
           break;
         }
         case 'autosave':
-          persist();
           break;
       }
     }
+    hub.onEvents(events);
     if (xpThisTick.size > 0) {
       hud.xpDrop([...xpThisTick].map(([id, amount]) => ({ icon: glyph(`skill_${id}`), amount })));
     }
   };
 
-  window.addEventListener('pagehide', persist);
-  document.addEventListener('visibilitychange', () => document.hidden && persist());
+  window.addEventListener('pagehide', () => {
+    if (!frozen) hub.checkpoint();
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (!frozen && document.hidden) hub.checkpoint();
+  });
 
   if (import.meta.env.DEV) {
     // QA hook. advance(ms) steps the game clock frame by frame, even in a hidden tab.
@@ -548,6 +589,7 @@ async function boot(): Promise<void> {
   let lastTickAt = clockNow();
   let lastFrameAt = lastTickAt;
   const step = (now: number) => {
+    if (frozen) return;
     // After a long stall (background tab), resume without a burst of ticks.
     if (now - lastTickAt > TICK_MS * MAX_CATCHUP_TICKS) lastTickAt = now - TICK_MS;
     while (now - lastTickAt >= TICK_MS) {
@@ -610,8 +652,16 @@ async function boot(): Promise<void> {
     bank.update(p.interface?.kind === 'bank', p.bank);
     terminal.update(
       p.interface?.kind === 'terminal' ? p.interface.shopId : null,
-      p.currencies.bitcoin,
-      state.economy.priceUsd,
+      p.currencies.tickets,
+      hub.shopStatus(),
+    );
+    exchange.update(
+      p.interface?.kind === 'exchange',
+      p.currencies.tickets,
+      hub.exchangeAmounts(),
+      p.ledger.exchange !== null,
+      state.hubSession.verseCapLeft,
+      state.hubSession.mode === 'hub',
     );
     const build = buildState(content, ctx, state);
     buildWindow.update(build.name, build.choices);
@@ -624,9 +674,13 @@ async function boot(): Promise<void> {
     renderer.render(view.scene, cam.camera);
   };
   const frame = (t: number) => {
+    if (frozen) return;
     requestAnimationFrame(frame);
     step(t + clockOffset);
   };
+  if (frozen) return;
+  await hub.start();
+  if (frozen) return;
   requestAnimationFrame(frame);
 }
 

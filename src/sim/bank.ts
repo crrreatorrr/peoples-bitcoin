@@ -58,7 +58,7 @@ export function deposit(
 
 export function depositAll(player: PlayerState, events: SimEvent[]): void {
   for (let slot = 0; slot < player.inventory.length; slot++) {
-    if (!player.inventory[slot]) continue;
+    if (!player.inventory[slot] || player.ledger.sale?.slot === slot) continue;
     const before = events.length;
     deposit(player, slot, 'all', events);
     if (events.length > before) return; // bank full: stop after one message

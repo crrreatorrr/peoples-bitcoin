@@ -5,7 +5,7 @@
  * (DESIGN.md §0), shown with PARODY_NOTICE.
  */
 export const COIN_FULL_NAME = 'PresidentWizardHedgehog10Inu';
-export const COIN_TICKER = '$BITCOIN';
+export const COIN_TICKER = 'Tickets';
 export const COIN_NICKNAME = "The People's Bitcoin";
 export const GAME_TITLE = "The People's Bitcoin";
 export const PRESIDENT_NAME = 'President Obama';

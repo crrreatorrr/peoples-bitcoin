@@ -15,6 +15,7 @@ import {
   createGameState,
   createZoneState,
   emptyEquipment,
+  emptyLedger,
   maxHp,
   type CombatStyle,
   type GameState,
@@ -24,10 +25,61 @@ import {
 import { EQUIP_SLOTS } from './schemas';
 import { showUnlockedNpcs } from './zones';
 
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 
 const StackSchema = z.object({ itemId: z.string(), qty: z.number().int().positive() });
 const STYLES = ['accurate', 'rapid', 'longrange', 'bash', 'block'] as const;
+
+const PocketSchema = z.object({
+  remainder: z.number(),
+  pending: z.number().nonnegative(),
+});
+const Remainders = z.object({
+  pb_drop: z.number(),
+  pb_lobby: z.number(),
+  pb_sell: z.number(),
+});
+const ShopOrderSchema = z.object({
+  key: z.string(),
+  shopId: z.string(),
+  itemId: z.string(),
+  packs: z.number().int().positive(),
+});
+const LedgerSchema = z.object({
+  streams: z.object({
+    pb_drop: PocketSchema,
+    pb_lobby: PocketSchema,
+    pb_sell: PocketSchema,
+  }),
+  offlineRemainder: Remainders,
+  batches: z.record(
+    z.string(),
+    z.object({
+      id: z.string(),
+      amount: z.number().positive(),
+      retryAtInit: z.boolean().optional(),
+    }),
+  ),
+  questEarns: z.array(
+    z.object({
+      name: z.string(),
+      amount: z.number().positive(),
+      key: z.string().nullable(),
+      status: z.enum(['pending', 'capped', 'acked']),
+      cappedSessionId: z.string().nullable().default(null),
+    }),
+  ),
+  purchase: ShopOrderSchema.nullable(),
+  sale: ShopOrderSchema.extend({ slot: z.number().int().nonnegative() }).nullable(),
+  fulfilledKeys: z.array(z.string()),
+  exchange: z.object({ id: z.string(), tickets: z.number().positive() }).nullable(),
+  appliedReceipts: z.array(z.string()),
+  appliedSealIds: z.array(z.string()).default([]),
+  relicKey: z.string().nullable(),
+  relicTick: z.number().nullable(),
+  relicAcked: z.boolean(),
+  submittedXp: z.number().nonnegative(),
+});
 
 const SaveSchema = z.object({
   version: z.literal(SAVE_VERSION),
@@ -45,7 +97,8 @@ const SaveSchema = z.object({
     equipment: z.record(z.string(), StackSchema.nullable()),
     bank: z.array(StackSchema),
     skills: z.record(z.string(), z.number().nonnegative()),
-    currencies: z.object({ bitcoin: z.number() }),
+    currencies: z.object({ tickets: z.number() }),
+    ledger: LedgerSchema,
     quests: z.record(
       z.string(),
       z.object({ done: z.array(z.string()), complete: z.boolean(), choices: z.array(z.string()) }),
@@ -133,6 +186,21 @@ const MIGRATIONS: Record<number, (save: RawSave) => RawSave> = {
       },
     };
   },
+  // v7: the bitcoin wallet becomes Tickets, display only. emptyLedger() has no
+  // pending earn, so this amount is never passed to earnTickets. A hub session
+  // replaces it from getTicketBalance in HubClient.start.
+  6: (save) => {
+    const player = asRecord(save.player);
+    const currencies = asRecord(player.currencies);
+    const raw = typeof currencies.bitcoin === 'number' ? currencies.bitcoin : currencies.tickets;
+    const tickets =
+      typeof raw === 'number' && Number.isFinite(raw) ? Math.max(0, Math.floor(raw)) : 0;
+    return {
+      ...save,
+      version: 7,
+      player: { ...player, currencies: { tickets }, ledger: emptyLedger() },
+    };
+  },
 };
 
 export function serialize(state: GameState, now: number): SaveData {
@@ -155,7 +223,30 @@ export function serialize(state: GameState, now: number): SaveData {
       ),
       bank: p.bank.map((s) => ({ ...s })),
       skills: { ...p.skills },
-      currencies: { ...p.currencies },
+      currencies: { tickets: p.currencies.tickets },
+      ledger: {
+        streams: {
+          pb_drop: { ...p.ledger.streams.pb_drop },
+          pb_lobby: { ...p.ledger.streams.pb_lobby },
+          pb_sell: { ...p.ledger.streams.pb_sell },
+        },
+        offlineRemainder: { ...p.ledger.offlineRemainder },
+        batches: { ...p.ledger.batches },
+        questEarns: p.ledger.questEarns.map((row) => ({
+          ...row,
+          cappedSessionId: row.cappedSessionId,
+        })),
+        purchase: p.ledger.purchase ? { ...p.ledger.purchase } : null,
+        sale: p.ledger.sale ? { ...p.ledger.sale } : null,
+        fulfilledKeys: [...p.ledger.fulfilledKeys],
+        exchange: p.ledger.exchange ? { ...p.ledger.exchange } : null,
+        appliedReceipts: [...p.ledger.appliedReceipts],
+        appliedSealIds: [...p.ledger.appliedSealIds],
+        relicKey: p.ledger.relicKey,
+        relicTick: p.ledger.relicTick,
+        relicAcked: p.ledger.relicAcked,
+        submittedXp: p.ledger.submittedXp,
+      },
       quests: Object.fromEntries(
         Object.entries(p.quests).map(([id, q]) => [
           id,
@@ -221,7 +312,31 @@ export function deserialize(raw: unknown, content: Content): GameState | null {
   }
   p.hp = save.player.hp > 0 ? Math.min(save.player.hp, maxHp(p)) : maxHp(p);
   p.style = save.player.style as CombatStyle;
-  p.currencies = { ...save.player.currencies };
+  p.currencies = { tickets: save.player.currencies.tickets, bitcoin: 0 };
+  const savedLedger = save.player.ledger;
+  p.ledger = {
+    streams: {
+      pb_drop: { ...savedLedger.streams.pb_drop },
+      pb_lobby: { ...savedLedger.streams.pb_lobby },
+      pb_sell: { ...savedLedger.streams.pb_sell },
+    },
+    offlineRemainder: { ...savedLedger.offlineRemainder },
+    batches: { ...savedLedger.batches },
+    questEarns: savedLedger.questEarns.map((row) => ({
+      ...row,
+      cappedSessionId: row.cappedSessionId ?? null,
+    })),
+    purchase: savedLedger.purchase ? { ...savedLedger.purchase } : null,
+    sale: savedLedger.sale ? { ...savedLedger.sale } : null,
+    fulfilledKeys: [...savedLedger.fulfilledKeys],
+    exchange: savedLedger.exchange ? { ...savedLedger.exchange } : null,
+    appliedReceipts: [...savedLedger.appliedReceipts],
+    appliedSealIds: [...savedLedger.appliedSealIds],
+    relicKey: savedLedger.relicKey,
+    relicTick: savedLedger.relicTick,
+    relicAcked: savedLedger.relicAcked,
+    submittedXp: savedLedger.submittedXp,
+  };
   for (const [id, q] of Object.entries(save.player.quests)) {
     if (content.quests.has(id)) {
       p.quests[id] = { done: [...q.done], complete: q.complete, choices: [...q.choices] };

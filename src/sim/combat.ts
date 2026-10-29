@@ -7,7 +7,7 @@ import { COMBAT, GROUND_ITEMS } from '../config/balance';
 import { bark, barkOnAggro, barkOnHurt } from './barks';
 import { damageAfterWeakness } from './weakness';
 import { effectiveLevel } from './boosts';
-import { payUsd } from './economy';
+import { addStreamUsd } from './ledger';
 import { attackProfile, consumeAmmo } from './equipment';
 import {
   chebyshev,
@@ -291,12 +291,12 @@ function dropLoot(
   const table = ctx.content.drops.get(def.drops);
   if (!table) return;
   const [min, max] = table.usd;
-  const paid = payUsd(state, min + (max - min) * nextFloat(state.rng));
+  const paid = addStreamUsd(state, 'pb_drop', min + (max - min) * nextFloat(state.rng));
   if (paid > 0) {
     events.push({
       type: 'message',
       kind: 'game',
-      text: `You loot ${paid.toLocaleString('en-US')} $BITCOIN.`,
+      text: `You loot ${paid.toLocaleString('en-US')} Tickets.`,
     });
   }
   const despawn = state.tick + GROUND_ITEMS.despawnTicks;
@@ -315,6 +315,18 @@ function dropLoot(
   for (let r = 0; r < table.rolls && total > 0; r++) {
     let pick = nextFloat(state.rng) * total;
     const row = table.table.find((candidate) => (pick -= candidate.weight) < 0);
+    if (row?.item) drop(row.item, nextInt(state.rng, row.min, row.max));
+  }
+  for (const t of table.tertiary) {
+    if (chance(state.rng, 1 / t.oneIn)) drop(t.item, t.qty);
+  }
+  for (const s of table.shared) {
+    if (!chance(state.rng, 1 / s.oneIn)) continue;
+    const sub = ctx.content.drops.get(s.table);
+    const subTotal = sub ? sub.table.reduce((sum, row) => sum + row.weight, 0) : 0;
+    if (!sub || subTotal <= 0) continue;
+    let pick = nextFloat(state.rng) * subTotal;
+    const row = sub.table.find((candidate) => (pick -= candidate.weight) < 0);
     if (row?.item) drop(row.item, nextInt(state.rng, row.min, row.max));
   }
 }

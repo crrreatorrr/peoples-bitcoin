@@ -76,10 +76,102 @@ export type OpenInterface =
   | { kind: 'bank' }
   /** A shop window: the Trading Terminal or another shop's stall. */
   | { kind: 'terminal'; shopId: string }
+  /** Ticket → Verse exchange at a Treasury terminal. */
+  | { kind: 'exchange' }
   | { kind: 'build'; targetId: string };
 
 export interface Currencies {
+  tickets: number;
+  /**
+   * Always 0. The wallet is `tickets`. This field only exists so the current
+   * test suite still typechecks; nothing in the game reads or writes it.
+   */
   bitcoin: number;
+}
+
+/** Repeatable Ticket streams banked with earnTickets. */
+export const STREAM_REASONS = ['pb_drop', 'pb_lobby', 'pb_sell'] as const;
+export type StreamReason = (typeof STREAM_REASONS)[number];
+
+export interface StreamPocket {
+  /** Fractional Tickets not yet a whole Ticket. */
+  remainder: number;
+  /** Whole Tickets not yet sealed into a batch. Hub sessions only. */
+  pending: number;
+}
+
+export interface EarnBatch {
+  id: string;
+  amount: number;
+  /** Set after a transport failure. The next init resends this id; checkpoints do not. */
+  retryAtInit?: boolean;
+}
+
+/** One quest or step reward. `name` is the stable id; `key` is its UUIDv5. */
+export interface QuestEarn {
+  name: string;
+  amount: number;
+  /** UUIDv5 of `name`, filled before the first send and reused. */
+  key: string | null;
+  /**
+   * `capped` is still owed: `session_ticket_cap` only. It is resent when the
+   * hub session id changes. `acked` includes earns we dropped for good.
+   */
+  status: 'pending' | 'capped' | 'acked';
+  /** Hub session id that returned session_ticket_cap, if we know it. */
+  cappedSessionId: string | null;
+}
+
+export interface ShopOrder {
+  key: string;
+  shopId: string;
+  itemId: string;
+  packs: number;
+}
+
+export interface SaleOrder extends ShopOrder {
+  slot: number;
+}
+
+export interface ExchangeOrder {
+  id: string;
+  tickets: number;
+}
+
+/** Hub writes that must survive a reload. Not the SDK's own outbox. */
+export interface HubLedger {
+  streams: Record<StreamReason, StreamPocket>;
+  /** Standalone fractions. These are never sent to the hub. */
+  offlineRemainder: Record<StreamReason, number>;
+  batches: Partial<Record<StreamReason, EarnBatch>>;
+  questEarns: QuestEarn[];
+  purchase: ShopOrder | null;
+  sale: SaleOrder | null;
+  fulfilledKeys: string[];
+  exchange: ExchangeOrder | null;
+  appliedReceipts: string[];
+  /**
+   * Ids of stream batches sealed in the hub ledger store. A stale tab uses this,
+   * plus that store, so it does not mint a second key for the same pending.
+   */
+  appliedSealIds: string[];
+  relicKey: string | null;
+  relicTick: number | null;
+  relicAcked: boolean;
+  submittedXp: number;
+}
+
+/** Session-only hub link. Never serialized. */
+export interface HubSession {
+  mode: 'standalone' | 'hub';
+  reachable: boolean;
+  effects: Record<string, number | boolean | string>;
+  serverBalance: number | null;
+  verseCapLeft: number | null;
+  /** Tickets this session can still credit. Null until getTicketBalance. */
+  sessionCapLeft: number | null;
+  /** Tickets this game can still credit today. Null until getTicketBalance. */
+  dailyCapLeft: number | null;
 }
 
 export interface DialogueState {
@@ -142,6 +234,7 @@ export interface PlayerState {
   /** Skill id → total XP. */
   skills: Record<string, number>;
   currencies: Currencies;
+  ledger: HubLedger;
   quests: Record<string, QuestProgress>;
   /** Earned flags: boss kills ("boss:<enemyId>"), quest unlocks ("bunker") and NPCs met ("met:<npcId>"). */
   unlocks: string[];
@@ -261,6 +354,8 @@ export interface GameState {
   /** Zones visited this session, kept so ground items and kills persist while away. */
   otherZones: Record<string, ZoneState>;
   economy: EconomyState;
+  /** Not saved. Standalone until the client links a hub session. */
+  hubSession: HubSession;
 }
 
 /** Static data the tick needs alongside the state. */
@@ -285,7 +380,11 @@ export type SimEvent =
   | { type: 'zoneChanged'; zoneId: string }
   /** The player started teleporting (for the sparkle). */
   | { type: 'teleport' }
-  | { type: 'autosave' };
+  | { type: 'autosave' }
+  /** A quest just flipped to complete. */
+  | { type: 'questComplete'; questId: string; tick: number }
+  /** A quest Ticket reward is waiting to be sent on its own key. */
+  | { type: 'questEarn'; name: string; amount: number };
 
 export type EntityRef =
   | { kind: 'object'; instance: ObjectInstance }
@@ -295,6 +394,41 @@ export type EntityRef =
 
 export const PLAYER_ID = 'player';
 export const SPROTO_ID = 'sproto';
+
+function emptyPocket(): StreamPocket {
+  return { remainder: 0, pending: 0 };
+}
+
+export function emptyLedger(): HubLedger {
+  return {
+    streams: { pb_drop: emptyPocket(), pb_lobby: emptyPocket(), pb_sell: emptyPocket() },
+    offlineRemainder: { pb_drop: 0, pb_lobby: 0, pb_sell: 0 },
+    batches: {},
+    questEarns: [],
+    purchase: null,
+    sale: null,
+    fulfilledKeys: [],
+    exchange: null,
+    appliedReceipts: [],
+    appliedSealIds: [],
+    relicKey: null,
+    relicTick: null,
+    relicAcked: false,
+    submittedXp: 0,
+  };
+}
+
+export function freshHubSession(): HubSession {
+  return {
+    mode: 'standalone',
+    reachable: false,
+    effects: {},
+    serverBalance: null,
+    verseCapLeft: null,
+    sessionCapLeft: null,
+    dailyCapLeft: null,
+  };
+}
 
 export function emptyEquipment(): Equipment {
   return {
@@ -409,6 +543,7 @@ export function createGameState(content: Content, zoneId: string, seed: number):
       overhead: null,
       skills,
       currencies: { ...START_CURRENCIES },
+      ledger: emptyLedger(),
       quests,
       unlocks: [],
       bunker: {},
@@ -427,6 +562,7 @@ export function createGameState(content: Content, zoneId: string, seed: number):
     zone: createZoneState(zone, content),
     otherZones: {},
     economy: createEconomy(),
+    hubSession: freshHubSession(),
   };
 }
 

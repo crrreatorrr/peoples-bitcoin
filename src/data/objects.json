@@ -149,7 +149,7 @@
     "name": "Trading Terminal",
     "examine": "Buy and sell at the live $BITCOIN price. Timing is everything.",
     "model": "terminal",
-    "actions": ["Use"],
+    "actions": ["Use", "Exchange"],
     "blocks": true,
     "role": "terminal"
   },

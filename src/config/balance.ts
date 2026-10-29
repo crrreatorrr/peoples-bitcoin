@@ -151,7 +151,25 @@ export const ECONOMY = {
   recentDecay: 0.98,
 } as const;
 
-export const START_CURRENCIES = { bitcoin: 0 } as const;
+export const START_CURRENCIES = { tickets: 0, bitcoin: 0 } as const;
+
+/**
+ * Repeatable Ticket sources (drops, lobbying, sell-only goods).
+ * Shop prices are data in shop_prices.tickets.json, not derived here.
+ */
+export const TICKETS = {
+  /** 1 Ticket per this many USD-equivalent. Fractional leftovers stay in the save. */
+  usdPerTicket: 25,
+  /**
+   * One pb_drop / pb_lobby / pb_sell call. Also the session earn cap.
+   * The server rejects a whole batch that does not fit; it does not pay part.
+   */
+  batchMax: 200,
+  /** Server cap for one pb_quest earn. The amount is not split; a rejection retries next session. */
+  questCap: 158,
+  exchangeStep: 10,
+  exchangeMax: 500,
+} as const;
 
 // ── Bank, ground items, chat, NPCs ───────────────────────────────────────────
 export const BANK = {
