@@ -146,81 +146,91 @@
     "accent": "#5b3b22",
     "sprite": "sprites/tree_oak.png"
   },
+  "tab_combat": {
+    "placeholder": "glyph",
+    "label": "⚔️",
+    "pixel": "ui/tab_combat.png"
+  },
   "tab_inventory": {
     "placeholder": "glyph",
-    "label": "\ud83c\udf92"
+    "label": "🎒",
+    "pixel": "ui/tab_inventory.png"
   },
   "tab_equipment": {
     "placeholder": "glyph",
-    "label": "\ud83d\udc54"
+    "label": "👔",
+    "pixel": "ui/tab_equipment.png"
   },
   "tab_skills": {
     "placeholder": "glyph",
-    "label": "\ud83d\udcca"
+    "label": "📊",
+    "pixel": "ui/tab_skills.png"
   },
   "tab_military": {
     "placeholder": "glyph",
-    "label": "\ud83e\ude96"
+    "label": "🪖"
   },
   "tab_quests": {
     "placeholder": "glyph",
-    "label": "\ud83d\udcdc"
+    "label": "📜",
+    "pixel": "ui/tab_quests.png"
   },
   "tab_settings": {
     "placeholder": "glyph",
-    "label": "\u2699\ufe0f"
+    "label": "⚙️",
+    "pixel": "ui/tab_settings.png"
   },
   "orb_run": {
     "placeholder": "glyph",
-    "label": "\ud83c\udfc3"
+    "label": "🏃"
   },
   "skill_shooting": {
     "placeholder": "glyph",
-    "label": "\ud83c\udfaf"
+    "label": "🎯"
   },
   "skill_melee": {
     "placeholder": "glyph",
-    "label": "\ud83d\udd28"
+    "label": "🔨"
   },
   "skill_defense": {
     "placeholder": "glyph",
-    "label": "\ud83d\udee1\ufe0f"
+    "label": "🛡️"
   },
   "skill_hitpoints": {
     "placeholder": "glyph",
-    "label": "\u2764\ufe0f"
+    "label": "❤️"
   },
   "skill_mining": {
     "placeholder": "glyph",
-    "label": "\u26cf\ufe0f"
+    "label": "⛏️"
   },
   "skill_fundraising": {
     "placeholder": "glyph",
-    "label": "\ud83c\udf7d\ufe0f"
+    "label": "🍽️"
   },
   "skill_lobbying": {
     "placeholder": "glyph",
-    "label": "\ud83e\udd1d"
+    "label": "🤝"
   },
   "skill_spin": {
     "placeholder": "glyph",
-    "label": "\ud83c\udf00"
+    "label": "🌀"
   },
   "skill_construction": {
     "placeholder": "glyph",
-    "label": "\ud83c\udfdb\ufe0f"
+    "label": "🏛️"
   },
   "mapicon_bank": {
     "placeholder": "glyph",
-    "label": "\ud83c\udfe6"
+    "label": "🏦"
   },
   "mapicon_mining": {
     "placeholder": "glyph",
-    "label": "\u26cf\ufe0f"
+    "label": "⛏️"
   },
   "orb_hp": {
     "placeholder": "glyph",
-    "label": "\u2764\ufe0f"
+    "label": "❤️"
   },
   "orb_xp": {
     "placeholder": "glyph",
@@ -230,349 +240,407 @@
     "placeholder": "icon",
     "color": "#8c8c8c",
     "label": "SH",
-    "sprite": "icons/icon_scrap_hash.png"
+    "sprite": "icons/icon_scrap_hash.png",
+    "pixel": "icons/px/icon_scrap_hash.png"
   },
   "icon_warm_hash": {
     "placeholder": "icon",
     "color": "#e0a030",
     "label": "WH",
-    "sprite": "icons/icon_warm_hash.png"
+    "sprite": "icons/icon_warm_hash.png",
+    "pixel": "icons/px/icon_warm_hash.png"
   },
   "icon_molten_hash": {
     "placeholder": "icon",
     "color": "#3fd8ff",
     "label": "MH",
-    "sprite": "icons/icon_molten_hash.png"
+    "sprite": "icons/icon_molten_hash.png",
+    "pixel": "icons/px/icon_molten_hash.png"
   },
   "icon_hash_crystal": {
     "placeholder": "icon",
     "color": "#f7931a",
     "label": "BS",
-    "sprite": "icons/icon_hash_crystal.png"
+    "sprite": "icons/icon_hash_crystal.png",
+    "pixel": "icons/px/icon_hash_crystal.png"
   },
   "icon_raw_minor_scandal": {
     "placeholder": "icon",
     "color": "#b35a5a",
     "label": "MS",
-    "sprite": "icons/icon_raw_minor_scandal.png"
+    "sprite": "icons/icon_raw_minor_scandal.png",
+    "pixel": "icons/px/icon_raw_minor_scandal.png"
   },
   "icon_raw_juicy_scandal": {
     "placeholder": "icon",
     "color": "#b35a5a",
     "label": "JS",
-    "sprite": "icons/icon_raw_juicy_scandal.png"
+    "sprite": "icons/icon_raw_juicy_scandal.png",
+    "pixel": "icons/px/icon_raw_juicy_scandal.png"
   },
   "icon_raw_mega_scandal": {
     "placeholder": "icon",
     "color": "#b35a5a",
     "label": "MS",
-    "sprite": "icons/icon_raw_mega_scandal.png"
+    "sprite": "icons/icon_raw_mega_scandal.png",
+    "pixel": "icons/px/icon_raw_mega_scandal.png"
   },
   "icon_tp_soundbite": {
     "placeholder": "icon",
     "color": "#e8d27a",
     "label": "S",
-    "sprite": "icons/icon_tp_soundbite.png"
+    "sprite": "icons/icon_tp_soundbite.png",
+    "pixel": "icons/px/icon_tp_soundbite.png"
   },
   "icon_tp_zinger": {
     "placeholder": "icon",
     "color": "#e8d27a",
     "label": "Z",
-    "sprite": "icons/icon_tp_zinger.png"
+    "sprite": "icons/icon_tp_zinger.png",
+    "pixel": "icons/px/icon_tp_zinger.png"
   },
   "icon_tp_mic_drop": {
     "placeholder": "icon",
     "color": "#e8d27a",
     "label": "MD",
-    "sprite": "icons/icon_tp_mic_drop.png"
+    "sprite": "icons/icon_tp_mic_drop.png",
+    "pixel": "icons/px/icon_tp_mic_drop.png"
   },
   "icon_pick_rusty": {
     "placeholder": "icon",
     "color": "#9aa3ad",
     "label": "RH",
-    "sprite": "icons/icon_pick_rusty.png"
+    "sprite": "icons/icon_pick_rusty.png",
+    "pixel": "icons/px/icon_pick_rusty.png"
   },
   "icon_pick_steel": {
     "placeholder": "icon",
     "color": "#9aa3ad",
     "label": "SH",
-    "sprite": "icons/icon_pick_steel.png"
+    "sprite": "icons/icon_pick_steel.png",
+    "pixel": "icons/px/icon_pick_steel.png"
   },
   "icon_pick_quantum": {
     "placeholder": "icon",
     "color": "#9aa3ad",
     "label": "QH",
-    "sprite": "icons/icon_pick_quantum.png"
+    "sprite": "icons/icon_pick_quantum.png",
+    "pixel": "icons/px/icon_pick_quantum.png"
   },
   "icon_donor_list": {
     "placeholder": "icon",
     "color": "#c49a6c",
     "label": "DL",
-    "sprite": "icons/icon_donor_list.png"
+    "sprite": "icons/icon_donor_list.png",
+    "pixel": "icons/px/icon_donor_list.png"
   },
   "icon_rolodex": {
     "placeholder": "icon",
     "color": "#c49a6c",
     "label": "R",
-    "sprite": "icons/icon_rolodex.png"
+    "sprite": "icons/icon_rolodex.png",
+    "pixel": "icons/px/icon_rolodex.png"
   },
   "icon_black_book": {
     "placeholder": "icon",
     "color": "#c49a6c",
     "label": "BB",
-    "sprite": "icons/icon_black_book.png"
+    "sprite": "icons/icon_black_book.png",
+    "pixel": "icons/px/icon_black_book.png"
   },
   "icon_business_cards": {
     "placeholder": "icon",
     "color": "#d4d4d4",
     "label": "BC",
-    "sprite": "icons/icon_business_cards.png"
+    "sprite": "icons/icon_business_cards.png",
+    "pixel": "icons/px/icon_business_cards.png"
   },
   "icon_gold_cards": {
     "placeholder": "icon",
     "color": "#d4d4d4",
     "label": "GC",
-    "sprite": "icons/icon_gold_cards.png"
+    "sprite": "icons/icon_gold_cards.png",
+    "pixel": "icons/px/icon_gold_cards.png"
   },
   "icon_platinum_cards": {
     "placeholder": "icon",
     "color": "#d4d4d4",
     "label": "PC",
-    "sprite": "icons/icon_platinum_cards.png"
+    "sprite": "icons/icon_platinum_cards.png",
+    "pixel": "icons/px/icon_platinum_cards.png"
   },
   "icon_toolkit_basic": {
     "placeholder": "icon",
     "color": "#d9822b",
     "label": "BT",
-    "sprite": "icons/icon_toolkit_basic.png"
+    "sprite": "icons/icon_toolkit_basic.png",
+    "pixel": "icons/px/icon_toolkit_basic.png"
   },
   "icon_toolkit_pro": {
     "placeholder": "icon",
     "color": "#d9822b",
     "label": "PT",
-    "sprite": "icons/icon_toolkit_pro.png"
+    "sprite": "icons/icon_toolkit_pro.png",
+    "pixel": "icons/px/icon_toolkit_pro.png"
   },
   "icon_toolkit_elite": {
     "placeholder": "icon",
     "color": "#d9822b",
     "label": "ET",
-    "sprite": "icons/icon_toolkit_elite.png"
+    "sprite": "icons/icon_toolkit_elite.png",
+    "pixel": "icons/px/icon_toolkit_elite.png"
   },
   "icon_gavel": {
     "placeholder": "icon",
     "color": "#7a5230",
     "label": "PG",
-    "sprite": "icons/icon_gavel.png"
+    "sprite": "icons/icon_gavel.png",
+    "pixel": "icons/px/icon_gavel.png"
   },
   "icon_oak_gavel": {
     "placeholder": "icon",
     "color": "#7a5230",
     "label": "OG",
-    "sprite": "icons/icon_oak_gavel.png"
+    "sprite": "icons/icon_oak_gavel.png",
+    "pixel": "icons/px/icon_oak_gavel.png"
   },
   "icon_iron_gavel": {
     "placeholder": "icon",
     "color": "#7a5230",
     "label": "IG",
-    "sprite": "icons/icon_iron_gavel.png"
+    "sprite": "icons/icon_iron_gavel.png",
+    "pixel": "icons/px/icon_iron_gavel.png"
   },
   "icon_veto_hammer": {
     "placeholder": "icon",
     "color": "#7a5230",
     "label": "VH",
-    "sprite": "icons/icon_veto_hammer.png"
+    "sprite": "icons/icon_veto_hammer.png",
+    "pixel": "icons/px/icon_veto_hammer.png"
   },
   "icon_filibuster_mace": {
     "placeholder": "icon",
     "color": "#7a5230",
     "label": "FM",
-    "sprite": "icons/icon_filibuster_mace.png"
+    "sprite": "icons/icon_filibuster_mace.png",
+    "pixel": "icons/px/icon_filibuster_mace.png"
   },
   "icon_gun_campaign_pistol": {
     "placeholder": "icon",
     "color": "#4a4f57",
     "label": "CP",
-    "sprite": "icons/icon_gun_campaign_pistol.png"
+    "sprite": "icons/icon_gun_campaign_pistol.png",
+    "pixel": "icons/px/icon_gun_campaign_pistol.png"
   },
   "icon_gun_confetti_shotgun": {
     "placeholder": "icon",
     "color": "#4a4f57",
     "label": "CS",
-    "sprite": "icons/icon_gun_confetti_shotgun.png"
+    "sprite": "icons/icon_gun_confetti_shotgun.png",
+    "pixel": "icons/px/icon_gun_confetti_shotgun.png"
   },
   "icon_gun_press_pass_smg": {
     "placeholder": "icon",
     "color": "#4a4f57",
     "label": "PP",
-    "sprite": "icons/icon_gun_press_pass_smg.png"
+    "sprite": "icons/icon_gun_press_pass_smg.png",
+    "pixel": "icons/px/icon_gun_press_pass_smg.png"
   },
   "icon_gun_hash_cannon": {
     "placeholder": "icon",
     "color": "#4a4f57",
     "label": "HC",
-    "sprite": "icons/icon_gun_hash_cannon.png"
+    "sprite": "icons/icon_gun_hash_cannon.png",
+    "pixel": "icons/px/icon_gun_hash_cannon.png"
   },
   "icon_gun_treasury_rifle": {
     "placeholder": "icon",
     "color": "#4a4f57",
     "label": "TR",
-    "sprite": "icons/icon_gun_treasury_rifle.png"
+    "sprite": "icons/icon_gun_treasury_rifle.png",
+    "pixel": "icons/px/icon_gun_treasury_rifle.png"
   },
   "icon_gun_gremlin_blaster": {
     "placeholder": "icon",
     "color": "#4a4f57",
     "label": "GB",
-    "sprite": "icons/icon_gun_gremlin_blaster.png"
+    "sprite": "icons/icon_gun_gremlin_blaster.png",
+    "pixel": "icons/px/icon_gun_gremlin_blaster.png"
   },
   "icon_gun_diamond_minigun": {
     "placeholder": "icon",
     "color": "#4a4f57",
     "label": "DH",
-    "sprite": "icons/icon_gun_diamond_minigun.png"
+    "sprite": "icons/icon_gun_diamond_minigun.png",
+    "pixel": "icons/px/icon_gun_diamond_minigun.png"
   },
   "icon_gun_golden_veto": {
     "placeholder": "icon",
     "color": "#4a4f57",
     "label": "GV",
-    "sprite": "icons/icon_gun_golden_veto.png"
+    "sprite": "icons/icon_gun_golden_veto.png",
+    "pixel": "icons/px/icon_gun_golden_veto.png"
   },
   "icon_gun_flippening_railgun": {
     "placeholder": "icon",
     "color": "#4a4f57",
     "label": "FR",
-    "sprite": "icons/icon_gun_flippening_railgun.png"
+    "sprite": "icons/icon_gun_flippening_railgun.png",
+    "pixel": "icons/px/icon_gun_flippening_railgun.png"
   },
   "icon_rounds": {
     "placeholder": "icon",
     "color": "#d4a83a",
     "label": "R",
-    "sprite": "icons/icon_rounds.png"
+    "sprite": "icons/icon_rounds.png",
+    "pixel": "icons/px/icon_rounds.png"
   },
   "icon_campaign_hat": {
     "placeholder": "icon",
     "color": "#5b6b8a",
     "label": "CH",
-    "sprite": "icons/icon_campaign_hat.png"
+    "sprite": "icons/icon_campaign_hat.png",
+    "pixel": "icons/px/icon_campaign_hat.png"
   },
   "icon_campaign_slacks": {
     "placeholder": "icon",
     "color": "#5b6b8a",
     "label": "CS",
-    "sprite": "icons/icon_campaign_slacks.png"
+    "sprite": "icons/icon_campaign_slacks.png",
+    "pixel": "icons/px/icon_campaign_slacks.png"
   },
   "icon_campaign_jacket": {
     "placeholder": "icon",
     "color": "#5b6b8a",
     "label": "CJ",
-    "sprite": "icons/icon_campaign_jacket.png"
+    "sprite": "icons/icon_campaign_jacket.png",
+    "pixel": "icons/px/icon_campaign_jacket.png"
   },
   "icon_aviators": {
     "placeholder": "icon",
     "color": "#5b6b8a",
     "label": "A",
-    "sprite": "icons/icon_aviators.png"
+    "sprite": "icons/icon_aviators.png",
+    "pixel": "icons/px/icon_aviators.png"
   },
   "icon_flak_helmet": {
     "placeholder": "icon",
     "color": "#5b6b8a",
     "label": "FH",
-    "sprite": "icons/icon_flak_helmet.png"
+    "sprite": "icons/icon_flak_helmet.png",
+    "pixel": "icons/px/icon_flak_helmet.png"
   },
   "icon_flak_pants": {
     "placeholder": "icon",
     "color": "#5b6b8a",
     "label": "FP",
-    "sprite": "icons/icon_flak_pants.png"
+    "sprite": "icons/icon_flak_pants.png",
+    "pixel": "icons/px/icon_flak_pants.png"
   },
   "icon_flak_vest": {
     "placeholder": "icon",
     "color": "#5b6b8a",
     "label": "FV",
-    "sprite": "icons/icon_flak_vest.png"
+    "sprite": "icons/icon_flak_vest.png",
+    "pixel": "icons/px/icon_flak_vest.png"
   },
   "icon_kevlar_fedora": {
     "placeholder": "icon",
     "color": "#5b6b8a",
     "label": "KF",
-    "sprite": "icons/icon_kevlar_fedora.png"
+    "sprite": "icons/icon_kevlar_fedora.png",
+    "pixel": "icons/px/icon_kevlar_fedora.png"
   },
   "icon_kevlar_trousers": {
     "placeholder": "icon",
     "color": "#5b6b8a",
     "label": "KT",
-    "sprite": "icons/icon_kevlar_trousers.png"
+    "sprite": "icons/icon_kevlar_trousers.png",
+    "pixel": "icons/px/icon_kevlar_trousers.png"
   },
   "icon_kevlar_suit": {
     "placeholder": "icon",
     "color": "#5b6b8a",
     "label": "KS",
-    "sprite": "icons/icon_kevlar_suit.png"
+    "sprite": "icons/icon_kevlar_suit.png",
+    "pixel": "icons/px/icon_kevlar_suit.png"
   },
   "icon_diamond_helm": {
     "placeholder": "icon",
     "color": "#5b6b8a",
     "label": "DH",
-    "sprite": "icons/icon_diamond_helm.png"
+    "sprite": "icons/icon_diamond_helm.png",
+    "pixel": "icons/px/icon_diamond_helm.png"
   },
   "icon_diamond_greaves": {
     "placeholder": "icon",
     "color": "#5b6b8a",
     "label": "DH",
-    "sprite": "icons/icon_diamond_greaves.png"
+    "sprite": "icons/icon_diamond_greaves.png",
+    "pixel": "icons/px/icon_diamond_greaves.png"
   },
   "icon_diamond_plate": {
     "placeholder": "icon",
     "color": "#5b6b8a",
     "label": "DH",
-    "sprite": "icons/icon_diamond_plate.png"
+    "sprite": "icons/icon_diamond_plate.png",
+    "pixel": "icons/px/icon_diamond_plate.png"
   },
   "icon_contract_recruit": {
     "placeholder": "icon",
     "color": "#3f8fd8",
     "label": "RC",
-    "sprite": "icons/icon_contract.png"
+    "sprite": "icons/icon_contract.png",
+    "pixel": "icons/px/icon_contract_recruit.png"
   },
   "icon_contract_medic": {
     "placeholder": "icon",
     "color": "#3f8fd8",
     "label": "MC",
-    "sprite": "icons/icon_contract.png"
+    "sprite": "icons/icon_contract.png",
+    "pixel": "icons/px/icon_contract_medic.png"
   },
   "icon_contract_grunt": {
     "placeholder": "icon",
     "color": "#3f8fd8",
     "label": "GC",
-    "sprite": "icons/icon_contract.png"
+    "sprite": "icons/icon_contract.png",
+    "pixel": "icons/px/icon_contract_grunt.png"
   },
   "icon_contract_sniper": {
     "placeholder": "icon",
     "color": "#3f8fd8",
     "label": "SC",
-    "sprite": "icons/icon_contract.png"
+    "sprite": "icons/icon_contract.png",
+    "pixel": "icons/px/icon_contract_sniper.png"
   },
   "icon_contract_heavy": {
     "placeholder": "icon",
     "color": "#3f8fd8",
     "label": "HC",
-    "sprite": "icons/icon_contract.png"
+    "sprite": "icons/icon_contract.png",
+    "pixel": "icons/px/icon_contract_heavy.png"
   },
   "icon_concrete_bag": {
     "placeholder": "icon",
     "color": "#a8a29a",
     "label": "CB",
-    "sprite": "icons/icon_concrete_bag.png"
+    "sprite": "icons/icon_concrete_bag.png",
+    "pixel": "icons/px/icon_concrete_bag.png"
   },
   "icon_steel_beam": {
     "placeholder": "icon",
     "color": "#a8a29a",
     "label": "SB",
-    "sprite": "icons/icon_steel_beam.png"
+    "sprite": "icons/icon_steel_beam.png",
+    "pixel": "icons/px/icon_steel_beam.png"
   },
   "icon_circuit_board": {
     "placeholder": "icon",
     "color": "#a8a29a",
     "label": "CB",
-    "sprite": "icons/icon_circuit_board.png"
+    "sprite": "icons/icon_circuit_board.png",
+    "pixel": "icons/px/icon_circuit_board.png"
   },
   "donor_chicken": {
     "placeholder": "donor",
@@ -1232,39 +1300,40 @@
   },
   "mapicon_terminal": {
     "placeholder": "glyph",
-    "label": "\ud83d\udcbb"
+    "label": "💻"
   },
   "mapicon_fund": {
     "placeholder": "glyph",
-    "label": "\ud83c\udf7d\ufe0f"
+    "label": "🍽️"
   },
   "mapicon_spin": {
     "placeholder": "glyph",
-    "label": "\ud83c\udf00"
+    "label": "🌀"
   },
   "mapicon_lobby": {
     "placeholder": "glyph",
-    "label": "\ud83e\udd1d"
+    "label": "🤝"
   },
   "mapicon_combat": {
     "placeholder": "glyph",
-    "label": "\u2694\ufe0f"
+    "label": "⚔️"
   },
   "mapicon_boss": {
     "placeholder": "glyph",
-    "label": "\ud83d\udc80"
+    "label": "💀"
   },
   "skill_summoning": {
     "placeholder": "glyph",
-    "label": "\ud83e\ude96"
+    "label": "🪖"
   },
   "tab_summoning": {
     "placeholder": "glyph",
-    "label": "\ud83e\ude96"
+    "label": "🪖",
+    "pixel": "ui/tab_summoning.png"
   },
   "orb_special": {
     "placeholder": "glyph",
-    "label": "\u2b50"
+    "label": "⭐"
   },
   "npc_reporter": {
     "placeholder": "humanoid",
@@ -1322,343 +1391,400 @@
     "placeholder": "icon",
     "color": "#5a9a3a",
     "label": "F",
-    "sprite": "icons/icon_focus_soda.png"
+    "sprite": "icons/icon_focus_soda.png",
+    "pixel": "icons/px/icon_focus_soda.png"
   },
   "icon_protein_shake": {
     "placeholder": "icon",
     "color": "#5a9a3a",
     "label": "P",
-    "sprite": "icons/icon_protein_shake.png"
+    "sprite": "icons/icon_protein_shake.png",
+    "pixel": "icons/px/icon_protein_shake.png"
   },
   "icon_thick_skin_tonic": {
     "placeholder": "icon",
     "color": "#5a9a3a",
     "label": "T",
-    "sprite": "icons/icon_thick_skin_tonic.png"
+    "sprite": "icons/icon_thick_skin_tonic.png",
+    "pixel": "icons/px/icon_thick_skin_tonic.png"
   },
   "icon_victory_smoothie": {
     "placeholder": "icon",
     "color": "#5a9a3a",
     "label": "V",
-    "sprite": "icons/icon_victory_smoothie.png"
+    "sprite": "icons/icon_victory_smoothie.png",
+    "pixel": "icons/px/icon_victory_smoothie.png"
   },
   "icon_miners_espresso": {
     "placeholder": "icon",
     "color": "#5a9a3a",
     "label": "M",
-    "sprite": "icons/icon_miners_espresso.png"
+    "sprite": "icons/icon_miners_espresso.png",
+    "pixel": "icons/px/icon_miners_espresso.png"
   },
   "icon_charm_tea": {
     "placeholder": "icon",
     "color": "#5a9a3a",
     "label": "C",
-    "sprite": "icons/icon_charm_tea.png"
+    "sprite": "icons/icon_charm_tea.png",
+    "pixel": "icons/px/icon_charm_tea.png"
   },
   "icon_networking_mints": {
     "placeholder": "icon",
     "color": "#5a9a3a",
     "label": "N",
-    "sprite": "icons/icon_networking_mints.png"
+    "sprite": "icons/icon_networking_mints.png",
+    "pixel": "icons/px/icon_networking_mints.png"
   },
   "icon_smooth_lozenge": {
     "placeholder": "icon",
     "color": "#5a9a3a",
     "label": "S",
-    "sprite": "icons/icon_smooth_lozenge.png"
+    "sprite": "icons/icon_smooth_lozenge.png",
+    "pixel": "icons/px/icon_smooth_lozenge.png"
   },
   "icon_hopium_soda": {
     "placeholder": "icon",
     "color": "#5a9a3a",
     "label": "H",
-    "sprite": "icons/icon_hopium_soda.png"
+    "sprite": "icons/icon_hopium_soda.png",
+    "pixel": "icons/px/icon_hopium_soda.png"
   },
   "icon_ticket_treasury": {
     "placeholder": "icon",
     "color": "#3fa8ff",
     "label": "T",
-    "sprite": "icons/icon_ticket_treasury.png"
+    "sprite": "icons/icon_ticket_treasury.png",
+    "pixel": "icons/px/icon_ticket_treasury.png"
   },
   "icon_ticket_trenches": {
     "placeholder": "icon",
     "color": "#3fa8ff",
     "label": "T",
-    "sprite": "icons/icon_ticket_trenches.png"
+    "sprite": "icons/icon_ticket_trenches.png",
+    "pixel": "icons/px/icon_ticket_trenches.png"
   },
   "icon_ticket_bunker": {
     "placeholder": "icon",
     "color": "#3fa8ff",
     "label": "B",
-    "sprite": "icons/icon_ticket_bunker.png"
+    "sprite": "icons/icon_ticket_bunker.png",
+    "pixel": "icons/px/icon_ticket_bunker.png"
   },
   "icon_pick_overclocked": {
     "placeholder": "icon",
     "color": "#e0b43a",
     "label": "O",
-    "sprite": "icons/icon_pick_overclocked.png"
+    "sprite": "icons/icon_pick_overclocked.png",
+    "pixel": "icons/px/icon_pick_overclocked.png"
   },
   "icon_golden_rolodex": {
     "placeholder": "icon",
     "color": "#e0b43a",
     "label": "G",
-    "sprite": "icons/icon_golden_rolodex.png"
+    "sprite": "icons/icon_golden_rolodex.png",
+    "pixel": "icons/px/icon_golden_rolodex.png"
   },
   "icon_diamond_cards": {
     "placeholder": "icon",
     "color": "#e0b43a",
     "label": "D",
-    "sprite": "icons/icon_diamond_cards.png"
+    "sprite": "icons/icon_diamond_cards.png",
+    "pixel": "icons/px/icon_diamond_cards.png"
   },
   "icon_toolkit_master": {
     "placeholder": "icon",
     "color": "#e0b43a",
     "label": "M",
-    "sprite": "icons/icon_toolkit_master.png"
+    "sprite": "icons/icon_toolkit_master.png",
+    "pixel": "icons/px/icon_toolkit_master.png"
   },
   "icon_hard_hat": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "H",
-    "sprite": "icons/icon_hard_hat.png"
+    "sprite": "icons/icon_hard_hat.png",
+    "pixel": "icons/px/icon_hard_hat.png"
   },
   "icon_hi_vis_vest": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "H",
-    "sprite": "icons/icon_hi_vis_vest.png"
+    "sprite": "icons/icon_hi_vis_vest.png",
+    "pixel": "icons/px/icon_hi_vis_vest.png"
   },
   "icon_work_trousers": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "W",
-    "sprite": "icons/icon_work_trousers.png"
+    "sprite": "icons/icon_work_trousers.png",
+    "pixel": "icons/px/icon_work_trousers.png"
   },
   "icon_steel_toe_boots": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "S",
-    "sprite": "icons/icon_steel_toe_boots.png"
+    "sprite": "icons/icon_steel_toe_boots.png",
+    "pixel": "icons/px/icon_steel_toe_boots.png"
   },
   "icon_gala_top_hat": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "G",
-    "sprite": "icons/icon_gala_top_hat.png"
+    "sprite": "icons/icon_gala_top_hat.png",
+    "pixel": "icons/px/icon_gala_top_hat.png"
   },
   "icon_gala_tailcoat": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "G",
-    "sprite": "icons/icon_gala_tailcoat.png"
+    "sprite": "icons/icon_gala_tailcoat.png",
+    "pixel": "icons/px/icon_gala_tailcoat.png"
   },
   "icon_gala_trousers": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "G",
-    "sprite": "icons/icon_gala_trousers.png"
+    "sprite": "icons/icon_gala_trousers.png",
+    "pixel": "icons/px/icon_gala_trousers.png"
   },
   "icon_patent_shoes": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "P",
-    "sprite": "icons/icon_patent_shoes.png"
+    "sprite": "icons/icon_patent_shoes.png",
+    "pixel": "icons/px/icon_patent_shoes.png"
   },
   "icon_power_fedora": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "P",
-    "sprite": "icons/icon_power_fedora.png"
+    "sprite": "icons/icon_power_fedora.png",
+    "pixel": "icons/px/icon_power_fedora.png"
   },
   "icon_power_suit": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "P",
-    "sprite": "icons/icon_power_suit.png"
+    "sprite": "icons/icon_power_suit.png",
+    "pixel": "icons/px/icon_power_suit.png"
   },
   "icon_power_trousers": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "P",
-    "sprite": "icons/icon_power_trousers.png"
+    "sprite": "icons/icon_power_trousers.png",
+    "pixel": "icons/px/icon_power_trousers.png"
   },
   "icon_power_loafers": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "P",
-    "sprite": "icons/icon_power_loafers.png"
+    "sprite": "icons/icon_power_loafers.png",
+    "pixel": "icons/px/icon_power_loafers.png"
   },
   "icon_press_headset": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "P",
-    "sprite": "icons/icon_press_headset.png"
+    "sprite": "icons/icon_press_headset.png",
+    "pixel": "icons/px/icon_press_headset.png"
   },
   "icon_press_blazer": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "P",
-    "sprite": "icons/icon_press_blazer.png"
+    "sprite": "icons/icon_press_blazer.png",
+    "pixel": "icons/px/icon_press_blazer.png"
   },
   "icon_press_slacks": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "P",
-    "sprite": "icons/icon_press_slacks.png"
+    "sprite": "icons/icon_press_slacks.png",
+    "pixel": "icons/px/icon_press_slacks.png"
   },
   "icon_press_sneakers": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "P",
-    "sprite": "icons/icon_press_sneakers.png"
+    "sprite": "icons/icon_press_sneakers.png",
+    "pixel": "icons/px/icon_press_sneakers.png"
   },
   "icon_press_lanyard": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "P",
-    "sprite": "icons/icon_press_lanyard.png"
+    "sprite": "icons/icon_press_lanyard.png",
+    "pixel": "icons/px/icon_press_lanyard.png"
   },
   "icon_gavel_pendant": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "G",
-    "sprite": "icons/icon_gavel_pendant.png"
+    "sprite": "icons/icon_gavel_pendant.png",
+    "pixel": "icons/px/icon_gavel_pendant.png"
   },
   "icon_ticker_amulet": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "T",
-    "sprite": "icons/icon_ticker_amulet.png"
+    "sprite": "icons/icon_ticker_amulet.png",
+    "pixel": "icons/px/icon_ticker_amulet.png"
   },
   "icon_grip_gloves": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "G",
-    "sprite": "icons/icon_grip_gloves.png"
+    "sprite": "icons/icon_grip_gloves.png",
+    "pixel": "icons/px/icon_grip_gloves.png"
   },
   "icon_trigger_gloves": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "T",
-    "sprite": "icons/icon_trigger_gloves.png"
+    "sprite": "icons/icon_trigger_gloves.png",
+    "pixel": "icons/px/icon_trigger_gloves.png"
   },
   "icon_diamond_gauntlets": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "D",
-    "sprite": "icons/icon_diamond_gauntlets.png"
+    "sprite": "icons/icon_diamond_gauntlets.png",
+    "pixel": "icons/px/icon_diamond_gauntlets.png"
   },
   "icon_campaign_loafers": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "C",
-    "sprite": "icons/icon_campaign_loafers.png"
+    "sprite": "icons/icon_campaign_loafers.png",
+    "pixel": "icons/px/icon_campaign_loafers.png"
   },
   "icon_combat_boots": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "C",
-    "sprite": "icons/icon_combat_boots.png"
+    "sprite": "icons/icon_combat_boots.png",
+    "pixel": "icons/px/icon_combat_boots.png"
   },
   "icon_diamond_boots": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "D",
-    "sprite": "icons/icon_diamond_boots.png"
+    "sprite": "icons/icon_diamond_boots.png",
+    "pixel": "icons/px/icon_diamond_boots.png"
   },
   "icon_briefcase_bludgeon": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "B",
-    "sprite": "icons/icon_briefcase_bludgeon.png"
+    "sprite": "icons/icon_briefcase_bludgeon.png",
+    "pixel": "icons/px/icon_briefcase_bludgeon.png"
   },
   "icon_ballot_blaster": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "B",
-    "sprite": "icons/icon_ballot_blaster.png"
+    "sprite": "icons/icon_ballot_blaster.png",
+    "pixel": "icons/px/icon_ballot_blaster.png"
   },
   "icon_gavel_of_order": {
     "placeholder": "icon",
     "color": "#8a929c",
     "label": "G",
-    "sprite": "icons/icon_gavel_of_order.png"
+    "sprite": "icons/icon_gavel_of_order.png",
+    "pixel": "icons/px/icon_gavel_of_order.png"
   },
   "icon_teleprompter": {
     "placeholder": "icon",
     "color": "#3fa8ff",
     "label": "T",
-    "sprite": "icons/icon_teleprompter.png"
+    "sprite": "icons/icon_teleprompter.png",
+    "pixel": "icons/px/icon_teleprompter.png"
   },
   "icon_chamber_key": {
     "placeholder": "icon",
     "color": "#3fa8ff",
     "label": "C",
-    "sprite": "icons/icon_chamber_key.png"
+    "sprite": "icons/icon_chamber_key.png",
+    "pixel": "icons/px/icon_chamber_key.png"
   },
   "icon_empty_canister": {
     "placeholder": "icon",
     "color": "#d8ccaa",
     "label": "E",
-    "sprite": "icons/icon_empty_canister.png"
+    "sprite": "icons/icon_empty_canister.png",
+    "pixel": "icons/px/icon_empty_canister.png"
   },
   "icon_coolant_canister": {
     "placeholder": "icon",
     "color": "#d8ccaa",
     "label": "C",
-    "sprite": "icons/icon_coolant_canister.png"
+    "sprite": "icons/icon_coolant_canister.png",
+    "pixel": "icons/px/icon_coolant_canister.png"
   },
   "icon_coordinates_drive": {
     "placeholder": "icon",
     "color": "#d8ccaa",
     "label": "C",
-    "sprite": "icons/icon_coordinates_drive.png"
+    "sprite": "icons/icon_coordinates_drive.png",
+    "pixel": "icons/px/icon_coordinates_drive.png"
   },
   "icon_guest_list": {
     "placeholder": "icon",
     "color": "#d8ccaa",
     "label": "G",
-    "sprite": "icons/icon_guest_list.png"
+    "sprite": "icons/icon_guest_list.png",
+    "pixel": "icons/px/icon_guest_list.png"
   },
   "icon_power_cell": {
     "placeholder": "icon",
     "color": "#d8ccaa",
     "label": "P",
-    "sprite": "icons/icon_power_cell.png"
+    "sprite": "icons/icon_power_cell.png",
+    "pixel": "icons/px/icon_power_cell.png"
   },
   "icon_sealed_envelope": {
     "placeholder": "icon",
     "color": "#d8ccaa",
     "label": "S",
-    "sprite": "icons/icon_sealed_envelope.png"
+    "sprite": "icons/icon_sealed_envelope.png",
+    "pixel": "icons/px/icon_sealed_envelope.png"
   },
   "icon_blackmail_photo": {
     "placeholder": "icon",
     "color": "#d8ccaa",
     "label": "B",
-    "sprite": "icons/icon_blackmail_photo.png"
+    "sprite": "icons/icon_blackmail_photo.png",
+    "pixel": "icons/px/icon_blackmail_photo.png"
   },
   "icon_photo_negatives": {
     "placeholder": "icon",
     "color": "#d8ccaa",
     "label": "P",
-    "sprite": "icons/icon_photo_negatives.png"
+    "sprite": "icons/icon_photo_negatives.png",
+    "pixel": "icons/px/icon_photo_negatives.png"
   },
   "icon_exit_permit": {
     "placeholder": "icon",
     "color": "#d8ccaa",
     "label": "E",
-    "sprite": "icons/icon_exit_permit.png"
+    "sprite": "icons/icon_exit_permit.png",
+    "pixel": "icons/px/icon_exit_permit.png"
   },
   "icon_press_release": {
     "placeholder": "icon",
     "color": "#d8ccaa",
     "label": "S",
-    "sprite": "icons/icon_press_release.png"
+    "sprite": "icons/icon_press_release.png",
+    "pixel": "icons/px/icon_press_release.png"
   },
   "icon_chamber_blueprints": {
     "placeholder": "icon",
     "color": "#d8ccaa",
     "label": "C",
-    "sprite": "icons/icon_chamber_blueprints.png"
+    "sprite": "icons/icon_chamber_blueprints.png",
+    "pixel": "icons/px/icon_chamber_blueprints.png"
   },
   "sign_expedition": {
     "placeholder": "signpost",
@@ -1783,43 +1909,50 @@
     "placeholder": "icon",
     "color": "#f2efe6",
     "label": "C",
-    "sprite": "icons/icon_coom.png"
+    "sprite": "icons/icon_coom.png",
+    "pixel": "icons/px/icon_coom.png"
   },
   "icon_staff_apprentice": {
     "placeholder": "icon",
     "color": "#8a6a42",
     "label": "S",
-    "sprite": "icons/icon_staff_apprentice.png"
+    "sprite": "icons/icon_staff_apprentice.png",
+    "pixel": "icons/px/icon_staff_apprentice.png"
   },
   "icon_staff_hopium": {
     "placeholder": "icon",
     "color": "#5dff6b",
     "label": "S",
-    "sprite": "icons/icon_staff_hopium.png"
+    "sprite": "icons/icon_staff_hopium.png",
+    "pixel": "icons/px/icon_staff_hopium.png"
   },
   "icon_staff_moonward": {
     "placeholder": "icon",
     "color": "#a8d8ff",
     "label": "S",
-    "sprite": "icons/icon_staff_moonward.png"
+    "sprite": "icons/icon_staff_moonward.png",
+    "pixel": "icons/px/icon_staff_moonward.png"
   },
   "icon_staff_archmage": {
     "placeholder": "icon",
     "color": "#e0b43a",
     "label": "S",
-    "sprite": "icons/icon_staff_archmage.png"
+    "sprite": "icons/icon_staff_archmage.png",
+    "pixel": "icons/px/icon_staff_archmage.png"
   },
   "icon_moonward_hat": {
     "placeholder": "icon",
     "color": "#1d2a5a",
     "label": "H",
-    "sprite": "icons/icon_moonward_hat.png"
+    "sprite": "icons/icon_moonward_hat.png",
+    "pixel": "icons/px/icon_moonward_hat.png"
   },
   "icon_moonward_robe": {
     "placeholder": "icon",
     "color": "#1d2a5a",
     "label": "R",
-    "sprite": "icons/icon_moonward_robe.png"
+    "sprite": "icons/icon_moonward_robe.png",
+    "pixel": "icons/px/icon_moonward_robe.png"
   },
   "stall_staffs": {
     "placeholder": "booth",

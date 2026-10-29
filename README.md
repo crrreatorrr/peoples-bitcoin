@@ -34,7 +34,7 @@ Clicks act on press, like OSRS.
   left-click option. Monsters show `(level-N)`, colored against your combat level.
 - **Middle-drag, arrow keys, or a sideways two-finger trackpad swipe:** rotate and tilt the camera
 - **Mouse wheel:** zoom
-- **F-keys:** F1 Equipment, F2 Skills, F3 Quests, F4 Inventory, F5 Summoning, F10 Settings
+- **F-keys (OSRS defaults):** F1 Combat, F2 Skills, F3 Quests, F4 Equipment, F6 Summoning (Magic position), F10 Settings; Esc returns to Inventory
 - **Minimap:** click to walk, scroll to zoom; click the compass to face north
 - **Chat:** start typing (or press Enter), Enter to send. Space continues NPC dialogue; number
   keys 1–5 pick a "Select an Option" answer.

@@ -100,15 +100,12 @@ export class InventoryPanel {
       if (selected !== null && this.items[selected]) {
         const using = this.content.items.get(this.items[selected]!.itemId)?.name ?? '';
         const target = this.content.items.get(this.items[index]!.itemId)?.name ?? '';
-        this.tooltip.show(
-          { action: 'Use', target: `${using} -> ${target}`, targetKind: 'item' },
-          e.clientX,
-          e.clientY,
-        );
+        // OSRS mouseover text sits top-left: white action, orange items.
+        this.tooltip.showFixed({ action: 'Use', using, target, targetKind: 'item' });
         return;
       }
       const [top, ...rest] = this.options(index);
-      this.tooltip.show({ ...top, moreOptions: rest.length }, e.clientX, e.clientY);
+      this.tooltip.showFixed({ ...top, moreOptions: rest.length });
     });
     this.el.addEventListener('mouseleave', () => this.tooltip.hide());
 

@@ -7,6 +7,8 @@ export type TargetKind = 'object' | 'npc' | 'item';
 
 export interface TooltipContent {
   action: string;
+  /** "Use <using> -> <target>": the item being used, drawn as its own orange segment. */
+  using?: string;
   target?: string;
   targetKind?: TargetKind;
   /** A monster's "(level-N)", colored against the player's combat level. */
@@ -19,6 +21,7 @@ export interface TooltipContent {
 /** The action, target and level of a menu entry or hover text. */
 export function optionParts(content: TooltipContent): (Node | string)[] {
   const parts: (Node | string)[] = [span('tip-action', content.action)];
+  if (content.using) parts.push(' ', span('tip-item', content.using), span('tip-arrow', ' ->'));
   if (content.target)
     parts.push(' ', span(`tip-${content.targetKind ?? 'object'}`, content.target));
   if (content.level) {
