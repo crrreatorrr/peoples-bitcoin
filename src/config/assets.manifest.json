@@ -1450,6 +1450,28 @@
     "sprite": "icons/icon_hopium_soda.png",
     "pixel": "icons/px/icon_hopium_soda.png"
   },
+  "icon_blue_sproto_coffee": {
+    "placeholder": "icon",
+    "color": "#2f6fd1",
+    "accent": "#f2c11e",
+    "label": "C",
+    "sprite": "icons/icon_blue_sproto_coffee.png",
+    "pixel": "icons/px/icon_blue_sproto_coffee.png"
+  },
+  "icon_leaked_memo": {
+    "placeholder": "icon",
+    "color": "#8a8f98",
+    "accent": "#b3262e",
+    "label": "M",
+    "pixel": "icons/px/icon_leaked_memo.png"
+  },
+  "icon_sproto_pup": {
+    "placeholder": "icon",
+    "color": "#3f7fd9",
+    "accent": "#ff6fa8",
+    "label": "P",
+    "pixel": "icons/px/icon_sproto_pup.png"
+  },
   "icon_ticket_treasury": {
     "placeholder": "icon",
     "color": "#3fa8ff",

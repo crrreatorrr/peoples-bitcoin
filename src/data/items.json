@@ -1178,6 +1178,34 @@
     }
   },
   {
+    "id": "item_blue_sproto_coffee",
+    "name": "Blue Sproto Coffee",
+    "examine": "'High Powered Ground Coffee.' Sproto-roasted, Bureau-banned, priced in Tickets. Restores all your Motion (run energy).",
+    "stackable": false,
+    "model": "icon_blue_sproto_coffee",
+    "value": 3.69,
+    "drink": {
+      "verb": "Chug",
+      "restoreRun": 100
+    }
+  },
+  {
+    "id": "item_leaked_memo",
+    "name": "Leaked Memo",
+    "examine": "A Bureau memo marked CONFIDENTIAL in letters you could read from orbit. Somebody upstairs wants this found.",
+    "stackable": false,
+    "model": "icon_leaked_memo",
+    "value": 0
+  },
+  {
+    "id": "pet_sproto_pup",
+    "name": "Sproto Pup",
+    "examine": "Small, blue, unprintable. It glows on old stone, growls at grey suits, and has decided you're its person.",
+    "stackable": false,
+    "model": "icon_sproto_pup",
+    "value": 0
+  },
+  {
     "id": "item_ticket_treasury",
     "name": "Treasury Ticket",
     "examine": "One trip home to the main path. Teleport takes a moment.",
