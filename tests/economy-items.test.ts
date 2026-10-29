@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import { TICKETS } from '../src/config/balance';
 import { countItem } from '../src/sim/inventory';
 import { buyPrice, sellPrice } from '../src/sim/terminal';
 import { runTick } from '../src/sim/tick';
 import { xpForLevel } from '../src/sim/xp';
-import { give, messages, newGame } from './helpers';
+import { content, give, messages, newGame } from './helpers';
 
 function atTerminal() {
   const game = newGame();
@@ -12,32 +13,47 @@ function atTerminal() {
 }
 
 describe('Trading Terminal', () => {
-  it('prices in USD and charges $BITCOIN at the live price', () => {
+  it('prices the Campaign Pistol in Tickets, not the live USD walk', () => {
     const { state, ctx } = atTerminal();
+    const hash = content().items.get('item_scrap_hash')!.value;
+    expect(hash).toBe(6.9);
     state.economy.priceUsd = 0.069;
-    expect(buyPrice(state, ctx, 'gun_campaign_pistol', 1)).toBe(1000);
-    state.economy.priceUsd = 0.138; // the coin doubled: half the $BITCOIN
-    expect(buyPrice(state, ctx, 'gun_campaign_pistol', 1)).toBe(500);
-    expect(sellPrice(state, ctx, 'item_scrap_hash', 2)).toBe(Math.floor((6.9 * 2) / 0.138));
+    expect(buyPrice(state, ctx, 'gun_campaign_pistol', 1)).toBe(25);
+    state.economy.priceUsd = 0.138;
+    expect(buyPrice(state, ctx, 'gun_campaign_pistol', 1)).toBe(25);
+    // Sell-only goods: floor(usd / 25). Two Scrap Hash are 13.8 USD, so 0 Tickets.
+    expect(sellPrice(state, ctx, 'item_scrap_hash', 2)).toBe(
+      Math.floor((hash * 2) / TICKETS.usdPerTicket),
+    );
   });
 
   it('buys when you can afford it and have room', () => {
     const { state, ctx } = atTerminal();
-    const cost = buyPrice(state, ctx, 'item_rounds', 100)!;
-    const events = runTick(state, ctx, [{ type: 'buy', itemId: 'item_rounds', qty: 100 }]);
-    expect(messages(events)[0]).toMatch(/You need .* \$BITCOIN for that\./);
-    state.player.currencies.bitcoin = cost + 5;
-    runTick(state, ctx, [{ type: 'buy', itemId: 'item_rounds', qty: 100 }]);
+    // qty is packs. One pack of Rounds is 3 Tickets and 100 rounds.
+    const packs = 1;
+    const cost = buyPrice(state, ctx, 'item_rounds', packs)!;
+    expect(cost).toBe(3);
+    const events = runTick(state, ctx, [{ type: 'buy', itemId: 'item_rounds', qty: packs }]);
+    expect(messages(events)[0]).toBe('Not enough Tickets.');
+    state.player.currencies.tickets = cost + 5;
+    runTick(state, ctx, [{ type: 'buy', itemId: 'item_rounds', qty: packs }]);
     expect(countItem(state.player.inventory, 'item_rounds')).toBe(100);
-    expect(state.player.currencies.bitcoin).toBeLessThanOrEqual(5 + 1);
+    expect(state.player.currencies.tickets).toBe(5);
   });
 
   it('sells a whole stack of non-stackables with "all"', () => {
     const { state, ctx } = atTerminal();
     give(state, 'item_scrap_hash', 5);
     runTick(state, ctx, [{ type: 'sell', slot: 2, qty: 'all' }]);
+    const hash = content().items.get('item_scrap_hash')!.value;
+    const whole = Math.floor((hash * 5) / TICKETS.usdPerTicket);
     expect(countItem(state.player.inventory, 'item_scrap_hash')).toBe(0);
-    expect(state.player.currencies.bitcoin).toBeGreaterThan(0);
+    expect(whole).toBe(1);
+    expect(state.player.currencies.tickets).toBe(whole);
+    expect(state.player.ledger.offlineRemainder.pb_sell).toBeCloseTo(
+      (hash * 5) / TICKETS.usdPerTicket - whole,
+      8,
+    );
   });
 
   it('ignores trades when the Terminal is not open', () => {

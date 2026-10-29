@@ -89,7 +89,7 @@ describe('shops', () => {
   it("the Staffwright's Stall sells staffs; the Trading Terminal doesn't", () => {
     const { state, ctx } = newGame();
     changeZone(state, ctx, 'zone_academy', content().zones.get('zone_academy')!.spawn, []);
-    state.player.currencies.bitcoin = 10_000_000;
+    state.player.currencies.tickets = 78;
     const stall = objectOf(state, 'obj_staff_stall');
     runUntil(state, ctx, () => state.player.interface !== null, [
       { type: 'interact', targetId: stall.id, action: 'Trade' },
@@ -97,6 +97,7 @@ describe('shops', () => {
     expect(state.player.interface).toEqual({ kind: 'terminal', shopId: 'shop_staffwright' });
     runTick(state, ctx, [{ type: 'buy', itemId: 'staff_hopium', qty: 1 }]);
     expect(countItem(state.player.inventory, 'staff_hopium')).toBe(1);
+    expect(state.player.currencies.tickets).toBe(0);
 
     state.player.interface = { kind: 'terminal', shopId: 'shop_terminal' };
     runTick(state, ctx, [{ type: 'buy', itemId: 'staff_hopium', qty: 1 }]);

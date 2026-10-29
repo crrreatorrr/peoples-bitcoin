@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { COMBAT } from '../src/config/balance';
+import { COMBAT, TICKETS } from '../src/config/balance';
 import {
   combatLevel,
   hitChance,
@@ -82,7 +82,11 @@ describe('fighting', () => {
     expect(state.player.skills.shooting).toBeGreaterThan(0);
     expect(state.player.skills.hitpoints).toBeGreaterThan(xpForLevel(10));
     expect(target.respawnAt).not.toBeNull();
-    expect(state.player.currencies.bitcoin).toBeGreaterThan(0);
+    // A Sludgeling drops 0.5–2 USD. That is a fraction of a Ticket (1 per 25 USD).
+    expect(state.player.currencies.tickets).toBe(0);
+    const carry = state.player.ledger.offlineRemainder.pb_drop;
+    expect(carry).toBeGreaterThanOrEqual(0.5 / TICKETS.usdPerTicket);
+    expect(carry).toBeLessThanOrEqual(2 / TICKETS.usdPerTicket);
   });
 
   it('melee swings are attack events too, for the player and for enemies', () => {
