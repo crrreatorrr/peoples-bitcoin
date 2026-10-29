@@ -63,6 +63,11 @@ interface EventCall {
 class ScriptedHub {
   sid = 'sess-1';
   serverBalance = 1000;
+  /**
+   * Nakama server clock, epoch milliseconds. init and getTicketBalance stamp
+   * this value. Tests move it by assignment. It is not the client clock.
+   */
+  serverClock = 1_700_000_000_000;
   /** When false, init succeeds and leaves no hub session, so the shop stays local. */
   linked = true;
   sessionCapLeft: number | null = 1000;
@@ -120,7 +125,14 @@ class ScriptedHub {
         } else {
           sessionStorage.removeItem(SESSION_KEY);
         }
-        return { playerId: 'p', ranked: false, relics: [], effects: {}, ticketsCapLeft: 1000 };
+        return {
+          playerId: 'p',
+          ranked: false,
+          relics: [],
+          effects: {},
+          ticketsCapLeft: 1000,
+          serverTime: this.serverClock,
+        };
       },
       reportEvent: async (eventId, data, key) => {
         const body = data as Record<string, unknown>;
@@ -202,6 +214,7 @@ class ScriptedHub {
           balance: this.serverBalance,
           sessionCapLeft: 0,
           dailyCapLeft: 0,
+          serverTime: this.serverClock,
         };
         if (this.sessionCapLeft == null)
           delete (result as { sessionCapLeft?: number }).sessionCapLeft;
@@ -354,6 +367,21 @@ function ctxOf(): SimContext {
   const game = newGame();
   return game.ctx;
 }
+
+describe('mocked server clock', () => {
+  it('stamps init and the balance from the server clock', async () => {
+    script.serverClock = 1_700_000_000_000;
+    const sdk = script.asSdk();
+    const profile = await sdk.init('peoples-bitcoin');
+    expect(profile.serverTime).toBe(script.serverClock);
+    const balance = await sdk.getTicketBalance();
+    expect(balance.serverTime).toBe(1_700_000_000_000);
+    script.serverClock = 1_700_000_005_000;
+    const later = await sdk.getTicketBalance();
+    expect(later.serverTime).toBe(1_700_000_005_000);
+    expect(profile.serverTime).toBe(1_700_000_000_000);
+  });
+});
 
 describe('quest earn keys', () => {
   it('derives a stable UUIDv5 and keeps steps and choices apart', () => {
