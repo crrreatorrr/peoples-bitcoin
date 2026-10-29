@@ -1,6 +1,6 @@
 /**
- * M8 adds Blue Sproto Coffee, the Leaked Memo, and the Sproto Pup as content.
- * Quest rewards, shop stock, drop tables, and boss repoints are held back.
+ * M8 holds Coffee back. The Leaked Memo and the Sproto Pup are content only:
+ * no shop, drop, quest, or use grants them.
  */
 import { describe, expect, it } from 'vitest';
 import dropsJson from '../src/data/droptables.json';
@@ -13,7 +13,6 @@ import shopsJson from '../src/data/shops.json';
 import sprotosJson from '../src/data/sprotos.json';
 import usesJson from '../src/data/uses.json';
 import zonesJson from '../src/data/zones.json';
-import { TICKETS } from '../src/config/balance';
 import { damageEnemy } from '../src/sim/combat';
 import { countItem } from '../src/sim/inventory';
 import { deserialize, serialize } from '../src/sim/save';
@@ -89,7 +88,7 @@ describe('M8 items stay off every grant path', () => {
     for (const [name, file] of Object.entries(sources)) {
       expect(mentions(file), name).toEqual([]);
     }
-    expect(mentions(pricesJson)).toEqual([COFFEE]);
+    expect(mentions(pricesJson), 'prices').toEqual([]);
     for (const shop of content().shops.values()) {
       for (const id of HELD)
         expect(
@@ -115,25 +114,7 @@ describe('M8 items stay off every grant path', () => {
   });
 });
 
-describe('sub-Ticket Coffee', () => {
-  it('sells many Coffees for nothing and does not bank a fraction', () => {
-    const { state, ctx } = newGame();
-    state.player.interface = { kind: 'terminal', shopId: 'shop_terminal' };
-    const copies = 20;
-    give(state, COFFEE, copies);
-    expect(content().items.get(COFFEE)?.value).toBe(3.69);
-    expect((3.69 * copies) / TICKETS.usdPerTicket).toBeGreaterThan(2);
-    expect(sellPrice(state, ctx, COFFEE, copies)).toBe(0);
-
-    const events = runTick(state, ctx, [{ type: 'sell', slot: 0, qty: 'all' }]);
-    expect(messages(events)).toContain('Worth 0 Tickets');
-    expect(countItem(state.player.inventory, COFFEE)).toBe(copies);
-    expect(state.player.currencies.tickets).toBe(0);
-    expect(state.player.ledger.offlineRemainder.pb_sell).toBe(0);
-    expect(state.player.ledger.streams.pb_sell.pending).toBe(0);
-    expect(state.player.ledger.streams.pb_sell.remainder).toBe(0);
-  });
-
+describe('Memo and Pup', () => {
   it('refuses the Memo and the Pup and mints nothing', () => {
     const { state, ctx } = newGame();
     state.player.interface = { kind: 'terminal', shopId: 'shop_terminal' };
