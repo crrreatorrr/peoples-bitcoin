@@ -490,47 +490,135 @@ body {
 
 /* ── Side panel (bottom-right) ──────────────────────────────────────────── */
 
+/*
+ * OSRS fixed-mode layout: two rows of 7 stone tabs around one fixed-size
+ * content box, framed by stone pillars. Width and height are locked, so
+ * switching tabs never resizes the panel; taller content scrolls inside.
+ * Frame and tab art: src/assets/ui (painted by tools/ui-art/frame.py).
+ */
 #sidepanel {
+  --tab-w: 48px;
+  --tab-h: 36px;
   right: 8px;
   bottom: 8px;
-  width: 232px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  width: 249px;
+  height: 362px;
+  padding: 0;
+  overflow: hidden;
+  background: url('./assets/ui/frame.png') no-repeat 0 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.4);
+  image-rendering: pixelated;
 }
 
-.tab-bar {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 3px;
+.tab-row {
+  position: absolute;
+  left: 8px;
+  width: 232px;
+  height: var(--tab-h);
+  display: flex;
+}
+
+/* Even whole-pixel gaps, matching the sockets painted by frame.py. */
+.tab-row-top {
+  top: 4px;
+  padding-left: 8px;
+  gap: 8px;
+}
+
+.tab-row-bottom {
+  top: 322px;
+  padding-left: 22px;
+  gap: 22px;
 }
 
 .tab-btn {
-  height: 30px;
-  font-size: 16px;
-  background: linear-gradient(180deg, #5d4a33, #3c2f20);
-  border: 2px solid var(--edge-dark);
-  border-radius: 3px;
-  box-shadow: inset 0 0 0 1px var(--edge-light);
-  cursor: pointer;
+  position: relative;
+  flex: none;
+  width: var(--tab-w);
+  height: var(--tab-h);
   padding: 0;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--text);
+  background: url('./assets/ui/tab_top_normal.png') no-repeat;
+  border: 0;
+  image-rendering: pixelated;
 }
 
-.tab-btn.active {
-  background: linear-gradient(180deg, #8a3a23, #5b1f12);
-  box-shadow: inset 0 0 0 1px var(--gold);
+.tab-row-bottom .tab-btn {
+  background-image: url('./assets/ui/tab_bot_normal.png');
+}
+
+.tab-row-top .tab-btn:not(.active):hover {
+  background-image: url('./assets/ui/tab_top_hover.png');
+}
+
+.tab-row-bottom .tab-btn:not(.active):hover {
+  background-image: url('./assets/ui/tab_bot_hover.png');
+}
+
+.tab-row-top .tab-btn.active {
+  background-image: url('./assets/ui/tab_top_active.png');
+}
+
+.tab-row-bottom .tab-btn.active {
+  background-image: url('./assets/ui/tab_bot_active.png');
+}
+
+.tab-icon {
+  font-size: 17px;
+  line-height: 1;
+  filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, 0.8));
+}
+
+.tab-icon-img {
+  width: 26px;
+  height: 26px;
+  image-rendering: pixelated;
+  filter: none;
+  pointer-events: none;
+}
+
+.tab-row-top .tab-icon-img {
+  margin-top: 3px;
+}
+
+.tab-row-bottom .tab-icon-img {
+  margin-bottom: 3px;
+}
+
+.tab-btn:active .tab-icon-img {
+  transform: translate(1px, 1px);
 }
 
 .tab-body {
-  min-height: 320px;
+  position: absolute;
+  left: 19px;
+  top: 42px;
+  width: 211px;
+  height: 278px;
+  padding: 5px 6px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #6b5a40 #2a231b;
+  background: none;
+  color: #ff981f;
 }
 
-.tab-title {
-  margin: 2px 0 8px;
-  font-family: var(--font-display);
-  font-size: 9px;
-  font-weight: normal;
-  color: var(--gold);
+.tab-body > * {
+  max-width: 100%;
+}
+
+.panel-heading {
+  display: block;
+  margin: 2px 0 4px;
+  font-size: 18px;
+  color: #ff981f;
   text-align: center;
   text-shadow: 1px 1px 0 #000;
 }
@@ -543,10 +631,12 @@ body {
 
 .inventory {
   display: grid;
-  grid-template-columns: repeat(4, 46px);
-  grid-auto-rows: 40px;
-  gap: 2px;
+  grid-template-columns: repeat(4, 42px);
+  grid-template-rows: repeat(7, 36px);
+  gap: 1px 3px;
   justify-content: center;
+  align-content: center;
+  height: 100%;
 }
 
 .inv-slot {
@@ -558,23 +648,32 @@ body {
 }
 
 .inv-slot:hover {
-  background: rgba(255, 255, 255, 0.07);
+  background: none;
 }
 
 .inv-slot img {
   width: 32px;
   height: 32px;
   image-rendering: pixelated;
-  filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, 0.6));
 }
 
+/*
+ * OSRS stack counts: small crisp digits top-left over the icon, hard 1px
+ * black shadow, no smoothing. Colours from formatQty (yellow / white K / green M).
+ */
 .item-qty {
   position: absolute;
-  top: 0;
-  left: 3px;
+  top: -2px;
+  left: 1px;
+  font-family: var(--font-body);
   font-size: 16px;
   line-height: 1;
-  text-shadow: 1px 1px 0 #000;
+  letter-spacing: 0;
+  text-shadow:
+    1px 1px 0 #000,
+    1px 0 0 #000;
+  -webkit-font-smoothing: none;
+  font-smooth: never;
   pointer-events: none;
 }
 
@@ -741,7 +840,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 3px 8px;
+  padding: 2px 5px;
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid var(--edge-dark);
   border-radius: 3px;
@@ -814,9 +913,13 @@ body {
   top: 8px;
   left: 264px;
   max-width: calc(100vw - 520px);
+  padding: 0;
   background: none;
   border: 0;
   font-size: 20px;
+  text-shadow:
+    1px 1px 0 #000,
+    1px 0 0 #000;
 }
 
 #tooltip {
@@ -847,6 +950,15 @@ body {
 
 .tip-item {
   color: var(--item);
+}
+
+.tip-arrow {
+  color: #ffffff;
+}
+
+#tooltip {
+  -webkit-font-smoothing: none;
+  font-smooth: never;
 }
 
 .tip-more,
@@ -986,17 +1098,8 @@ body {
   }
 
   #chatbox {
-    width: calc(100vw - 236px);
+    width: calc(100vw - 268px);
     height: 170px;
-  }
-
-  #sidepanel {
-    width: 212px;
-  }
-
-  .inventory {
-    grid-template-columns: repeat(4, 42px);
-    grid-auto-rows: 36px;
   }
 }
 
@@ -1172,37 +1275,74 @@ body {
 
 /* ── Equipment, Summoning, Quests tabs ──────────────────────────────────── */
 
+/* OSRS worn-equipment paperdoll: 3 columns × 5 rows of 36px slots with connector lines. */
 .equip-grid {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(3, 46px);
-  /* OSRS worn-equipment layout. */
+  grid-template-columns: repeat(3, 36px);
+  grid-template-rows: repeat(5, 36px);
   grid-template-areas:
     '. head .'
-    '. neck ammo'
-    'weapon body .'
+    'cape neck ammo'
+    'weapon body shield'
     '. legs .'
-    'hands feet .';
-  gap: 4px;
-  justify-content: center;
-  margin-bottom: 8px;
+    'hands feet ring';
+  column-gap: 20px;
+  row-gap: 4px;
+  width: 148px;
+  margin: 4px auto 10px;
+}
+
+.equip-lines {
+  position: absolute;
+  inset: 0;
+  width: 148px;
+  height: 196px;
+  pointer-events: none;
+}
+
+.equip-lines line {
+  stroke: #231b12;
+  stroke-width: 3;
 }
 
 .equip-slot {
   position: relative;
-  width: 46px;
-  height: 42px;
+  z-index: 1;
+  width: 36px;
+  height: 36px;
   display: grid;
   place-items: center;
-  background: rgba(0, 0, 0, 0.3);
-  border: 2px solid var(--edge-dark);
-  border-radius: 4px;
-  box-shadow: inset 0 0 0 1px var(--edge-light);
+  background: #2b231a;
+  border: 1px solid #0d0a07;
+  border-radius: 2px;
+  box-shadow:
+    inset 1px 1px 0 #15100b,
+    inset -1px -1px 0 #4d4030;
   cursor: pointer;
   padding: 0;
 }
 
+.equip-slot:hover {
+  background: #3a2f23;
+}
+
+.equip-slot.equip-unused {
+  opacity: 0.35;
+  cursor: default;
+}
+
 .equip-head {
   grid-area: head;
+}
+.equip-cape {
+  grid-area: cape;
+}
+.equip-neck {
+  grid-area: neck;
+}
+.equip-ammo {
+  grid-area: ammo;
 }
 .equip-weapon {
   grid-area: weapon;
@@ -1210,14 +1350,11 @@ body {
 .equip-body {
   grid-area: body;
 }
+.equip-shield {
+  grid-area: shield;
+}
 .equip-legs {
   grid-area: legs;
-}
-.equip-ammo {
-  grid-area: ammo;
-}
-.equip-neck {
-  grid-area: neck;
 }
 .equip-hands {
   grid-area: hands;
@@ -1225,41 +1362,156 @@ body {
 .equip-feet {
   grid-area: feet;
 }
+.equip-ring {
+  grid-area: ring;
+}
 
 .equip-slot img {
   width: 32px;
   height: 32px;
   image-rendering: pixelated;
+  filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, 0.6));
 }
 
-.equip-empty {
-  font-size: 13px;
+.equip-silhouette {
+  width: 26px;
+  height: 26px;
+}
+
+.equip-silhouette path {
+  fill: #120e0a;
+  opacity: 0.55;
+}
+
+.equip-view {
+  display: flex;
+  flex-direction: column;
+}
+
+.equip-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.equip-view-btn {
+  min-height: 36px;
+  padding: 2px;
+  font-size: 15px;
+  line-height: 0.95;
+  color: #ff981f;
+}
+
+.equip-back {
+  margin-top: 6px;
+  color: #ff981f;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 16px;
+  line-height: 1.05;
+}
+
+.stat-label {
+  color: #ff981f;
+}
+
+.stat-value {
+  color: #ffff00;
+  text-align: right;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.death-note {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 15px;
+  line-height: 1;
+  color: #d9ccb0;
+}
+
+.death-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 42px);
+  grid-auto-rows: 36px;
+  gap: 1px 4px;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.death-none {
+  grid-column: 1 / -1;
+  text-align: center;
   color: #8e826a;
 }
 
-.style-buttons {
+.death-slot {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.death-slot img {
+  width: 32px;
+  height: 32px;
+  image-rendering: pixelated;
+}
+
+/* OSRS Combat Options. */
+.combat-tab {
+  min-height: 100%;
   display: flex;
-  gap: 3px;
-  margin-bottom: 6px;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+}
+
+.combat-weapon {
+  font-size: 18px;
+  color: #ff981f;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.combat-level {
+  font-size: 16px;
+  color: #ff981f;
+  margin-bottom: 4px;
+}
+
+.combat-note {
+  min-height: 16px;
+  font-size: 15px;
+  color: #ffb3a8;
+}
+
+.style-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
 }
 
 .style-btn {
-  flex: 1;
-  font-size: 15px;
+  height: 44px;
+  font-size: 17px;
+  color: #ff981f;
 }
 
 .retaliate-btn {
   width: 100%;
-  margin: 4px 0;
+  margin-top: auto;
+  color: #ff981f;
 }
 
 .retaliate-btn.active,
 .style-btn.active {
-  color: var(--gold);
-  box-shadow: inset 0 0 0 1px var(--gold);
+  color: #ffff00;
+  background: linear-gradient(180deg, #82331c, #4c180c);
+  box-shadow: inset 0 0 0 1px #c2552d;
 }
 
-.equip-stats,
 .summoning > div,
 .quests {
   display: flex;
@@ -1267,7 +1519,6 @@ body {
   gap: 4px;
 }
 
-.equip-line,
 .sproto-line {
   font-size: 16px;
   line-height: 1.05;
@@ -1308,11 +1559,6 @@ body {
 
 .sproto-name {
   color: var(--gold);
-}
-
-.quests {
-  max-height: 300px;
-  overflow-y: auto;
 }
 
 .quest-hint {
@@ -1469,10 +1715,10 @@ body {
   text-shadow: 1px 1px 0 #000;
 }
 
-/* OSRS "Use": the selected item gets a white outline. */
+/* OSRS "Use": the selected item gets a white outline around its silhouette. */
 .inv-slot.selected img {
-  outline: 1px solid #ffffff;
-  outline-offset: -1px;
+  filter: drop-shadow(1px 0 0 #fff) drop-shadow(-1px 0 0 #fff) drop-shadow(0 1px 0 #fff)
+    drop-shadow(0 -1px 0 #fff);
 }
 
 /* The OSRS click cross, centered on the click. */

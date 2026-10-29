@@ -9,6 +9,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import { z } from 'zod';
+import { UI } from '../config/balance';
 import manifestJson from '../config/assets.manifest.json';
 import { buildActor, LookSchema, staticActor, type ActorModel, type Look } from './actors';
 import { share } from './kit';
@@ -23,6 +24,8 @@ const AssetEntrySchema = z
     path: z.string().optional(),
     /** PNG path relative to src/assets: 2D art for icons and portraits, never shown in the world. */
     sprite: z.string().optional(),
+    /** PNG path relative to src/assets: crisp pixel-art UI icon (tools/ui-art). See UI.pixelIcons. */
+    pixel: z.string().optional(),
     /** Picks a version of a placeholder builder. */
     variant: z.string().optional(),
     /** How a humanoid looks (see actors.ts). */
@@ -43,7 +46,10 @@ const AssetEntrySchema = z
     glasses: z.boolean().optional(),
     smoke: z.boolean().optional(),
   })
-  .refine((e) => e.placeholder || e.path || e.sprite, 'needs a sprite, a path or a placeholder');
+  .refine(
+    (e) => e.placeholder || e.path || e.sprite || e.pixel,
+    'needs a sprite, a pixel icon, a path or a placeholder',
+  );
 
 export type AssetEntry = z.output<typeof AssetEntrySchema>;
 
@@ -194,14 +200,38 @@ export class AssetLoader {
     return canvas;
   }
 
-  /** URL for an inventory icon: the sprite PNG if there is one, else a drawn placeholder. */
+  private pixelUrl(e: AssetEntry): string | null {
+    return e.pixel ? (IMAGE_URLS[`../assets/${e.pixel}`] ?? null) : null;
+  }
+
+  /** The PNG to show for an icon, if any: pixel art or sprite, per UI.pixelIcons. */
+  imageUrl(id: string): string | null {
+    const e = this.entry(id);
+    const [first, second] = UI.pixelIcons
+      ? [this.pixelUrl(e), this.spriteUrl(e)]
+      : [this.spriteUrl(e), this.pixelUrl(e)];
+    return first ?? second;
+  }
+
+  /** URL for an inventory icon: a PNG if there is one, else a drawn placeholder. */
   iconUrl(id: string): string {
-    return this.spriteUrl(this.entry(id)) ?? this.icon(id).toDataURL();
+    return this.imageUrl(id) ?? this.icon(id).toDataURL();
   }
 
   /** The icon as a texture, for items lying on the ground. */
   iconTexture(id: string): THREE.Texture {
-    let tex = this.iconTextures.get(id) ?? this.sprites.get(id);
+    let tex = this.iconTextures.get(id);
+    const e = this.entry(id);
+    const pixel = this.pixelUrl(e);
+    if (!tex && pixel && (UI.pixelIcons || !this.sprites.has(id))) {
+      tex = new THREE.TextureLoader().load(pixel);
+      tex.magFilter = THREE.NearestFilter;
+      tex.minFilter = THREE.NearestFilter;
+      tex.generateMipmaps = false;
+      tex.colorSpace = THREE.SRGBColorSpace;
+      this.iconTextures.set(id, share(tex));
+    }
+    tex ??= this.sprites.get(id);
     if (!tex) {
       tex = new THREE.CanvasTexture(this.icon(id));
       tex.magFilter = THREE.NearestFilter;

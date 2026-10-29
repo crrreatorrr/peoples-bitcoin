@@ -240,6 +240,12 @@ export const UI = {
   /** Scroll-wheel zoom range for the minimap, in pixels per tile. */
   minimapZoomPx: [2, 8],
   minimapSize: 152,
+  /**
+   * Inventory/tab icons: prefer the hand-made pixel-art set (manifest `pixel`,
+   * src/assets/icons/px and src/assets/ui) over `sprite` art. Set false to show
+   * the Higgsfield sprites first; either way the other is the fallback.
+   */
+  pixelIcons: true,
   /** Overhead chat sits this high above the player's feet (world units). */
   overheadHeight: 1.95,
 } as const;

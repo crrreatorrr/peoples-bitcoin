@@ -64,7 +64,7 @@ import { SidePanel } from './ui/sidepanel';
 import { SkillGuide } from './ui/skillguide';
 import { SkillsPanel } from './ui/skills';
 import { QuestJournal, QuestList } from './ui/quests';
-import { EquipmentTab, SummoningTab } from './ui/tabs';
+import { CombatTab, EquipmentTab, SummoningTab } from './ui/tabs';
 import { TerminalWindow } from './ui/terminal';
 import { Tooltip, type TargetKind } from './ui/tooltips';
 import './styles.css';
@@ -156,7 +156,8 @@ async function boot(): Promise<void> {
     const name = item ? (content.items.get(item.itemId)?.name ?? item.itemId) : '';
     const options: MenuOption[] = infos.map((info) => ({
       action: 'Use',
-      target: `${name} -> ${info.name}`,
+      using: name,
+      target: info.name,
       targetKind: info.kind,
       run: () => {
         usingSlot = null;
@@ -215,6 +216,7 @@ async function boot(): Promise<void> {
   const tooltip = new Tooltip($('#tooltip'));
   const menu = new ContextMenu($('#contextmenu'));
   const glyph = (id: string) => assets.glyph(id);
+  const tabImage = (id: string) => assets.imageUrl(id);
   const iconUrl = (id: string) => assets.iconUrl(id);
   const openMenu = (options: MenuOption[], x: number, y: number) => {
     tooltip.hide();
@@ -300,10 +302,12 @@ async function boot(): Promise<void> {
   const skills = new SkillsPanel(content, glyph, tooltip, (skillId) =>
     guide.open(skillId, levelForXp(state.player.skills[skillId] ?? 0)),
   );
-  const equipment = new EquipmentTab(ctx, iconUrl, {
-    unequip: (slot) => queue({ type: 'unequip', slot }),
+  const combat = new CombatTab(ctx, {
     setStyle: (style) => queue({ type: 'setStyle', style }),
     toggleRetaliate: () => queue({ type: 'toggleRetaliate' }),
+  });
+  const equipment = new EquipmentTab(ctx, iconUrl, {
+    unequip: (slot) => queue({ type: 'unequip', slot }),
     openMenu,
     examine: itemExamine,
   });
@@ -314,53 +318,86 @@ async function boot(): Promise<void> {
   const journal = new QuestJournal(hudRoot, content);
   const quests = new QuestList(ctx, (questId) => journal.open(questId));
 
-  const sidePanel = new SidePanel($('#sidepanel'), [
-    {
-      id: 'inventory',
-      icon: glyph('tab_inventory'),
-      title: 'Inventory',
-      hotkey: 'F4',
-      content: inventory.el,
-    },
-    {
-      id: 'equipment',
-      icon: glyph('tab_equipment'),
-      title: 'Equipment',
-      hotkey: 'F1',
-      content: equipment.el,
-    },
-    { id: 'skills', icon: glyph('tab_skills'), title: 'Skills', hotkey: 'F2', content: skills.el },
-    {
-      id: 'summoning',
-      icon: glyph('tab_summoning'),
-      title: 'Summoning',
-      hotkey: 'F5',
-      content: summoning.el,
-    },
-    { id: 'quests', icon: glyph('tab_quests'), title: 'Quests', hotkey: 'F3', content: quests.el },
-    {
-      id: 'settings',
-      icon: glyph('tab_settings'),
-      title: 'Settings',
-      hotkey: 'F10',
-      content: buildSettingsPanel(
-        () => {
-          hub.checkpoint();
-          chat.add(persist() ? 'Game saved.' : 'Saving is unavailable in this browser.');
-        },
-        () => {
-          hub.logReset();
-          resetting = true;
-          clearSavedGame();
-          clearHubLedger();
-          location.reload();
-        },
-        () => {
-          void hub.exitToHub();
-        },
-      ),
-    },
-  ]);
+  // Top: Combat, Skills, Quests, Inventory. Bottom: Equipment, Summoning, Settings.
+  // F-keys follow the OSRS defaults; Esc returns to Inventory.
+  const sidePanel = new SidePanel(
+    $('#sidepanel'),
+    [
+      {
+        id: 'combat',
+        icon: glyph('tab_combat'),
+        image: tabImage('tab_combat'),
+        title: 'Combat Options',
+        hotkey: 'F1',
+        content: combat.el,
+      },
+      {
+        id: 'skills',
+        icon: glyph('tab_skills'),
+        image: tabImage('tab_skills'),
+        title: 'Skills',
+        hotkey: 'F2',
+        content: skills.el,
+      },
+      {
+        id: 'quests',
+        icon: glyph('tab_quests'),
+        image: tabImage('tab_quests'),
+        title: 'Quests',
+        hotkey: 'F3',
+        content: quests.el,
+      },
+      {
+        id: 'inventory',
+        icon: glyph('tab_inventory'),
+        image: tabImage('tab_inventory'),
+        title: 'Inventory',
+        content: inventory.el,
+      },
+    ],
+    [
+      {
+        id: 'equipment',
+        icon: glyph('tab_equipment'),
+        image: tabImage('tab_equipment'),
+        title: 'Worn Equipment',
+        hotkey: 'F4',
+        content: equipment.el,
+      },
+      {
+        id: 'summoning',
+        icon: glyph('tab_summoning'),
+        image: tabImage('tab_summoning'),
+        title: 'Summoning',
+        hotkey: 'F6',
+        content: summoning.el,
+      },
+      {
+        id: 'settings',
+        icon: glyph('tab_settings'),
+        image: tabImage('tab_settings'),
+        title: 'Settings',
+        hotkey: 'F10',
+        content: buildSettingsPanel(
+          () => {
+            hub.checkpoint();
+            chat.add(persist() ? 'Game saved.' : 'Saving is unavailable in this browser.');
+          },
+          () => {
+            hub.logReset();
+            resetting = true;
+            clearSavedGame();
+            clearHubLedger();
+            location.reload();
+          },
+          () => {
+            void hub.exitToHub();
+          },
+        ),
+      },
+    ],
+  );
+  sidePanel.select('inventory');
 
   // ── Mouse & keyboard ───────────────────────────────────────────────────────
   const keyboard = new Keyboard();
@@ -667,6 +704,7 @@ async function boot(): Promise<void> {
     buildWindow.update(build.name, build.choices);
     inventory.update(p.inventory);
     skills.update(p.skills, p.unlocks);
+    combat.update(state);
     equipment.update(state);
     summoning.update(state);
     quests.update(state, currentHint(state, ctx));

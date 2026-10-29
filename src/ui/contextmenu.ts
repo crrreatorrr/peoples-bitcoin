@@ -3,6 +3,7 @@ import { optionParts, span, type TargetKind, type TooltipContent } from './toolt
 
 export interface MenuOption {
   action: string;
+  using?: string;
   target?: string;
   targetKind?: TargetKind;
   level?: TooltipContent['level'];
