@@ -85,7 +85,10 @@ See [ART_GUIDE.md](ART_GUIDE.md).
 
 ## Deploy
 
-The client is a static site: `npm run build` and deploy `dist/`. Vite's `base` is `./`, so the
-build works under `/peoples-bitcoin/`. Set `VITE_HUB_URL` to the absolute hub origin in production
-(default `/hub/` for local dev). Nakama's `/v2` is same-origin; the dev server proxies it to
+The client is a static site: `npm run build` and deploy `dist/`. Vite's `base` defaults to
+`/peoples-bitcoin/` for a production build and `/play/peoples-bitcoin/` for `npm run dev`.
+Set `VITE_BASE` to override either one (a path such as `/peoples-bitcoin/` or a full URL).
+Bundled models, icons, and scripts are emitted under that base. Exit to Hub still goes to
+`/hub/#from=peoples-bitcoin`. Set `VITE_HUB_URL` when the hub is on another origin
+(default `/hub/`). Nakama's `/v2` is same-origin; the dev server proxies it to
 `127.0.0.1:7350`.
