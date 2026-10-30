@@ -3,7 +3,7 @@ import { HubSdkError } from './errors';
 import { relicForEvent } from './events';
 import { pbShopRow } from './pbShop';
 import { createLiveHubSdk } from './live';
-import { createNakamaClient, LOCAL_NAKAMA } from './nakama';
+import { createNakamaClient } from './nakama';
 import { getOrCreateDeviceId, readNumber, writeNumber } from './storage';
 import { readTicketParam, stripTicketParam, verifyMockTicket } from './ticket';
 import { GAME_IDS, MOCK_TICKET_EARN_CAP, TICKETS_PER_VERSE, VERSE_DAILY_CAP, canonicalGameId, isBoardId, isRelicId, } from './types';
@@ -45,8 +45,6 @@ export function createHubSdk(env = {}) {
         const client = env.client ??
             createNakamaClient({
                 serverUrl: env.serverUrl ?? '',
-                serverKey: env.serverKey ?? LOCAL_NAKAMA.serverKey,
-                httpKey: env.httpKey ?? LOCAL_NAKAMA.httpKey,
             });
         return createLiveHubSdk(env, client);
     }
