@@ -1,7 +1,8 @@
 /**
- * Adapter over @metaverse/hub-sdk 0.3.0. Shop calls are
+ * Adapter over @metaverse/hub-sdk. Shop calls are
  * spendTickets(shopId, itemId, packs, key) and sellItem with the same arguments.
  * earnTickets(amount, reason, key) and getTicketBalance() use that build's results.
+ * init redeems the portal ticket inside the SDK (custom auth, then the session token).
  * With no hub session the SDK no-ops and this game shops locally instead.
  */
 import {

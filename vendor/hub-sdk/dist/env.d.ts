@@ -8,8 +8,6 @@ export interface HubSdkEnv {
      * Set this to use the live server. Omit it, and the SDK keeps the in-memory mock used by unit tests.
      */
     serverUrl?: string;
-    serverKey?: string;
-    httpKey?: string;
     /** Injected Nakama client. When set, the SDK uses the live path. */
     client?: NakamaClient;
     /** Keep the in-memory mock even if a server URL or client is set. */

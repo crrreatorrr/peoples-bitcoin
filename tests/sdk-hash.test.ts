@@ -53,21 +53,22 @@ export function vendoredSdkManifestSha256(root = 'vendor/hub-sdk'): string {
     .digest('hex');
 }
 
-describe('vendored hub SDK 0.3.0', () => {
+// Source: crrreatorrr/metaverse-hub branch cursor/ticket-redeem-custom-auth-c054 @ 947ed4c
+describe('vendored hub SDK 0.4.0', () => {
   it('pins the package version, the byte hash, and the standard manifest', () => {
     const pkg = JSON.parse(
       new TextDecoder().decode(readFileSync('vendor/hub-sdk/package.json')),
     ) as {
       version: string;
     };
-    expect(pkg.version).toBe('0.3.0');
+    expect(pkg.version).toBe('0.4.0');
     const hash = vendoredSdkSha256();
     expect(hash, `byte hash ${hash}`).toBe(
-      'fac12b54270f3ca071658c740f94fdde8c73081f6a58d68bb49c98863bd85c7e',
+      '817ee7fb329260e435d7935240ee877792064177d045e75c226a09c421ac32bc',
     );
     const manifest = vendoredSdkManifestSha256();
     expect(manifest, `manifest ${manifest}`).toBe(
-      'f6ae2898ee1023426997fb0b0b520ad8468edfa2d9a16a98568ce21e8242e834',
+      'c33fa3ad3e6f3754dce68a63d665a8ce5d9ac813db8876ee62411e645dea7c66',
     );
   });
 });

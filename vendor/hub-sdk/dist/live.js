@@ -104,9 +104,9 @@ async function forget(key) {
     });
 }
 /**
- * Hub SDK backed by Nakama. `init` reads `#t=<ticket>`, strips it, and exchanges it
- * for a game-scoped session cached in sessionStorage. Without a ticket or a cached
- * session every call no-ops so the game still runs standalone.
+ * Hub SDK backed by Nakama. `init` reads `#t=<ticket>`, strips it, and redeems it
+ * with custom auth (`t:` + ticket). Later calls send that session token.
+ * Without a ticket or a cached session every call no-ops so the game still runs standalone.
  */
 export function createLiveHubSdk(env, client) {
     const resolved = resolveHubEnv(env);
@@ -201,8 +201,10 @@ export function createLiveHubSdk(env, client) {
             const token = readTicketParam(resolved.readHash());
             let serverTime = 0;
             if (token) {
-                const body = await client.rpc('session.redeem', { ticket: token, gameId: game }, { httpKey: true });
-                if (!body.token || !body.playerId || !body.sid) {
+                const auth = await client.authenticateCustom(`t:${token}`, { game });
+                const body = await client.rpc('session.claim', { gameId: game }, { token: auth.token });
+                const sessionToken = typeof body.token === 'string' && body.token.length > 0 ? body.token : auth.token;
+                if (!sessionToken || !body.playerId || !body.sid) {
                     throw new HubSdkError('ticket_invalid', 'Redeem did not return a session');
                 }
                 resolved.writeHash(stripTicketParam(resolved.readHash()));
@@ -212,7 +214,7 @@ export function createLiveHubSdk(env, client) {
                     playerId: body.playerId,
                     ranked: body.ranked === true,
                     sid: body.sid,
-                    token: body.token,
+                    token: sessionToken,
                     effects: flatEffects(body.effects),
                     relics: asRelics(body.relics),
                     ticketsCapLeft: typeof body.ticketsCapLeft === 'number' ? body.ticketsCapLeft : 0,
