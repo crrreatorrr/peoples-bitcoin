@@ -377,7 +377,7 @@ Three audits (gameplay duels in the real sim, every NPC variant, the story as a 
 
 ## Hub Tickets (2026-10-29)
 
-- **Game id** is `peoples-bitcoin` for init, logs, and the exit fragment. hub-sdk 0.3.0
+- **Game id** is `peoples-bitcoin` for init, logs, and the exit fragment. hub-sdk 0.4.0
   accepts that id and exposes `spendTickets`, `sellItem`, `getTicketBalance`, and `earnTickets`.
   `init` and `getTicketBalance` also return `serverTime`. The relic
   event id stays `pb.quest_complete` and the board id stays `pb_total_xp`; those are hub event
@@ -431,6 +431,13 @@ Three audits (gameplay duels in the real sim, every NPC variant, the story as a 
   last server balance when we have one. The slot is persisted before the call.
 - **Relic effects** from `init` sit on `hubSession` for the page only. They are not saved. No PB
   effect keys are applied yet; the matrix is still empty.
+- **Ticket redeem (hub #25).** The client does not send a Nakama HTTP key or a server key.
+  `init` posts `/v2/account/authenticate/custom?create=false` with `{ id: "t:" + ticket, vars: { game } }`,
+  then calls `session.claim` with `{ gameId }` and `Authorization: Bearer <session>`. Every later RPC
+  uses that session token. `createHubSdk({ serverUrl: '' })` is unchanged; Vite still proxies `/v2`.
+  The private hub repo was not readable from this checkout, so `vendor/hub-sdk` is the 0.3.0 tree
+  switched to that redeem and marked 0.4.0 (`VENDOR.md` records branch `cursor/ticket-redeem-custom-auth-c054`,
+  sha `947ed4c`). Re-pack from hub main after #25 merges if that sha moves.
 - **Exit** goes to the absolute `VITE_HUB_URL` (default `/hub/`) with `#from=peoples-bitcoin`.
   Vite `base` defaults to `/peoples-bitcoin/` in production and `/play/peoples-bitcoin/` in dev.
   `VITE_BASE` overrides it. Bundled asset URLs use that base. Exit stays `/hub/#from=peoples-bitcoin`.
