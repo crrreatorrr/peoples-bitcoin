@@ -98,7 +98,9 @@ OSRS conventions". Newest at the bottom of each section.
 ## Tooling
 
 - **Sim purity is enforced**, not just intended: `tsconfig.sim.json` type-checks `src/sim` without
-  DOM types, and ESLint forbids `three`, `render`, `ui` and `input` imports there.
+  DOM types, and ESLint forbids `three`, `render`, `ui` and `input` imports there. That pass covers
+  `src/sim` and `src/config` only. `tests/` is checked by `tsconfig.json`, because the hub and
+  tooling tests use DOM, Node and Vite types.
 - **Dev preview port.** `.claude/launch.json` uses port 5181 because 5173 was taken by another
   local project. `npm run dev` still defaults to 5173.
 

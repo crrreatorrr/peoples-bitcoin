@@ -1,10 +1,11 @@
 {
   // Type-checks the simulation without DOM or Three.js types, so src/sim stays
   // runnable on the Node server in phase 5. Any DOM use in src/sim fails here.
+  // Tests are checked by tsconfig.json; hub and tooling tests use DOM, Node and Vite types.
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "lib": ["ES2022"],
     "types": []
   },
-  "include": ["src/sim", "src/config", "tests"]
+  "include": ["src/sim", "src/config"]
 }
