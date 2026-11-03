@@ -53,22 +53,32 @@ export function vendoredSdkManifestSha256(root = 'vendor/hub-sdk'): string {
     .digest('hex');
 }
 
-// Source: crrreatorrr/metaverse-hub branch cursor/ticket-redeem-custom-auth-c054 @ 947ed4c
-describe('vendored hub SDK 0.4.0', () => {
+// Source: crrreatorrr/metaverse-hub main @ 9c06593
+describe('vendored hub SDK 0.4.0-redeem.1', () => {
+  // Hub main redeems with custom auth plus the server key, then profile.get. It registers
+  // no session.claim RPC, so a vendor that calls one never gets a session.
+  it('redeems the way the merged hub server expects', () => {
+    const read = (file: string) =>
+      new TextDecoder().decode(readFileSync(`vendor/hub-sdk/dist/${file}`));
+    expect(read('live.js')).not.toContain('session.claim');
+    expect(read('live.js')).not.toContain('session.redeem');
+    expect(read('nakama.js')).toContain('Authorization: `Basic ${btoa(`${serverKey}:`)}`');
+  });
+
   it('pins the package version, the byte hash, and the standard manifest', () => {
     const pkg = JSON.parse(
       new TextDecoder().decode(readFileSync('vendor/hub-sdk/package.json')),
     ) as {
       version: string;
     };
-    expect(pkg.version).toBe('0.4.0');
+    expect(pkg.version).toBe('0.4.0-redeem.1');
     const hash = vendoredSdkSha256();
     expect(hash, `byte hash ${hash}`).toBe(
-      '817ee7fb329260e435d7935240ee877792064177d045e75c226a09c421ac32bc',
+      'a28d0617bf41046c4d30352898071b12f25e3118ebea5f3487c8a2cbaae5a3d3',
     );
     const manifest = vendoredSdkManifestSha256();
     expect(manifest, `manifest ${manifest}`).toBe(
-      'c33fa3ad3e6f3754dce68a63d665a8ce5d9ac813db8876ee62411e645dea7c66',
+      '615f53233fa8328021541e3c41f2bf8ab35ec0f3fb77b282039d17aa336313d5',
     );
   });
 });

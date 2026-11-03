@@ -109,10 +109,18 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
 }
 
+// Nakama's client server key. Custom-auth ticket redeem sends it as Basic auth; it is
+// not the runtime HTTP key. Like the hub, only `vite dev` falls back to the compose
+// default. A production build takes VITE_NAKAMA_SERVER_KEY, or every redeem is refused
+// and the game runs without a hub session (no Tickets banked, no Relic sent).
+const NAKAMA_SERVER_KEY =
+  import.meta.env.VITE_NAKAMA_SERVER_KEY || (import.meta.env.DEV ? 'defaultkey' : '');
+
 export function createGameHub(): HubSdk {
   const url = hubUrl();
   return createHubSdk({
     serverUrl: '',
+    serverKey: NAKAMA_SERVER_KEY,
     hubUrl: url,
     assign: () => {
       window.location.assign(absoluteHubUrl(url));

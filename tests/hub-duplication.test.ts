@@ -115,6 +115,9 @@ class ScriptedHub {
       sellItem?: (shopId: string, itemId: string, packs: number, key: string) => Promise<unknown>;
       getTicketBalance?: () => Promise<unknown>;
     } = {
+      redeemTicket: async () => {
+        throw new Error('redeemTicket is not used by the bridge');
+      },
       init: async () => {
         if (this.initError) throw this.initError;
         if (this.linked) {

@@ -3,7 +3,7 @@ import { HubSdkError } from './errors';
 import { relicForEvent } from './events';
 import { pbShopRow } from './pbShop';
 import { createLiveHubSdk } from './live';
-import { createNakamaClient } from './nakama';
+import { createNakamaClient, LOCAL_NAKAMA } from './nakama';
 import { getOrCreateDeviceId, readNumber, writeNumber } from './storage';
 import { readTicketParam, stripTicketParam, verifyMockTicket } from './ticket';
 import { GAME_IDS, MOCK_TICKET_EARN_CAP, TICKETS_PER_VERSE, VERSE_DAILY_CAP, canonicalGameId, isBoardId, isRelicId, } from './types';
@@ -45,6 +45,7 @@ export function createHubSdk(env = {}) {
         const client = env.client ??
             createNakamaClient({
                 serverUrl: env.serverUrl ?? '',
+                serverKey: env.serverKey ?? LOCAL_NAKAMA.serverKey,
             });
         return createLiveHubSdk(env, client);
     }
@@ -191,6 +192,27 @@ function createMockHubSdk(env) {
         return response;
     }
     return {
+        async redeemTicket({ game: gameId }) {
+            const game = canonicalGameId(gameId);
+            if (!game)
+                throw new HubSdkError('bad_game', `Unknown game "${gameId}"`);
+            const token = readTicketParam(resolved.readHash());
+            resolved.writeHash(stripTicketParam(resolved.readHash()));
+            if (!token)
+                throw new HubSdkError('ticket_invalid', 'Missing ticket');
+            const claims = await verifyMockTicket(token);
+            if (!claims)
+                throw new HubSdkError('ticket_invalid', 'Ticket signature or payload is not valid');
+            if (claims.exp * 1000 <= resolved.now())
+                throw new HubSdkError('ticket_expired', 'Ticket expired');
+            if (claims.game !== game)
+                throw new HubSdkError('ticket_game', 'Ticket is for a different game');
+            if (spentSet().has(claims.jti))
+                throw new HubSdkError('ticket_used', 'Ticket was already redeemed');
+            markSpent(claims.jti);
+            const session = openSession(claims);
+            return { token: `mock.${session.playerId}`, refreshToken: `mock-refresh.${session.playerId}` };
+        },
         async init(gameId) {
             const game = canonicalGameId(gameId);
             if (!game)
