@@ -1,10 +1,15 @@
 # Vendored @metaverse/hub-sdk
 
-- Source repo: https://github.com/crrreatorrr/metaverse-hub
-- Branch: `cursor/ticket-redeem-custom-auth-c054`
-- Commit: `947ed4c`
-- Hub PR: https://github.com/crrreatorrr/metaverse-hub/pull/25
+- repo: https://github.com/crrreatorrr/metaverse-hub
+- branch: main
+- sha: 9c06593
+- package: packages/hub-sdk @ 0.4.0-redeem.1
+- built with: `npm ci && npm run build -w @metaverse/hub-sdk`
 
-Version 0.4.0. `init` redeems the portal ticket with Nakama custom auth (`POST /v2/account/authenticate/custom?create=false`, body `{ id: "t:<ticket>", vars: { game } }`), then `session.claim` with the session token. Later calls send that token only.
+Layout: `package.json`, `README.md`, `dist/*.js`, `dist/*.d.ts`. No source maps are included, and `sourceMappingURL` lines are stripped.
 
-Layout matches the previous vendor: `package.json`, `README.md`, and `dist/` (no source maps). This checkout could not read the private hub repo, so `dist/` is the 0.3.0 build switched to that redeem. After hub #25 merges, re-pack from hub main with `npm pack -w @metaverse/hub-sdk` if the sha changes, drop `*.map`, and strip `sourceMappingURL` lines.
+Ticket redeem is `authenticateCustom` (`t:` + ticket, create=false) with the Nakama server key as Basic auth, then `profile.get`. Later calls send only the session token.
+
+The previous vendor tracked hub #25 at 947ed4c, which redeemed without the server key. The merged hub server requires it, so every redeem failed and the game ran with no hub session.
+
+Re-sync this tree to hub main whenever packages/hub-sdk changes.

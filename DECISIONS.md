@@ -431,13 +431,14 @@ Three audits (gameplay duels in the real sim, every NPC variant, the story as a 
   last server balance when we have one. The slot is persisted before the call.
 - **Relic effects** from `init` sit on `hubSession` for the page only. They are not saved. No PB
   effect keys are applied yet; the matrix is still empty.
-- **Ticket redeem (hub #25).** The client does not send a Nakama HTTP key or a server key.
-  `init` posts `/v2/account/authenticate/custom?create=false` with `{ id: "t:" + ticket, vars: { game } }`,
-  then calls `session.claim` with `{ gameId }` and `Authorization: Bearer <session>`. Every later RPC
-  uses that session token. `createHubSdk({ serverUrl: '' })` is unchanged; Vite still proxies `/v2`.
-  The private hub repo was not readable from this checkout, so `vendor/hub-sdk` is the 0.3.0 tree
-  switched to that redeem and marked 0.4.0 (`VENDOR.md` records branch `cursor/ticket-redeem-custom-auth-c054`,
-  sha `947ed4c`). Re-pack from hub main after #25 merges if that sha moves.
+- **Ticket redeem.** The client sends Nakama's server key, never the HTTP key. `init` posts
+  `/v2/account/authenticate/custom?create=false` with `{ id: "t:" + ticket, vars: { game } }` and Basic
+  auth, then calls `profile.get` with `Authorization: Bearer <session>`. Every later RPC uses that session
+  token. `createHubSdk({ serverUrl: '', serverKey })` takes the key from `VITE_NAKAMA_SERVER_KEY`, with
+  `defaultkey` only under `vite dev`; Vite still proxies `/v2`. A production build without the variable
+  has every redeem refused and runs with no hub session. `vendor/hub-sdk` is packed from hub main
+  (`VENDOR.md` records the sha). The earlier 0.4.0 tree redeemed without the key and called a
+  `session.claim` RPC the merged server does not register.
 - **Exit** goes to the absolute `VITE_HUB_URL` (default `/hub/`) with `#from=peoples-bitcoin`.
   Vite `base` defaults to `/peoples-bitcoin/` in production and `/play/peoples-bitcoin/` in dev.
   `VITE_BASE` overrides it. Bundled asset URLs use that base. Exit stays `/hub/#from=peoples-bitcoin`.
