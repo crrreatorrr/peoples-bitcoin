@@ -6,6 +6,15 @@
 - [ ] Boss mechanics beyond adds: Sludge Mother floor sludge, Wrong-Namer Chief ticker typing,
       Captain Motion rage-quit run
 - [ ] Sprotos 6–12 (Engineer, Scout, Shield, Commander, Paratrooper, Golden Sproto)
+- [ ] Champion Sproto art: Higgsfield sprite to `src/assets/sprites/sp_champion.png` and the rigged
+      GLB to `src/assets/models/sp_champion.glb` (paths already in the manifest; the CDN was
+      blocked when the summon shipped, so it is a code-built placeholder for now)
+- [ ] The other hub relic summons in the matrix are not in this game yet: `pb_summon_speed_sproto`
+      (hpos10i_core, `summon_run_regen`), `pb_summon_nobu` (cones_tip, `summon_fetch`) and
+      `pb_summon_duelist_sproto` (tinubu_crown, `summon_stun`). Add each as a `relic` Sproto in
+      `sprotos.json` like `sp_champion`
+- [ ] Re-pack `vendor/hub-sdk` from hub main once redeem works without a server key; drop the
+      local `tidebreaker_belt` patch then (VENDOR.md)
 - [ ] More quests (DESIGN.md §12), and more to do in The World Out There beyond the ferry to Moonward
 - [ ] Moonward Academy: library and potions content (spellbooks, brewing) beyond decoration
 - [ ] Balance pass: XP rates, drop values, Terminal prices, enemy stats (all in data/balance.ts)

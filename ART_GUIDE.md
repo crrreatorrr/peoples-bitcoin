@@ -44,7 +44,7 @@
 | `placeholder`                                            | Model built in code. Characters: `humanoid`, `sludge`, `wraith`, `sock`. Props: `bookshelf`, `cauldron`, `orb`, `boat`, `longtable`, `turret`, `rug`, `rack`, `donor`, `podium`, `terminal`, `hatch`, `ladder`, `trench`, `barricade`, `hotspot`, `locker`, `medbay`, `desk`, `bunkbed`, `farm`, `armory`, `circle`, `tree`, `pillar`, `bench`, `flagpole`, `gremlin`, `board`, `booth`, `prop`. Terrain: `tile`, `wall`, `water` |
 | `look`                                                   | How a `humanoid` looks (below)                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `variant`                                                | Picks a version of a builder: donor `chicken`/`empty`/`gala`/`yacht`, farm `1`–`3`, armory `1`–`2`, sludge `mother`                                                                                                                                                                                                                                                                                                               |
-| `path`                                                   | GLB/GLTF under `src/assets/`. Overrides `placeholder`                                                                                                                                                                                                                                                                                                                                                                             |
+| `path`                                                   | GLB/GLTF under `src/assets/`. Overrides `placeholder` once the file exists; until then a `placeholder` entry keeps its code-built model                                                                                                                                                                                                                                                                                           |
 | `sprite`                                                 | PNG under `src/assets/`: 2D art for the UI only (inventory icons, Summoning-tab portraits, build menu). Never shown in the world                                                                                                                                                                                                                                                                                                  |
 | `scale`, `rotationYDeg`                                  | Applied to the model                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `motion`                                                 | How an unrigged GLB character moves: `hop` (default) or `float`                                                                                                                                                                                                                                                                                                                                                                   |
@@ -56,7 +56,8 @@ For a rigged GLB only `left`, `right` and `pose` are read from the `look`; the m
 
 A `look` describes a code-built humanoid: `head` (`human`, `goblin`, `phone`, `bear`, `sproto`, `robot`,
 `blob`, `rock`), `skin`, `hair`, `hairStyle`, `top`, `sleeves`, `shirt`, `tie`, `pants`, `shoes`,
-`coat`, `bib`, `belt`, `stripes`, `hood`, `hat`, `hatColor`, `glasses`, `mustache`, `mask`,
+`coat`, `bib`, `belt`, `titleBelt` (a fictional gold championship belt with a round wave-emblem
+plate), `stripes`, `hood`, `hat`, `hatColor`, `glasses`, `mustache`, `mask`,
 `scarf`, `eyes` (glowing), `hands`, armor layers (`vest`, `plate`, `pads`, `greaves`), held gear
 (`right`, `left`: ids from `gear.ts`), `back` (`backpack`, `rug`, `spines`), `pose`, and
 proportions (`build`, `legs`, `headSize`, `hunch`). Worn armor changes the player's look through
@@ -123,3 +124,13 @@ three-quarter front view, centered, standing on the ground", then "Creature: ...
 
 Held items are left out of concepts (empty hands) and come from `gear.ts`, so they can change
 with what the character wields.
+
+**Champion Sproto** (`sp_champion`, Tidebreaker Belt relic summon). Approved concept: a stocky
+Sproto in the summons' chunky retro MMO style (blue at the back of the head, yellow face, blue
+quills with yellow stripes, droopy eyes, red clown nose), a big gold championship belt with a
+round wave-emblem plate, red fighting wraps, and a grey rock held over the shoulder. The belt is
+the invented Tidebreaker title: no real promotion's belt, logo or wrestler. Until the art lands
+it is the code-built placeholder (`head: sproto`, `titleBelt`, `hands` red, `right: rock`). The
+real files go to `src/assets/sprites/sp_champion.png` (UI sprite, ≤ 192 px) and
+`src/assets/models/sp_champion.glb` (rigged at the Sprotos' height, scale 1, empty hands: keep
+`right: rock` in the `look` so the held rock still comes from `gear.ts`).
