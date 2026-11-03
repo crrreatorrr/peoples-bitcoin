@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { isRelicId, RELIC_IDS } from '@metaverse/hub-sdk';
 import { describe, expect, it } from 'vitest';
 
 function filesUnder(dir: string): string[] {
@@ -53,7 +54,8 @@ export function vendoredSdkManifestSha256(root = 'vendor/hub-sdk'): string {
     .digest('hex');
 }
 
-// Source: crrreatorrr/metaverse-hub branch cursor/ticket-redeem-custom-auth-c054 @ 947ed4c
+// Source: crrreatorrr/metaverse-hub branch cursor/ticket-redeem-custom-auth-c054 @ 947ed4c,
+// plus the local `tidebreaker_belt` RELIC_IDS patch (VENDOR.md).
 describe('vendored hub SDK 0.4.0', () => {
   it('pins the package version, the byte hash, and the standard manifest', () => {
     const pkg = JSON.parse(
@@ -64,11 +66,19 @@ describe('vendored hub SDK 0.4.0', () => {
     expect(pkg.version).toBe('0.4.0');
     const hash = vendoredSdkSha256();
     expect(hash, `byte hash ${hash}`).toBe(
-      '817ee7fb329260e435d7935240ee877792064177d045e75c226a09c421ac32bc',
+      '6c0886430b6d4d5376e85855d087076b27e737161c9f7648b19e167cb36ffb10',
     );
     const manifest = vendoredSdkManifestSha256();
     expect(manifest, `manifest ${manifest}`).toBe(
-      'c33fa3ad3e6f3754dce68a63d665a8ce5d9ac813db8876ee62411e645dea7c66',
+      '2d114f113c4109e557591539a328300ab0f485f2bd742ec0a0af1696ade2c5a5',
     );
+  });
+});
+
+describe('vendored hub SDK relic ids', () => {
+  it('keeps the Tidebreaker Belt, so init() does not drop it from relics', () => {
+    expect(RELIC_IDS).toContain('tidebreaker_belt');
+    expect(isRelicId('tidebreaker_belt')).toBe(true);
+    expect(isRelicId('not_a_relic')).toBe(false);
   });
 });
