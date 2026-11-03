@@ -100,8 +100,11 @@ export class AssetLoader {
     const jobs = [...this.entries]
       .filter(([, e]) => e.path)
       .map(async ([id, e]) => {
-        const url = MODEL_URLS[`../assets/${e.path}`] ?? e.path!;
-        this.models.set(id, (await gltf.loadAsync(url)).scene);
+        const bundled = MODEL_URLS[`../assets/${e.path}`];
+        // A registered GLB that isn't in src/assets yet is art still to come (ART_GUIDE.md):
+        // keep the code-built placeholder until the file lands, instead of failing the boot.
+        if (!bundled && e.placeholder) return;
+        this.models.set(id, (await gltf.loadAsync(bundled ?? e.path!)).scene);
       });
     await Promise.all(jobs);
   }

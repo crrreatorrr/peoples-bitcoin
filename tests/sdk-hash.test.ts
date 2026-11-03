@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { isRelicId, RELIC_IDS } from '@metaverse/hub-sdk';
+import { isRelicId, memoryKeyValue, RELIC_IDS, type NakamaClient } from '@metaverse/hub-sdk';
+import { createLiveHubSdk } from '../vendor/hub-sdk/dist/live.js';
 import { describe, expect, it } from 'vitest';
 
 function filesUnder(dir: string): string[] {
@@ -80,5 +81,33 @@ describe('vendored hub SDK relic ids', () => {
     expect(RELIC_IDS).toContain('tidebreaker_belt');
     expect(isRelicId('tidebreaker_belt')).toBe(true);
     expect(isRelicId('not_a_relic')).toBe(false);
+  });
+});
+
+describe('vendored hub SDK init relics', () => {
+  it('passes tidebreaker_belt through a redeemed session, and still drops unknown ids', async () => {
+    const client = {
+      authenticateDevice: async () => ({ token: 'device', userId: 'u1' }),
+      authenticateCustom: async () => ({ token: 'auth', userId: 'u1' }),
+      rpc: async (id: string) => {
+        if (id !== 'session.claim') throw new Error(`unexpected rpc ${id}`);
+        return {
+          token: 'session',
+          playerId: 'p1',
+          sid: 's1',
+          ranked: false,
+          relics: ['tinubu_crown', 'tidebreaker_belt', 'made_up_relic'],
+          effects: {},
+          ticketsCapLeft: 200,
+          serverTime: 1,
+        };
+      },
+    } as unknown as NakamaClient;
+    const sdk = createLiveHubSdk(
+      { readHash: () => '#t=ticket-1', local: memoryKeyValue(), session: memoryKeyValue() },
+      client,
+    );
+    const profile = await sdk.init('peoples-bitcoin');
+    expect(profile.relics).toEqual(['tinubu_crown', 'tidebreaker_belt']);
   });
 });

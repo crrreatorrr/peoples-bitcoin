@@ -127,6 +127,17 @@ export const SUMMONING = {
   pointsRegenPerTick: 0.25,
   /** Summoning XP per point of damage a Sproto deals. */
   xpPerDamage: 1,
+  /**
+   * Champion Sproto's thrown rock (relic summon from the Tidebreaker Belt). Matches the hub
+   * matrix part `summon_rock_throw` { range_tiles, damage, every_ticks }. `damage` is the max
+   * hit; each throw rolls 0..damage with the Sproto's accuracy, like any Sproto attack.
+   * A sidegrade: about the Recruit's reach with a Grunt-sized hit, slower than either.
+   */
+  rockThrow: {
+    rangeTiles: 4,
+    damage: 3,
+    everyTicks: 5,
+  },
 } as const;
 
 // ── Economy (DESIGN.md §6) ───────────────────────────────────────────────────

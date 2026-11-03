@@ -3,6 +3,7 @@
  * readable list of problems if any file or cross-reference is invalid.
  */
 import type { z } from 'zod';
+import { SUMMONING } from '../config/balance';
 import dropsJson from '../data/droptables.json';
 import enemiesJson from '../data/enemies.json';
 import itemsJson from '../data/items.json';
@@ -202,6 +203,22 @@ function checkReferences(c: Content, problems: string[]): void {
     }
     if (def.weapon && def.equip?.slot !== 'weapon') {
       problems.push(`items.json ${def.id}: weapons must equip to the weapon slot`);
+    }
+  }
+
+  for (const s of c.sprotos.values()) {
+    if (s.relic && s.xp !== 0) {
+      problems.push(`sprotos.json ${s.id}: relic Sprotos are free to summon and give no XP`);
+    }
+    if (!s.relic && s.xp <= 0) problems.push(`sprotos.json ${s.id}: contract Sprotos give XP`);
+    // A thrower's reach comes from balance.ts; the data copy must agree so nothing reads a stale number.
+    if (s.throws === 'rock') {
+      const rock = SUMMONING.rockThrow;
+      if (s.range !== rock.rangeTiles || s.speed !== rock.everyTicks || s.type !== 'gun') {
+        problems.push(
+          `sprotos.json ${s.id}: a rock thrower needs type 'gun', range ${rock.rangeTiles} and speed ${rock.everyTicks} (SUMMONING.rockThrow)`,
+        );
+      }
     }
   }
 

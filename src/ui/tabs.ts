@@ -13,7 +13,8 @@ import {
   MELEE_STYLES,
   xpMultiplier,
 } from '../sim/equipment';
-import { EQUIP_SLOTS } from '../sim/schemas';
+import { EQUIP_SLOTS, type SprotoDef } from '../sim/schemas';
+import { ownedRelicSprotos } from '../sim/sprotos';
 import type { CombatStyle, EquipSlot, GameState, SimContext } from '../sim/state';
 import { levelForXp } from '../sim/xp';
 import type { MenuOption } from './contextmenu';
@@ -400,8 +401,10 @@ export class EquipmentTab {
 }
 
 /**
- * The active Sproto, its special and Summoning points. The card and buttons
- * are rebuilt only when a different Sproto is summoned; numbers update in place.
+ * The active Sproto, its special and Summoning points. With no Sproto out, it lists
+ * the relic Sprotos the hub says you own, each with a Summon button (no contract).
+ * The card and buttons are rebuilt only when a different Sproto is summoned or the
+ * owned relic Sprotos change; numbers update in place.
  */
 export class SummoningTab {
   readonly el = document.createElement('div');
@@ -415,7 +418,7 @@ export class SummoningTab {
   constructor(
     private readonly content: Content,
     private readonly iconUrl: (modelId: string) => string,
-    private readonly h: { special(): void; dismiss(): void },
+    private readonly h: { summonRelic(sprotoId: string): void; special(): void; dismiss(): void },
   ) {
     this.el.className = 'summoning';
     this.points.className = 'points-bar';
@@ -434,7 +437,8 @@ export class SummoningTab {
     this.points.style.setProperty('--fill', `${(p.summoning.points / SUMMONING.pointsMax) * 100}%`);
     this.points.textContent = `Summoning points: ${Math.floor(p.summoning.points)} / ${SUMMONING.pointsMax}`;
 
-    const id = s && def ? s.defId : null;
+    const relics = s && def ? [] : ownedRelicSprotos(state, this.content);
+    const id = s && def ? s.defId : `none|${relics.map((r) => r.id).join(',')}`;
     if (id !== this.shown) {
       this.shown = id;
       if (!s || !def) {
@@ -443,6 +447,7 @@ export class SummoningTab {
             'coming-soon',
             'No Sproto with you. Buy a contract at the Terminal, then click it in your inventory to summon.',
           ),
+          ...relics.map((r) => this.relicCard(r)),
         );
       } else {
         const card = document.createElement('div');
@@ -463,5 +468,26 @@ export class SummoningTab {
     const secs = Math.max(0, Math.round(((s.expiresAt - state.tick) * TICK_MS) / 1000));
     this.hpLine.textContent = `HP ${s.hp} / ${def.hp} · ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')} left`;
     this.special.disabled = p.summoning.points < def.special.cost;
+  }
+
+  /** A relic Sproto you can summon for free: portrait, name, the relic, and a Summon button. */
+  private relicCard(def: SprotoDef): HTMLElement {
+    const wrap = document.createElement('div');
+    const card = document.createElement('div');
+    card.className = 'sproto-card';
+    const img = document.createElement('img');
+    img.src = this.iconUrl(def.model);
+    img.alt = def.name;
+    card.append(
+      img,
+      span('sproto-name', def.name),
+      span('sproto-line', `From the ${def.relic?.name ?? 'hub'}`),
+    );
+    const summon = document.createElement('button');
+    summon.className = 'stone-btn';
+    summon.textContent = `Summon ${def.name}`;
+    summon.addEventListener('click', () => this.h.summonRelic(def.id));
+    wrap.append(card, summon);
+    return wrap;
   }
 }

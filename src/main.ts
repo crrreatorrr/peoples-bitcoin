@@ -312,6 +312,7 @@ async function boot(): Promise<void> {
     examine: itemExamine,
   });
   const summoning = new SummoningTab(content, iconUrl, {
+    summonRelic: (sprotoId) => queue({ type: 'summonRelic', sprotoId }),
     special: () => queue({ type: 'special' }),
     dismiss: () => queue({ type: 'dismiss' }),
   });
@@ -549,7 +550,11 @@ async function boot(): Promise<void> {
           const from = view.entities.positionOf(e.attackerId);
           const to = view.entities.positionOf(e.targetId);
           if (!from || !to) break;
-          const kind = explosive ? 'explosive' : e.style === 'magic' ? 'magic' : 'shot';
+          const kind = explosive
+            ? 'explosive'
+            : e.style === 'magic' || e.style === 'rock'
+              ? e.style
+              : 'shot';
           const ms = view.tracers.fire(from, to, kind, now);
           flight.set(e.targetId, ms);
           if (kind === 'magic') {
@@ -558,6 +563,14 @@ async function boot(): Promise<void> {
               speed: 1.4,
               durationMs: 450,
               lift: 0.9,
+            });
+          }
+          if (kind === 'rock') {
+            view.bursts.spawn(to, PALETTES.rock, now + ms, {
+              count: 10,
+              speed: 1.1,
+              durationMs: 350,
+              lift: 0.6,
             });
           }
           if (explosive) {

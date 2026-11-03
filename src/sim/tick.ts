@@ -25,7 +25,7 @@ import { swapSlots } from './inventory';
 import { stepNpcs } from './npcs';
 import { findPath } from './pathfinding';
 import { metFlag, npcLines, progressQuests } from './quests';
-import { dismiss, stepSproto, summonFromInventory, useSpecial } from './sprotos';
+import { dismiss, stepSproto, summonFromInventory, summonRelic, useSpecial } from './sprotos';
 import {
   findEntity,
   gridOf,
@@ -158,6 +158,9 @@ function applyIntent(state: GameState, ctx: SimContext, intent: Intent, events: 
       break;
     case 'summon':
       summonFromInventory(state, ctx, intent.slot, events);
+      break;
+    case 'summonRelic':
+      summonRelic(state, ctx, intent.sprotoId, events);
       break;
     case 'dismiss':
       dismiss(state);

@@ -11,10 +11,11 @@ export const PALETTES = {
   sludge: ['#2f3b22', '#4a5a2e', '#6b7a3a', '#1e2616'],
   explosion: ['#ffcf3f', '#ff7a1a', '#ff3b2f', '#fff1b0'],
   magic: ['#ffffff', '#f4e9ff', '#c9b6ff', '#a8d8ff'],
+  rock: ['#8a8a90', '#6a6a72', '#b8b0a0'],
 } as const;
 
 /** What a shot looks like in flight. */
-export type ShotKind = 'shot' | 'explosive' | 'magic';
+export type ShotKind = 'shot' | 'explosive' | 'magic' | 'rock';
 
 interface Burst {
   points: THREE.Points;
@@ -103,23 +104,27 @@ interface Shot {
   startedAt: number;
   flightMs: number;
   arc: number;
+  /** Rocks tumble end over end as they fly. */
+  tumble: boolean;
   onArrive?: () => void;
 }
 
 /**
  * Shots fly from shooter to target, OSRS-style, and the hitsplat waits for
  * them. Damage already resolved on the tick; this is only what you see.
- * Explosive shells lob in an arc; spells are glowing orbs.
+ * Explosive shells lob in an arc; spells are glowing orbs; thrown rocks lob and tumble.
  */
 export class Tracers {
   private readonly active: Shot[] = [];
   private readonly geometry = new THREE.OctahedronGeometry(0.07, 0);
   private readonly shell = new THREE.IcosahedronGeometry(0.13, 0);
   private readonly orb = new THREE.IcosahedronGeometry(0.11, 1);
+  private readonly rock = new THREE.DodecahedronGeometry(0.11, 0);
   private readonly materials = {
     shot: new THREE.MeshBasicMaterial({ color: '#fff1a8' }),
     explosive: new THREE.MeshBasicMaterial({ color: '#7cff6b' }),
     magic: new THREE.MeshBasicMaterial({ color: '#f4e9ff' }),
+    rock: new THREE.MeshLambertMaterial({ color: '#8a8a90', flatShading: true }),
   };
 
   constructor(private readonly scene: THREE.Scene) {}
@@ -139,12 +144,18 @@ export class Tracers {
       RENDER.projectileMaxMs,
       RENDER.projectileMsBase + RENDER.projectileMsPerTile * tiles,
     );
-    const geometry = { shot: this.geometry, explosive: this.shell, magic: this.orb }[kind];
+    const geometry = {
+      shot: this.geometry,
+      explosive: this.shell,
+      magic: this.orb,
+      rock: this.rock,
+    }[kind];
     const mesh = new THREE.Mesh(geometry, this.materials[kind]);
     mesh.position.copy(a);
     this.scene.add(mesh);
-    const arc = kind === 'explosive' ? 0.25 * tiles : 0;
-    this.active.push({ mesh, from: a, to: b, startedAt: now, flightMs, arc, onArrive });
+    const arc = kind === 'explosive' ? 0.25 * tiles : kind === 'rock' ? 0.18 * tiles : 0;
+    const tumble = kind === 'rock';
+    this.active.push({ mesh, from: a, to: b, startedAt: now, flightMs, arc, tumble, onArrive });
     return flightMs;
   }
 
@@ -161,6 +172,7 @@ export class Tracers {
       shot.mesh.position.lerpVectors(shot.from, shot.to, Math.max(0, k));
       shot.mesh.position.y += shot.arc * 4 * k * (1 - k);
       shot.mesh.rotation.y = now / 60;
+      if (shot.tumble) shot.mesh.rotation.x = now / 90;
     }
   }
 }

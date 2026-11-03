@@ -36,6 +36,9 @@ const HIT_MS = 320;
 /** How long a death plays before the body is hidden. */
 export const DEATH_MS = 1100;
 const FLASH_MS = 80;
+/** A throw lets go of the rock at this fraction of the attack and holds a new one again at the next. */
+const THROW_RELEASE = 0.4;
+const THROW_REGRAB = 0.9;
 /** How fast joints ease toward their target pose (per second); faster while moving so the gait keeps its snap. */
 const BLEND_RATE = 22;
 const BLEND_RATE_MOVING = 40;
@@ -63,6 +66,15 @@ interface Pose {
 export function poseActor(actor: ActorModel, a: AnimInput): void {
   if (actor.muzzle) {
     actor.muzzle.visible = a.attackStyle !== 'melee' && a.now - a.attackAt < FLASH_MS;
+  }
+  if (actor.right === 'throw' && actor.joints) {
+    // The rock leaves the hand as it flies, then a new one is picked up.
+    const k = (a.now - a.attackAt) / ATTACK_MS;
+    actor.joints.handR.visible = !(
+      a.attackStyle === 'rock' &&
+      k >= THROW_RELEASE &&
+      k < THROW_REGRAB
+    );
   }
   if (a.diedAt > -Infinity) {
     fall(actor, Math.max(0, a.now - a.diedAt));
@@ -166,6 +178,10 @@ function holdPose(p: Pose, actor: ActorModel, ready: boolean): void {
       break;
     case 'carry':
       p.foreRx = -0.04;
+      break;
+    case 'throw':
+      // A rock cocked up over the shoulder.
+      Object.assign(p, { armRx: -2.0, armRz: -0.3, foreRx: -1.6 });
       break;
     default:
       // Fists up.
@@ -286,6 +302,10 @@ function work(p: Pose, kind: WorkAnim, t: number): void {
 }
 
 function attack(p: Pose, actor: ActorModel, style: AttackStyle, k: number): void {
+  if (style === 'rock') {
+    throwRock(p, k);
+    return;
+  }
   if (style !== 'melee') {
     holdPose(p, actor, true);
     const kick = Math.max(0, 1 - k / 0.35);
@@ -323,6 +343,30 @@ function attack(p: Pose, actor: ActorModel, style: AttackStyle, k: number): void
     p.foreRx = lerp(-0.1, foreRest, e);
     p.torsoX += 0.22 * (1 - e);
     p.torsoY = -0.2 * (1 - e);
+  }
+}
+
+/** Overhand throw: cock the arm back, whip it through to let go, then pick up the next rock. */
+function throwRock(p: Pose, k: number): void {
+  const armRest = p.armRx;
+  const foreRest = p.foreRx;
+  if (k < 0.3) {
+    const e = easeOut(k / 0.3);
+    p.armRx = lerp(armRest, -2.9, e);
+    p.foreRx = lerp(foreRest, -1.9, e);
+    p.torsoY = 0.3 * e;
+  } else if (k < THROW_RELEASE + 0.1) {
+    const e = easeIn((k - 0.3) / (THROW_RELEASE + 0.1 - 0.3));
+    p.armRx = lerp(-2.9, -0.9, e);
+    p.foreRx = lerp(-1.9, -0.2, e);
+    p.torsoX += 0.25 * e;
+    p.torsoY = lerp(0.3, -0.25, e);
+  } else {
+    const e = easeInOut((k - THROW_RELEASE - 0.1) / (1 - THROW_RELEASE - 0.1));
+    p.armRx = lerp(-0.9, armRest, e);
+    p.foreRx = lerp(-0.2, foreRest, e);
+    p.torsoX += 0.25 * (1 - e);
+    p.torsoY = -0.25 * (1 - e);
   }
 }
 

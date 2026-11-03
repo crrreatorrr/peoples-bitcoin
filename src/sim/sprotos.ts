@@ -3,6 +3,10 @@
  * contract, for a limited time. AI priority: ASSIST (the player's target) >
  * DEFEND (whatever is attacking the player) > FOLLOW. Medics heal instead of
  * fighting. Each Sproto has one special that costs Summoning points.
+ *
+ * Relic Sprotos (SprotoDef.relic) need no contract: they are summoned for free
+ * while the hub reports their relic as owned (state.hubSession, never saved).
+ * Throwers (SprotoDef.throws) lob rocks with SUMMONING.rockThrow's numbers.
  */
 import { COMBAT, SUMMONING } from '../config/balance';
 import { accuracyRoll, damageEnemy, inAttackRange, maxHit, pathToward, rollDamage } from './combat';
@@ -14,12 +18,15 @@ import {
   maxHp,
   PLAYER_ID,
   SPROTO_ID,
+  type AttackStyle,
   type EnemyInstance,
   type GameState,
   type SimContext,
   type SimEvent,
   type Tile,
 } from './state';
+import type { Content } from './content';
+import type { SprotoDef } from './schemas';
 import { grantXp, levelForXp } from './xp';
 
 /** Beyond this distance the Sproto catches up instantly (e.g. after a teleport). */
@@ -37,8 +44,56 @@ export function summonFromInventory(
   const def = item && ctx.content.items.get(item.itemId);
   const sdef = def?.summon && ctx.content.sprotos.get(def.summon.sproto);
   if (!item || !sdef) return;
-  const say = (text: string): void => {
+  if (!canSummon(state, sdef, events)) return;
+  item.qty -= 1;
+  if (item.qty === 0) player.inventory[slot] = null;
+  spawnSproto(state, ctx, sdef, events, true);
+}
+
+/**
+ * Relic Sprotos the hub says this player owns: the relic id, or the hub item id
+ * itself, is in the init relics, or the hub resolved it as the equipped summon.
+ */
+export function ownedRelicSprotos(state: GameState, content: Content): SprotoDef[] {
+  const hub = state.hubSession;
+  return [...content.sprotos.values()].filter(
+    (s) =>
+      s.relic !== undefined &&
+      (hub.relics.includes(s.relic.id) ||
+        hub.relics.includes(s.relic.hubItem) ||
+        hub.effects.summon === s.relic.hubItem),
+  );
+}
+
+/**
+ * Summons a relic Sproto: no contract is used up, no Summoning XP is given, and it
+ * doesn't tick off quest steps that teach contracts.
+ */
+export function summonRelic(
+  state: GameState,
+  ctx: SimContext,
+  sprotoId: string,
+  events: SimEvent[],
+): void {
+  const sdef = ctx.content.sprotos.get(sprotoId);
+  if (!sdef?.relic) return;
+  if (!ownedRelicSprotos(state, ctx.content).includes(sdef)) {
+    events.push({
+      type: 'message',
+      kind: 'game',
+      text: `Only the holder of the ${sdef.relic.name} can summon a ${sdef.name}.`,
+    });
+    return;
+  }
+  if (!canSummon(state, sdef, events)) return;
+  spawnSproto(state, ctx, sdef, events, false);
+}
+
+function canSummon(state: GameState, sdef: SprotoDef, events: SimEvent[]): boolean {
+  const player = state.player;
+  const say = (text: string): false => {
     events.push({ type: 'message', kind: 'game', text });
+    return false;
   };
   if (player.sproto) return say('You already have a Sproto with you. Dismiss it first.');
   if (state.tick < player.summoning.cooldownUntil)
@@ -46,8 +101,18 @@ export function summonFromInventory(
   if (levelForXp(player.skills.summoning ?? 0) < sdef.levelReq) {
     return say(`You need a Summoning level of ${sdef.levelReq} to summon a ${sdef.name}.`);
   }
-  item.qty -= 1;
-  if (item.qty === 0) player.inventory[slot] = null;
+  return true;
+}
+
+/** `contract`: summoned from a contract. Only those count for quest "summon" steps. */
+function spawnSproto(
+  state: GameState,
+  ctx: SimContext,
+  sdef: SprotoDef,
+  events: SimEvent[],
+  contract: boolean,
+): void {
+  const player = state.player;
   const spot = besidePlayer(state, ctx);
   player.sproto = {
     defId: sdef.id,
@@ -61,15 +126,17 @@ export function summonFromInventory(
     nextHealTick: 0,
     headshot: false,
   };
-  say(`A ${sdef.name} reports for duty!`);
-  grantXp(
-    player,
-    'summoning',
-    ctx.content.skills.get('summoning')?.name ?? 'Summoning',
-    sdef.xp,
-    events,
-  );
-  progressQuests(state, ctx, { type: 'summon' }, events);
+  events.push({ type: 'message', kind: 'game', text: `A ${sdef.name} reports for duty!` });
+  if (sdef.xp > 0) {
+    grantXp(
+      player,
+      'summoning',
+      ctx.content.skills.get('summoning')?.name ?? 'Summoning',
+      sdef.xp,
+      events,
+    );
+  }
+  if (contract) progressQuests(state, ctx, { type: 'summon' }, events);
 }
 
 export function dismiss(state: GameState): void {
@@ -165,16 +232,17 @@ export function stepSproto(state: GameState, ctx: SimContext, events: SimEvent[]
     }
     return;
   }
-  const melee = sdef.range <= 1;
-  if (!inAttackRange(grid, sproto, target, sdef.range, melee)) {
+  const reach = sprotoReach(sdef);
+  const melee = reach.style === 'melee';
+  if (!inAttackRange(grid, sproto, target, reach.range, melee)) {
     step(sproto, pathToward(grid, sproto, target, melee));
     return;
   }
   if (state.tick < sproto.nextAttackTick) return;
-  sproto.nextAttackTick = state.tick + sdef.speed;
+  sproto.nextAttackTick = state.tick + reach.everyTicks;
 
   const edef = ctx.content.enemies.get(target.defId)!;
-  const max = maxHit(sdef.strength + COMBAT.levelOffset, sdef.damage);
+  const max = reach.maxHit;
   let damage: number;
   if (sproto.headshot) {
     damage = max * 2;
@@ -190,7 +258,7 @@ export function stepSproto(state: GameState, ctx: SimContext, events: SimEvent[]
     type: 'attack',
     attackerId: SPROTO_ID,
     targetId: target.id,
-    style: melee ? 'melee' : 'gun',
+    style: reach.style,
   });
   if (target.target === null) target.target = SPROTO_ID;
   if (damage > 0) {
@@ -198,6 +266,33 @@ export function stepSproto(state: GameState, ctx: SimContext, events: SimEvent[]
     grantXp(player, 'summoning', name, damage * SUMMONING.xpPerDamage, events);
   }
   damageEnemy(state, ctx, target, damage, events);
+}
+
+/**
+ * How a Sproto attacks: range in tiles, ticks between attacks, max hit, and how it looks.
+ * A rock thrower takes all three numbers from SUMMONING.rockThrow.
+ */
+export function sprotoReach(sdef: SprotoDef): {
+  range: number;
+  everyTicks: number;
+  maxHit: number;
+  style: AttackStyle;
+} {
+  if (sdef.throws === 'rock') {
+    const rock = SUMMONING.rockThrow;
+    return {
+      range: rock.rangeTiles,
+      everyTicks: rock.everyTicks,
+      maxHit: rock.damage,
+      style: 'rock',
+    };
+  }
+  return {
+    range: sdef.range,
+    everyTicks: sdef.speed,
+    maxHit: maxHit(sdef.strength + COMBAT.levelOffset, sdef.damage),
+    style: sdef.range <= 1 ? 'melee' : 'gun',
+  };
 }
 
 /** Keeps the Sproto next to the player after a zone change or teleport. */
