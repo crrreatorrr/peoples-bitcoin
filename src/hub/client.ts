@@ -40,7 +40,6 @@ import { questEarnWireKey, uuidv7 } from './uuid';
 const QUEST_REASON = 'pb_quest';
 
 export class HubClient {
-  private readonly bridge = new HubBridge();
   private readonly inflight = new Set<string>();
   /** Owner id for the cross-tab hub-ledger lock. */
   private readonly lockOwner = uuidv7();
@@ -51,13 +50,21 @@ export class HubClient {
     private readonly say: (text: string, kind?: MessageKind) => void,
     private readonly queue: (intent: Intent) => void,
     private readonly save: () => boolean,
+    /** Shared with world select, which may have redeemed the ticket already. */
+    private readonly bridge: HubBridge = new HubBridge(),
   ) {}
+
+  /** After the first start, a later start redeems again (a new hub session). */
+  private reinit = false;
 
   async start(): Promise<void> {
     const outcome = await Promise.race([
-      this.bridge.init().then(() => 'ok' as const),
+      (this.bridge.initialized && !this.reinit ? Promise.resolve() : this.bridge.init()).then(
+        () => 'ok' as const,
+      ),
       new Promise<'timeout'>((resolve) => setTimeout(() => resolve('timeout'), 8000)),
     ]);
+    this.reinit = true;
     if (outcome === 'timeout') console.warn('[hub] init timed out; running standalone');
     this.applyLink();
     if (this.state.hubSession.mode !== 'hub') return;

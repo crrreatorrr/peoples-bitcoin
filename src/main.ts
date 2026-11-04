@@ -4,14 +4,8 @@
  * rendering reads the resulting state every frame.
  */
 import * as THREE from 'three';
-import {
-  INVENTORY_SIZE,
-  MAX_CATCHUP_TICKS,
-  START_ZONE_ID,
-  TERMINAL_SHOP_ID,
-  TICK_MS,
-  UI,
-} from './config/balance';
+import { INVENTORY_SIZE, START_ZONE_ID, TERMINAL_SHOP_ID, UI } from './config/balance';
+import { HubBridge } from './hub/bridge';
 import { HubClient } from './hub/client';
 import { clearHubLedger } from './hub/ledgerStore';
 import { claimWriter } from './hub/singleWriter';
@@ -44,7 +38,15 @@ import {
   type Tile,
 } from './sim/state';
 import { buyPrice } from './sim/terminal';
-import { entityActions, runTick } from './sim/tick';
+import { entityActions } from './sim/tick';
+import { LocalDriver, type GameDriver } from './game/driver';
+import { chooseOnline, type OnlineSession } from './game/online';
+import type { ChatOut } from './net/protocol';
+import type { RemoteActor } from './net/replica';
+import { FriendsPanel } from './ui/friends';
+import { Nameplates } from './ui/nameplates';
+import { QuickChatMenu } from './ui/quickchat';
+import { TradeWindow } from './ui/trade';
 import { levelForXp } from './sim/xp';
 import { BankWindow } from './ui/bank';
 import { ExchangeWindow } from './ui/exchange';
@@ -90,31 +92,47 @@ async function boot(): Promise<void> {
   const content = loadContent();
   const ctx: SimContext = { content, grids: buildGrids(content) };
 
-  let pending: Intent[] = [];
   /** Added to the browser clock; only the dev QA hook moves it. */
   let clockOffset = 0;
   let frozen = false;
   const clockNow = () => performance.now() + clockOffset;
+
+  // With a hub session (or ?net=loopback), world select first; else, or "Play offline", standalone.
+  const bridge = new HubBridge();
+  const session: OnlineSession | null = await chooseOnline(content, bridge, clockNow);
+  const online = session?.driver ?? null;
+  const loaded = online ? null : loadSavedGame(content);
+  const state: GameState =
+    online?.state ?? loaded?.state ?? createGameState(content, START_ZONE_ID, Date.now() >>> 0);
+  const local = online ? null : new LocalDriver(state, ctx, clockNow());
+  const driver: GameDriver = online ?? local!;
   const queue = (intent: Intent) => {
-    if (!frozen) pending.push(intent);
+    if (!frozen) driver.queue(intent);
   };
 
   const chat = new Chat($('#chatbox'), PRESIDENT_NAME, (text) => queue({ type: 'chat', text }));
-  const loaded = loadSavedGame(content);
-  const state: GameState =
-    loaded.state ?? createGameState(content, START_ZONE_ID, Date.now() >>> 0);
-  greet(chat, loaded.status);
+  if (loaded) greet(chat, loaded.status);
+  else greetOnline(chat, session!);
   let resetting = false;
   const tabLock = document.querySelector<HTMLElement>('#tab-lock');
   const freeze = () => {
     if (frozen) return;
     saveGame(state);
     frozen = true;
+    if (local) local.frozen = true;
     tabLock?.removeAttribute('hidden');
   };
-  claimWriter(freeze);
-  const persist = () => !resetting && !frozen && saveGame(state);
-  const hub = new HubClient(state, ctx, (text, kind) => chat.add(text, kind), queue, persist);
+  // Online, the server keeps the character and one session per account.
+  if (!online) claimWriter(freeze);
+  const persist = () => !online && !resetting && !frozen && saveGame(state);
+  const hub = new HubClient(
+    state,
+    ctx,
+    (text, kind) => chat.add(text, kind),
+    queue,
+    persist,
+    bridge,
+  );
   const openShopId = () =>
     state.player.interface?.kind === 'terminal' ? state.player.interface.shopId : TERMINAL_SHOP_ID;
 
@@ -131,7 +149,9 @@ async function boot(): Promise<void> {
   window.addEventListener('resize', resize);
 
   // ── Actions ────────────────────────────────────────────────────────────────
-  const describe = (entityId: string) => describeEntity(ctx, state, entityId);
+  const describe = (entityId: string) =>
+    describeEntity(ctx, state, entityId) ??
+    (online ? describeOther(online.replica.others.get(entityId)) : null);
   /** Where the last left click, or the right click that opened the menu, landed (client pixels). */
   let clickAt = { x: 0, y: 0 };
   const cross = new ClickCross(document.body);
@@ -193,7 +213,8 @@ async function boot(): Promise<void> {
           target: info.name,
           targetKind: info.kind,
           level,
-          run: () => interact(info.id, action),
+          run: () =>
+            info.kind === 'player' ? playerAction(info, action) : interact(info.id, action),
         });
       }
     }
@@ -318,6 +339,72 @@ async function boot(): Promise<void> {
   const journal = new QuestJournal(hudRoot, content);
   const quests = new QuestList(ctx, (questId) => journal.open(questId));
 
+  // ── Online: friends, quick-chat, trades, other players' names ─────────────
+  const nameplates = new Nameplates(
+    hudRoot.appendChild(Object.assign(document.createElement('div'), { className: 'nameplates' })),
+  );
+  const friends = online
+    ? new FriendsPanel(
+        (op) => online.sendSocial(op),
+        (name) => {
+          chat.input.value = `/m ${name} `;
+          chat.input.focus();
+        },
+      )
+    : null;
+  const tradeWindow = online
+    ? new TradeWindow(
+        hudRoot,
+        content,
+        (msg) => online.sendTrade(msg),
+        () => state.player.inventory,
+      )
+    : null;
+  /** The frame art has no spare tab socket: online, Friends sits at the top of Settings. */
+  const withFriends = (settings: HTMLElement): HTMLElement => {
+    if (!friends) return settings;
+    const both = document.createElement('div');
+    both.append(friends.el, settings);
+    return both;
+  };
+  if (online) {
+    const myName = online.welcome?.name ?? 'You';
+    const quick = new QuickChatMenu(content, (phrase) => online.say({ ch: 'quick', phrase }));
+    chat.goOnline(
+      {
+        pm: (to, text) => online.say({ ch: 'pm', to, text }),
+        reply: (text) => online.say({ ch: 'reply', text }),
+        filters: (f) =>
+          online.sendSocial({
+            op: 'filters',
+            public: f.public,
+            private: f.private,
+            trade: f.trade,
+          }),
+        quickChat: (anchor) => quick.open(anchor),
+      },
+      myName,
+    );
+    online.chat.add((c: ChatOut) => showChat(chat, c, myName));
+    online.social.add((s) => {
+      friends?.update(s);
+      chat.setFilters(s.filters);
+    });
+    online.trade.add((t) => tradeWindow?.update(t));
+    online.kicked.add((reason) => showKick(reason));
+  }
+  /** Right-click actions on another player. */
+  const playerAction = (info: EntityInfo, action: string) => {
+    if (!online) return;
+    const name = info.name;
+    if (action === 'Trade with') online.sendTrade({ op: 'request', to: info.id });
+    else if (action === 'Message') {
+      chat.input.value = `/m ${name} `;
+      chat.input.focus();
+    } else if (action === 'Add friend') online.sendSocial({ op: 'addFriend', name });
+    else if (action === 'Ignore') online.sendSocial({ op: 'addIgnore', name });
+  };
+
   // Top: Combat, Skills, Quests, Inventory. Bottom: Equipment, Summoning, Settings.
   // F-keys follow the OSRS defaults; Esc returns to Inventory.
   const sidePanel = new SidePanel(
@@ -376,23 +463,34 @@ async function boot(): Promise<void> {
         id: 'settings',
         icon: glyph('tab_settings'),
         image: tabImage('tab_settings'),
-        title: 'Settings',
+        title: online ? 'Friends & Settings' : 'Settings',
         hotkey: 'F10',
-        content: buildSettingsPanel(
-          () => {
-            hub.checkpoint();
-            chat.add(persist() ? 'Game saved.' : 'Saving is unavailable in this browser.');
-          },
-          () => {
-            hub.logReset();
-            resetting = true;
-            clearSavedGame();
-            clearHubLedger();
-            location.reload();
-          },
-          () => {
-            void hub.exitToHub();
-          },
+        content: withFriends(
+          buildSettingsPanel(
+            () => {
+              if (online) {
+                chat.add('Your character is saved on the server.');
+                return;
+              }
+              hub.checkpoint();
+              chat.add(persist() ? 'Game saved.' : 'Saving is unavailable in this browser.');
+            },
+            () => {
+              if (online) {
+                chat.add('Starting over is only for offline play.', 'warning');
+                return;
+              }
+              hub.logReset();
+              resetting = true;
+              clearSavedGame();
+              clearHubLedger();
+              location.reload();
+            },
+            () => {
+              online?.dispose();
+              void hub.exitToHub();
+            },
+          ),
         ),
       },
     ],
@@ -596,17 +694,18 @@ async function boot(): Promise<void> {
           break;
       }
     }
-    hub.onEvents(events);
+    if (!online) hub.onEvents(events);
     if (xpThisTick.size > 0) {
       hud.xpDrop([...xpThisTick].map(([id, amount]) => ({ icon: glyph(`skill_${id}`), amount })));
     }
   };
 
   window.addEventListener('pagehide', () => {
-    if (!frozen) hub.checkpoint();
+    if (online) online.dispose();
+    else if (!frozen) hub.checkpoint();
   });
   document.addEventListener('visibilitychange', () => {
-    if (!frozen && document.hidden) hub.checkpoint();
+    if (!frozen && !online && document.hidden) hub.checkpoint();
   });
 
   if (import.meta.env.DEV) {
@@ -622,26 +721,39 @@ async function boot(): Promise<void> {
     });
   }
 
-  // ── Main loop: fixed 600 ms ticks, rendering every frame ───────────────────
-  let lastTickAt = clockNow();
-  let lastFrameAt = lastTickAt;
+  // ── Main loop: fixed 600 ms ticks (local or the server's), rendering every frame ──
+  let lastFrameAt = clockNow();
   const step = (now: number) => {
     if (frozen) return;
-    // After a long stall (background tab), resume without a burst of ticks.
-    if (now - lastTickAt > TICK_MS * MAX_CATCHUP_TICKS) lastTickAt = now - TICK_MS;
-    while (now - lastTickAt >= TICK_MS) {
-      lastTickAt += TICK_MS;
-      const intents = pending;
-      pending = [];
-      handleEvents(runTick(state, ctx, intents));
+    for (const events of driver.advance(now)) {
+      handleEvents(events);
       pendingDestination = null;
+      tradeWindow?.refresh();
     }
-    const alpha = (now - lastTickAt) / TICK_MS;
+    const alpha = driver.alpha(now);
     const dt = Math.min(0.1, (now - lastFrameAt) / 1000);
     lastFrameAt = now;
     const p = state.player;
 
     view.entities.update(state, alpha, dt, now);
+    const others: RemoteActor[] = online ? [...online.replica.others.values()] : [];
+    if (online) {
+      view.entities.updateOthers(others, alpha, dt, now);
+      nameplates.update(
+        others
+          .filter((o) => o.kind === 'p')
+          .map((o) => {
+            const pos = view.entities.positionOf(o.id);
+            const lift = view.entities.heightOf(o.id) + 0.3;
+            return {
+              id: o.id,
+              name: o.name,
+              say: o.overhead,
+              at: pos ? view.entities.toScreen(pos, lift, cam.camera, canvas) : null,
+            };
+          }),
+      );
+    }
     cam.update(dt, keyboard.cameraAxes(), view.entities.playerPosition);
     cross.update(now);
     view.bursts.update(now);
@@ -683,6 +795,7 @@ async function boot(): Promise<void> {
       yaw: cam.yawRad,
       npcs: [...state.zone.npcs, ...state.zone.enemies.filter((e) => e.respawnAt === null)],
       groundItems: state.zone.groundItems,
+      players: others.filter((o) => o.kind === 'p'),
       destination: pendingDestination ?? p.path.at(-1) ?? null,
     });
     dialogue.update(currentDialogue());
@@ -717,7 +830,7 @@ async function boot(): Promise<void> {
     step(t + clockOffset);
   };
   if (frozen) return;
-  await hub.start();
+  if (!online) await hub.start();
   if (frozen) return;
   requestAnimationFrame(frame);
 }
@@ -778,6 +891,84 @@ function describeEntity(ctx: SimContext, state: GameState, entityId: string): En
       return { id, name: look.name, examine: look.examine, actions, kind: 'object' };
     }
   }
+}
+
+/** Another player or their Sproto in the right-click menu and tooltip. */
+function describeOther(o: RemoteActor | undefined): EntityInfo | null {
+  if (!o) return null;
+  if (o.kind === 's') {
+    return {
+      id: o.id,
+      name: 'Sproto',
+      examine: "Someone else's Sproto.",
+      actions: [],
+      kind: 'npc',
+    };
+  }
+  return {
+    id: o.id,
+    name: o.name,
+    examine: `${o.name}, a fellow President. Everyone here is the same President, in their own gear.`,
+    actions: ['Trade with', 'Message', 'Add friend', 'Ignore'],
+    kind: 'player',
+    level: o.combatLevel,
+  };
+}
+
+function showChat(chat: Chat, c: ChatOut, me: string): void {
+  switch (c.ch) {
+    case 'public':
+      chat.add(c.text, 'public', c.from || me, c.quick);
+      return;
+    case 'pm_in':
+      chat.add(c.text, 'private', `From ${c.from}${c.world ? ` (world ${c.world})` : ''}`, c.quick);
+      chat.replyName = c.from;
+      return;
+    case 'pm_out':
+      chat.add(c.text, 'private', `To ${c.to}`, c.quick);
+      return;
+    case 'trade':
+      chat.add(c.text, 'trade');
+      return;
+    case 'system':
+      chat.add(c.text, 'game');
+      return;
+  }
+}
+
+const KICK_TEXT: Record<string, string> = {
+  sim_mismatch: 'This world runs a newer version of the game. Reload to update.',
+  flood: 'You were disconnected for sending too much, too fast.',
+  superseded: 'You logged in somewhere else.',
+  already_online: 'You logged in on another world.',
+  world_full: 'That world is full.',
+  shutdown: 'The world is restarting.',
+  session_expired: 'Your hub session has ended. Return to the hub and enter again.',
+  connection_lost: 'The connection to the world was lost.',
+};
+
+/** The world is gone: say why, and offer to go back to world select. */
+function showKick(reason: string): void {
+  const box = document.createElement('div');
+  box.className = 'world-select';
+  const panel = document.createElement('div');
+  panel.className = 'panel';
+  const text = document.createElement('p');
+  text.textContent = KICK_TEXT[reason] ?? `Disconnected (${reason}).`;
+  const again = document.createElement('button');
+  again.textContent = 'Back to world select';
+  again.addEventListener('click', () => location.reload());
+  panel.append(text, again);
+  box.append(panel);
+  document.body.append(box);
+}
+
+function greetOnline(chat: Chat, session: OnlineSession): void {
+  chat.add(PARODY_NOTICE, 'examine');
+  chat.add(`Welcome to world ${session.world}, ${session.driver.welcome?.name ?? PRESIDENT_NAME}.`);
+  chat.add(
+    'Chat: Enter to talk, /m name text for a private message, Tab to reply. Right-click a player to trade, message or add them as a friend.',
+  );
 }
 
 function greet(chat: Chat, status: 'loaded' | 'none' | 'unreadable'): void {

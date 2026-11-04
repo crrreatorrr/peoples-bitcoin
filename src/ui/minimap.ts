@@ -22,6 +22,8 @@ export interface MinimapView {
   yaw: number;
   npcs: Tile[];
   groundItems: Tile[];
+  /** Other players (online), drawn white. */
+  players?: Tile[];
   destination: Tile | null;
 }
 
@@ -113,6 +115,7 @@ export class Minimap {
     };
     for (const t of view.groundItems) dot(t, '#ff2a2a');
     for (const t of view.npcs) dot(t, '#ffff00');
+    for (const t of view.players ?? []) dot(t, '#ffffff');
 
     ctx.font = '11px sans-serif';
     ctx.textAlign = 'center';

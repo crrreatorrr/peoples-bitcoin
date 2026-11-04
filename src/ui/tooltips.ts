@@ -3,7 +3,7 @@
  * sits in the top-left of the play area like OSRS; over panels it follows the
  * cursor so details can sit beside what you're pointing at.
  */
-export type TargetKind = 'object' | 'npc' | 'item';
+export type TargetKind = 'object' | 'npc' | 'item' | 'player';
 
 export interface TooltipContent {
   action: string;

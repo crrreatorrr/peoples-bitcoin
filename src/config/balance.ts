@@ -193,6 +193,78 @@ export const NPCS = {
   wanderChance: 0.15,
 } as const;
 
+// ── Multiplayer worlds (0.7.0) ───────────────────────────────────────────────
+export const NET = {
+  maxPlayersPerWorld: 100,
+  /** Worlds that always exist (Nakama env PB_WORLDS overrides). */
+  defaultWorlds: 2,
+  /** When every world is this full, pb.worlds opens the next number. */
+  overflowAt: 0.9,
+  /** Nakama match loop rate; the sim steps every `loopsPerTick` loops (600 ms). */
+  loopHz: 5,
+  loopsPerTick: 3,
+  /** Chebyshev tiles a player sees; once seen, an entity stays until it is past the exit radius. */
+  aoiRadius: 15,
+  aoiExitRadius: 17,
+  /** A full snapshot every this many ticks, as a safety net. */
+  keyframeEveryTicks: 50,
+  maxIntentsPerTick: 10,
+  /** Messages beyond this per loop are dropped and count as a strike. */
+  maxMessagesPerLoop: 8,
+  maxMessageBytes: 4096,
+  floodStrikesToKick: 5,
+  /** A dropped connection keeps the character in the world this long (about 10 s). */
+  logoutGraceTicks: 17,
+  saveEveryTicks: 100,
+  worldSaveEveryTicks: 500,
+  ticketFlushEveryTicks: 50,
+  onlineRefreshEveryTicks: 50,
+  /** An online-status row older than this many refreshes counts as offline. */
+  onlineStaleRefreshes: 3,
+  /** Client jitter buffer before applying a tick. */
+  interpDelayMs: 100,
+  /** A gap of more than this many ticks snaps instead of playing out. */
+  snapAfterTicks: 3,
+  reconnectBackoffMs: [500, 1000, 2000, 5000],
+  pingEveryMs: 5000,
+  /** Decided: fresh characters online; offline saves are not imported. */
+  allowSaveImport: false,
+  maxImportBytes: 262144,
+} as const;
+
+export const CHAT_NET = {
+  maxLength: CHAT.maxLength,
+  publicPerWindow: 4,
+  pmPerWindow: 6,
+  windowTicks: 10,
+  /** The same text again within this many ticks is dropped. */
+  repeatBlockTicks: 5,
+  /** Blocked or flooding messages before a mute. */
+  strikesToMute: 3,
+  muteStrikeTicks: 100,
+  /** Name shown for quick-chat messages. */
+  quickChatIcon: 'quick',
+} as const;
+
+export const SOCIAL = {
+  maxFriends: 200,
+  maxIgnores: 100,
+  nameMaxLength: 12,
+} as const;
+
+export const TRADE = {
+  requestRange: 15,
+  requestExpiryTicks: 50,
+  /** After any change to an offer, nobody can accept for this many ticks. */
+  acceptLockTicks: 3,
+  maxSlots: 28,
+} as const;
+
+export const LOOT = {
+  /** Loot and dropped items are private to their owner this long, then anyone's (1 minute). */
+  privateTicks: 100,
+} as const;
+
 // ── Camera & rendering ───────────────────────────────────────────────────────
 export const CAMERA = {
   fovDeg: 50,

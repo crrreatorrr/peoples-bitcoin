@@ -444,3 +444,73 @@ Three audits (gameplay duels in the real sim, every NPC variant, the story as a 
 - **Exit** goes to the absolute `VITE_HUB_URL` (default `/hub/`) with `#from=peoples-bitcoin`.
   Vite `base` defaults to `/peoples-bitcoin/` in production and `/play/peoples-bitcoin/` in dev.
   `VITE_BASE` overrides it. Bundled asset URLs use that base. Exit stays `/hub/#from=peoples-bitcoin`.
+
+## Multiplayer worlds (0.7.0)
+
+Owner brief (2026-11-04): completely multiplayer, up to 100 players per world, scalable with more
+worlds, RuneScape mechanics and chat as the reference (mechanics only: no RuneScape names, art or
+text). The owner granted full agency; the plan's QA defaults are recorded here.
+
+- **Backend: Nakama, not Colyseus.** One authoritative `pb_world` match per world on the hub's
+  Nakama (metaverse-hub `server/modules/src/games/pb_*.ts`), running `src/sim` through the pure
+  host in `src/server` (bundled by `npm run build:sim` into `vendor/pb-sim.js` there). DESIGN.md
+  has a revision line.
+- **World = one match of ≤ 100 players; the character is the account's.** Worlds are numbered and
+  stable: `pb.worlds` keeps 1..`PB_WORLDS` (env, default 2) alive and opens the next one when every
+  live world is 90 % full. Quick join picks the least full. Worlds scale horizontally (more worlds,
+  then more Nakama nodes).
+- **Tick:** the match loop runs at 5 Hz and the sim steps every third loop (600 ms). Messages are
+  handled every loop; intents apply on the next sim tick. No client prediction (RuneScape): the
+  click cross shows at once and the move starts on the next server tick.
+- **AOI 15 / 17 tiles** (Chebyshev, with hysteresis) for players, Sprotos, enemies and ground
+  items; NPCs are zone-wide. A full snapshot on join, zone change and every 50 ticks; otherwise a
+  delta of changed entities, split into static and moving parts. Idle players only look at what
+  changed this tick. JSON in this round (binary is a stretch).
+- **Player ids:** the offline player is pid `'player'` with entity ids `'player'` / `'sproto'`;
+  online, `p:<userId>` / `s:<userId>`, and the client maps its own back to `'player'`/`'sproto'`,
+  so the renderer and UI are unchanged. The sim is a world of one offline (every old test runs the
+  world code path).
+- **Private instances:** quest-gated enemies get a copy per online player at that step
+  (`e<i>@<pid>`; the offline template `e<i>` sleeps online), and their adds are private too. The
+  bunker is one instance per player (`zone_bunker@<pid>`). NPCs with `requires` show per viewer.
+- **Loot:** the top damager owns the drop; it is private for `LOOT.privateTicks` (1 minute), then
+  public. Untradeables and death piles are never public. Dropped items follow the same rule.
+- **Single-way:** outside boss fights, an enemy fighting another player can't be joined ("Someone
+  else is fighting that."). Players don't block each other or NPCs.
+- **Tickets online are server-side only.** Stream batches (`pb_drop`, `pb_lobby`, `pb_sell`) are
+  sealed into the character save with key `pbw:<sid>:<reason>:<tick>` before `HubEconomy.earn`, so a
+  retry reuses key and amount. Quest rewards keep their UUIDv5 keys (never paid twice). Shop buys
+  and sells go through `HubEconomy.spend/sell` in the tick (the hub's prices). `session_closed` keeps
+  the amount and sends the player back to the hub. The client never credits Tickets online.
+- **Trades are items only, never Tickets** (rule 1). Two screens; any change resets both accepts and
+  locks Accept for 3 ticks; the confirm screen shows each side's Terminal value; the swap is checked
+  and saved for both players in one storage write, rolled back if that fails. Doing anything else
+  closes the trade.
+- **Chat routing:** inside the match (public to players in view, PMs in this world directly, other
+  worlds through `nk.matchSignal`), not Nakama channels. PMs are never stored; logs keep metadata.
+- **Filter scope:** the server always blocks slurs (seed list `src/data/chatfilter.json`, folded for
+  case, accents, leetspeak, spacing and stretching, without catching "Niger" or "raccoon"), links and
+  wallet-shaped strings. Profanity masking is a client setting, on by default. Three blocked or
+  flooding messages mute for a minute; quick-chat still works while muted. Moderation this round
+  is logging only.
+- **Quick-chat** slots ("My Mining level is 42") are filled on the server from the real state.
+- **Names (rule 2):** everyone plays the same President caricature. The nameplate is the hub
+  username, never "President <name>"; names that look like the President, staff or the cast (folded
+  like chat) become "Citizen ####". Player chat is attributed to the username. The parody notice is
+  on world select too.
+- **Saves:** offline and online characters are separate. Online characters start fresh
+  (`NET.allowSaveImport = false`; import is a stretch). Saves stay **v7**: `social` and `importedAt`
+  are optional fields, so no migration was needed (the plan said v8; an optional field is the
+  smaller change and keeps old saves loading).
+- **Persistence:** `pb_character/main` (owner read/write 0), written every 100 ticks, on logout
+  (after a 10 s grace that lets a reconnect resume), after trades and on shutdown, always with the
+  read version. A version conflict means another session wrote it, and this world kicks the player
+  (`superseded`). `pb_online/status` holds the world for friends lists and one-world-per-account.
+- **`pb_total_xp`** stays client-reported and online characters don't post it yet (stretch S9).
+- **Friends and ignores** sit at the top of the Settings tab: the frame art has exactly 4 + 3 tab
+  sockets, and painting a new one is an art task.
+- **Exchange (Tickets → Verse)** is not offered online in this round; it stays in offline play.
+- **Pathfinding:** a click on a blocked tile aims at the nearest walkable ring around it (within 10
+  tiles), so the search ends there instead of exploring the whole zone.
+- **Performance (measured in Nakama 3.41 goja):** 100 idle players ≈ 160 ms per sim tick; 100 bots
+  clicking 30 times a tick ≈ 440 ms of the 600 ms tick. The world logs its loop time once a minute.

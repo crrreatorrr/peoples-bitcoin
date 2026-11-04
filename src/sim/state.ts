@@ -260,6 +260,25 @@ export interface PlayerState {
   teleport: { at: number; zone: string; x: number; y: number } | null;
   /** Reusable items (teleports) → the tick they can be used again. */
   cooldowns: Record<string, number>;
+  /** Online friends, ignores and chat filters. Unused offline. */
+  social: SocialState;
+  /** Display name online (the hub username); the nameplate. Offline it is unused. */
+  displayName?: string;
+}
+
+export type ChatFilter = 'on' | 'friends' | 'off';
+
+export interface SocialState {
+  /** Friend user ids, with the name last seen. */
+  friends: { id: string; name: string }[];
+  ignores: { id: string; name: string }[];
+  publicFilter: ChatFilter;
+  privateFilter: ChatFilter;
+  tradeFilter: ChatFilter;
+}
+
+export function emptySocial(): SocialState {
+  return { friends: [], ignores: [], publicFilter: 'on', privateFilter: 'on', tradeFilter: 'on' };
 }
 
 export interface ObjectInstance {
@@ -282,6 +301,8 @@ export interface NpcInstance {
   from: Tile;
   /** Where it's wandering to. */
   goal: Tile | null;
+  /** Shown only to players with this unlock (zone placement `requires`). */
+  requires?: string;
 }
 
 export interface EnemyInstance {
@@ -314,6 +335,10 @@ export interface EnemyInstance {
   said: { aggro: boolean; hurt: boolean };
   /** The last weapon (or 'sproto') it shrugged off, so it only says so once per weapon. */
   resisted: string | null;
+  /** A private instance (quest boss copy, its adds): only this pid sees and fights it. */
+  owner?: string;
+  /** pid → damage dealt this life; the top damager owns the loot. Multiplayer only. */
+  damageBy?: Record<string, number>;
 }
 
 export interface GroundItem {
@@ -323,6 +348,9 @@ export interface GroundItem {
   x: number;
   y: number;
   despawnTick: number;
+  /** Only this pid sees it until `publicAt` (never, for a death pile). Multiplayer only. */
+  owner?: string;
+  publicAt?: number;
 }
 
 export interface ZoneState {
@@ -345,17 +373,50 @@ export interface EconomyState {
   recentDumps: number;
 }
 
+/**
+ * One player's view of the world. The sim's per-player code reads and writes
+ * `player` and `zone` through it; a single-player game is a world of one with
+ * pid `'player'`. `zone`, `tick`, `rng` and `economy` are accessors over `world`.
+ */
 export interface GameState {
   tick: number;
   rng: RngState;
   player: PlayerState;
-  /** The zone the player is in. */
+  /** The zone (instance) the player is in. */
   zone: ZoneState;
-  /** Zones visited this session, kept so ground items and kills persist while away. */
-  otherZones: Record<string, ZoneState>;
+  /** The world's other zone instances, keyed by zone key (read-only shim for tests and saves). */
+  readonly otherZones: Record<string, ZoneState>;
   economy: EconomyState;
   /** Not saved. Standalone until the client links a hub session. */
   hubSession: HubSession;
+  /** Player id in the world: `'player'` offline. */
+  readonly pid: string;
+  /** Entity id of this player in events and enemy targets: `'player'` offline. */
+  readonly selfId: string;
+  /** Entity id of this player's Sproto: `'sproto'` offline. */
+  readonly sprotoId: string;
+  readonly world: WorldState;
+}
+
+/** Every player and zone instance on one server world (or the one offline player). */
+export interface WorldState {
+  tick: number;
+  rng: RngState;
+  economy: EconomyState;
+  players: Record<string, PlayerState>;
+  /** Zone instance key → zone. The key is the zone id, or `${zoneId}@${pid}` for a private instance. */
+  zones: Record<string, ZoneState>;
+  /** pid → zone instance key. */
+  playerZone: Record<string, string>;
+  /** Join order: per-player phases run in this order, so a tick is deterministic. */
+  joinSeq: string[];
+}
+
+/** Online shops: the server's wallet. Results carry the new balance. */
+export type WalletResult = { ok: true; balance: number } | { ok: false; error: string };
+export interface WalletPort {
+  spend(pid: string, shopId: string, itemId: string, packs: number): WalletResult;
+  sell(pid: string, shopId: string, itemId: string, packs: number): WalletResult;
 }
 
 /** Static data the tick needs alongside the state. */
@@ -363,6 +424,8 @@ export interface SimContext {
   content: Content;
   /** Collision grid per zone id. */
   grids: Map<string, Grid>;
+  /** Online only: shops buy and sell through the server wallet. */
+  wallet?: WalletPort;
 }
 
 export type MessageKind = 'game' | 'npc' | 'public' | 'levelup' | 'warning' | 'quest';
@@ -394,6 +457,23 @@ export type EntityRef =
 
 export const PLAYER_ID = 'player';
 export const SPROTO_ID = 'sproto';
+
+/** Entity id of a player in events and enemy targets. The offline player keeps `'player'`. */
+export function playerEntityId(pid: string): string {
+  return pid === PLAYER_ID ? PLAYER_ID : `p:${pid}`;
+}
+
+/** Entity id of a player's Sproto. The offline player's is `'sproto'`. */
+export function sprotoIdOf(pid: string): string {
+  return pid === PLAYER_ID ? SPROTO_ID : `s:${pid}`;
+}
+
+/** The pid behind a player or Sproto entity id, or null for anything else. */
+export function pidOfEntity(id: string): string | null {
+  if (id === PLAYER_ID || id === SPROTO_ID) return PLAYER_ID;
+  if (id.startsWith('p:') || id.startsWith('s:')) return id.slice(2);
+  return null;
+}
 
 function emptyPocket(): StreamPocket {
   return { remainder: 0, pending: 0 };
@@ -454,6 +534,7 @@ export function npcInstance(zone: ZoneDef, index: number): NpcInstance {
     spawn: { x: n.x, y: n.y },
     from: { x: n.x, y: n.y },
     goal: null,
+    ...(n.requires ? { requires: n.requires } : {}),
   };
 }
 
@@ -472,6 +553,8 @@ export function createZoneState(zone: ZoneDef, content: Content): ZoneState {
       const enemy = newEnemy(`e${i}`, e.enemyId, e.x, e.y, content, false);
       if (e.quest) {
         enemy.gate = { ...e.quest };
+        // The template is the offline player's copy; online players get their own (enemies.ts).
+        enemy.owner = PLAYER_ID;
         enemy.respawnAt = Infinity; // dormant until its quest step comes up
       }
       return enemy;
@@ -513,7 +596,8 @@ export function newEnemy(
   };
 }
 
-export function createGameState(content: Content, zoneId: string, seed: number): GameState {
+/** A new character standing at the zone's spawn. */
+export function createPlayer(content: Content, zoneId: string): PlayerState {
   const zone = content.zones.get(zoneId);
   if (!zone) throw new Error(`Unknown zone '${zoneId}'`);
   const skills: Record<string, number> = {};
@@ -522,61 +606,195 @@ export function createGameState(content: Content, zoneId: string, seed: number):
   for (const q of content.quests.values())
     if (q.autoStart) quests[q.id] = { done: [], complete: false, choices: [] };
   return {
+    name: PRESIDENT_NAME,
+    pos: { ...zone.spawn },
+    path: [],
+    stepsThisTick: [{ ...zone.spawn }],
+    running: false,
+    runEnergy: MOVEMENT.runEnergyMax,
+    hp: levelForXp(skills.hitpoints ?? 0),
+    action: null,
+    nextAttackTick: 0,
+    style: 'accurate',
+    inventory: createInventory(),
+    equipment: emptyEquipment(),
+    bank: [],
+    interface: null,
+    dialogue: null,
+    overhead: null,
+    skills,
+    currencies: { ...START_CURRENCIES },
+    ledger: emptyLedger(),
+    quests,
+    unlocks: [],
+    bunker: {},
+    collected: {},
+    sproto: null,
+    summoning: { points: SUMMONING.pointsMax, cooldownUntil: 0 },
+    rally: { untilTick: 0, pct: 0 },
+    autoRetaliate: true,
+    nextEatTick: 0,
+    lastHitBy: null,
+    dyingUntil: null,
+    boosts: {},
+    teleport: null,
+    cooldowns: {},
+    social: emptySocial(),
+  };
+}
+
+export function createWorldState(seed: number): WorldState {
+  return {
     tick: 0,
     rng: createRng(seed),
-    player: {
-      name: PRESIDENT_NAME,
-      pos: { ...zone.spawn },
-      path: [],
-      stepsThisTick: [{ ...zone.spawn }],
-      running: false,
-      runEnergy: MOVEMENT.runEnergyMax,
-      hp: levelForXp(skills.hitpoints ?? 0),
-      action: null,
-      nextAttackTick: 0,
-      style: 'accurate',
-      inventory: createInventory(),
-      equipment: emptyEquipment(),
-      bank: [],
-      interface: null,
-      dialogue: null,
-      overhead: null,
-      skills,
-      currencies: { ...START_CURRENCIES },
-      ledger: emptyLedger(),
-      quests,
-      unlocks: [],
-      bunker: {},
-      collected: {},
-      sproto: null,
-      summoning: { points: SUMMONING.pointsMax, cooldownUntil: 0 },
-      rally: { untilTick: 0, pct: 0 },
-      autoRetaliate: true,
-      nextEatTick: 0,
-      lastHitBy: null,
-      dyingUntil: null,
-      boosts: {},
-      teleport: null,
-      cooldowns: {},
-    },
-    zone: createZoneState(zone, content),
-    otherZones: {},
     economy: createEconomy(),
-    hubSession: freshHubSession(),
+    players: {},
+    zones: {},
+    playerZone: {},
+    joinSeq: [],
   };
+}
+
+/** Zones that are one instance per player (the bunker). */
+export const INSTANCED_ZONES: readonly string[] = ['zone_bunker'];
+
+/** The zone instance key `pid` uses for `zoneId`. The offline player uses plain zone ids. */
+export function zoneKeyFor(zoneId: string, pid: string): string {
+  return pid !== PLAYER_ID && INSTANCED_ZONES.includes(zoneId) ? `${zoneId}@${pid}` : zoneId;
+}
+
+const VIEWS = new WeakMap<WorldState, Map<string, GameState>>();
+
+/** The live per-player view of `world` for `pid` (cached, so it is the same object every time). */
+export function viewFor(world: WorldState, pid: string): GameState {
+  let views = VIEWS.get(world);
+  if (!views) {
+    views = new Map();
+    VIEWS.set(world, views);
+  }
+  const cached = views.get(pid);
+  if (cached) return cached;
+  const view: GameState = {
+    get tick() {
+      return world.tick;
+    },
+    set tick(v: number) {
+      world.tick = v;
+    },
+    get rng() {
+      return world.rng;
+    },
+    set rng(v: RngState) {
+      world.rng = v;
+    },
+    get economy() {
+      return world.economy;
+    },
+    set economy(v: EconomyState) {
+      world.economy = v;
+    },
+    get player() {
+      return world.players[pid];
+    },
+    set player(v: PlayerState) {
+      world.players[pid] = v;
+    },
+    get zone() {
+      return world.zones[world.playerZone[pid]];
+    },
+    set zone(v: ZoneState) {
+      world.zones[world.playerZone[pid]] = v;
+    },
+    get otherZones() {
+      const here = world.playerZone[pid];
+      return Object.fromEntries(Object.entries(world.zones).filter(([k]) => k !== here));
+    },
+    hubSession: freshHubSession(),
+    pid,
+    selfId: playerEntityId(pid),
+    sprotoId: sprotoIdOf(pid),
+    world,
+  };
+  views.set(pid, view);
+  return view;
+}
+
+/** Puts `player` into `world` in zone `zoneId` (creating that zone instance if needed). */
+export function addPlayerToWorld(
+  world: WorldState,
+  content: Content,
+  pid: string,
+  player: PlayerState,
+  zoneId: string,
+): GameState {
+  const def = content.zones.get(zoneId);
+  if (!def) throw new Error(`Unknown zone '${zoneId}'`);
+  const key = zoneKeyFor(zoneId, pid);
+  world.zones[key] ??= createZoneState(def, content);
+  world.players[pid] = player;
+  world.playerZone[pid] = key;
+  if (!world.joinSeq.includes(pid)) world.joinSeq.push(pid);
+  return viewFor(world, pid);
+}
+
+/** Takes `pid` out of the world: their private zones and enemies go, and enemies forget them. */
+export function removePlayerFromWorld(world: WorldState, pid: string): PlayerState | undefined {
+  const player = world.players[pid];
+  if (!player) return undefined;
+  const selfId = playerEntityId(pid);
+  const sprotoId = sprotoIdOf(pid);
+  const here = world.zones[world.playerZone[pid]];
+  if (here) {
+    here.enemies = here.enemies.filter((e) => e.owner !== pid);
+    for (const e of here.enemies) if (e.target === selfId || e.target === sprotoId) e.target = null;
+  }
+  for (const key of Object.keys(world.zones)) if (key.endsWith(`@${pid}`)) delete world.zones[key];
+  delete world.players[pid];
+  delete world.playerZone[pid];
+  world.joinSeq = world.joinSeq.filter((p) => p !== pid);
+  VIEWS.get(world)?.delete(pid);
+  return player;
+}
+
+export function createGameState(content: Content, zoneId: string, seed: number): GameState {
+  const world = createWorldState(seed);
+  return addPlayerToWorld(world, content, PLAYER_ID, createPlayer(content, zoneId), zoneId);
 }
 
 export function findEntity(state: GameState, id: string): EntityRef | null {
   const z = state.zone;
   const obj = z.objects.find((o) => o.id === id);
   if (obj) return { kind: 'object', instance: obj };
-  const npc = z.npcs.find((n) => n.id === id);
+  const npc = z.npcs.find((n) => n.id === id && npcVisible(state, n));
   if (npc) return { kind: 'npc', instance: npc };
-  const ground = z.groundItems.find((g) => g.id === id);
+  const ground = z.groundItems.find((g) => g.id === id && groundVisible(state, g));
   if (ground) return { kind: 'ground', instance: ground };
-  const enemy = z.enemies.find((e) => e.id === id && e.respawnAt === null);
+  const enemy = z.enemies.find(
+    (e) => e.id === id && e.respawnAt === null && enemyVisible(state, e),
+  );
   if (enemy) return { kind: 'enemy', instance: enemy };
   return null;
+}
+
+/** NPCs with a `requires` only show for players with that unlock. */
+export function npcVisible(state: GameState, npc: NpcInstance): boolean {
+  return !npc.requires || hasUnlock(state.player, npc.requires);
+}
+
+/** Private loot shows only for its owner until it turns public. */
+export function groundVisible(state: GameState, g: GroundItem): boolean {
+  if (g.owner === undefined || g.owner === state.pid) return true;
+  return g.publicAt !== undefined && state.tick >= g.publicAt;
+}
+
+/** The owner a boss's adds get: its own, except the offline template's (public) adds. */
+export function addOwner(enemy: EnemyInstance): string | undefined {
+  return enemy.owner === PLAYER_ID ? undefined : enemy.owner;
+}
+
+/** Private enemy instances show only for their owner. */
+export function enemyVisible(state: GameState, e: EnemyInstance): boolean {
+  return e.owner === undefined || e.owner === state.pid;
 }
 
 export function gridOf(state: GameState, ctx: SimContext): Grid {

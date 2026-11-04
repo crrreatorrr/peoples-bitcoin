@@ -1,0 +1,51 @@
+{
+  "_about": "Quick-chat phrase tree (original lines). Slot phrases are filled on the server from the speaker's real state, so they can't be faked.",
+  "groups": [
+    {
+      "id": "hello",
+      "name": "Greetings",
+      "phrases": [
+        { "id": "hi", "text": "Hello!" },
+        { "id": "bye", "text": "Goodbye!" },
+        { "id": "thanks", "text": "Thanks!" },
+        { "id": "gg", "text": "Good game!" },
+        { "id": "attention", "text": "ATTENTION ATTENTION!" }
+      ]
+    },
+    {
+      "id": "lore",
+      "name": "Rally cries",
+      "phrases": [
+        { "id": "notbitcon", "text": "It's not $BITCON." },
+        { "id": "gremlin", "text": "Free my Gremlin!" },
+        { "id": "vow", "text": "I took the Never Sell Vow." },
+        { "id": "motion", "text": "Maximum motion!" },
+        { "id": "checkdm", "text": "Check DM. (There is no DM.)" },
+        { "id": "roadmap", "text": "The roadmap is one arrow pointing up." }
+      ]
+    },
+    {
+      "id": "help",
+      "name": "Help",
+      "phrases": [
+        { "id": "help", "text": "Can anyone help me?" },
+        { "id": "where", "text": "Where do I go next?" },
+        { "id": "follow", "text": "Follow me!" },
+        { "id": "wait", "text": "Wait for me!" },
+        { "id": "trade", "text": "Want to trade?" },
+        { "id": "boss", "text": "Anyone fighting a boss?" }
+      ]
+    },
+    {
+      "id": "about",
+      "name": "About me",
+      "phrases": [
+        { "id": "combat", "text": "My combat level is {combat}.", "slot": "combat" },
+        { "id": "world", "text": "I'm on world {world}.", "slot": "world" },
+        { "id": "level", "text": "My {skill} level is {level}.", "slot": "skill" },
+        { "id": "total", "text": "My total level is {total}.", "slot": "total" },
+        { "id": "tickets", "text": "I have {tickets} Tickets.", "slot": "tickets" }
+      ]
+    }
+  ]
+}

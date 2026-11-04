@@ -340,7 +340,11 @@ body {
 }
 
 .chat-log[data-filter='game'] .chat-public,
-.chat-log[data-filter='public'] .chat-line:not(.chat-public) {
+.chat-log[data-filter='game'] .chat-private,
+.chat-log[data-filter='game'] .chat-trade,
+.chat-log[data-filter='public'] .chat-line:not(.chat-public),
+.chat-log[data-filter='private'] .chat-line:not(.chat-private),
+.chat-log[data-filter='trade'] .chat-line:not(.chat-trade) {
   display: none;
 }
 
@@ -1731,4 +1735,215 @@ body {
   background-size: 100% 100%;
   image-rendering: pixelated;
   pointer-events: none;
+}
+
+/* ── Online (0.7.0): chat tabs, friends, quick-chat, trade, world select ── */
+.chat-private {
+  color: #00e5ff;
+}
+.chat-private .chat-speaker {
+  color: #00e5ff;
+}
+.chat-trade {
+  color: #c77dff;
+}
+.chat-quick-icon {
+  color: #f2c14e;
+}
+.chat-tab {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+.chat-tab-filter {
+  font-size: 0.7em;
+}
+.chat-tab-filter.filter-on {
+  color: #7cfc00;
+}
+.chat-tab-filter.filter-friends {
+  color: #ffd700;
+}
+.chat-tab-filter.filter-off {
+  color: #ff5c5c;
+}
+.nameplates {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.nameplate {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  font-family: 'VT323', monospace;
+  font-size: 15px;
+  color: #fff;
+  text-shadow: 1px 1px 0 #000;
+  white-space: nowrap;
+}
+.nameplate .np-say {
+  display: block;
+  color: #ffff00;
+  text-align: center;
+}
+.friends-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px;
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  color: #ff981f;
+}
+.friends-panel h4 {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #ffd27a;
+}
+.friends-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 160px;
+  overflow-y: auto;
+}
+.friends-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  cursor: pointer;
+}
+.friends-list .online {
+  color: #7cfc00;
+}
+.friends-list .offline {
+  color: #ff5c5c;
+}
+.friends-panel .row {
+  display: flex;
+  gap: 4px;
+}
+.friends-panel button,
+.trade-window button,
+.world-select button,
+.quickchat-menu button {
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  background: #3e3529;
+  color: #ff981f;
+  border: 1px solid #1c1812;
+  cursor: pointer;
+}
+.quickchat-menu {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  background: #2b2419;
+  border: 2px solid #1c1812;
+  padding: 2px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.quickchat-menu button {
+  text-align: left;
+}
+.trade-window {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  transform: translate(-50%, -50%);
+  z-index: 40;
+  width: min(520px, 94vw);
+  padding: 8px;
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  color: #ff981f;
+}
+.trade-window h3 {
+  margin: 0 0 6px;
+  text-align: center;
+  font-size: 18px;
+}
+.trade-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.trade-cols ul {
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  min-height: 120px;
+  background: #1f1a12;
+}
+.trade-cols li.changed {
+  color: #ff5c5c;
+}
+.trade-status {
+  margin: 6px 0;
+  text-align: center;
+  color: #fff;
+}
+.trade-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+.world-select {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #120f0a;
+  font-family: 'VT323', monospace;
+  color: #ff981f;
+}
+.world-select .panel {
+  width: min(560px, 94vw);
+  padding: 12px;
+}
+.world-select h2 {
+  margin: 0 0 8px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 14px;
+  color: #ffd27a;
+}
+.world-select table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 18px;
+}
+.world-select td,
+.world-select th {
+  padding: 3px 6px;
+  text-align: left;
+}
+.world-select tr.world-row {
+  cursor: pointer;
+}
+.world-select tr.world-row:hover {
+  background: #3e3529;
+}
+.world-select tr.full {
+  color: #777;
+}
+.world-select .notice {
+  font-size: 14px;
+  color: #c8b89a;
+}
+.world-select .actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.world-select .status {
+  min-height: 1.2em;
+  color: #fff;
+}
+.tip-player {
+  color: #ffffff;
 }

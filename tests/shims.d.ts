@@ -11,3 +11,14 @@ declare module 'node:crypto' {
   }
   export function createHash(algorithm: 'sha256'): Sha256;
 }
+
+declare module 'node:vm' {
+  interface Context {
+    readonly __context: unique symbol;
+  }
+  const vm: {
+    createContext(sandbox: Record<string, unknown>): Context;
+    runInContext(code: string, context: Context): unknown;
+  };
+  export default vm;
+}

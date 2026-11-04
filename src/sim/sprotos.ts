@@ -5,15 +5,22 @@
  * fighting. Each Sproto has one special that costs Summoning points.
  */
 import { COMBAT, SUMMONING } from '../config/balance';
-import { accuracyRoll, damageEnemy, inAttackRange, maxHit, pathToward, rollDamage } from './combat';
+import {
+  accuracyRoll,
+  damageEnemy,
+  fightingSomeoneElse,
+  inAttackRange,
+  maxHit,
+  pathToward,
+  rollDamage,
+} from './combat';
 import { damageAfterWeakness } from './weakness';
 import { chebyshev, isWalkable } from './grid';
 import { progressQuests } from './quests';
 import {
+  enemyVisible,
   gridOf,
   maxHp,
-  PLAYER_ID,
-  SPROTO_ID,
   type EnemyInstance,
   type GameState,
   type SimContext,
@@ -91,7 +98,7 @@ export function useSpecial(state: GameState, ctx: SimContext, events: SimEvent[]
     return;
   }
   player.summoning.points -= sp.cost;
-  const target = enemyById(state, sproto.target ?? player.action?.targetId);
+  const target = enemyById(state, ctx, sproto.target ?? player.action?.targetId);
   switch (sp.kind) {
     case 'rally':
       player.rally = { untilTick: state.tick + sp.ticks, pct: sp.value };
@@ -101,8 +108,12 @@ export function useSpecial(state: GameState, ctx: SimContext, events: SimEvent[]
       break;
     case 'taunt':
       for (const e of state.zone.enemies) {
-        if (e.respawnAt === null && e.target === PLAYER_ID && chebyshev(e, sproto) <= TAUNT_RANGE) {
-          e.target = SPROTO_ID;
+        if (
+          e.respawnAt === null &&
+          e.target === state.selfId &&
+          chebyshev(e, sproto) <= TAUNT_RANGE
+        ) {
+          e.target = state.sprotoId;
           e.tauntedUntil = state.tick + sp.ticks;
         }
       }
@@ -149,10 +160,10 @@ export function stepSproto(state: GameState, ctx: SimContext, events: SimEvent[]
 
   // ASSIST > DEFEND > FOLLOW.
   const assist =
-    player.action?.action === 'Attack' ? enemyById(state, player.action.targetId) : null;
+    player.action?.action === 'Attack' ? enemyById(state, ctx, player.action.targetId) : null;
   const defend =
-    state.zone.enemies.find((e) => e.respawnAt === null && e.target === PLAYER_ID) ?? null;
-  const current = enemyById(state, sproto.target);
+    state.zone.enemies.find((e) => e.respawnAt === null && e.target === state.selfId) ?? null;
+  const current = enemyById(state, ctx, sproto.target);
   const target = sdef.heals ? null : (assist ?? current ?? defend);
   sproto.target = target?.id ?? null;
 
@@ -188,11 +199,11 @@ export function stepSproto(state: GameState, ctx: SimContext, events: SimEvent[]
   damage = damageAfterWeakness(state, ctx, target, null, null, damage, events);
   events.push({
     type: 'attack',
-    attackerId: SPROTO_ID,
+    attackerId: state.sprotoId,
     targetId: target.id,
     style: melee ? 'melee' : 'gun',
   });
-  if (target.target === null) target.target = SPROTO_ID;
+  if (target.target === null) target.target = state.sprotoId;
   if (damage > 0) {
     const name = ctx.content.skills.get('summoning')?.name ?? 'Summoning';
     grantXp(player, 'summoning', name, damage * SUMMONING.xpPerDamage, events);
@@ -215,9 +226,21 @@ export function besidePlayer(state: GameState, ctx: SimContext): Tile {
   return { x, y };
 }
 
-function enemyById(state: GameState, id: string | null | undefined): EnemyInstance | null {
+function enemyById(
+  state: GameState,
+  ctx: SimContext,
+  id: string | null | undefined,
+): EnemyInstance | null {
   if (!id) return null;
-  return state.zone.enemies.find((e) => e.id === id && e.respawnAt === null) ?? null;
+  return (
+    state.zone.enemies.find(
+      (e) =>
+        e.id === id &&
+        e.respawnAt === null &&
+        enemyVisible(state, e) &&
+        !fightingSomeoneElse(state, ctx, e),
+    ) ?? null
+  );
 }
 
 function step(sproto: Tile, path: Tile[]): void {

@@ -150,7 +150,11 @@ export class HubBridge {
     );
   }
 
+  /** Set once init has run (world select redeems the ticket before the game starts). */
+  initialized = false;
+
   async init(): Promise<void> {
+    this.initialized = true;
     try {
       this.profile = await this.sdk.init(HUB_GAME_ID);
       const saved = sessionStorage.getItem(`hub:${HUB_GAME_ID}:session`);
