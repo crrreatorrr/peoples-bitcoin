@@ -25,6 +25,10 @@ npm test
 npm run build
 ```
 
+## Art generation
+
+Follow `docs/higgsfield-workflow-guide.md`. This repo uses the **sprite sheet** workflow. If the owner says to skip approvals, follow that section of the guide.
+
 ## Working with other agents
 
 Claude Code, Codex, Cursor and Grok Bot all work on this repo.
