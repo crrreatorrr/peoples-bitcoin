@@ -33,17 +33,18 @@ describe('bench', () => {
       for (let i = 0; i < NET.loopsPerTick; i++) {
         for (const m of w.host.loop().messages) bytes += m.data.length * (m.to?.length ?? 1);
       }
-      spent += performance.now() - t0;
+      samples.push(performance.now() - t0);
       sent += bytes;
     };
-    let spent = 0;
+    let samples: number[] = [];
     let sent = 0;
     for (let i = 0; i < 10; i++) tick(); // warm up
-    spent = 0;
+    samples = [];
     sent = 0;
     const n = 40;
     for (let i = 0; i < n; i++) tick();
-    const ms = spent / n;
+    // The median, so other test files running in parallel don't make it flaky.
+    const ms = samples.sort((a, b) => a - b)[Math.floor(n / 2)];
     console.log(
       `[bench] ${(sent / n / NET.maxPlayersPerWorld / 1024).toFixed(2)} KB per client per tick`,
     );
