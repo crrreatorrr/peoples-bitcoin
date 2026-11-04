@@ -433,6 +433,10 @@ Three audits (gameplay duels in the real sim, every NPC variant, the story as a 
   last server balance when we have one. The slot is persisted before the call.
 - **Relic effects** from `init` sit on `hubSession` for the page only. They are not saved. No PB
   effect keys are applied yet; the matrix is still empty.
+- **Breakwater Coin** (hub-sdk 0.6.0, Sproto Arcade's Relic) should grant whatever Cone's Tip grants
+  here (hub matrix: the `pb_summon_nobu` summon; owning both is still one summon). PB has no code
+  that reads `hubSession.effects` or any Relic yet, so neither Relic does anything in PB today; when
+  the Nobu summon is wired, key it off the effect, not the Relic id, so both Relics map to it.
 - **Ticket redeem.** The client sends Nakama's server key, never the HTTP key. `init` posts
   `/v2/account/authenticate/custom?create=false` with `{ id: "t:" + ticket, vars: { game } }` and Basic
   auth, then calls `profile.get` with `Authorization: Bearer <session>`. Every later RPC uses that session
