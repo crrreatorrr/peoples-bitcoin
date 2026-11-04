@@ -217,3 +217,61 @@ describe('world host', () => {
     expect(w.take('a', OP.PONG)[0].body).toMatchObject({ t: 5 });
   });
 });
+
+describe('deltas stay consistent', () => {
+  it("an idle player's replica matches what the server says it sees", async () => {
+    const { Replica } = await import('../../src/net/replica');
+    const { visibleTo, zoneEntities } = await import('../../src/server/aoi');
+    const { content } = await import('../helpers');
+    const w = testWorld();
+    const replica = new Replica(content(), 'zone_treasury');
+    replica.setSelf('p:watcher');
+    w.join('watcher');
+    for (let i = 0; i < 8; i++) w.join(`m${i}`);
+    let seed = 3;
+    const rand = (n: number) => ((seed = (seed * 1103515245 + 12345) >>> 0), seed % n);
+    const feed = () => {
+      for (const m of w.take('watcher')) {
+        if (m.op === OP.SNAPSHOT) replica.applySnapshot(m.body as never);
+        if (m.op === OP.DELTA) replica.applyDelta(m.body as never);
+      }
+    };
+    for (let t = 0; t < 120; t++) {
+      for (let i = 0; i < 8; i++) {
+        if (rand(3) === 0) {
+          w.send(`m${i}`, OP.INTENTS, {
+            seq: t,
+            intents: [{ type: 'walk', x: 5 + rand(46), y: 5 + rand(42) }],
+          });
+        }
+      }
+      w.ticks(1);
+      feed();
+    }
+    const view = w.host.viewOf('watcher')!;
+    const views = w.host.world.joinSeq.map((pid) => w.host.viewOf(pid)!);
+    const expected = visibleTo(view, zoneEntities(view.zone, views, content()), new Map())
+      .map((e) => e.wire.id)
+      .sort();
+    const have = [
+      ...replica.state.zone.enemies.map((e) => e.id),
+      ...replica.state.zone.npcs.map((n) => n.id),
+      ...replica.state.zone.groundItems.map((g) => g.id),
+      ...replica.others.keys(),
+    ].sort();
+    // Hysteresis may keep a few just-left entities (up to the exit radius); none may be missing.
+    for (const id of expected) expect(have).toContain(id);
+    for (const id of have.filter((x) => !expected.includes(x))) {
+      const o = replica.others.get(id);
+      const e = replica.state.zone.enemies.find((x) => x.id === id);
+      const at = o ?? e;
+      expect(
+        at && Math.max(Math.abs(at.x - view.player.pos.x), Math.abs(at.y - view.player.pos.y)),
+      ).toBeLessThanOrEqual(17);
+    }
+    for (const [id, o] of replica.others) {
+      const truth = w.host.viewOf(id.slice(2))!.player.pos;
+      expect({ x: o.x, y: o.y }).toEqual(truth);
+    }
+  });
+});

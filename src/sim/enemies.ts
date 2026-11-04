@@ -204,11 +204,12 @@ function nearestPrey(
   for (const view of owner ? [owner] : views) {
     const player = view.player;
     if (player.dyingUntil !== null) continue;
+    // Cheapest checks first: a busy world runs this for every enemy and player.
+    const d = chebyshev(enemy, player.pos);
+    if (d > def.aggroRange || d >= bestDist) continue;
     const tooStrong =
       combatLevel(player.skills) > def.level * COMBAT.aggroLevelMultiplier && !def.boss;
     if (tooStrong) continue;
-    const d = chebyshev(enemy, player.pos);
-    if (d > def.aggroRange || d >= bestDist) continue;
     if (!hasLineOfSight(gridOf(view, ctx), enemy, player.pos)) continue;
     best = view;
     bestDist = d;

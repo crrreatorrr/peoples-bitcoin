@@ -62,8 +62,10 @@ import {
   isAreaEvent,
   newAoi,
   objectChanges,
+  seesEntity,
   selfPatch,
   visibleTo,
+  zoneChanges,
   zoneEntities,
   type AoiState,
   type CachedEntity,
@@ -81,6 +83,9 @@ import { TradeBook, type TradeEnv } from './trade';
 import { questEarnWireKey } from './uuid';
 
 export const GAME_ID = 'peoples-bitcoin';
+
+/** Even an idle player's cold keys (bag, bank, skills) are compared this often. */
+const COLD_CHECK_EVERY = 10;
 
 export interface Presence {
   userId: string;
@@ -153,6 +158,8 @@ export interface HostOptions {
   seed: number;
   io: HostIO;
   content?: Content;
+  /** Optional phase timing (the hub's dev bench RPC reads it). */
+  profile?: Record<string, number>;
 }
 
 interface Session {
@@ -176,6 +183,8 @@ interface Session {
   friendWorlds: Map<string, number | null>;
   /** The hub session closed: no more earns from this world. */
   expired: boolean;
+  /** Where this player stood when the last delta was built (idle fast path). */
+  lastPos: { x: number; y: number } | null;
   shopSeq: number;
 }
 
@@ -210,6 +219,14 @@ export interface WorldHost {
 
 export function createWorldHost(opts: HostOptions): WorldHost {
   const { io, worldNo, matchId } = opts;
+  const prof = opts.profile;
+  const timed = <T>(label: string, run: () => T): T => {
+    if (!prof) return run();
+    const t0 = io.nowMs();
+    const out = run();
+    prof[label] = (prof[label] ?? 0) + io.nowMs() - t0;
+    return out;
+  };
   const { content, grids } = sharedContent(opts.content);
   const world = createWorldState(opts.seed >>> 0);
   const sessions = new Map<string, Session>();
@@ -220,6 +237,8 @@ export function createWorldHost(opts: HostOptions): WorldHost {
   let kicks: string[] = [];
   let loops = 0;
   let lastLabel = '';
+  /** Per zone instance: each entity's text at the last tick, to find what changed. */
+  const zoneTexts = new Map<string, Map<string, string>>();
 
   const savedEconomy = io.loadWorld();
   if (savedEconomy && typeof savedEconomy === 'object') {
@@ -704,6 +723,7 @@ export function createWorldHost(opts: HostOptions): WorldHost {
       graceUntil: null,
       friendWorlds: new Map(),
       expired: false,
+      lastPos: null,
       shopSeq: 0,
     };
     sessions.set(s.uid, s);
@@ -772,7 +792,8 @@ export function createWorldHost(opts: HostOptions): WorldHost {
       intents[s.uid] = s.intents;
       s.intents = [];
     }
-    const events = runWorldTick(world, ctx, intents);
+    const events = timed('sim', () => runWorldTick(world, ctx, intents));
+    const acted = new Set(Object.keys(intents));
     trades.tick(tradeEnv());
 
     for (const s of live()) {
@@ -803,10 +824,10 @@ export function createWorldHost(opts: HostOptions): WorldHost {
         io.log('warn', `saveWorld: ${String(err)}`);
       }
     }
-    broadcastTick(events);
+    timed('broadcast', () => broadcastTick(events, acted));
   }
 
-  function broadcastTick(events: Record<string, SimEvent[]>): void {
+  function broadcastTick(events: Record<string, SimEvent[]>, acted: Set<string>): void {
     const keyframe = world.tick % NET.keyframeEveryTicks === 0;
     const byZone = new Map<string, GameState[]>();
     for (const pid of world.joinSeq) {
@@ -818,7 +839,17 @@ export function createWorldHost(opts: HostOptions): WorldHost {
       else byZone.set(key, [view]);
     }
     const cache = new Map<string, CachedEntity[]>();
-    for (const [key, views] of byZone) cache.set(key, zoneEntities(views[0].zone, views, content));
+    const changes = new Map<string, { changed: CachedEntity[]; removed: string[] }>();
+    timed('entities', () => {
+      for (const [key, views] of byZone) {
+        const list = zoneEntities(views[0].zone, views, content);
+        cache.set(key, list);
+        const diff = zoneChanges(list, zoneTexts.get(key), world.tick, views[0].zone);
+        zoneTexts.set(key, diff.now);
+        changes.set(key, diff);
+      }
+      for (const key of zoneTexts.keys()) if (!byZone.has(key)) zoneTexts.delete(key);
+    });
     // Area events by zone, from every player's list.
     const area = new Map<string, { from: string; e: SimEvent }[]>();
     for (const [pid, list] of Object.entries(events)) {
@@ -839,7 +870,66 @@ export function createWorldHost(opts: HostOptions): WorldHost {
       const own = (events[s.uid] ?? []).filter((e) => e.type !== 'zoneChanged');
       if (s.aoi.zoneKey !== key) s.needSnapshot = true;
       const full = s.needSnapshot || keyframe;
-      const visible = visibleTo(view, cache.get(key) ?? [], s.aoi.lastSent);
+      const pos = view.player.pos;
+      // Idle fast path: this player didn't move or act, so only entities that changed this
+      // tick can change what it sees. A busy world is mostly idle players.
+      const idle =
+        !full &&
+        own.length === 0 &&
+        !acted.has(s.uid) &&
+        s.lastPos !== null &&
+        s.lastPos.x === pos.x &&
+        s.lastPos.y === pos.y;
+      s.lastPos = { x: pos.x, y: pos.y };
+      if (idle) {
+        const diff = changes.get(key)!;
+        const texts: string[] = [];
+        const del: string[] = [];
+        timed('visible', () => {
+          for (const e of diff.changed) {
+            const id = e.wire.id;
+            const last = s.aoi.lastSent.get(id);
+            if (!seesEntity(view, e, last !== undefined)) {
+              if (last) {
+                s.aoi.lastSent.delete(id);
+                del.push(id);
+              }
+              continue;
+            }
+            if (last && last.dyn === e.dyn && last.stat === e.stat) continue;
+            texts.push(last && last.stat === e.stat ? e.dyn : e.text);
+            s.aoi.lastSent.set(id, { stat: e.stat, dyn: e.dyn });
+          }
+          for (const id of diff.removed) {
+            if (s.aoi.lastSent.delete(id)) del.push(id);
+          }
+        });
+        const others = (area.get(key) ?? [])
+          .filter(
+            (a) => a.from !== s.uid && eventEntities(a.e).some((id) => s.aoi.lastSent.has(id)),
+          )
+          .map((a) => a.e);
+        const delta: Delta = { tick: world.tick, ack: s.ack, ent: [], del, ev: others };
+        const p = view.player;
+        const busy =
+          p.action !== null ||
+          p.interface !== null ||
+          p.dialogue !== null ||
+          world.tick % COLD_CHECK_EVERY === 0;
+        const self = timed('self', () => selfPatch(p, s.aoi, false, busy));
+        if (self) delta.self = self;
+        const obj = objectChanges(view.zone, s.aoi, false);
+        if (obj.length > 0) delta.obj = obj;
+        const body = timed('encode', () =>
+          texts.length > 0
+            ? encode(delta).replace('"ent":[]', `"ent":[${texts.join(',')}]`)
+            : encode(delta),
+        );
+        outbox.push({ op: OP.DELTA, data: body, to: [s.uid] });
+        continue;
+      }
+
+      const visible = timed('visible', () => visibleTo(view, cache.get(key) ?? [], s.aoi.lastSent));
       const seen = new Set(visible.map((e) => e.wire.id));
       seen.add(view.selfId);
       seen.add(view.sprotoId);
@@ -887,7 +977,16 @@ export function createWorldHost(opts: HostOptions): WorldHost {
         }
       }
       const delta: Delta = { tick: world.tick, ack: s.ack, ent: [], del, ev };
-      const self = selfPatch(view.player, s.aoi, false);
+      // Cold keys (bag, bank, skills...) only change when something happens to this player.
+      const p = view.player;
+      const busy =
+        own.length > 0 ||
+        acted.has(s.uid) ||
+        p.action !== null ||
+        p.interface !== null ||
+        p.dialogue !== null ||
+        world.tick % COLD_CHECK_EVERY === 0;
+      const self = timed('self', () => selfPatch(p, s.aoi, false, busy));
       if (self) delta.self = self;
       const obj = objectChanges(view.zone, s.aoi, false);
       if (obj.length > 0) delta.obj = obj;

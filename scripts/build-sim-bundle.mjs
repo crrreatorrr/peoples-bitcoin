@@ -53,6 +53,7 @@ export async function buildSimBundle({
     '  return {',
     '    version: PB_SIM_VERSION,',
     '    createWorldHost: function (opts) { return mod().createWorldHost(opts); },',
+    '    benchWorld: function (players, ticks, walkShare, now) { return mod().benchWorld(players, ticks, walkShare, now); },',
     '    constants: function () { var m = mod(); return { PROTOCOL_VERSION: m.PROTOCOL_VERSION, OP: m.OP, SIM_VERSION: m.SIM_VERSION, GAME_ID: m.GAME_ID }; },',
     '  };',
     '})();',

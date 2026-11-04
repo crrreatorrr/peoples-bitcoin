@@ -4,6 +4,7 @@
  * parsed on the first createWorldHost.
  */
 export { createWorldHost, GAME_ID } from './host';
+export { benchWorld } from './bench';
 export type { HostIO, HostOptions, LoopResult, Outbound, Presence, WorldHost } from './host';
 export { PROTOCOL_VERSION, OP } from '../net/protocol';
 export { SIM_VERSION } from '../net/simVersion';

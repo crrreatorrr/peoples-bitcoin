@@ -161,33 +161,85 @@ export function zoneEntities(
   return out;
 }
 
+/** Does `viewer` see `e` this tick? `seen` is whether it saw it last tick (hysteresis). */
+export function seesEntity(viewer: GameState, e: CachedEntity, seen: boolean): boolean {
+  if (e.self === viewer.pid) return false;
+  if (e.owner !== undefined && e.owner !== viewer.pid) return false;
+  if (e.check && !e.check(viewer)) return false;
+  if (e.global) return true;
+  const d = chebyshev(viewer.player.pos, e);
+  return d <= NET.aoiRadius || (seen && d <= NET.aoiExitRadius);
+}
+
 /** Ids `viewer` sees this tick, with hysteresis against what it saw last tick. */
 export function visibleTo(
   viewer: GameState,
   entities: readonly CachedEntity[],
   previously: ReadonlyMap<string, unknown>,
 ): CachedEntity[] {
-  const pos = viewer.player.pos;
-  return entities.filter((e) => {
-    if (e.self === viewer.pid) return false;
-    if (e.owner !== undefined && e.owner !== viewer.pid) return false;
-    if (e.check && !e.check(viewer)) return false;
-    if (e.global) return true;
-    const d = chebyshev(pos, e);
-    return d <= NET.aoiRadius || (previously.has(e.wire.id) && d <= NET.aoiExitRadius);
-  });
+  return entities.filter((e) => seesEntity(viewer, e, previously.has(e.wire.id)));
 }
+
+/**
+ * What changed in a zone since the last tick: entities whose text differs (or
+ * are new), and ids that are gone. Private loot that turns public this tick
+ * counts as changed, since who may see it changes.
+ */
+export function zoneChanges(
+  entities: readonly CachedEntity[],
+  previous: Map<string, string> | undefined,
+  tick: number,
+  zone: ZoneState,
+): { changed: CachedEntity[]; removed: string[]; now: Map<string, string> } {
+  const now = new Map<string, string>();
+  const changed: CachedEntity[] = [];
+  const publicNow = new Set(zone.groundItems.filter((g) => g.publicAt === tick).map((g) => g.id));
+  for (const e of entities) {
+    const key = e.text;
+    now.set(e.wire.id, key);
+    if (!previous || previous.get(e.wire.id) !== key || publicNow.has(e.wire.id)) changed.push(e);
+  }
+  const removed: string[] = [];
+  if (previous) for (const id of previous.keys()) if (!now.has(id)) removed.push(id);
+  return { changed, removed, now };
+}
+
+/**
+ * Keys that change only when the player does something (or something happens
+ * to them). They are compared only on ticks with intents, events, an action
+ * or an open interface, and on keyframes; on a busy world this skips most of
+ * the per-player serializing.
+ */
+const COLD_KEYS = new Set([
+  'name',
+  'displayName',
+  'inventory',
+  'equipment',
+  'bank',
+  'skills',
+  'quests',
+  'unlocks',
+  'bunker',
+  'collected',
+  'cooldowns',
+  'currencies',
+  'style',
+  'autoRetaliate',
+]);
 
 /** Changed top-level player keys since the last patch (all of them when `full`). */
 export function selfPatch(
   player: PlayerState,
   aoi: AoiState,
   full: boolean,
+  busy = true,
 ): Record<string, unknown> | undefined {
   const patch: Record<string, unknown> = {};
   let any = false;
-  for (const [key, value] of Object.entries(player)) {
+  for (const key in player) {
+    const value = (player as unknown as Record<string, unknown>)[key];
     if (PRIVATE_KEYS.has(key)) continue;
+    if (!full && !busy && COLD_KEYS.has(key)) continue;
     const text = JSON.stringify(value ?? null);
     if (!full && aoi.lastSelf.get(key) === text) continue;
     aoi.lastSelf.set(key, text);
