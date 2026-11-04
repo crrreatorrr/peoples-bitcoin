@@ -10,6 +10,25 @@
 - [ ] Moonward Academy: library and potions content (spellbooks, brewing) beyond decoration
 - [ ] Balance pass: XP rates, drop values, Terminal prices, enemy stats (all in data/balance.ts)
 
+## Online (0.7.0) leftovers
+
+- [ ] S1 Clan / channel chat and a Clan tab
+- [ ] S2 Swamp Exchange (player buy and sell orders, server-side order book)
+- [ ] S3 Hopium shared across worlds; Day chant; wells
+- [ ] S4 Raids and group bosses with multi-way areas (DESIGN §11 late bosses, The Old Coin)
+- [ ] S5 PvP in The Trenches (skull/risk, single-way PvP)
+- [ ] S6 Binary delta encoding; spatial-hash AOI for zones over 100×100
+- [ ] S7 Report button, admin mute and kick, a trade audit table, bot heuristics
+- [ ] S9 Server-side `pb_total_xp` and the `pb.quest_complete` relic event for online characters
+- [ ] S10 Follow a player, emotes, world hopping with a cooldown, friends' column in world select
+- [ ] S11 Mobile layout for world select, the trade window and the friends list
+- [ ] Save import ("Bring your offline President online"): off by decision; would need an HTTP RPC
+- [ ] Exchange (Tickets → Verse) online
+- [ ] A Friends tab of its own (needs a tab socket painted into the frame art)
+- [ ] Goja tick time: 100 players clicking 30 times a tick use ~440 ms of the 600 ms tick on one dev
+      machine. Profile the sim phase (pathfinding, enemies) and entity serialization if a world fills
+- [ ] Clickable "wishes to trade with you" line (today: Trade with the player back)
+
 ## QA leftovers (0.6.1 audit)
 
 - [ ] Nothing in the sim moves `hopium` or increments `recentDumps` yet (DESIGN.md §6 events);
@@ -38,7 +57,7 @@
 ## OSRS features deferred to their phase
 
 - Phase 3: random events, emotes
-- Phase 5: Grand Exchange (Swamp Exchange), friends/clan chat, world switching
+- Phase 5: Grand Exchange (Swamp Exchange), clan chat (friends, PMs and worlds shipped in 0.7.0)
 - Phase 6: music player, roof toggle
 - Not planned in DESIGN.md: prayer, spellbook, special attack (Command/Sprotos fill that role),
   achievement diaries, collection log, world map (one zone so far), doors

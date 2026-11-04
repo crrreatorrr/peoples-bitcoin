@@ -3,7 +3,7 @@
 A satirical, OSRS-inspired browser MMO-lite built with Three.js, TypeScript and Vite.
 All currencies are fictional and in-game only. See [DESIGN.md](DESIGN.md) for the full design.
 
-**Status:** Phase 1 sandbox plus the owner's revisions: 10 interconnected skills, the Trading Terminal, combat in The Trenches, Sproto summons, the bunker, an OSRS-style tutorial guided by Morelight, nine quests that lead out of the locked-down Treasury and on to Moonward Academy (a wizard school with staffs that fire COOM), and a low-poly 3D cast made with Higgsfield. For adults (18+). See `DESIGN.md` → Revisions, [CHANGELOG.md](CHANGELOG.md) and [TODO.md](TODO.md).
+**Status:** Phase 1 sandbox plus the owner's revisions: 10 interconnected skills, the Trading Terminal, combat in The Trenches, Sproto summons, the bunker, an OSRS-style tutorial guided by Morelight, nine quests that lead out of the locked-down Treasury and on to Moonward Academy (a wizard school with staffs that fire COOM), and a low-poly 3D cast made with Higgsfield. **Online worlds of up to 100 players** (0.7.0): world select, other players, RuneScape-style chat, friends and ignore lists, quick-chat and two-screen trading, run server-side on the hub's Nakama; offline play still works. For adults (18+). See `DESIGN.md` → Revisions, [CHANGELOG.md](CHANGELOG.md) and [TODO.md](TODO.md).
 
 ## Run it
 
@@ -20,8 +20,9 @@ Then open the URL Vite prints (default http://localhost:5173).
 | --------------------------------- | ------------------------------------------------------- |
 | `npm run dev`                     | Dev server with hot reload                              |
 | `npm run build`                   | Type-check (client + DOM-free sim) and build to `dist/` |
+| `npm run build:sim`               | Build the server bundle (`dist-sim/pb-sim.js`, or `-- --out <path>`) |
 | `npm run preview`                 | Serve the production build                              |
-| `npm test`                        | Run the Vitest suite (sim only)                         |
+| `npm test`                        | Run the Vitest suite (sim, server host, net, bundle)    |
 | `npm run coverage`                | Tests with a coverage report for `src/sim`              |
 | `npm run lint` / `npm run format` | ESLint / Prettier                                       |
 
@@ -56,6 +57,39 @@ Clicks act on press, like OSRS.
 Progress autosaves to `localStorage` every 10 ticks and when the tab is hidden or closed.
 Settings → Reset progress starts over.
 
+## Online play
+
+The game is fully multiplayer in **worlds** of up to 100 players. A world is one authoritative
+`pb_world` match on the hub's Nakama (code in metaverse-hub `server/modules/src/games/pb_*.ts`)
+running this repo's sim from the server bundle. The client sends intents, chat, trade and social
+operations; the server runs the 600 ms tick and sends back what you can see. Characters online are
+fresh and saved on the server (offline saves stay offline).
+
+- **With a hub session** (entering from the hub portal) the game opens on **world select**: World,
+  Players / 100, Quick join (the least full world) and Play offline. Without one, it plays offline
+  as before.
+- **`?net=loopback`** (dev): runs a world in the page with bots (`&bots=3`, default 3), so the
+  online client can be built and tried without Nakama: `npm run dev`, then
+  `http://localhost:5173/play/peoples-bitcoin/?net=loopback&bots=5`.
+- **With a local hub Nakama:** in metaverse-hub, `cd server && docker compose up` (see its README),
+  then here `npm run build:sim -- --out ../metaverse-hub/server/modules/vendor/pb-sim.js`, rebuild
+  the hub module, and open the game through the hub portal. The client and the bundle must come
+  from the same commit (their sim version is a hash of the sim sources; a mismatch is refused).
+- **Load test:** `NAKAMA_URL=http://127.0.0.1:7350 BOTS=100 node scripts/pb-bots.mjs` runs guest
+  bots through the portal; the world logs its loop time about once a minute.
+
+Online controls (RuneScape-style):
+
+- **Chat tabs:** All, Game, Public, Private, Trade. Click the active Public, Private or Trade tab to
+  cycle its filter (On, Friends, Off); the server enforces it. Profanity is masked by default.
+- **Private messages:** `/m name text`; `/r text` or **Tab** answers the last one. Cross-world PMs work.
+- **Quick-chat:** the Quick button. Lines like "My Mining level is 42" are filled in by the server.
+- **Players:** right-click another player for Trade with, Message, Add friend, Ignore.
+- **Friends and ignores:** at the top of the Settings tab (F10), with each friend's world.
+- **Trading:** both players choose Trade with. Offer items from your bag (click: 1, right-click:
+  all), Accept twice (offer, then confirm screen with each side's Terminal value). Any change resets
+  both accepts. Items only, never Tickets.
+
 ## Layout
 
 ```
@@ -66,15 +100,20 @@ src/
   render/   Three.js: low-res renderer, camera, world, code-built props, rigged GLB characters,
             procedural animation, gear, chat heads, picking
   assets/   character GLBs (Higgsfield), sprites and icons
-  ui/       HTML overlay: ticker HUD, chat, inventory, skills, tooltips, context menu
+  ui/       HTML overlay: ticker HUD, chat, inventory, skills, tooltips, context menu, world
+            select, friends, quick-chat, trade
   input/    mouse and keyboard
-  main.ts   wires it together and runs the 600 ms tick loop
-tests/      Vitest tests for src/sim
+  server/   pure world host for online play (AOI, deltas, chat, trade, Tickets), bundled for Nakama
+  net/      wire protocol, transports (hub realtime, in-page loopback), replica, jitter buffer
+  game/     drivers: local tick loop (offline) and the online driver; world select flow
+  main.ts   wires it together and runs the frame loop
+scripts/    build-sim-bundle.mjs (npm run build:sim), simHash.mjs, pb-bots.mjs (load test)
+tests/      Vitest tests for src/sim, src/server and src/net
 tools/      shrink_glb.py and turn_glb.py for the GLB pipeline (see ART_GUIDE.md)
 ```
 
-`src/sim` has no DOM or Three.js imports (enforced by `tsconfig.sim.json` and an ESLint rule), so
-the same code can run on the Phase 5 server.
+`src/sim`, `src/server` and `src/net/protocol.ts` have no DOM or Three.js imports (enforced by
+`tsconfig.sim.json` and an ESLint rule), so the same code runs in Nakama's JS runtime.
 
 ## Swapping art
 

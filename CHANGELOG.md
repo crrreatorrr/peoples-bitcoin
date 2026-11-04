@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.7.0 — Online worlds (2026-11-04)
+
+- **Worlds of up to 100 players**, run server-side as `pb_world` matches on the hub's Nakama with
+  this repo's sim (`npm run build:sim`). More worlds open as they fill (`pb.worlds`).
+- **World select** with Quick join and Play offline; `?net=loopback` runs a world in the page.
+- **Other players** in the shared President look, in their own gear, with nameplates, speech and
+  minimap dots; their Sprotos too. Only what is near you is sent (15-tile view).
+- **Chat, RuneScape-style:** public chat in view with overhead text, private messages in and
+  across worlds, Private and Trade tabs with On / Friends / Off filters, quick-chat filled in from
+  your real stats, friends (with their world) and ignore lists, rate limits and mutes. Slurs, links
+  and wallet addresses are blocked on the server; profanity is masked on the client.
+- **Trading:** two screens, accept reset on any change, Terminal value on the confirm screen, the
+  swap saved for both players at once. Items only, never Tickets.
+- **Server-authoritative:** intents only, validated; Tickets earned, spent and sold on the server
+  with sealed, idempotent keys; one session per account; OCC saves.
+- Multiplayer sim: shared zones, private quest-boss copies and bunkers, loot owned by the top
+  damager (private for a minute), single-way "Someone else is fighting that."
+- hub-sdk 0.5.0 (realtime) is vendored. Saves stay v7 (online fields are optional).
+- Faster pathfinding (no allocation in heap swaps; clicks on blocked tiles aim at the nearest
+  walkable ring).
+
 ## Unreleased — Hub Tickets
 
 - **Tickets** are the wallet. The live price ticker is gone. Shop prices are per pack in
