@@ -53,8 +53,8 @@ export function vendoredSdkManifestSha256(root = 'vendor/hub-sdk'): string {
     .digest('hex');
 }
 
-// Source: crrreatorrr/metaverse-hub main @ 9c06593
-describe('vendored hub SDK 0.4.0-redeem.1', () => {
+// Source: crrreatorrr/metaverse-hub contract/hub-v1 @ 4562497
+describe('vendored hub SDK 0.5.0', () => {
   // Hub main redeems with custom auth plus the server key, then profile.get. It registers
   // no session.claim RPC, so a vendor that calls one never gets a session.
   it('redeems the way the merged hub server expects', () => {
@@ -71,14 +71,14 @@ describe('vendored hub SDK 0.4.0-redeem.1', () => {
     ) as {
       version: string;
     };
-    expect(pkg.version).toBe('0.4.0-redeem.1');
+    expect(pkg.version).toBe('0.5.0');
     const hash = vendoredSdkSha256();
     expect(hash, `byte hash ${hash}`).toBe(
-      'a28d0617bf41046c4d30352898071b12f25e3118ebea5f3487c8a2cbaae5a3d3',
+      '5e08d97afd5a35fd28a841e1f7bb500b7d8c84a404f4fa2841ef49494fbd5945',
     );
     const manifest = vendoredSdkManifestSha256();
     expect(manifest, `manifest ${manifest}`).toBe(
-      '615f53233fa8328021541e3c41f2bf8ab35ec0f3fb77b282039d17aa336313d5',
+      '47ab8a92eb61449cc7940c63c48685176abffd4443505d46ae021cf5696bf9ff',
     );
   });
 });
