@@ -1,11 +1,12 @@
 {
-  // Type-checks the simulation without DOM or Three.js types, so src/sim stays
-  // runnable on the Node server in phase 5. Any DOM use in src/sim fails here.
+  // Type-checks the simulation, the server host (src/server) and the wire
+  // protocol without DOM or Three.js types: they run in Nakama's JS runtime.
+  // Any DOM use there fails here.
   // Tests are checked by tsconfig.json; hub and tooling tests use DOM, Node and Vite types.
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "lib": ["ES2022"],
     "types": []
   },
-  "include": ["src/sim", "src/config"]
+  "include": ["src/sim", "src/config", "src/server", "src/net/protocol.ts", "src/net/simVersion.ts"]
 }

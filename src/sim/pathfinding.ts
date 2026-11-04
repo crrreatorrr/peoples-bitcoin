@@ -37,18 +37,21 @@ export interface PathResult {
  */
 export function findPath(grid: Grid, start: Tile, goals: readonly Tile[]): PathResult {
   const { width } = grid;
-  const validGoals = goals.filter((g) => inBounds(grid, g.x, g.y));
+  const inside = goals.filter((g) => inBounds(grid, g.x, g.y));
+  const validGoals = nearestOpen(grid, inside);
+  const substituted = validGoals !== inside;
   if (validGoals.length === 0) return { path: [], complete: false };
 
   const startIdx = start.y * width + start.x;
   const goalSet = new Set(validGoals.map((g) => g.y * width + g.x));
-  if (goalSet.has(startIdx)) return { path: [], complete: true };
+  if (goalSet.has(startIdx)) return { path: [], complete: !substituted };
 
   const heuristic = (idx: number): number => {
     const x = idx % width;
     const y = (idx - x) / width;
     let best = Infinity;
-    for (const g of validGoals) {
+    for (let i = 0; i < validGoals.length; i++) {
+      const g = validGoals[i];
       const dx = Math.abs(x - g.x);
       const dy = Math.abs(y - g.y);
       const h =
@@ -75,7 +78,7 @@ export function findPath(grid: Grid, start: Tile, goals: readonly Tile[]): PathR
     if (closed[current]) continue;
     closed[current] = 1;
     if (goalSet.has(current))
-      return { path: reconstruct(cameFrom, current, width), complete: true };
+      return { path: reconstruct(cameFrom, current, width), complete: !substituted };
 
     const h = heuristic(current);
     if (h < closestH || (h === closestH && gScore[current] < gScore[closestIdx])) {
@@ -103,6 +106,40 @@ export function findPath(grid: Grid, start: Tile, goals: readonly Tile[]): PathR
     }
   }
   return { path: reconstruct(cameFrom, closestIdx, width), complete: false };
+}
+
+/** How far around a blocked click the walkable stand-ins are looked for. */
+const BLOCKED_GOAL_RADIUS = 10;
+
+/**
+ * A click on a blocked tile (a wall, a desk) aims at the walkable tiles of the
+ * nearest ring around it instead, so the search ends there rather than
+ * exploring the whole zone looking for a tile that can't be stood on.
+ */
+function nearestOpen(grid: Grid, goals: Tile[]): Tile[] {
+  if (goals.length === 0 || goals.some((g) => isWalkable(grid, g.x, g.y))) return goals;
+  for (let r = 1; r <= BLOCKED_GOAL_RADIUS; r++) {
+    // Only the ring's tiles nearest a goal by the search heuristic (straight before diagonal).
+    let ring: Tile[] = [];
+    let best = Infinity;
+    for (const g of goals) {
+      for (let dy = -r; dy <= r; dy++) {
+        for (let dx = -r; dx <= r; dx++) {
+          const ax = Math.abs(dx);
+          const ay = Math.abs(dy);
+          if (Math.max(ax, ay) !== r || !isWalkable(grid, g.x + dx, g.y + dy)) continue;
+          const h = STRAIGHT_COST * r + (DIAGONAL_COST - STRAIGHT_COST) * Math.min(ax, ay);
+          if (h < best) {
+            best = h;
+            ring = [];
+          }
+          if (h === best) ring.push({ x: g.x + dx, y: g.y + dy });
+        }
+      }
+    }
+    if (ring.length > 0) return ring;
+  }
+  return goals;
 }
 
 function reconstruct(cameFrom: Int32Array, end: number, width: number): Tile[] {
@@ -162,9 +199,17 @@ class MinHeap {
     return this.f[a] < this.f[b] || (this.f[a] === this.f[b] && this.h[a] < this.h[b]);
   }
 
+  // Plain temporaries, not array destructuring: this runs millions of times a
+  // minute on a busy server world, and destructuring allocates.
   private swap(a: number, b: number): void {
-    [this.nodes[a], this.nodes[b]] = [this.nodes[b], this.nodes[a]];
-    [this.f[a], this.f[b]] = [this.f[b], this.f[a]];
-    [this.h[a], this.h[b]] = [this.h[b], this.h[a]];
+    const n = this.nodes[a];
+    this.nodes[a] = this.nodes[b];
+    this.nodes[b] = n;
+    const f = this.f[a];
+    this.f[a] = this.f[b];
+    this.f[b] = f;
+    const h = this.h[a];
+    this.h[a] = this.h[b];
+    this.h[b] = h;
   }
 }
