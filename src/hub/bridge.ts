@@ -15,6 +15,7 @@ import {
   type SellResult,
   type TicketBalanceResult,
 } from '@metaverse/hub-sdk';
+import { pageServerKey } from './serverKey';
 
 /** Public game id. Exit fragment, init, and logs all use this. */
 export const HUB_GAME_ID = 'peoples-bitcoin';
@@ -109,12 +110,9 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
 }
 
-// Nakama's client server key. Custom-auth ticket redeem sends it as Basic auth; it is
-// not the runtime HTTP key. Like the hub, only `vite dev` falls back to the compose
-// default. A production build takes VITE_NAKAMA_SERVER_KEY, or every redeem is refused
-// and the game runs without a hub session (no Tickets banked, no Relic sent).
-const NAKAMA_SERVER_KEY =
-  import.meta.env.VITE_NAKAMA_SERVER_KEY || (import.meta.env.DEV ? 'defaultkey' : '');
+// Nakama's client server key. The rule (env key, else the local stock key in dev or on a
+// loopback host) is in ./serverKey.ts.
+const NAKAMA_SERVER_KEY = pageServerKey();
 
 export function createGameHub(): HubSdk {
   const url = hubUrl();

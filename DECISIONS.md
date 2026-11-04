@@ -514,3 +514,11 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
   tiles), so the search ends there instead of exploring the whole zone.
 - **Performance (measured in Nakama 3.41 goja):** 100 idle players ≈ 160 ms per sim tick; 100 bots
   clicking 30 times a tick ≈ 440 ms of the 600 ms tick. The world logs its loop time once a minute.
+
+## Hub server key on a local build (2026-11-04)
+
+- A build with no `VITE_NAKAMA_SERVER_KEY` now uses Nakama's stock `defaultkey` when the page is
+  served from a loopback host (`localhost`, `*.localhost`, `127.x.x.x`, `::1`), as `vite dev`
+  already did. The dev hub serves game builds from its `public/play/<slug>/`, and its
+  `server/scripts/dev-env.sh` keeps the stock key, so a local build no longer loses its hub session
+  to a 401. Any other host still needs the build-time key. The rule is in `src/hub/serverKey.ts`.
