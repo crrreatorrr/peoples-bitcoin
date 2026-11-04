@@ -53,7 +53,7 @@ export function vendoredSdkManifestSha256(root = 'vendor/hub-sdk'): string {
     .digest('hex');
 }
 
-// Source: crrreatorrr/metaverse-hub contract/hub-v1 @ 4562497
+// Source: crrreatorrr/metaverse-hub claude/loving-galileo-ndy2tu @ 36e4eb2
 describe('vendored hub SDK 0.5.0', () => {
   // Hub main redeems with custom auth plus the server key, then profile.get. It registers
   // no session.claim RPC, so a vendor that calls one never gets a session.
@@ -74,11 +74,11 @@ describe('vendored hub SDK 0.5.0', () => {
     expect(pkg.version).toBe('0.5.0');
     const hash = vendoredSdkSha256();
     expect(hash, `byte hash ${hash}`).toBe(
-      '5e08d97afd5a35fd28a841e1f7bb500b7d8c84a404f4fa2841ef49494fbd5945',
+      '7d5e0d088a270feb93eff3b4d20f42fbb3f12747a2d0f4af4864e92b6edeaf02',
     );
     const manifest = vendoredSdkManifestSha256();
     expect(manifest, `manifest ${manifest}`).toBe(
-      '47ab8a92eb61449cc7940c63c48685176abffd4443505d46ae021cf5696bf9ff',
+      'e0a0c97d8f7b64142e83ae91b1c047e165ea82f4a3e05e8353158e473c2a5b9b',
     );
   });
 });
