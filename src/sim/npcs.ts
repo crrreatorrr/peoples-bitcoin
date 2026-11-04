@@ -10,9 +10,12 @@ import { directStep } from './grid';
 import { chance, nextInt } from './rng';
 import { gridOf, type GameState, type SimContext } from './state';
 
-export function stepNpcs(state: GameState, ctx: SimContext): void {
-  const { player, zone } = state;
-  const busy = new Set([player.action?.targetId, player.dialogue?.npcId]);
+/** One tick of the NPCs in a zone instance; `views` are the players in it. */
+export function stepNpcs(views: readonly GameState[], ctx: SimContext): void {
+  const state = views[0];
+  if (!state) return;
+  const zone = state.zone;
+  const busy = new Set(views.flatMap((v) => [v.player.action?.targetId, v.player.dialogue?.npcId]));
   for (const npc of zone.npcs) {
     npc.from = { x: npc.x, y: npc.y };
     const radius = ctx.content.npcs.get(npc.defId)?.wanderRadius ?? 0;
@@ -29,7 +32,7 @@ export function stepNpcs(state: GameState, ctx: SimContext): void {
       npc,
       npc.goal,
       (x, y) =>
-        (player.pos.x === x && player.pos.y === y) ||
+        views.some((v) => v.player.pos.x === x && v.player.pos.y === y) ||
         zone.npcs.some((other) => other !== npc && other.x === x && other.y === y),
     );
     if (next) Object.assign(npc, next);

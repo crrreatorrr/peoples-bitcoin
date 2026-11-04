@@ -52,7 +52,7 @@ export function buy(
   const row = ctx.content.ticketPrices.find((r) => r.shopId === shopId && r.itemId === itemId);
   const item = ctx.content.items.get(itemId);
   if (!item || !row || n < 1 || n > MAX_PACKS) return;
-  if (state.hubSession.mode === 'hub') return;
+  if (state.hubSession.mode === 'hub' && !ctx.wallet) return;
   const say = (text: string) => events.push({ type: 'message', kind: 'game', text });
   const units = row.packSize * n;
   const cost = buyCost(row, n);
@@ -60,7 +60,15 @@ export function buy(
     say("You don't have enough inventory space.");
     return;
   }
-  if (!spendTickets(state, cost, itemId, events)) return;
+  if (ctx.wallet) {
+    // Online: the server wallet is the truth; the price is the hub's.
+    const result = ctx.wallet.spend(state.pid, shopId, itemId, n);
+    if (!result.ok) {
+      say(walletError(result.error));
+      return;
+    }
+    state.player.currencies.tickets = result.balance;
+  } else if (!spendTickets(state, cost, itemId, events)) return;
   addItem(state.player.inventory, item, units);
   say(
     `You buy ${units.toLocaleString('en-US')} × ${item.name} for ${cost.toLocaleString('en-US')} Tickets.`,
@@ -90,7 +98,7 @@ export function sell(
   const row = sellListing(ctx.content, openShop(state), item.id);
 
   if (row) {
-    if (state.hubSession.mode === 'hub') return;
+    if (state.hubSession.mode === 'hub' && !ctx.wallet) return;
     const packs = Math.floor(Math.min(wanted, countItem(player.inventory, item.id)) / row.packSize);
     if (packs < 1) {
       say(`You need a full pack of ${row.packSize}.`);
@@ -102,8 +110,18 @@ export function sell(
       return;
     }
     const units = packs * row.packSize;
-    removeFromSlot(state, item.id, units, slot);
-    player.currencies.tickets += credit;
+    if (ctx.wallet) {
+      const result = ctx.wallet.sell(state.pid, openShop(state), item.id, packs);
+      if (!result.ok) {
+        say(walletError(result.error));
+        return;
+      }
+      removeFromSlot(state, item.id, units, slot);
+      player.currencies.tickets = result.balance;
+    } else {
+      removeFromSlot(state, item.id, units, slot);
+      player.currencies.tickets += credit;
+    }
     say(
       `You sell ${units.toLocaleString('en-US')} × ${item.name} for ${credit.toLocaleString('en-US')} Tickets.`,
     );
@@ -136,4 +154,13 @@ function removeFromSlot(state: GameState, itemId: string, units: number, slot: n
     if (stack.qty === 0) state.player.inventory[slot] = null;
   }
   if (left > 0) removeItem(state.player.inventory, itemId, left);
+}
+
+/** What the player reads when the server wallet refuses a trade. */
+export function walletError(code: string): string {
+  if (code === 'insufficient_funds' || code === 'not_enough_tickets')
+    return "You don't have enough Tickets.";
+  if (code === 'session_closed') return 'Your hub session has ended. Return to the hub.';
+  if (code.endsWith('_cap')) return "You've hit today's Ticket limit.";
+  return 'The Terminal is offline. Try again in a moment.';
 }

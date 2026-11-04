@@ -16,16 +16,19 @@ import {
   isCardinallyAdjacent,
   type Grid,
 } from './grid';
-import { spawnGroundItem } from './ground';
+import { privacyFor, spawnGroundItem } from './ground';
 import { findPath } from './pathfinding';
 import { countItem } from './inventory';
 import { atStep, progressQuests } from './quests';
 import { chance, nextFloat, nextInt, type RngState } from './rng';
 import type { CombatType, EnemyDef } from './schemas';
 import {
+  addOwner,
   type AttackStyle,
+  enemyVisible,
   gridOf,
-  PLAYER_ID,
+  pidOfEntity,
+  viewFor,
   type EnemyInstance,
   type GameState,
   type SimContext,
@@ -119,6 +122,27 @@ export function approachEnemy(state: GameState, ctx: SimContext, enemy: EnemyIns
   return player.path.length > 0;
 }
 
+/** Bosses and their adds fight in multi-way combat; everywhere else is single-way. */
+export function multiCombat(ctx: SimContext, enemy: EnemyInstance): boolean {
+  return enemy.temp || ctx.content.enemies.get(enemy.defId)?.boss !== undefined;
+}
+
+/**
+ * Single-way combat between players: an enemy that is fighting another player
+ * (or their Sproto) can't be joined (OSRS "Someone else is fighting that.").
+ */
+export function fightingSomeoneElse(
+  state: GameState,
+  ctx: SimContext,
+  enemy: EnemyInstance,
+): boolean {
+  const target = enemy.target;
+  if (target === null || multiCombat(ctx, enemy)) return false;
+  if (target === state.selfId || target === state.sprotoId) return false;
+  if (pidOfEntity(target) === null) return false;
+  return state.tick - enemy.lastCombatTick <= COMBAT.singleWayTicks;
+}
+
 /** One tick of the player fighting `enemy`: close the distance, then shoot or swing on cooldown. */
 export function tickPlayerAttack(
   state: GameState,
@@ -131,6 +155,12 @@ export function tickPlayerAttack(
   const profile = attackProfile(player, ctx);
   const melee = profile.type === 'melee';
 
+  if (fightingSomeoneElse(state, ctx, enemy)) {
+    events.push({ type: 'message', kind: 'game', text: 'Someone else is fighting that.' });
+    player.action = null;
+    player.path = [];
+    return;
+  }
   if (!approachEnemy(state, ctx, enemy)) {
     events.push({ type: 'message', kind: 'game', text: "I can't reach that!" });
     player.action = null;
@@ -174,9 +204,9 @@ export function tickPlayerAttack(
       : profile.weapon.weapon?.ammo === 'coom'
         ? 'magic'
         : 'gun';
-  events.push({ type: 'attack', attackerId: PLAYER_ID, targetId: enemy.id, style });
+  events.push({ type: 'attack', attackerId: state.selfId, targetId: enemy.id, style });
   // Being attacked starts the fight (and its opening line) before any reaction to the hit.
-  if (enemy.target === null) enemy.target = PLAYER_ID;
+  if (enemy.target === null) enemy.target = state.selfId;
   enemy.lastCombatTick = state.tick;
   barkOnAggro(state, ctx, enemy, events);
   const damage = damageAfterWeakness(
@@ -192,12 +222,17 @@ export function tickPlayerAttack(
 
   if (profile.explosive) {
     const splash = state.zone.enemies.filter(
-      (e) => e !== enemy && e.respawnAt === null && chebyshev(e, enemy) <= COMBAT.splashRadius,
+      (e) =>
+        e !== enemy &&
+        e.respawnAt === null &&
+        enemyVisible(state, e) &&
+        !fightingSomeoneElse(state, ctx, e) &&
+        chebyshev(e, enemy) <= COMBAT.splashRadius,
     );
     for (const other of splash) {
       const roll = Math.floor(nextFloat(state.rng) * max * COMBAT.splashShare);
       const hit = damageAfterWeakness(state, ctx, other, profile.weapon, style, roll, events);
-      if (other.target === null) other.target = PLAYER_ID;
+      if (other.target === null) other.target = state.selfId;
       damageEnemy(state, ctx, other, hit, events);
     }
   }
@@ -239,6 +274,10 @@ export function damageEnemy(
   if (enemy.respawnAt !== null) return;
   const dealt = Math.min(enemy.hp, damage);
   enemy.hp -= dealt;
+  if (dealt > 0) {
+    enemy.damageBy ??= {};
+    enemy.damageBy[state.pid] = (enemy.damageBy[state.pid] ?? 0) + dealt;
+  }
   events.push({ type: 'hitsplat', targetId: enemy.id, damage: dealt });
   if (enemy.hp <= 0) killEnemy(state, ctx, enemy, events);
   else barkOnHurt(state, ctx, enemy, ctx.content.enemies.get(enemy.defId)?.hp ?? enemy.hp, events);
@@ -260,7 +299,9 @@ function killEnemy(
   if (player.sproto?.target === enemy.id) player.sproto.target = null;
   if (enemy.temp) state.zone.enemies = state.zone.enemies.filter((e) => e !== enemy);
 
-  dropLoot(state, ctx, def, enemy, events);
+  // The top damager owns the loot (OSRS); it is their private drop for a while.
+  const looter = lootOwner(state, enemy);
+  dropLoot(looter, ctx, def, enemy, looter === state ? events : null);
   if (def.boss) {
     const flag = `boss:${def.id}`;
     if (!player.unlocks.includes(flag)) {
@@ -276,20 +317,37 @@ function killEnemy(
       state.economy.recentBossWins += 1;
     }
     // Its adds lose their mother.
-    state.zone.enemies = state.zone.enemies.filter((e) => !e.temp);
+    const owner = addOwner(enemy);
+    state.zone.enemies = state.zone.enemies.filter((e) => !e.temp || e.owner !== owner);
   }
   progressQuests(state, ctx, { type: 'kill', enemy: def.id }, events);
 }
 
+/** The view of whoever did the most damage and is still in this zone, else the killer. */
+function lootOwner(state: GameState, enemy: EnemyInstance): GameState {
+  const by = enemy.damageBy;
+  enemy.damageBy = undefined;
+  if (!by) return state;
+  let best: string | null = null;
+  for (const pid of state.world.joinSeq) {
+    if ((by[pid] ?? 0) > (best === null ? 0 : by[best])) best = pid;
+  }
+  if (best === null || best === state.pid) return state;
+  const view = viewFor(state.world, best);
+  return view.player && view.zone === state.zone ? view : state;
+}
+
+/** Messages for a looter other than the killer go to the world's `pending` mailbox. */
 function dropLoot(
   state: GameState,
   ctx: SimContext,
   def: EnemyDef,
   at: Tile,
-  events: SimEvent[],
+  maybeEvents: SimEvent[] | null,
 ): void {
   const table = ctx.content.drops.get(def.drops);
   if (!table) return;
+  const events = maybeEvents ?? mailbox(state);
   const [min, max] = table.usd;
   const paid = addStreamUsd(state, 'pb_drop', min + (max - min) * nextFloat(state.rng));
   if (paid > 0) {
@@ -302,7 +360,10 @@ function dropLoot(
   const despawn = state.tick + GROUND_ITEMS.despawnTicks;
   const drop = (itemId: string, qty: number) => {
     const item = ctx.content.items.get(itemId);
-    if (item) spawnGroundItem(state.zone, itemId, qty, at.x, at.y, despawn, item.stackable);
+    if (item) {
+      const privacy = privacyFor(state, ctx, itemId);
+      spawnGroundItem(state.zone, itemId, qty, at.x, at.y, despawn, item.stackable, privacy);
+    }
   };
   for (const s of table.always) drop(s.item, s.qty);
   // Quest items only drop while the quest needs them, and not if you already have one.
@@ -329,4 +390,27 @@ function dropLoot(
     const row = sub.table.find((candidate) => (pick -= candidate.weight) < 0);
     if (row?.item) drop(row.item, nextInt(state.rng, row.min, row.max));
   }
+}
+
+const MAILBOXES = new WeakMap<GameState, SimEvent[]>();
+
+/**
+ * Events for a player that happen during someone else's turn (their loot from a
+ * kill another player landed). The world tick drains it into that player's list.
+ */
+export function mailbox(state: GameState): SimEvent[] {
+  let box = MAILBOXES.get(state);
+  if (!box) {
+    box = [];
+    MAILBOXES.set(state, box);
+  }
+  return box;
+}
+
+/** Takes and clears the player's mailbox. */
+export function drainMailbox(state: GameState): SimEvent[] {
+  const box = MAILBOXES.get(state);
+  if (!box || box.length === 0) return [];
+  MAILBOXES.delete(state);
+  return box;
 }
