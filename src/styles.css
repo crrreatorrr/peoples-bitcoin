@@ -464,10 +464,55 @@ body {
 .dialogue-continue {
   color: #0a2a8a;
   font-size: 18px;
+  /* A gentle bob and glow so the prompt reads as "waiting on you". */
+  animation: continue-nudge 1.1s ease-in-out infinite;
+}
+
+.dialogue-continue::after {
+  content: '\25BC';
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 12px;
+  vertical-align: middle;
+  animation: continue-arrow 1.1s ease-in-out infinite;
 }
 
 .dialogue.waiting .dialogue-continue {
   opacity: 0.45;
+  animation: none;
+}
+
+.dialogue.waiting .dialogue-continue::after {
+  animation: none;
+}
+
+@keyframes continue-nudge {
+  0%,
+  100% {
+    color: #0a2a8a;
+    transform: translateY(0);
+  }
+  50% {
+    color: #2f5fe0;
+    transform: translateY(2px);
+  }
+}
+
+@keyframes continue-arrow {
+  0%,
+  100% {
+    transform: translateY(-1px);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialogue-continue,
+  .dialogue-continue::after {
+    animation: none;
+  }
 }
 
 .chat-npc {
