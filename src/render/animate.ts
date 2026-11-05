@@ -100,7 +100,7 @@ function humanPose(actor: ActorModel, a: AnimInput): Pose {
   if (a.moving) walk(p, actor, a);
   else {
     p.torsoX += 0.015 * Math.sin(t * 2);
-    if (a.work) work(p, a.work, t);
+    if (a.work) work(p, actor, a.work, t);
     if (actor.pose === 'phone') {
       p.armLx = -2.1;
       p.armLz = 0.35;
@@ -250,17 +250,21 @@ function run(p: Pose, actor: ActorModel, phase: number): void {
   }
 }
 
-function work(p: Pose, kind: WorkAnim, t: number): void {
+function work(p: Pose, actor: ActorModel, kind: WorkAnim, t: number): void {
   switch (kind) {
     case 'swing': {
-      // Slow raise overhead, fast strike, short rest.
+      // One-handed pick: the tool arm (right) does a slow raise overhead, a fast
+      // strike and a short rest; the other arm stays down, bobbing a little.
       const u = (t * 1.1) % 1;
-      const raise = u < 0.6 ? easeInOut(u / 0.6) : u < 0.78 ? 1 - easeIn((u - 0.6) / 0.18) : 0;
+      const raise = swingRaise(u);
       p.armRx = -0.35 - 2.3 * raise;
-      p.armLx = p.armRx;
-      p.armLz = -0.35;
-      p.foreRx = p.foreLx = -0.25;
+      // The elbow cocks on the way up and snaps straight on the strike.
+      p.foreRx = -0.2 - 0.45 * raise;
       p.torsoX += 0.28 * (1 - raise);
+      // A free hand drifts back as the pick goes up, for balance; a held
+      // item or shield keeps its hold pose with the same small bob.
+      p.armLx += SWING_OFF_ARM_BOB * raise;
+      if (actor.left === null || actor.left === 'carry') p.foreLx = -0.2 - 0.1 * raise;
       break;
     }
     case 'hammer': {
@@ -398,6 +402,14 @@ function fall(actor: ActorModel, ms: number): void {
   const squash = Math.max(0.08, 1 - e * 0.9);
   actor.body.scale.set(1 + e * 0.4, squash, 1 + e * 0.4);
   actor.root.position.y = -0.3 * sink;
+}
+
+/** How far the off arm drifts back (radians, + is backward) at the top of a pick swing. */
+export const SWING_OFF_ARM_BOB = 0.15;
+
+/** Pick swing height through one cycle `u` (0..1): slow raise, fast strike, short rest. */
+export function swingRaise(u: number): number {
+  return u < 0.6 ? easeInOut(u / 0.6) : u < 0.78 ? 1 - easeIn((u - 0.6) / 0.18) : 0;
 }
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
