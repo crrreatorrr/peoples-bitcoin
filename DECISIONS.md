@@ -534,3 +534,12 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
   version hash, so a change there would need a world server rebuild for a client-only polish.
 - **Click cross:** shrinks through four drawn 16 px frames shown at 2x, as in OSRS, instead of
   scaling the sprite to in-between sizes, which smeared and wobbled by half pixels.
+
+## Dialogue continue prompt (2026-11-05)
+
+- **"Click to continue" stays still (owner).** The prompt in the NPC dialogue box does not bob,
+  pulse, blink, or fade in a loop, and it has no bouncing arrow. The same rule covers any
+  continue or advance prompt in dialogue, chat, an NPC conversation, a cutscene, or a terminal
+  text box. After a click the line still dims to 0.45 opacity until the next line; that is a
+  state, not a loop. Click, Space, and paging are unchanged. XP drops, the level banner, and
+  hitsplats still play their one-shot animations; those are not advance prompts.
