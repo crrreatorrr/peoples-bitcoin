@@ -522,3 +522,15 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
   already did. The dev hub serves game builds from its `public/play/<slug>/`, and its
   `server/scripts/dev-env.sh` keeps the stock key, so a local build no longer loses its hub session
   to a 401. Any other host still needs the build-time key. The rule is in `src/hub/serverKey.ts`.
+
+## Click-to-walk smoothing (2026-11-05)
+
+- **Glide (`src/render/stepping.ts`):** a tick that starts before an actor finished its step (the
+  online playout applies ticks as early as 80% of a tick) carries the distance left into the new
+  tick and fades it out, instead of jumping ahead. An actor that reached its tile while the next
+  tick is late keeps its walk pose for up to 300 ms, as offline play already looks (a stop shows at
+  the next tick). Render only; the sim, the server and the netcode are unchanged.
+- Its two tunables live in `stepping.ts`, not `config/balance.ts`: `src/config` feeds the sim
+  version hash, so a change there would need a world server rebuild for a client-only polish.
+- **Click cross:** shrinks through four drawn 16 px frames shown at 2x, as in OSRS, instead of
+  scaling the sprite to in-between sizes, which smeared and wobbled by half pixels.

@@ -28,6 +28,7 @@ import { DEATH_MS, poseActor, STRIDE_RAD_PER_TILE, type WorkAnim } from './anima
 import { HpBar } from './effects';
 import type { RemoteActor } from '../net/replica';
 import type { AssetLoader } from './loader';
+import { Glide, interpolateSteps } from './stepping';
 
 export const PLAYER_MODEL = 'player_president';
 const SMOKE_BOB = 0.06;
@@ -53,6 +54,8 @@ interface ActorView {
   hitAt: number;
   diedAt: number;
   hpBar: HpBar;
+  /** Smooths walking across ticks that start early or late. */
+  glide: Glide;
 }
 
 interface Doing {
@@ -394,6 +397,7 @@ export class EntityRenderer {
         // Respawned: stand up at the spawn point.
         view.diedAt = -Infinity;
         view.hitAt = -Infinity;
+        view.glide.reset();
         interpolateSteps([enemy], 1, view.root.position, this.segment);
       }
       view.root.visible = !dead || now - view.diedAt < DEATH_MS;
@@ -443,8 +447,7 @@ export class EntityRenderer {
     doing: Doing,
   ): void {
     const before = this.scratch.copy(view.root.position);
-    const moved = interpolateSteps(steps, t, view.root.position, this.segment);
-    const moving = moved && t < 1;
+    const moving = view.glide.place(steps, t, now, view.root.position, this.segment);
     const distance = before.distanceTo(view.root.position);
     if (distance < TELEPORT_DISTANCE) view.phase += distance * STRIDE_RAD_PER_TILE;
 
@@ -511,6 +514,7 @@ export class EntityRenderer {
       hitAt: -Infinity,
       diedAt: -Infinity,
       hpBar: new HpBar(),
+      glide: new Glide(),
     };
     root.add(view.actor.root, view.hpBar.sprite);
     view.hpBar.sprite.position.y = view.actor.height + 0.25;
@@ -549,30 +553,6 @@ function idleInput(now: number, dt: number) {
     hitAt: -Infinity,
     diedAt: -Infinity,
   };
-}
-
-/** Positions `out` along the tiles stepped this tick; returns true if the actor moved. */
-function interpolateSteps(
-  steps: readonly Tile[],
-  t: number,
-  out: THREE.Vector3,
-  segment: { dx: number; dz: number },
-): boolean {
-  const last = steps.length - 1;
-  const moved = last > 0 && (steps[0].x !== steps[last].x || steps[0].y !== steps[last].y);
-  if (!moved) {
-    out.set(steps[last].x + 0.5, 0, steps[last].y + 0.5);
-    return false;
-  }
-  const f = t * last;
-  const i = Math.min(last - 1, Math.floor(f));
-  const local = f - i;
-  const a = steps[i];
-  const b = steps[i + 1];
-  out.set(a.x + (b.x - a.x) * local + 0.5, 0, a.y + (b.y - a.y) * local + 0.5);
-  segment.dx = b.x - a.x;
-  segment.dz = b.y - a.y;
-  return true;
 }
 
 /** Turns at a fixed rate toward `angle`; returns how far off it still is (radians). */
