@@ -19,11 +19,10 @@ jobs:
       # tsconfig.json typechecks src and tests. tsconfig.sim.json typechecks,
       # with no DOM lib, everything that runs in Nakama's JS runtime: src/sim,
       # src/config, src/server, src/net/protocol.ts and src/net/simVersion.ts.
-      # Any error in either project fails CI.
+      # Any error in either project fails CI. `npm run typecheck` runs both, so
+      # CI and local checks stay the same command.
       - name: Typecheck
-        run: |
-          npx tsc -p tsconfig.json --pretty false --noEmit
-          npx tsc -p tsconfig.sim.json --pretty false --noEmit
+        run: npm run typecheck
       - name: Build
         run: npx vite build
 
