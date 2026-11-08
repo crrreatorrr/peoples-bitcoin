@@ -551,3 +551,24 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
   duplicated rather than shared because moving it into a helper would edit `src/sim`, which feeds
   the sim version hash and would force a world server rebuild for a client-only fix.
   `tests/hub-duplication.test.ts` checks that both paths remove the same units.
+
+## Crash guard and "Something broke" panel (2026-11-08)
+
+- **One throw never freezes the game.** The main loop in `src/main.ts` runs through
+  `createFrameLoop` in `src/game/crash.ts`: each frame runs inside try/catch and the next frame is
+  scheduled in `finally`. A throw ends that frame, so the remaining ticks of the frame do not run on
+  top of a broken one. A tab lock (`frozen`) still stops the loop on purpose.
+- **Pause after three failing frames in a row**, then show a small stone panel, "Something broke",
+  with the error and a Reload button. A good frame resets the run, so a one-off error costs one
+  frame. Uncaught `error` and `unhandledrejection` events feed the same counter.
+- **The console is not flooded.** Each distinct error is logged once with its stack, at most five
+  per session; repeats are only counted. A caught frame error is also handed once to the browser's
+  `reportError`, so dev tools and the Playwright page-error checks still see it.
+- **Boot failures** (for example one asset that fails to load) show the same panel straight away,
+  keeping the old message ("The game failed to start." and the error), with Retry, which reloads the
+  page. The old `pre.fatal` screen is gone.
+- **`onCrash(fn)`** is the hook for the opt-in Diagnostics crash reporter; nothing is sent anywhere
+  yet.
+- The threshold (3) and log cap (5) live in `src/game/crash.ts`, not `config/balance.ts`: they are
+  client-only, and `src/config` feeds the sim version hash.
+

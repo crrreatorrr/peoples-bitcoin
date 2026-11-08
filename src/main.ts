@@ -39,6 +39,7 @@ import {
 } from './sim/state';
 import { buyPrice } from './sim/terminal';
 import { entityActions } from './sim/tick';
+import { createFrameLoop, crashGuard } from './game/crash';
 import { LocalDriver, type GameDriver } from './game/driver';
 import { chooseOnline, type OnlineSession } from './game/online';
 import type { ChatOut } from './net/protocol';
@@ -61,6 +62,7 @@ import { Hud } from './ui/hud';
 import { InventoryPanel, type InventoryMode } from './ui/inventory';
 import { Minimap } from './ui/minimap';
 import { OverheadPool, OverheadText } from './ui/overhead';
+import { showCrashPanel } from './ui/crashpanel';
 import { buildSettingsPanel } from './ui/settings';
 import { SidePanel } from './ui/sidepanel';
 import { SkillGuide } from './ui/skillguide';
@@ -824,11 +826,9 @@ async function boot(): Promise<void> {
     journal.update(state);
     renderer.render(view.scene, cam.camera);
   };
-  const frame = (t: number) => {
-    if (frozen) return;
-    requestAnimationFrame(frame);
-    step(t + clockOffset);
-  };
+  // Always reschedules, even when a frame throws (game/crash.ts); a throw ends that frame's ticks.
+  // A tab lock (frozen) is a deliberate stop.
+  const frame = createFrameLoop((t) => step(t + clockOffset), { stop: () => frozen });
   if (frozen) return;
   if (!online) await hub.start();
   if (frozen) return;
@@ -989,10 +989,10 @@ function greet(chat: Chat, status: 'loaded' | 'none' | 'unreadable'): void {
   );
 }
 
-boot().catch((err: unknown) => {
-  console.error(err);
-  const pre = document.createElement('pre');
-  pre.className = 'fatal';
-  pre.textContent = `The game failed to start.\n\n${err instanceof Error ? err.message : String(err)}`;
-  document.body.replaceChildren(pre);
-});
+// Uncaught errors and rejections share the loop's counter; the panel opens once the game pauses.
+crashGuard.install(window);
+crashGuard.onFatal((report) => showCrashPanel(report));
+
+// A failed boot (for example one asset that will not load) shows the same panel, with the error
+// and a Retry button.
+boot().catch((err: unknown) => crashGuard.report(err, 'boot'));

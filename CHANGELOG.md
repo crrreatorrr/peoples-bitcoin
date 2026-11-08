@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **Crash guard:** one error in a frame no longer freezes the game or floods the console. The
+  main loop always reschedules; after three failing frames in a row the game pauses and shows a
+  "Something broke" panel with Reload. Uncaught errors and rejections count too, and a failed boot
+  shows the same panel with Retry instead of a bare error screen. Each distinct error is logged
+  once. `onCrash()` is ready for the opt-in Diagnostics reporter and sends nothing. Client only;
+  `SIM_VERSION` is unchanged.
 - **Fix (hub sell):** a Sell-N larger than the stack (for example Sell 10 on 3 items) asked the hub
   for Tickets for all N while only the owned items were removed. The hub sell now clamps to the
   units owned, as the offline sim already did. Client only; `SIM_VERSION` is unchanged.
