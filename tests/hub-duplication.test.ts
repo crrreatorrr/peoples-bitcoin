@@ -2,6 +2,7 @@
  * Client duplication. The hub SDK is mocked so each earn, spend, exchange,
  * and relic event is counted. A case that the client still gets wrong is left failing.
  */
+import { readFileSync } from 'node:fs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   HubSdkError,
@@ -1886,6 +1887,18 @@ describe('hub buy makes the same checks as the sim buy (PB-W-1-04)', () => {
     await settle();
     expect(script.spends).toEqual([]);
     expect(said.filter((s) => s === 'Unavailable')).toHaveLength(6);
+  });
+
+  it("the client's MAX_PACKS matches the sim's, so the copies cannot drift", () => {
+    const maxPacks = (path: string): number => {
+      const text = new TextDecoder().decode(readFileSync(path));
+      const m = /^const MAX_PACKS = ([\d_]+);$/m.exec(text);
+      if (!m) throw new Error(`no MAX_PACKS in ${path}`);
+      return Number(m[1].replaceAll('_', ''));
+    };
+    const sim = maxPacks('src/sim/terminal.ts');
+    expect(sim).toBeGreaterThan(0);
+    expect(maxPacks('src/hub/client.ts')).toBe(sim);
   });
 
   it('sends whole packs only, as the sim floors them', async () => {
