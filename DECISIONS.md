@@ -543,3 +543,11 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
   text box. After a click the line still dims to 0.45 opacity until the next line; that is a
   state, not a loop. Click, Space, and paging are unchanged. XP drops, the level banner, and
   hitsplats still play their one-shot animations; those are not advance prompts.
+
+## Hub sell clamp (2026-11-08)
+
+- The hub sell in `src/hub/client.ts` clamps the requested quantity to the units owned before it
+  counts packs, with the same expression as the sim's `sell` in `src/sim/terminal.ts`. The line is
+  duplicated rather than shared because moving it into a helper would edit `src/sim`, which feeds
+  the sim version hash and would force a world server rebuild for a client-only fix.
+  `tests/hub-duplication.test.ts` checks that both paths remove the same units.

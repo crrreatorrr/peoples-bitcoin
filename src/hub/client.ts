@@ -193,7 +193,11 @@ export class HubClient {
     if (!(wanted > 0)) return;
     const row = sellListing(this.ctx.content, this.openShopId(), item.id);
     if (row) {
-      const packs = Math.floor(wanted / row.packSize);
+      // Clamp to the units owned, exactly as the sim's sell does (src/sim/terminal.ts, `sell`).
+      // Duplicated rather than shared because src/sim is hashed into SIM_VERSION.
+      const packs = Math.floor(
+        Math.min(wanted, countItem(player.inventory, item.id)) / row.packSize,
+      );
       if (packs < 1) {
         this.say(`You need a full pack of ${row.packSize}.`);
         return;
