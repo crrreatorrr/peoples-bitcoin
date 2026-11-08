@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- **Fix (hub sell):** a Sell-N larger than the stack (for example Sell 10 on 3 items) asked the hub
+  for Tickets for all N while only the owned items were removed. The hub sell now clamps to the
+  units owned, as the offline sim already did. Client only; `SIM_VERSION` is unchanged.
+
 ## 0.7.0 — Online worlds (2026-11-04)
 
 - **Worlds of up to 100 players**, run server-side as `pb_world` matches on the hub's Nakama with
