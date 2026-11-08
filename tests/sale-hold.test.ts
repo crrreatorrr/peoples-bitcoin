@@ -5,6 +5,7 @@
  * and must still let surplus units go.
  */
 import { describe, expect, it } from 'vitest';
+import { BANK } from '../src/config/balance';
 import { depositAll, deposit } from '../src/sim/bank';
 import { hotspotKey } from '../src/sim/bunker';
 import type { Content } from '../src/sim/content';
@@ -383,6 +384,93 @@ describe('a pending hub sale holds its units in every slot', () => {
       { mine: { itemId: string }[] } | undefined;
     expect(after?.mine.some((r) => r.itemId === 'gun_campaign_pistol') ?? false).toBe(false);
     expect(slotsOf(A, 'gun_campaign_pistol')).toEqual([1]);
+  });
+});
+
+describe('review follow-ups', () => {
+  const banked = (state: GameState) => state.player.quests.quest_tutorial.done.includes('bank');
+
+  function atBooth() {
+    const { state, ctx } = newGame();
+    state.player.inventory.fill(null);
+    state.player.interface = { kind: 'bank' };
+    return { state, ctx };
+  }
+
+  it('a refused deposit does not finish the tutorial bank step: sale hold', () => {
+    const { state, ctx } = atBooth();
+    give(state, 'gun_campaign_pistol', 1);
+    pending(state, 'gun_campaign_pistol', 1);
+    expect(tick(state, ctx, [{ type: 'deposit', slot: 0, qty: 'all' }])).toContain(HELD);
+    expect(banked(state)).toBe(false);
+    state.player.interface = { kind: 'bank' };
+    expect(tick(state, ctx, [{ type: 'depositAll' }])).toContain(HELD);
+    expect(banked(state)).toBe(false);
+  });
+
+  it('a refused deposit does not finish the tutorial bank step: bank full', () => {
+    const { state, ctx } = atBooth();
+    state.player.bank = Array.from({ length: BANK.slots }, (_, i) => ({
+      itemId: `item_filler_${i}`,
+      qty: 1,
+    }));
+    give(state, 'gun_campaign_pistol', 1);
+    expect(tick(state, ctx, [{ type: 'deposit', slot: 0, qty: 'all' }])).toContain(
+      'Your bank is full.',
+    );
+    expect(banked(state)).toBe(false);
+    state.player.interface = { kind: 'bank' };
+    tick(state, ctx, [{ type: 'depositAll' }]);
+    expect(banked(state)).toBe(false);
+  });
+
+  it('a refused deposit does not finish the tutorial bank step: empty slot or bag', () => {
+    const { state, ctx } = atBooth();
+    tick(state, ctx, [{ type: 'deposit', slot: 3, qty: 'all' }]);
+    expect(banked(state)).toBe(false);
+    state.player.interface = { kind: 'bank' };
+    tick(state, ctx, [{ type: 'depositAll' }]);
+    expect(banked(state)).toBe(false);
+  });
+
+  it('a real deposit finishes the tutorial bank step', () => {
+    const { state, ctx } = atBooth();
+    give(state, 'gun_campaign_pistol', 1);
+    tick(state, ctx, [{ type: 'deposit', slot: 0, qty: 'all' }]);
+    expect(banked(state)).toBe(true);
+
+    const other = atBooth();
+    give(other.state, 'gun_campaign_pistol', 2);
+    pending(other.state, 'gun_campaign_pistol', 1);
+    tick(other.state, other.ctx, [{ type: 'depositAll' }]); // the surplus pistol goes in
+    expect(other.state.player.bank).toEqual([{ itemId: 'gun_campaign_pistol', qty: 1 }]);
+    expect(banked(other.state)).toBe(true);
+  });
+
+  it('an unrelated item put into the emptied sale slot can be moved', () => {
+    const { state, ctx } = newGame();
+    state.player.inventory.fill(null);
+    give(state, 'gun_campaign_pistol', 4);
+    pending(state, 'gun_campaign_pistol', 3, 0);
+    tick(state, ctx, [{ type: 'dropItem', slot: 0 }]); // the surplus pistol
+    expect(state.player.inventory[0]).toBeNull();
+    give(state, 'item_rounds', 10); // lands in the emptied slot 0
+    expect(state.player.inventory[0]?.itemId).toBe('item_rounds');
+    expect(tick(state, ctx, [{ type: 'moveItem', from: 0, to: 5 }])).not.toContain(HELD);
+    expect(state.player.inventory[5]?.itemId).toBe('item_rounds');
+    expect(tick(state, ctx, [{ type: 'moveItem', from: 5, to: 0 }])).not.toContain(HELD);
+    expect(state.player.inventory[0]?.itemId).toBe('item_rounds');
+  });
+
+  it('the sold item in the sale slot still stays put', () => {
+    const { state, ctx } = newGame();
+    state.player.inventory.fill(null);
+    give(state, 'gun_campaign_pistol', 3);
+    pending(state, 'gun_campaign_pistol', 3, 0);
+    expect(tick(state, ctx, [{ type: 'moveItem', from: 0, to: 5 }])).toContain(HELD);
+    expect(tick(state, ctx, [{ type: 'moveItem', from: 5, to: 0 }])).toContain(HELD);
+    expect(state.player.inventory[0]?.itemId).toBe('gun_campaign_pistol');
+    expect(state.player.inventory[5]).toBeNull();
   });
 });
 

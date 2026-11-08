@@ -9,6 +9,9 @@
   sale needs (packs × pack size); surplus units are still free, and you keep the held units when
   you die. This edits `src/sim` and `src/server`, so `SIM_VERSION` changes and the hub's vendored
   `pb-sim.js` must be rebuilt.
+- **Fix (tutorial):** the "Deposit something at a Bank Booth" step no longer completes when the
+  deposit was refused (an empty slot, a full bank, or units held for a sale). An unrelated item
+  put into an emptied sale slot can now be moved.
 
 ## 0.7.0 — Online worlds (2026-11-04)
 

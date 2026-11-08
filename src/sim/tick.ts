@@ -238,16 +238,13 @@ function applyIntent(state: GameState, ctx: SimContext, intent: Intent, events: 
       advanceDialogue(state);
       break;
     case 'deposit':
-      if (ui?.kind === 'bank') {
-        deposit(player, ctx.content, intent.slot, intent.qty, events);
+      // Only a deposit that put something in the bank counts for quests.
+      if (ui?.kind === 'bank' && deposit(player, ctx.content, intent.slot, intent.qty, events) > 0)
         progressQuests(state, ctx, { type: 'deposit' }, events);
-      }
       break;
     case 'depositAll':
-      if (ui?.kind === 'bank') {
-        depositAll(player, ctx.content, events);
+      if (ui?.kind === 'bank' && depositAll(player, ctx.content, events) > 0)
         progressQuests(state, ctx, { type: 'deposit' }, events);
-      }
       break;
     case 'withdraw':
       if (ui?.kind === 'bank') {
@@ -394,9 +391,14 @@ function stepZoneTimers(state: GameState): void {
   despawnGroundItems(state);
 }
 
-/** A pending hub sale keeps its slot in place, so its units are taken from where they were sold. */
+/**
+ * A pending hub sale keeps the sold stack in its slot, so its units are taken from where they were
+ * sold. Anything else in that slot moves freely (`takeUnits` also finds a moved stack).
+ */
 function saleLocked(state: GameState, slot: number, events: SimEvent[]): boolean {
-  if (state.player.ledger.sale?.slot !== slot) return false;
+  const sale = state.player.ledger.sale;
+  if (!sale || sale.slot !== slot || state.player.inventory[slot]?.itemId !== sale.itemId)
+    return false;
   events.push({ type: 'message', kind: 'game', text: SALE_HOLD_MESSAGE });
   return true;
 }

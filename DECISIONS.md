@@ -554,9 +554,14 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
   units stay free. Deposit and Deposit-All bank only the surplus. On death the held units stay in
   the inventory and the rest goes to the pile. Escrow (moving the units out of the inventory when
   the sale is sealed) would need a save-format change and a migration; the lock needs neither.
-- The old slot lock is kept only for moving items, so the sold slot stays where it was. The
-  clicked slot is no longer special for removals: with surplus elsewhere you can drop it, and
-  `takeUnits` in `src/hub/client.ts` takes the rest from the other slots.
+- The old slot lock is kept only for moving items, and only while the sold item is still in the
+  sold slot, so that stack stays where it was. Anything else put into an emptied sale slot moves
+  freely. The clicked slot is no longer special for removals: with surplus elsewhere you can drop
+  it, and `takeUnits` in `src/hub/client.ts` takes the rest from the other slots.
+- **A deposit counts for quests only when something went into the bank.** `deposit` and
+  `depositAll` return the units moved, and the tutorial's "Deposit something" step (and any other
+  `deposit` trigger) advances only when that is more than 0. Before, a refused deposit (an empty
+  slot, a full bank, and now a sale hold) still finished the step.
 - If this build has no price row for the sale (shop and item), the pack size is unknown and every
   unit of that item is held until the sale settles.
 - The hold uses this build's price table for the pack size. The hub answers with its own `units`,
