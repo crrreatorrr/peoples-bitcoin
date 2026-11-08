@@ -8,6 +8,7 @@
 import { COMBAT, OUTFITS } from '../config/balance';
 import { addItem, countItem } from './inventory';
 import { progressQuests, questItemsNeeded } from './quests';
+import { spareUnits } from './saleHold';
 import type { ItemDef } from './schemas';
 import {
   maxHp,
@@ -158,6 +159,7 @@ export function attackProfile(player: PlayerState, ctx: SimContext): AttackProfi
           keptForQuest = true;
           return;
         }
+        if (spareUnits(player, ctx.content, s.itemId) < 1) return; // held for a pending hub sale
         if (shellSlot === null || shell.damage > shellDamage) {
           shellSlot = i;
           shellDamage = shell.damage;

@@ -5,6 +5,7 @@
 import { BANK } from '../config/balance';
 import type { Content } from './content';
 import { addItem, canAdd, freeSlotCount } from './inventory';
+import { SALE_HOLD_MESSAGE, saleHeldUnits, spareUnits } from './saleHold';
 import type { PlayerState, Quantity, SimEvent } from './state';
 
 const BANK_FULL = 'Your bank is full.';
@@ -19,18 +20,25 @@ function wanted(qty: Quantity): number | null {
 
 /**
  * Deposits up to `qty` of the item in inventory `slot`, taking from that slot
- * first and then from any other slots holding the same item.
+ * first and then from any other slots holding the same item. Units a pending
+ * hub sale is waiting for stay in the inventory; only the surplus goes in.
  */
 export function deposit(
   player: PlayerState,
+  content: Content,
   slot: number,
   qty: Quantity,
   events: SimEvent[],
 ): void {
   const first = player.inventory[slot];
-  const limit = wanted(qty);
-  if (!first || limit === null) return;
+  const asked = wanted(qty);
+  if (!first || asked === null) return;
   const itemId = first.itemId;
+  const limit = Math.min(asked, spareUnits(player, content, itemId));
+  if (limit <= 0) {
+    events.push({ type: 'message', kind: 'game', text: SALE_HOLD_MESSAGE });
+    return;
+  }
 
   let stack = player.bank.find((s) => s.itemId === itemId);
   if (!stack) {
@@ -56,13 +64,20 @@ export function deposit(
   stack.qty += moved;
 }
 
-export function depositAll(player: PlayerState, events: SimEvent[]): void {
+export function depositAll(player: PlayerState, content: Content, events: SimEvent[]): void {
+  let held = false;
   for (let slot = 0; slot < player.inventory.length; slot++) {
-    if (!player.inventory[slot] || player.ledger.sale?.slot === slot) continue;
+    const stack = player.inventory[slot];
+    if (!stack) continue;
+    if (spareUnits(player, content, stack.itemId) === 0) {
+      held ||= saleHeldUnits(player, content, stack.itemId) > 0;
+      continue;
+    }
     const before = events.length;
-    deposit(player, slot, 'all', events);
+    deposit(player, content, slot, 'all', events);
     if (events.length > before) return; // bank full: stop after one message
   }
+  if (held) events.push({ type: 'message', kind: 'game', text: SALE_HOLD_MESSAGE });
 }
 
 /**

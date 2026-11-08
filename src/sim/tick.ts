@@ -25,6 +25,7 @@ import { swapSlots } from './inventory';
 import { stepNpcs } from './npcs';
 import { findPath } from './pathfinding';
 import { metFlag, npcLines, progressQuests } from './quests';
+import { SALE_HOLD_MESSAGE, saleBlocks } from './saleHold';
 import { dismiss, stepSproto, summonFromInventory, useSpecial } from './sprotos';
 import {
   findEntity,
@@ -169,30 +170,30 @@ function applyIntent(state: GameState, ctx: SimContext, intent: Intent, events: 
       player.autoRetaliate = !player.autoRetaliate;
       break;
     case 'dropItem':
-      if (!saleLocked(state, intent.slot, events)) dropToGround(state, ctx, intent.slot);
+      if (!slotHeld(state, ctx, intent.slot, 'stack', events))
+        dropToGround(state, ctx, intent.slot);
       break;
     case 'moveItem':
       if (saleLocked(state, intent.from, events) || saleLocked(state, intent.to, events)) break;
       swapSlots(player.inventory, intent.from, intent.to);
       break;
     case 'equip':
-      if (!saleLocked(state, intent.slot, events))
+      if (!slotHeld(state, ctx, intent.slot, 'stack', events))
         equipFromInventory(state, ctx, intent.slot, events);
       break;
     case 'unequip':
       unequip(state, ctx, intent.slot, events);
       break;
     case 'eat':
-      if (!saleLocked(state, intent.slot, events)) eat(state, ctx, intent.slot, events);
+      if (!slotHeld(state, ctx, intent.slot, 1, events)) eat(state, ctx, intent.slot, events);
       break;
     case 'drink':
-      if (!saleLocked(state, intent.slot, events)) drink(state, ctx, intent.slot, events);
+      if (!slotHeld(state, ctx, intent.slot, 1, events)) drink(state, ctx, intent.slot, events);
       break;
     case 'teleport':
-      if (!saleLocked(state, intent.slot, events)) startTeleport(state, ctx, intent.slot, events);
+      startTeleport(state, ctx, intent.slot, events); // checks the sale hold itself
       break;
     case 'useItem': {
-      if (saleLocked(state, intent.slot, events)) break;
       const item = player.inventory[intent.slot];
       const target = findEntity(state, intent.targetId);
       if (!item || !target || (target.kind !== 'object' && target.kind !== 'npc')) {
@@ -218,7 +219,8 @@ function applyIntent(state: GameState, ctx: SimContext, intent: Intent, events: 
       chooseOption(state, ctx, intent.index, events);
       break;
     case 'summon':
-      summonFromInventory(state, ctx, intent.slot, events);
+      if (!slotHeld(state, ctx, intent.slot, 1, events))
+        summonFromInventory(state, ctx, intent.slot, events);
       break;
     case 'dismiss':
       dismiss(state);
@@ -236,14 +238,14 @@ function applyIntent(state: GameState, ctx: SimContext, intent: Intent, events: 
       advanceDialogue(state);
       break;
     case 'deposit':
-      if (ui?.kind === 'bank' && !saleLocked(state, intent.slot, events)) {
-        deposit(player, intent.slot, intent.qty, events);
+      if (ui?.kind === 'bank') {
+        deposit(player, ctx.content, intent.slot, intent.qty, events);
         progressQuests(state, ctx, { type: 'deposit' }, events);
       }
       break;
     case 'depositAll':
       if (ui?.kind === 'bank') {
-        depositAll(player, events);
+        depositAll(player, ctx.content, events);
         progressQuests(state, ctx, { type: 'deposit' }, events);
       }
       break;
@@ -392,10 +394,29 @@ function stepZoneTimers(state: GameState): void {
   despawnGroundItems(state);
 }
 
+/** A pending hub sale keeps its slot in place, so its units are taken from where they were sold. */
 function saleLocked(state: GameState, slot: number, events: SimEvent[]): boolean {
   if (state.player.ledger.sale?.slot !== slot) return false;
-  events.push({ type: 'message', kind: 'game', text: 'That item is waiting on a sale.' });
+  events.push({ type: 'message', kind: 'game', text: SALE_HOLD_MESSAGE });
   return true;
+}
+
+/**
+ * True, with a message, when taking `qty` units (or the whole stack) from
+ * `slot` would leave fewer of that item than a pending hub sale needs. Any slot
+ * of the item counts, not only the one that was sold (src/sim/saleHold.ts).
+ */
+function slotHeld(
+  state: GameState,
+  ctx: SimContext,
+  slot: number,
+  qty: number | 'stack',
+  events: SimEvent[],
+): boolean {
+  const stack = state.player.inventory[slot];
+  if (!stack) return false;
+  const n = qty === 'stack' ? stack.qty : qty;
+  return saleBlocks(state.player, ctx.content, stack.itemId, n, events);
 }
 
 function sayPublic(state: GameState, text: string, events: SimEvent[]): void {

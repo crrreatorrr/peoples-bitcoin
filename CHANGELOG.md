@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- **Fix (hub sell, item dupe):** a pending hub sale locked only the slot that was clicked, but a
+  sale can span several slots (3 pistols are 3 slots). While it waited for a retry, the other units
+  could be banked, dropped, used, handed in, built with, traded or left in a death pile, and the
+  retry still paid for every pack. Now no removal may leave fewer units of the sold item than the
+  sale needs (packs × pack size); surplus units are still free, and you keep the held units when
+  you die. This edits `src/sim` and `src/server`, so `SIM_VERSION` changes and the hub's vendored
+  `pb-sim.js` must be rebuilt.
+
 ## 0.7.0 — Online worlds (2026-11-04)
 
 - **Worlds of up to 100 players**, run server-side as `pb_world` matches on the hub's Nakama with

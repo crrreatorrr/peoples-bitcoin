@@ -7,6 +7,7 @@
 import { grantQuestTickets } from './ledger';
 import { giveItem } from './ground';
 import { countItem, removeItem } from './inventory';
+import { SALE_HOLD_MESSAGE, spareUnits } from './saleHold';
 import type { Content } from './content';
 import type { DialogueLine, NpcDef, QuestDef, QuestTrigger, Reward } from './schemas';
 import type { EquipSlot, GameState, PlayerState, SimContext, SimEvent } from './state';
@@ -63,6 +64,11 @@ export function progressQuests(
       for (const step of openSteps(quest, progress.done)) {
         if (!matches(step.trigger, ev, player)) continue;
         if (step.trigger.type === 'deliver') {
+          // Units a pending hub sale is waiting for can't be handed in.
+          if (step.trigger.items.some((s) => spareUnits(player, ctx.content, s.item) < s.qty)) {
+            events.push({ type: 'message', kind: 'game', text: SALE_HOLD_MESSAGE });
+            continue;
+          }
           for (const s of step.trigger.items) removeItem(player.inventory, s.item, s.qty);
         }
         progress.done.push(step.id);

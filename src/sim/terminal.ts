@@ -5,10 +5,11 @@
  * as a pb_sell stream, including the fractional remainder.
  */
 import { TICKETS, TERMINAL_SHOP_ID } from '../config/balance';
-import { addStreamUsd, saleSlot, spendTickets } from './ledger';
-import { addItem, canAdd, countItem, removeItem } from './inventory';
+import { addStreamUsd, spendTickets } from './ledger';
+import { addItem, canAdd, removeItem } from './inventory';
 import { buyCost, sellCredit, sellListing, shopStocks } from './prices';
 import { progressQuests } from './quests';
+import { SALE_HOLD_MESSAGE, spareUnits } from './saleHold';
 import type { GameState, Quantity, SimContext, SimEvent } from './state';
 
 const MAX_PACKS = 10_000;
@@ -85,21 +86,23 @@ export function sell(
   events: SimEvent[],
 ): void {
   const player = state.player;
-  if (saleSlot(state) === slot) {
-    events.push({ type: 'message', kind: 'game', text: 'That item is waiting on a sale.' });
-    return;
-  }
   const stack = player.inventory[slot];
   const item = stack && ctx.content.items.get(stack.itemId);
   if (!stack || !item) return;
-  const wanted = qty === 'all' ? countItem(player.inventory, item.id) : Math.floor(qty);
+  // Units a pending hub sale is waiting for can't be sold twice; only the surplus is for sale.
+  const owned = spareUnits(player, ctx.content, item.id);
+  if (owned === 0) {
+    events.push({ type: 'message', kind: 'game', text: SALE_HOLD_MESSAGE });
+    return;
+  }
+  const wanted = qty === 'all' ? owned : Math.floor(qty);
   if (!(wanted > 0)) return;
   const say = (text: string) => events.push({ type: 'message', kind: 'game', text });
   const row = sellListing(ctx.content, openShop(state), item.id);
 
   if (row) {
     if (state.hubSession.mode === 'hub' && !ctx.wallet) return;
-    const packs = Math.floor(Math.min(wanted, countItem(player.inventory, item.id)) / row.packSize);
+    const packs = Math.floor(Math.min(wanted, owned) / row.packSize);
     if (packs < 1) {
       say(`You need a full pack of ${row.packSize}.`);
       return;
@@ -133,7 +136,7 @@ export function sell(
     say("The Terminal won't take that.");
     return;
   }
-  const units = Math.min(wanted, countItem(player.inventory, item.id));
+  const units = Math.min(wanted, owned);
   removeFromSlot(state, item.id, units, slot);
   const whole = addStreamUsd(state, 'pb_sell', item.value * units);
   if (whole > 0) {

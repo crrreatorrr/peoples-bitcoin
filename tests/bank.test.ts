@@ -45,11 +45,11 @@ describe('bank', () => {
 
   it('deposits a quantity across slots into one stack', () => {
     const { player } = playerWith(5);
-    deposit(player, 2, 3, []);
+    deposit(player, content(), 2, 3, []);
     expect(player.bank).toEqual([{ itemId: 'item_scrap_hash', qty: 3 }]);
     expect(player.inventory[2]).toBeNull(); // the clicked slot goes first
     expect(countItem(player.inventory, 'item_scrap_hash')).toBe(2);
-    deposit(player, player.inventory.findIndex(Boolean), 'all', []);
+    deposit(player, content(), player.inventory.findIndex(Boolean), 'all', []);
     expect(player.bank).toEqual([{ itemId: 'item_scrap_hash', qty: 5 }]);
     expect(freeSlotCount(player.inventory)).toBe(28);
   });
@@ -57,7 +57,7 @@ describe('bank', () => {
   it('deposits the whole inventory', () => {
     const { player } = playerWith(4);
     addItem(player.inventory, content().items.get('item_warm_hash')!);
-    depositAll(player, []);
+    depositAll(player, content(), []);
     expect(freeSlotCount(player.inventory)).toBe(28);
     expect(player.bank).toEqual([
       { itemId: 'item_scrap_hash', qty: 4 },
@@ -104,16 +104,16 @@ describe('bank', () => {
     const { player } = playerWith(1);
     player.bank = Array.from({ length: BANK.slots }, (_, i) => ({ itemId: `x${i}`, qty: 1 }));
     const events: SimEvent[] = [];
-    deposit(player, 0, 1, events);
+    deposit(player, content(), 0, 1, events);
     expect(messages(events)).toContain('Your bank is full.');
     expect(countItem(player.inventory, 'item_scrap_hash')).toBe(1);
   });
 
   it('ignores invalid quantities and slots', () => {
     const { state, player } = playerWith(2);
-    deposit(player, 0, 0, []);
-    deposit(player, 0, -3, []);
-    deposit(player, 27, 1, []);
+    deposit(player, content(), 0, 0, []);
+    deposit(player, content(), 0, -3, []);
+    deposit(player, content(), 27, 1, []);
     withdraw(player, content(), 5, 1, []);
     expect(player.bank).toEqual([]);
     expect(state.player.inventory.filter(Boolean)).toHaveLength(2);
