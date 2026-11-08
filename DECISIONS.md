@@ -543,3 +543,12 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
   text box. After a click the line still dims to 0.45 opacity until the next line; that is a
   state, not a loop. Click, Space, and paging are unchanged. XP drops, the level banner, and
   hitsplats still play their one-shot animations; those are not advance prompts.
+
+## Hub buy checks (2026-11-08)
+
+- The hub buy in `src/hub/client.ts` floors the packs, refuses fewer than 1 or more than
+  `MAX_PACKS` (10,000) with "Unavailable", and refuses a buy that won't fit with "You don't have
+  enough inventory space." before it seals a purchase or calls `spendTickets`, as the sim's `buy`
+  in `src/sim/terminal.ts` does. The checks and `MAX_PACKS` are duplicated rather than shared
+  because `src/sim` feeds the sim version hash. A buy that fit when it was sent but no longer fits
+  when the hub answers still lands on the ground (`giveItem`), as before.

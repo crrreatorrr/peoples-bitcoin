@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- **Fix (hub buy):** a hub-session buy now makes the same checks as the offline buy before it
+  spends Tickets: whole packs only, 1 to 10,000 packs, and room in the inventory. A full inventory
+  used to pay and then drop the goods on the ground. Client only; `SIM_VERSION` is unchanged.
+
 ## 0.7.0 — Online worlds (2026-11-04)
 
 - **Worlds of up to 100 players**, run server-side as `pb_world` matches on the hub's Nakama with
