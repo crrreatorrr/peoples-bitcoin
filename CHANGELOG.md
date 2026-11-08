@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Fix (hub sell):** a Sell-N larger than the stack (for example Sell 10 on 3 items) asked the hub
+  for Tickets for all N while only the owned items were removed. The hub sell now clamps to the
+  units owned, as the offline sim already did. Client only; `SIM_VERSION` is unchanged.
 - **Fix (hub sell, item dupe):** a pending hub sale locked only the slot that was clicked, but a
   sale can span several slots (3 pistols are 3 slots). While it waited for a retry, the other units
   could be banked, dropped, used, handed in, built with, traded or left in a death pile, and the

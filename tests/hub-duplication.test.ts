@@ -91,6 +91,8 @@ class ScriptedHub {
   shopError: HubSdkError | null = null;
   spendUnits: number | null = null;
   sellUnits: number | null = null;
+  /** When set, a sell answers with packs × this many units, as the server does. */
+  sellPackSize: number | null = null;
   spendBalance: number | null = null;
   sellBalance: number | null = null;
   sellCredited: number | null = null;
@@ -295,7 +297,7 @@ class ScriptedHub {
       shop_id: shopId,
       item_id: itemId,
       packs,
-      units: this.sellUnits ?? packs,
+      units: this.sellUnits ?? packs * (this.sellPackSize ?? 1),
       credited: this.sellCredited ?? 0,
       balance: this.sellBalance ?? this.serverBalance,
     };
@@ -1163,6 +1165,56 @@ describe('shop on SDK 0.2.0', () => {
     expect(state.player.currencies.tickets).toBe(80);
     expect(countItem(state.player.inventory, 'gun_campaign_pistol')).toBe(1);
   });
+});
+
+describe('hub sell clamps to the units owned', () => {
+  function packSizeOf(itemId: string): number {
+    const row = content().ticketPrices.find(
+      (r) => r.shopId === 'shop_terminal' && r.itemId === itemId,
+    );
+    if (!row) throw new Error(`no terminal row for ${itemId}`);
+    return row.packSize;
+  }
+
+  /** Units the offline sim removes for the same sell, the reference the hub must match. */
+  function simUnits(itemId: string, owned: number, qty: number | 'all'): number {
+    const { state, ctx } = newGame();
+    give(state, itemId, owned);
+    state.player.interface = { kind: 'terminal', shopId: 'shop_terminal' };
+    runTick(state, ctx, [{ type: 'sell', slot: 0, qty }]);
+    return owned - countItem(state.player.inventory, itemId);
+  }
+
+  const cases: Array<{ itemId: string; owned: number; qty: number | 'all' }> = [
+    { itemId: 'gun_campaign_pistol', owned: 3, qty: 10 },
+    { itemId: 'gun_campaign_pistol', owned: 3, qty: 'all' },
+    { itemId: 'gun_campaign_pistol', owned: 3, qty: 2 },
+    { itemId: 'item_rounds', owned: 250, qty: 1000 },
+    { itemId: 'item_rounds', owned: 250, qty: 'all' },
+    { itemId: 'item_rounds', owned: 250, qty: 150 },
+    { itemId: 'item_rounds', owned: 50, qty: 1000 },
+  ];
+
+  for (const { itemId, owned, qty } of cases) {
+    it(`sells no more than owned: ${owned} × ${itemId}, Sell ${qty}`, async () => {
+      const packSize = packSizeOf(itemId);
+      const { state, ctx } = newGame();
+      give(state, itemId, owned);
+      script.sellPackSize = packSize;
+      const { hub } = attach(state, ctx);
+      await hub.start();
+      hub.sell(0, qty);
+      await settle();
+
+      const ownedPacks = Math.floor(owned / packSize);
+      const packs = script.sells.reduce((sum, call) => sum + call.packs, 0);
+      expect(packs).toBeLessThanOrEqual(ownedPacks);
+      const removed = owned - countItem(state.player.inventory, itemId);
+      expect(removed).toBe(packs * packSize);
+      expect(removed).toBe(simUnits(itemId, owned, qty));
+      expect(state.player.ledger.sale).toBeNull();
+    });
+  }
 });
 
 describe('earn caps from getTicketBalance', () => {
