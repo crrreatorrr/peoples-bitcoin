@@ -555,6 +555,7 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
 ## Owner godmode (2026-11-09)
 
 - The owner asked for a godmode that gives them 90,000,000,000 Tickets automatically.
+  *(Amended by the owner, 2026-11-09: the amount is now 333,333,333 Tickets, `GODMODE.tickets`.)*
   `src/game/godmode.ts` raises the wallet to `GODMODE.tickets` when the game starts and after
   every tick, so spending never brings it down. It is turned on with `?godmode` and remembered in
   localStorage (`peoples-bitcoin.godmode`); `?godmode=0` turns it off and leaves the wallet as is.

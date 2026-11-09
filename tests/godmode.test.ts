@@ -54,11 +54,11 @@ describe('godmode flag', () => {
 });
 
 describe('applyGodmode', () => {
-  it('fills the standalone wallet to 90,000,000,000 Tickets', () => {
+  it('fills the standalone wallet to 333,333,333 Tickets', () => {
     const state = freshState();
-    expect(GODMODE.tickets).toBe(90_000_000_000);
+    expect(GODMODE.tickets).toBe(333_333_333);
     expect(applyGodmode(state)).toBe(true);
-    expect(state.player.currencies.tickets).toBe(90_000_000_000);
+    expect(state.player.currencies.tickets).toBe(333_333_333);
     expect(applyGodmode(state)).toBe(false);
   });
 

@@ -159,7 +159,7 @@ export const START_CURRENCIES = { tickets: 0, bitcoin: 0 } as const;
  * Hub sessions keep the server's balance.
  */
 export const GODMODE = {
-  tickets: 90_000_000_000,
+  tickets: 333_333_333,
 } as const;
 
 /**
