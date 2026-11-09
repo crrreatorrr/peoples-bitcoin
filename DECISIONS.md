@@ -578,6 +578,28 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
   not change. Anyone who knows the flag can use it offline; that is harmless because offline
   Tickets stay in that browser's save.
 
+## Planted walk and run (2026-11-09)
+
+- **Feet are planted, legs follow (IK).** The gait (`src/render/gait.ts`) drives where each ankle
+  goes, not how far each leg swings, so the foot on the ground moves exactly with it and the body
+  height comes from the legs. It needs leg lengths: rigged models measure theirs from the rest
+  skeleton (including the slight forward lean of Meshy's rest legs); code-built humanoids pass
+  their box sizes. Actors without `legs` keep the old swing. Still one footfall per tile, walking
+  and running (owner's rule).
+- **The walk gives a little (plant 0.85).** A 1-tile step is about 1.4 leg lengths for the
+  President. Fully planted, the hips would drop 14 cm at each footfall (a squat); planting 75%
+  drops them 6 cm but the slide shows. 85% is the middle: about 8 cm and 0.25 m/s of give. The
+  run is fully planted. All gait numbers are in `WALK` / `RUN` in `gait.ts`, not
+  `config/balance.ts`, for the same reason as the glide: they're render-only and `src/config`
+  feeds the sim version hash.
+- **Legs aren't eased.** Joint easing lagged the legs behind the ground (the feet slid while they
+  caught up). The gait sets the legs directly and eases only its own blend weights (start, stop,
+  walk ↔ run), mixing foot targets, so planted feet stay put during a change. Arms, torso and
+  head still ease.
+- **Rig weights are fixed in Blender, per model.** `tools/fix_foot_weights.py` moves Meshy's shin
+  weight out of the shoes and gives the toe cap to the toe bone. Only the President has been run
+  through it so far; the other rigged models likely have the same bleed.
+
 ## Pending hub sale holds its units (2026-11-08)
 
 - **Item lock, not escrow.** While `ledger.sale` is set, the sale holds packs × pack size units of
