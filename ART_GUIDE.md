@@ -99,6 +99,10 @@ approved caricature (DESIGN.md §0, rule 2).
 4. **Rig** (anything with arms and legs): upload the turned GLB, then Meshy rigging with
    `model_url` and `height_meters` = the character's in-game height. Check the skeleton: left
    arm on +x, toes pointing +z.
+   **Fix the feet** in Blender (`tools/fix_foot_weights.py`, usage in its header). Meshy bleeds
+   shin weight into the shoes and splits the toe cap between foot and toe bones, so planted feet
+   sink into the ground as the knee bends and the toes dig in at push-off. It also drops the
+   baked clip, which the game ignores.
 5. **Shrink:** `python3 tools/shrink_glb.py in.glb src/assets/models/<id>.glb` (512 px JPEG
    texture, ~270 KB per character).
 6. **Manifest:** set `"path": "models/<id>.glb"`. Rigged: no `scale`. Unrigged (1 unit tall):

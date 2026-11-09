@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import { z } from 'zod';
 import { ARMOR_LOOKS, gearModel, MUZZLE, type HoldKind } from './gear';
 import { blob, box, canvasTexture, cone, glow, group, lambert, shade, tube } from './kit';
+import type { LegGeometry } from './gait';
 
 const Color = z.string().regex(/^#[0-9a-fA-F]{6}$/);
 
@@ -110,6 +111,12 @@ export interface Joints {
   shinR: THREE.Group;
   handL: THREE.Group;
   handR: THREE.Group;
+  /** Rigged characters only: the pelvis, ankles and toes. */
+  hips?: THREE.Group;
+  footL?: THREE.Group;
+  footR?: THREE.Group;
+  toeL?: THREE.Group;
+  toeR?: THREE.Group;
 }
 
 /** walk: legs and arms; hop: the body bounces; float: the body hovers. */
@@ -132,6 +139,11 @@ export interface ActorModel {
   muzzle: THREE.Object3D | null;
   /** Rigged GLBs copy the posed joints onto their bones after each pose. */
   sync?: () => void;
+  /** Leg lengths, for the foot-planted gait (gait.ts); without them the legs just swing. */
+  legs?: LegGeometry;
+  /** How far into the gait the legs are, 0 standing to 1 striding, and walking to running (animate.ts eases both). */
+  gaitBlend?: number;
+  runBlend?: number;
 }
 
 export const ACTOR_KINDS = new Set(['humanoid', 'sludge', 'wraith', 'sock']);
@@ -325,6 +337,19 @@ function humanoid(look: Look): ActorModel {
     body,
     bodyY: hipY,
     joints,
+    // The shoe runs from 0.1 behind the ankle to 0.18 in front. No pelvis or ankle joints.
+    legs: {
+      thigh,
+      shin,
+      hipY,
+      ankleY: 0.07,
+      heel: 0.1,
+      ball: 0.12,
+      ballY: 0,
+      hipX: 0,
+      thighRest: 0,
+      shinRest: 0,
+    },
     height: hipY + 0.02 + torsoH + headTop,
     motion: 'walk',
     hunch: look.hunch,

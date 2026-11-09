@@ -4,7 +4,7 @@
  */
 import { TERMINAL_SHOP_ID, TICKETS } from '../config/balance';
 import { giveItem } from '../sim/ground';
-import { countItem, removeItem } from '../sim/inventory';
+import { canAdd, countItem, removeItem } from '../sim/inventory';
 import {
   ackStreamBatch,
   dropStreamBatch,
@@ -38,6 +38,8 @@ import { ackSeal, forgetSeal, reconcileSeals, rememberSeal } from './ledgerStore
 import { questEarnWireKey, uuidv7 } from './uuid';
 
 const QUEST_REASON = 'pb_quest';
+/** Most packs one buy may ask for. Mirrors `MAX_PACKS` in src/sim/terminal.ts (hashed, so not imported). */
+const MAX_PACKS = 10_000;
 
 export class HubClient {
   private readonly inflight = new Set<string>();
@@ -166,12 +168,21 @@ export class HubClient {
     const row = this.ctx.content.ticketPrices.find(
       (r) => r.shopId === shopId && r.itemId === itemId,
     );
-    if (!row || packs < 1) {
+    const item = this.ctx.content.items.get(itemId);
+    // The same checks as the sim's `buy` (src/sim/terminal.ts), duplicated rather than shared
+    // because src/sim is hashed into SIM_VERSION: whole packs, 1..MAX_PACKS, and room for them.
+    const n = Math.floor(packs);
+    if (!row || !item || !(n >= 1 && n <= MAX_PACKS)) {
       this.say('Unavailable');
       return;
     }
+    const units = row.packSize * n;
+    if (!canAdd(this.state.player.inventory, item, item.stackable ? 1 : units)) {
+      this.say("You don't have enough inventory space.");
+      return;
+    }
     const key = uuidv7();
-    this.state.player.ledger.purchase = { key, shopId, itemId, packs };
+    this.state.player.ledger.purchase = { key, shopId, itemId, packs: n };
     if (!this.save()) {
       this.state.player.ledger.purchase = null;
       this.say('Saving is unavailable in this browser.');
