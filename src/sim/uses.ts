@@ -6,6 +6,7 @@
 import { giveItem } from './ground';
 import { countItem, removeItem } from './inventory';
 import { atStep, progressQuests } from './quests';
+import { saleBlocks } from './saleHold';
 import type { EntityRef, GameState, SimContext, SimEvent } from './state';
 import { grantXp } from './xp';
 
@@ -33,6 +34,7 @@ export function useItemOn(
     const name = ctx.content.items.get(itemId)?.name ?? itemId;
     return say(`You need ${use.consume} ${name} for that.`);
   }
+  if (use.consume > 0 && saleBlocks(player, ctx.content, itemId, use.consume, events)) return;
   if (use.consume > 0) removeItem(player.inventory, itemId, use.consume);
   say(use.message);
   for (const s of use.give) giveItem(state, ctx, s.item, s.qty, events);

@@ -552,6 +552,77 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
   the sim version hash and would force a world server rebuild for a client-only fix.
   `tests/hub-duplication.test.ts` checks that both paths remove the same units.
 
+## Hub buy checks (2026-11-08)
+
+- The hub buy in `src/hub/client.ts` floors the packs, refuses fewer than 1 or more than
+  `MAX_PACKS` (10,000) with "Unavailable", and refuses a buy that won't fit with "You don't have
+  enough inventory space." before it seals a purchase or calls `spendTickets`, as the sim's `buy`
+  in `src/sim/terminal.ts` does. The checks and `MAX_PACKS` are duplicated rather than shared
+  because `src/sim` feeds the sim version hash. A buy that fit when it was sent but no longer fits
+  when the hub answers still lands on the ground (`giveItem`), as before.
+
+## Owner godmode (2026-11-09)
+
+- The owner asked for a godmode that gives them 90,000,000,000 Tickets automatically.
+  *(Amended by the owner, 2026-11-09: the amount is now 333,333,333 Tickets, `GODMODE.tickets`.)*
+  `src/game/godmode.ts` raises the wallet to `GODMODE.tickets` when the game starts and after
+  every tick, so spending never brings it down. It is turned on with `?godmode` and remembered in
+  localStorage (`peoples-bitcoin.godmode`); `?godmode=0` turns it off and leaves the wallet as is.
+- **Offline play only.** In a hub session the Nakama server owns the wallet and caps earns (200
+  per session, 1000 per day), and online worlds run on the server, so a client top-up there would
+  only show a number the server rejects. Offline Tickets are never uploaded (`src/sim/ledger.ts`),
+  so godmode cannot reach the hub or other players. Hub Tickets come from the server-side godmode
+  in metaverse-hub (migration `0042_pb_godmode`, `deploy/scripts/godmode.sh`), which tops the
+  server wallet up on every balance read; this repo needs no change for it.
+- It lives in `src/game`, not `src/sim`, so the sim version hash and the world server bundle do
+  not change. Anyone who knows the flag can use it offline; that is harmless because offline
+  Tickets stay in that browser's save.
+
+## Planted walk and run (2026-11-09)
+
+- **Feet are planted, legs follow (IK).** The gait (`src/render/gait.ts`) drives where each ankle
+  goes, not how far each leg swings, so the foot on the ground moves exactly with it and the body
+  height comes from the legs. It needs leg lengths: rigged models measure theirs from the rest
+  skeleton (including the slight forward lean of Meshy's rest legs); code-built humanoids pass
+  their box sizes. Actors without `legs` keep the old swing. Still one footfall per tile, walking
+  and running (owner's rule).
+- **The walk gives a little (plant 0.85).** A 1-tile step is about 1.4 leg lengths for the
+  President. Fully planted, the hips would drop 14 cm at each footfall (a squat); planting 75%
+  drops them 6 cm but the slide shows. 85% is the middle: about 8 cm and 0.25 m/s of give. The
+  run is fully planted. All gait numbers are in `WALK` / `RUN` in `gait.ts`, not
+  `config/balance.ts`, for the same reason as the glide: they're render-only and `src/config`
+  feeds the sim version hash.
+- **Legs aren't eased.** Joint easing lagged the legs behind the ground (the feet slid while they
+  caught up). The gait sets the legs directly and eases only its own blend weights (start, stop,
+  walk ↔ run), mixing foot targets, so planted feet stay put during a change. Arms, torso and
+  head still ease.
+- **Rig weights are fixed in Blender, per model.** `tools/fix_foot_weights.py` moves Meshy's shin
+  weight out of the shoes and gives the toe cap to the toe bone. Only the President has been run
+  through it so far; the other rigged models likely have the same bleed.
+
+## Pending hub sale holds its units (2026-11-08)
+
+- **Item lock, not escrow.** While `ledger.sale` is set, the sale holds packs × pack size units of
+  its item, counted over every slot (`src/sim/saleHold.ts`). Any removal that would leave fewer
+  units than that is refused with "That item is waiting on a sale.": drop, equip, eat, drink,
+  one-use teleports, summons, Use on an object, quest hand-ins, bunker builds, the standalone
+  Terminal sell, Spin inputs, Hash Cannon shells and trade offers (and the trade swap). Surplus
+  units stay free. Deposit and Deposit-All bank only the surplus. On death the held units stay in
+  the inventory and the rest goes to the pile. Escrow (moving the units out of the inventory when
+  the sale is sealed) would need a save-format change and a migration; the lock needs neither.
+- The old slot lock is kept only for moving items, and only while the sold item is still in the
+  sold slot, so that stack stays where it was. Anything else put into an emptied sale slot moves
+  freely. The clicked slot is no longer special for removals: with surplus elsewhere you can drop
+  it, and `takeUnits` in `src/hub/client.ts` takes the rest from the other slots.
+- **A deposit counts for quests only when something went into the bank.** `deposit` and
+  `depositAll` return the units moved, and the tutorial's "Deposit something" step (and any other
+  `deposit` trigger) advances only when that is more than 0. Before, a refused deposit (an empty
+  slot, a full bank, and now a sale hold) still finished the step.
+- If this build has no price row for the sale (shop and item), the pack size is unknown and every
+  unit of that item is held until the sale settles.
+- The hold uses this build's price table for the pack size. The hub answers with its own `units`,
+  which are the same today.
+
 ## Crash guard and "Something broke" panel (2026-11-08)
 
 - **One throw never freezes the game.** The main loop in `src/main.ts` runs through

@@ -4,6 +4,7 @@
  * lands them at the item's destination.
  */
 import { TELEPORT } from '../config/balance';
+import { saleBlocks } from './saleHold';
 import { hasUnlock, type GameState, type SimContext, type SimEvent } from './state';
 import { changeZone } from './zones';
 
@@ -24,6 +25,8 @@ export function startTeleport(
   if (t.requires && !hasUnlock(player, t.requires)) {
     return say(`The ${def.name} fizzles. You haven't unlocked that place yet.`);
   }
+  // A used-up ticket can't be one a pending hub sale is waiting for.
+  if (!t.reusable && saleBlocks(player, ctx.content, def.id, 1, events)) return;
   const ready = player.cooldowns[def.id] ?? 0;
   if (state.tick < ready) {
     const secs = Math.ceil(((ready - state.tick) * 600) / 1000);

@@ -53,8 +53,8 @@ export function vendoredSdkManifestSha256(root = 'vendor/hub-sdk'): string {
     .digest('hex');
 }
 
-// Source: crrreatorrr/metaverse-hub claude/loving-galileo-ndy2tu @ 36e4eb2
-describe('vendored hub SDK 0.5.0', () => {
+// Source: crrreatorrr/metaverse-hub main @ 5cc4e48 (PR #90)
+describe('vendored hub SDK 0.6.3', () => {
   // Hub main redeems with custom auth plus the server key, then profile.get. It registers
   // no session.claim RPC, so a vendor that calls one never gets a session.
   it('redeems the way the merged hub server expects', () => {
@@ -71,14 +71,26 @@ describe('vendored hub SDK 0.5.0', () => {
     ) as {
       version: string;
     };
-    expect(pkg.version).toBe('0.5.0');
+    expect(pkg.version).toBe('0.6.3');
     const hash = vendoredSdkSha256();
     expect(hash, `byte hash ${hash}`).toBe(
-      '7d5e0d088a270feb93eff3b4d20f42fbb3f12747a2d0f4af4864e92b6edeaf02',
+      'ee97a2a0b9127d1e6b3ce6ee55137bfa6fc1ce8931f2313b7b790bb1cc95c7ab',
     );
     const manifest = vendoredSdkManifestSha256();
     expect(manifest, `manifest ${manifest}`).toBe(
-      'e0a0c97d8f7b64142e83ae91b1c047e165ea82f4a3e05e8353158e473c2a5b9b',
+      '27cdebe0727d428ed25ef62c00e9f34f8acff4d0cc5e8c824e87fc55d12b0f2f',
     );
+    const iife = createHash('sha256')
+      .update(readFileSync('vendor/hub-sdk/dist/hub-sdk.iife.js'))
+      .digest('hex');
+    expect(iife, `iife ${iife}`).toBe(
+      '4ceb36321fc09820c4ef6292b8bd31ebaa198f0a9b90d38bcbd458505222df76',
+    );
+    const pin = JSON.parse(
+      new TextDecoder().decode(readFileSync('vendor/hub-sdk/SOURCE.pin.json')),
+    ) as { version: string; iifeSha256: string; global: string };
+    expect(pin.version).toBe('0.6.3');
+    expect(pin.global).toBe('HubSDK');
+    expect(pin.iifeSha256).toBe(iife);
   });
 });

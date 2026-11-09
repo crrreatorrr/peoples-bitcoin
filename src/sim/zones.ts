@@ -6,6 +6,7 @@ import { BUNKER_ZONE_ID, hasRespawnBed } from './bunker';
 import { isWalkable } from './grid';
 import { spawnGroundItem } from './ground';
 import { progressQuests } from './quests';
+import { saleHeldUnits } from './saleHold';
 import {
   createZoneState,
   gridOf,
@@ -152,24 +153,31 @@ export function handleDeath(state: GameState, ctx: SimContext, events: SimEvent[
   });
   if (DEATH.dropInventory) {
     const until = state.tick + DEATH.pileDespawnTicks;
+    // Units a pending hub sale is waiting for stay with you too, or the pile would sell twice.
+    const sale = player.ledger.sale;
+    let held = sale ? saleHeldUnits(player, ctx.content, sale.itemId) : 0;
     player.inventory.forEach((s, i) => {
       if (!s) return;
       const def = ctx.content.items.get(s.itemId);
       if (def?.value === 0) return; // untradeables (quest items) stay with you, as in OSRS
+      const keep = s.itemId === sale?.itemId ? Math.min(s.qty, held) : 0;
+      held -= keep;
+      if (keep === s.qty) return;
       const stackable = def?.stackable ?? false;
       // Online, a death pile is only ever yours.
       const owner = state.pid === PLAYER_ID ? undefined : { owner: state.pid };
       spawnGroundItem(
         state.zone,
         s.itemId,
-        s.qty,
+        s.qty - keep,
         player.pos.x,
         player.pos.y,
         until,
         stackable,
         owner,
       );
-      player.inventory[i] = null;
+      if (keep > 0) s.qty = keep;
+      else player.inventory[i] = null;
     });
     events.push({
       type: 'message',
