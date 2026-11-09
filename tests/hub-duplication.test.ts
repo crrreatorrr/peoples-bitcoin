@@ -211,8 +211,6 @@ class ScriptedHub {
           ticketsLeft: this.serverBalance,
           receiptId: rec.receiptId,
           balance: this.serverBalance,
-          ticketsDebited: rec.tickets,
-          verseCredited: rec.tickets / 10,
           verseCapLeft: 40,
         };
       },

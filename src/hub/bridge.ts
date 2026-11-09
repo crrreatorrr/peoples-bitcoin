@@ -57,7 +57,8 @@ export interface ExchangeCallResult {
   receiptId: string;
   balance: number | null;
   ticketsDebited: number | null;
-  verseCredited: number | null;
+  /** Verse wallet balance after the exchange (`ExchangeResult.verse`). */
+  verse: number | null;
   verseCapLeft: number | null;
 }
 
@@ -214,7 +215,7 @@ export class HubBridge {
       receiptId: typeof result.receiptId === 'string' ? result.receiptId : '',
       balance: num(result.balance) ?? num(result.ticketsLeft),
       ticketsDebited: num(result.ticketsDebited),
-      verseCredited: num(result.verseCredited),
+      verse: num(result.verse),
       verseCapLeft,
     };
   }
