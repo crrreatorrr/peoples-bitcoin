@@ -63,7 +63,8 @@ Add **`?godmode`** to the URL once (for example `http://localhost:5173/play/peop
 In offline play the Ticket wallet is then kept at **90,000,000,000 Tickets** (`GODMODE.tickets` in
 `src/config/balance.ts`), topped back up after every purchase. The setting is remembered in this
 browser; **`?godmode=0`** turns it off (Tickets already in the save stay). Hub sessions and online
-worlds use the server's wallet and caps, so godmode does nothing there.
+worlds use the server's wallet, so this flag does nothing there; the hub has its own godmode
+(metaverse-hub `deploy/scripts/godmode.sh on <username>`) that keeps that wallet at 90,000,000,000.
 
 ## Online play
 

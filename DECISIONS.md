@@ -561,8 +561,9 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
 - **Offline play only.** In a hub session the Nakama server owns the wallet and caps earns (200
   per session, 1000 per day), and online worlds run on the server, so a client top-up there would
   only show a number the server rejects. Offline Tickets are never uploaded (`src/sim/ledger.ts`),
-  so godmode cannot reach the hub or other players. Giving hub Tickets would need an admin grant
-  on the metaverse-hub server.
+  so godmode cannot reach the hub or other players. Hub Tickets come from the server-side godmode
+  in metaverse-hub (migration `0042_pb_godmode`, `deploy/scripts/godmode.sh`), which tops the
+  server wallet up on every balance read; this repo needs no change for it.
 - It lives in `src/game`, not `src/sim`, so the sim version hash and the world server bundle do
   not change. Anyone who knows the flag can use it offline; that is harmless because offline
   Tickets stay in that browser's save.
