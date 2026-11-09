@@ -16,20 +16,13 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
-      # tsconfig.json typechecks src and tests. Any error there fails CI,
-      # including tests/. The sim project has no DOM lib; tests pull hub code
-      # into it, so only src/sim and src/config errors fail that pass.
+      # tsconfig.json typechecks src and tests. tsconfig.sim.json typechecks,
+      # with no DOM lib, everything that runs in Nakama's JS runtime: src/sim,
+      # src/config, src/server, src/net/protocol.ts and src/net/simVersion.ts.
+      # Any error in either project fails CI. `npm run typecheck` runs both, so
+      # CI and local checks stay the same command.
       - name: Typecheck
-        run: |
-          npx tsc -p tsconfig.json --pretty false --noEmit
-          set +e
-          npx tsc -p tsconfig.sim.json --pretty false --noEmit > tsc-sim.txt 2>&1
-          set -e
-          if grep -E '^src/(sim|config)/' tsc-sim.txt; then
-            echo "Type errors in the sim"
-            cat tsc-sim.txt
-            exit 1
-          fi
+        run: npm run typecheck
       - name: Build
         run: npx vite build
 
