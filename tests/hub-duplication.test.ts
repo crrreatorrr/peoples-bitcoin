@@ -1688,6 +1688,36 @@ describe('earn caps from getTicketBalance', () => {
   });
 });
 
+describe('a pending sale holds every unit it sells (PB-W-1-03)', () => {
+  it('a retried sale of 3 pistols cannot be paid while 2 of them were banked or dropped', async () => {
+    const { state, ctx } = newGame();
+    give(state, 'gun_campaign_pistol', 3);
+    const { hub } = attach(state, ctx);
+    await hub.start();
+    script.loseSell = true; // the hub commits the sale, then the reply is lost
+    hub.sell(0, 'all');
+    await settle();
+    expect(state.player.ledger.sale).toMatchObject({ itemId: 'gun_campaign_pistol', packs: 3 });
+    expect(countItem(state.player.inventory, 'gun_campaign_pistol')).toBe(3);
+
+    // The other two slots: bank one, drop one, while the sale waits for its retry.
+    state.player.interface = { kind: 'bank' };
+    runTick(state, ctx, [{ type: 'deposit', slot: 1, qty: 'all' }]);
+    state.player.interface = null;
+    runTick(state, ctx, [{ type: 'dropItem', slot: 2 }]);
+    expect(countItem(state.player.inventory, 'gun_campaign_pistol')).toBe(3);
+    expect(state.player.bank).toEqual([]);
+    expect(state.zone.groundItems).toEqual([]);
+
+    hub.checkpoint();
+    await settle();
+    expect(script.sells.at(-1)).toMatchObject({ itemId: 'gun_campaign_pistol', packs: 3 });
+    expect(state.player.ledger.sale).toBeNull();
+    // Every unit the hub paid for left the game.
+    expect(countItem(state.player.inventory, 'gun_campaign_pistol')).toBe(0);
+  });
+});
+
 describe('two tabs', () => {
   it('does not double-send a key when two instances share one save', async () => {
     const { state, ctx } = newGame();

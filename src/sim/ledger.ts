@@ -170,7 +170,3 @@ export function setTicketBalance(state: GameState, balance: number): void {
   state.player.currencies.tickets = balance;
   state.hubSession.serverBalance = balance;
 }
-
-export function saleSlot(state: GameState): number | null {
-  return state.player.ledger.sale?.slot ?? null;
-}

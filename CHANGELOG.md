@@ -23,6 +23,16 @@
 - **Fix (hub buy):** a hub-session buy now makes the same checks as the offline buy before it
   spends Tickets: whole packs only, 1 to 10,000 packs, and room in the inventory. A full inventory
   used to pay and then drop the goods on the ground. Client only; `SIM_VERSION` is unchanged.
+- **Fix (hub sell, item dupe):** a pending hub sale locked only the slot that was clicked, but a
+  sale can span several slots (3 pistols are 3 slots). While it waited for a retry, the other units
+  could be banked, dropped, used, handed in, built with, traded or left in a death pile, and the
+  retry still paid for every pack. Now no removal may leave fewer units of the sold item than the
+  sale needs (packs × pack size); surplus units are still free, and you keep the held units when
+  you die. This edits `src/sim` and `src/server`, so `SIM_VERSION` changes and the hub's vendored
+  `pb-sim.js` must be rebuilt.
+- **Fix (tutorial):** the "Deposit something at a Bank Booth" step no longer completes when the
+  deposit was refused (an empty slot, a full bank, or units held for a sale). An unrelated item
+  put into an emptied sale slot can now be moved.
 
 ## Unreleased — Planted walk and run (2026-11-09)
 
