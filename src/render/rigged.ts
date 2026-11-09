@@ -232,7 +232,7 @@ function legGeometry(model: THREE.Object3D, at: (bone: string) => THREE.Vector3)
   ) as unknown as LegGeometry;
 }
 
-/** The z of the back of a shoe: its rearmost vertex below the ankle, weighted mostly to the foot. */
+/** The z of the back of a shoe: its rearmost sole vertex, weighted mostly to the foot. */
 function soleBack(model: THREE.Object3D, side: 'Left' | 'Right', ankleY: number): number {
   let back = Infinity;
   const v = new THREE.Vector3();
@@ -248,7 +248,8 @@ function soleBack(model: THREE.Object3D, side: 'Left' | 'Right', ankleY: number)
         if (index.getComponent(i, k) === foot) w = weight.getComponent(i, k);
       if (w < 0.5) continue;
       mesh.getVertexPosition(i, v).applyMatrix4(mesh.matrixWorld);
-      if (v.y < ankleY) back = Math.min(back, v.z);
+      // Sole level only: a coat hem or cuff weighted to the foot isn't the heel.
+      if (v.y < ankleY * 0.4) back = Math.min(back, v.z);
     }
   });
   return back;
