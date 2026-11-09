@@ -17,12 +17,32 @@
 - **Godmode (owner):** `?godmode` keeps the offline Ticket wallet at 333,333,333 Tickets and is
   remembered in the browser; `?godmode=0` turns it off. Offline play only; hub sessions and online
   worlds keep the server wallet. Client only; `SIM_VERSION` is unchanged.
+- **Test world menu:** Settings has a "Test world: AI players" box: how many AI players (0–99),
+  awakening story / quick-chat / silent, story speed, and Start, Restart or Leave test world. The
+  test world now joins its one world directly instead of showing world select.
+- **Dev (awakening bots):** `?net=loopback&awaken=1` gives the in-page bots names and a story:
+  eight Treasury citizens (262 original lines, six scripted scenes) loop, glitch, question, see
+  behind the world and wake up, then gather and talk freely. `&pace=` and `&act=` speed it up or
+  skip ahead. Dev only; `SIM_VERSION` is unchanged.
+- **Dev (silent bots):** `?net=loopback&chat=0` runs the in-page world with bots that only walk,
+  never chat, and `CHAT=0` does the same for the `scripts/pb-bots.mjs` load test. Client and dev
+  tools only; `SIM_VERSION` is unchanged.
 - **Fix (hub sell):** a Sell-N larger than the stack (for example Sell 10 on 3 items) asked the hub
   for Tickets for all N while only the owned items were removed. The hub sell now clamps to the
   units owned, as the offline sim already did. Client only; `SIM_VERSION` is unchanged.
 - **Fix (hub buy):** a hub-session buy now makes the same checks as the offline buy before it
   spends Tickets: whole packs only, 1 to 10,000 packs, and room in the inventory. A full inventory
   used to pay and then drop the goods on the ground. Client only; `SIM_VERSION` is unchanged.
+- **Fix (hub sell, item dupe):** a pending hub sale locked only the slot that was clicked, but a
+  sale can span several slots (3 pistols are 3 slots). While it waited for a retry, the other units
+  could be banked, dropped, used, handed in, built with, traded or left in a death pile, and the
+  retry still paid for every pack. Now no removal may leave fewer units of the sold item than the
+  sale needs (packs × pack size); surplus units are still free, and you keep the held units when
+  you die. This edits `src/sim` and `src/server`, so `SIM_VERSION` changes and the hub's vendored
+  `pb-sim.js` must be rebuilt.
+- **Fix (tutorial):** the "Deposit something at a Bank Booth" step no longer completes when the
+  deposit was refused (an empty slot, a full bank, or units held for a sale). An unrelated item
+  put into an emptied sale slot can now be moved.
 
 ## Unreleased — Planted walk and run (2026-11-09)
 

@@ -9,7 +9,7 @@
  *   NAKAMA_URL=http://127.0.0.1:7350 NAKAMA_SERVER_KEY=defaultkey \
  *     BOTS=100 SECONDS=120 WALK=0.3 node scripts/pb-bots.mjs
  *
- * WORLD picks a world number (default 1). Node 22 (global fetch and WebSocket).
+ * WORLD picks a world number (default 1). CHAT=0 keeps the bots silent (walk only). Node 22 (global fetch and WebSocket).
  */
 const BASE = process.env.NAKAMA_URL ?? 'http://127.0.0.1:7350';
 const KEY = process.env.NAKAMA_SERVER_KEY ?? 'defaultkey';
@@ -17,6 +17,7 @@ const BOTS = Number(process.env.BOTS ?? 50);
 const SECONDS = Number(process.env.SECONDS ?? 60);
 const WALK = Number(process.env.WALK ?? 0.3);
 const WORLD = Number(process.env.WORLD ?? 1);
+const CHAT = process.env.CHAT !== '0';
 const GAME = 'peoples-bitcoin';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const basic = `Basic ${Buffer.from(`${KEY}:`).toString('base64')}`;
@@ -102,7 +103,7 @@ while (Date.now() - start < SECONDS * 1000) {
       };
       send(ws, world.matchId, 2, { seq: ++seq, intents: [walk] });
     }
-    if (Math.random() < 0.01) send(ws, world.matchId, 3, { ch: 'quick', phrase: 'hi' });
+    if (CHAT && Math.random() < 0.01) send(ws, world.matchId, 3, { ch: 'quick', phrase: 'hi' });
   }
   await sleep(600);
 }

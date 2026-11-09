@@ -8,7 +8,8 @@
 import { TICKETS, TRADE } from '../config/balance';
 import type { Content } from '../sim/content';
 import { chebyshev } from '../sim/grid';
-import { addItem, countItem, removeItem } from '../sim/inventory';
+import { addItem, removeItem } from '../sim/inventory';
+import { SALE_HOLD_MESSAGE, saleHeldUnits, spareUnits } from '../sim/saleHold';
 import type { GameState, InventorySlot } from '../sim/state';
 import type { Quantity } from '../sim/state';
 import type { TradeOfferRow, TradeOut } from '../net/protocol';
@@ -118,9 +119,14 @@ export class TradeBook {
     }
     const mine = t.offers[who.uid];
     const offered = mine.filter((r) => r.itemId === item.id).reduce((n, r) => n + r.qty, 0);
-    const available = countItem(who.view.player.inventory, item.id) - offered;
+    // Units a pending hub sale is waiting for can't be offered; the surplus can.
+    const available = spareUnits(who.view.player, env.content, item.id) - offered;
     const n = Math.min(qty === 'all' ? available : Math.floor(qty), available);
-    if (!(n > 0)) return;
+    if (!(n > 0)) {
+      if (saleHeldUnits(who.view.player, env.content, item.id) > 0)
+        env.notice(who.uid, SALE_HOLD_MESSAGE);
+      return;
+    }
     const row = item.stackable ? mine.find((r) => r.itemId === item.id) : undefined;
     if (row) row.qty += n;
     else if (item.stackable) mine.push({ itemId: item.id, qty: n });
@@ -249,7 +255,7 @@ export class TradeBook {
     const b = env.member(t.b);
     if (!a || !b) return this.close(env, t, 'left', null);
     const give = (from: TradeMember, rows: InventorySlot[]) =>
-      totals(rows).every(([id, n]) => countItem(from.view.player.inventory, id) >= n);
+      totals(rows).every(([id, n]) => spareUnits(from.view.player, env.content, id) >= n);
     if (!give(a, t.offers[t.a]) || !give(b, t.offers[t.b])) {
       env.log('warn', `trade ${t.a}/${t.b}: offered items missing`);
       return this.close(env, t, 'failed', null);
