@@ -15,6 +15,7 @@ import {
   type SellResult,
   type TicketBalanceResult,
 } from '@metaverse/hub-sdk';
+import { pageServerKey } from './serverKey';
 
 /** Public game id. Exit fragment, init, and logs all use this. */
 export const HUB_GAME_ID = 'peoples-bitcoin';
@@ -109,10 +110,15 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
 }
 
+// Nakama's client server key. The rule (env key, else the local stock key in dev or on a
+// loopback host) is in ./serverKey.ts.
+const NAKAMA_SERVER_KEY = pageServerKey();
+
 export function createGameHub(): HubSdk {
   const url = hubUrl();
   return createHubSdk({
     serverUrl: '',
+    serverKey: NAKAMA_SERVER_KEY,
     hubUrl: url,
     assign: () => {
       window.location.assign(absoluteHubUrl(url));
@@ -144,7 +150,11 @@ export class HubBridge {
     );
   }
 
+  /** Set once init has run (world select redeems the ticket before the game starts). */
+  initialized = false;
+
   async init(): Promise<void> {
+    this.initialized = true;
     try {
       this.profile = await this.sdk.init(HUB_GAME_ID);
       const saved = sessionStorage.getItem(`hub:${HUB_GAME_ID}:session`);

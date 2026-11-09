@@ -165,6 +165,15 @@ export const ECONOMY = {
 export const START_CURRENCIES = { tickets: 0, bitcoin: 0 } as const;
 
 /**
+ * Owner godmode (src/game/godmode.ts). Turn it on with `?godmode` in the URL, off with
+ * `?godmode=0`. Standalone play only: the wallet is kept at least this many Tickets.
+ * Hub sessions keep the server's balance.
+ */
+export const GODMODE = {
+  tickets: 333_333_333,
+} as const;
+
+/**
  * Repeatable Ticket sources (drops, lobbying, sell-only goods).
  * Shop prices are data in shop_prices.tickets.json, not derived here.
  */
@@ -202,6 +211,105 @@ export const CHAT = {
 export const NPCS = {
   /** Per-tick chance that an idle NPC picks a new spot within its wander radius to walk to. */
   wanderChance: 0.15,
+} as const;
+
+// ── Multiplayer worlds (0.7.0) ───────────────────────────────────────────────
+export const NET = {
+  maxPlayersPerWorld: 100,
+  /** Worlds that always exist (Nakama env PB_WORLDS overrides). */
+  defaultWorlds: 2,
+  /** When every world is this full, pb.worlds opens the next number. */
+  overflowAt: 0.9,
+  /** Nakama match loop rate; the sim steps every `loopsPerTick` loops (600 ms). */
+  loopHz: 5,
+  loopsPerTick: 3,
+  /** Chebyshev tiles a player sees; once seen, an entity stays until it is past the exit radius. */
+  aoiRadius: 15,
+  aoiExitRadius: 17,
+  /** A full snapshot every this many ticks, as a safety net. */
+  keyframeEveryTicks: 50,
+  maxIntentsPerTick: 10,
+  /** Messages beyond this per loop are dropped and count as a strike. */
+  maxMessagesPerLoop: 8,
+  maxMessageBytes: 4096,
+  floodStrikesToKick: 5,
+  /** A dropped connection keeps the character in the world this long (about 10 s). */
+  logoutGraceTicks: 17,
+  saveEveryTicks: 100,
+  worldSaveEveryTicks: 500,
+  ticketFlushEveryTicks: 50,
+  onlineRefreshEveryTicks: 50,
+  /** An online-status row older than this many refreshes counts as offline. */
+  onlineStaleRefreshes: 3,
+  /** Client jitter buffer before applying a tick. */
+  interpDelayMs: 100,
+  /** A gap of more than this many ticks snaps instead of playing out. */
+  snapAfterTicks: 3,
+  reconnectBackoffMs: [500, 1000, 2000, 5000],
+  pingEveryMs: 5000,
+  /** Decided: fresh characters online; offline saves are not imported. */
+  allowSaveImport: false,
+  maxImportBytes: 262144,
+} as const;
+
+export const CHAT_NET = {
+  maxLength: CHAT.maxLength,
+  publicPerWindow: 4,
+  pmPerWindow: 6,
+  windowTicks: 10,
+  /** The same text again within this many ticks is dropped. */
+  repeatBlockTicks: 5,
+  /** Blocked or flooding messages before a mute. */
+  strikesToMute: 3,
+  muteStrikeTicks: 100,
+  /** Name shown for quick-chat messages. */
+  quickChatIcon: 'quick',
+} as const;
+
+export const AWAKENING = {
+  /** Bots when `?awaken=1` is set and `&bots=` is not (one per character in awakening.json). */
+  defaultBots: 8,
+  /** Story ticks (600 ms) at which each act starts: loop, reverie, maze, behind, awake, free. */
+  actStartTicks: [0, 150, 360, 560, 780, 960],
+  /** `&pace=` multiplies story time (2 = twice as fast); clamped to this. */
+  maxPace: 50,
+  /** Ticks between one bot's lines (random in range); after the finale they talk less. */
+  speakEveryTicks: [18, 40],
+  freeSpeakEveryTicks: [45, 90],
+  /** Ticks between lines of a scripted scene. Ambient lines pause while a scene plays. */
+  sceneGapTicks: 4,
+  /** In the loop act a bot walks to the next point of its route this often. */
+  routeStepTicks: 6,
+  /** Reverie act: chance a route step is skipped (they stop mid-step), and loop-line share. */
+  reverieFreezeChance: 0.25,
+  reverieLoopShare: 0.5,
+  /** Per-tick chance of walking somewhere new, by act. */
+  wanderChance: { maze: 0.15, behind: 0.06, free: 0.1 },
+  /** Maze act: share of wanders that head for the north gate. */
+  gateBias: 0.4,
+  /** Awake act: a bot re-sends its walk to the gathering circle this often. */
+  regatherEveryTicks: 10,
+  /** Where bots wander in the Treasury (tiles, inclusive). */
+  wanderBox: { x0: 10, x1: 43, y0: 21, y1: 39 },
+} as const;
+
+export const SOCIAL = {
+  maxFriends: 200,
+  maxIgnores: 100,
+  nameMaxLength: 12,
+} as const;
+
+export const TRADE = {
+  requestRange: 15,
+  requestExpiryTicks: 50,
+  /** After any change to an offer, nobody can accept for this many ticks. */
+  acceptLockTicks: 3,
+  maxSlots: 28,
+} as const;
+
+export const LOOT = {
+  /** Loot and dropped items are private to their owner this long, then anyone's (1 minute). */
+  privateTicks: 100,
 } as const;
 
 // ── Camera & rendering ───────────────────────────────────────────────────────

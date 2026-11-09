@@ -3,7 +3,7 @@
 A satirical, OSRS-inspired browser MMO-lite built with Three.js, TypeScript and Vite.
 All currencies are fictional and in-game only. See [DESIGN.md](DESIGN.md) for the full design.
 
-**Status:** Phase 1 sandbox plus the owner's revisions: 10 interconnected skills, the Trading Terminal, combat in The Trenches, Sproto summons, the bunker, an OSRS-style tutorial guided by Morelight, nine quests that lead out of the locked-down Treasury and on to Moonward Academy (a wizard school with staffs that fire COOM), and a low-poly 3D cast made with Higgsfield. For adults (18+). See `DESIGN.md` → Revisions, [CHANGELOG.md](CHANGELOG.md) and [TODO.md](TODO.md).
+**Status:** Phase 1 sandbox plus the owner's revisions: 10 interconnected skills, the Trading Terminal, combat in The Trenches, Sproto summons, the bunker, an OSRS-style tutorial guided by Morelight, nine quests that lead out of the locked-down Treasury and on to Moonward Academy (a wizard school with staffs that fire COOM), and a low-poly 3D cast made with Higgsfield. **Online worlds of up to 100 players** (0.7.0): world select, other players, RuneScape-style chat, friends and ignore lists, quick-chat and two-screen trading, run server-side on the hub's Nakama; offline play still works. For adults (18+). See `DESIGN.md` → Revisions, [CHANGELOG.md](CHANGELOG.md) and [TODO.md](TODO.md).
 
 ## Run it
 
@@ -20,8 +20,9 @@ Then open the URL Vite prints (default http://localhost:5173).
 | --------------------------------- | ------------------------------------------------------- |
 | `npm run dev`                     | Dev server with hot reload                              |
 | `npm run build`                   | Type-check (client + DOM-free sim) and build to `dist/` |
+| `npm run build:sim`               | Build the server bundle (`dist-sim/pb-sim.js`, or `-- --out <path>`) |
 | `npm run preview`                 | Serve the production build                              |
-| `npm test`                        | Run the Vitest suite (sim only)                         |
+| `npm test`                        | Run the Vitest suite (sim, server host, net, bundle)    |
 | `npm run coverage`                | Tests with a coverage report for `src/sim`              |
 | `npm run lint` / `npm run format` | ESLint / Prettier                                       |
 
@@ -36,8 +37,13 @@ Clicks act on press, like OSRS.
 - **Mouse wheel:** zoom
 - **F-keys (OSRS defaults):** F1 Combat, F2 Skills, F3 Quests, F4 Equipment, F6 Summoning (Magic position), F10 Settings; Esc returns to Inventory
 - **Minimap:** click to walk, scroll to zoom; click the compass to face north
-- **Chat:** start typing (or press Enter), Enter to send. Space continues NPC dialogue; number
-  keys 1–5 pick a "Select an Option" answer.
+- **Chat:** start typing (or press Enter), Enter to send. Space or Enter continues NPC dialogue;
+  number keys 1–5 pick a "Select an Option" answer.
+- **Menus and windows from the keyboard:** with a right-click menu, world select, "Select an
+  Option", the bank, the Terminal or another window open, the arrow keys move a yellow focus ring
+  (W / S / A / D too in the menus, world select and "Select an Option"; in windows letters still
+  start a chat message), and Enter or Space chooses. Esc closes, as before.
+- **Shift (tap it on its own):** toggle run, like the Motion orb. Shift-click still drops.
 - **Inventory:** left-click uses (Wield, Wear, Drink, Recite, Summon, Read...), shift-click drops,
   drag to rearrange, right-click for options. **Use** an item, then click an object or NPC to use
   it on that ("Use X -> Y").
@@ -56,8 +62,89 @@ Clicks act on press, like OSRS.
   each with a free Summon button
 - **Esc:** close windows and return to the Inventory tab
 
+There is no keyboard walking: as in OSRS you click to walk, the arrow keys turn the camera and
+typing anywhere starts a chat message (see DECISIONS.md "Controller and keyboard").
+
+### Controller
+
+Any controller with the browser's standard mapping works with no setup (Xbox names below;
+PlayStation and Switch buttons work by position). It is detected on its first button press; a
+button already held at that moment (the A that chose the hub portal) is ignored until released.
+Mouse and keyboard keep working alongside it, and the prompts follow the last device used.
+
+| Button | In the world | In menus, windows, the side panel, dialogue, world select |
+| --- | --- | --- |
+| Left stick / D-pad | Walk (camera-relative) | Move the focus ring |
+| A | Do the target's left-click option (Talk-to, Attack, Mine, Take...) | Choose / left-click; continue dialogue |
+| X | The target's right-click menu | Right-click the focused item (Use, Drop, Withdraw-X...) |
+| B | Cancel: close windows, drop a pending Use | Back / close; leave a dialogue |
+| LB / RB | Previous / next target (nearest ahead first) | Previous / next side-panel tab |
+| Y | Toggle run | Toggle run |
+| Right stick | Turn and tilt the camera (stick up looks up) | Turn the camera |
+| LT / RT | Zoom out / in | Zoom out / in |
+| Right stick click | Face north | Face north |
+| View | Inventory (focus in the side panel; again to leave) | Inventory |
+| Menu | Settings: Save, **Exit to Hub**, controls (again to leave) | Settings |
+
+The yellow ring in the world marks the soft target and the top-left text shows what A will do.
+Settings → Reset progress and the Add / Del friend and ignore buttons need the mouse or keyboard
+(they ask with a browser dialog), as does typing in chat.
+
 Progress autosaves to `localStorage` every 10 ticks and when the tab is hidden or closed.
 Settings → Reset progress starts over.
+
+## Godmode (owner)
+
+Add **`?godmode`** to the URL once (for example `http://localhost:5173/play/peoples-bitcoin/?godmode`).
+In offline play the Ticket wallet is then kept at **333,333,333 Tickets** (`GODMODE.tickets` in
+`src/config/balance.ts`), topped back up after every purchase. The setting is remembered in this
+browser; **`?godmode=0`** turns it off (Tickets already in the save stay). Hub sessions and online
+worlds use the server's wallet, so this flag does nothing there; the hub has its own godmode
+(metaverse-hub `deploy/scripts/godmode.sh on <username>`) that keeps that wallet at 333,333,333.
+
+## Online play
+
+The game is fully multiplayer in **worlds** of up to 100 players. A world is one authoritative
+`pb_world` match on the hub's Nakama (code in metaverse-hub `server/modules/src/games/pb_*.ts`)
+running this repo's sim from the server bundle. The client sends intents, chat, trade and social
+operations; the server runs the 600 ms tick and sends back what you can see. Characters online are
+fresh and saved on the server (offline saves stay offline).
+
+- **With a hub session** (entering from the hub portal) the game opens on **world select**: World,
+  Players / 100, Quick join (the least full world) and Play offline. Without one, it plays offline
+  as before.
+- **`?net=loopback`** (dev): runs a world in the page with bots (`&bots=3`, default 3), so the
+  online client can be built and tried without Nakama: `npm run dev`, then
+  `http://localhost:5173/play/peoples-bitcoin/?net=loopback&bots=5`. Bots walk and now and then
+  quick-chat; add `&chat=0` for players only, with no bot chat.
+- **Settings → Test world: AI players** does the same without typing parameters: pick how many AI
+  players, whether they play the awakening story, quick-chat or stay silent, and the story speed,
+  then Start test world (the page reloads into it; Leave test world goes back). The test world
+  skips world select, since it has one world.
+- **`&awaken=1`** (with `?net=loopback`): the bots become eight Treasury citizens who slowly realise
+  they are bots, over about 10 minutes in six acts: their loop, glitches after a patch, the voice and
+  the Way Out, seeing the save files and the browser tab, waking up together, then free. `&pace=5`
+  runs it five times faster, `&act=1`–`6` starts at an act, and `&bots=` still sets the count
+  (default 8). Lines, routes and scenes are in `src/data/awakening.json`; timings in
+  `AWAKENING` in `src/config/balance.ts`.
+- **With a local hub Nakama:** in metaverse-hub, `cd server && docker compose up` (see its README),
+  then here `npm run build:sim -- --out ../metaverse-hub/server/modules/vendor/pb-sim.js`, rebuild
+  the hub module, and open the game through the hub portal. The client and the bundle must come
+  from the same commit (their sim version is a hash of the sim sources; a mismatch is refused).
+- **Load test:** `NAKAMA_URL=http://127.0.0.1:7350 BOTS=100 node scripts/pb-bots.mjs` runs guest
+  bots through the portal (`CHAT=0` keeps them from chatting); the world logs its loop time about once a minute.
+
+Online controls (RuneScape-style):
+
+- **Chat tabs:** All, Game, Public, Private, Trade. Click the active Public, Private or Trade tab to
+  cycle its filter (On, Friends, Off); the server enforces it. Profanity is masked by default.
+- **Private messages:** `/m name text`; `/r text` or **Tab** answers the last one. Cross-world PMs work.
+- **Quick-chat:** the Quick button. Lines like "My Mining level is 42" are filled in by the server.
+- **Players:** right-click another player for Trade with, Message, Add friend, Ignore.
+- **Friends and ignores:** at the top of the Settings tab (F10), with each friend's world.
+- **Trading:** both players choose Trade with. Offer items from your bag (click: 1, right-click:
+  all), Accept twice (offer, then confirm screen with each side's Terminal value). Any change resets
+  both accepts. Items only, never Tickets.
 
 ## Layout
 
@@ -69,15 +156,20 @@ src/
   render/   Three.js: low-res renderer, camera, world, code-built props, rigged GLB characters,
             procedural animation, gear, chat heads, picking
   assets/   character GLBs (Higgsfield), sprites and icons
-  ui/       HTML overlay: ticker HUD, chat, inventory, skills, tooltips, context menu
-  input/    mouse and keyboard
-  main.ts   wires it together and runs the 600 ms tick loop
-tests/      Vitest tests for src/sim
+  ui/       HTML overlay: ticker HUD, chat, inventory, skills, tooltips, context menu, world
+            select, friends, quick-chat, trade
+  input/    mouse, keyboard and controller (padlogic.ts is the pure, tested part)
+  server/   pure world host for online play (AOI, deltas, chat, trade, Tickets), bundled for Nakama
+  net/      wire protocol, transports (hub realtime, in-page loopback), replica, jitter buffer
+  game/     drivers: local tick loop (offline) and the online driver; world select flow
+  main.ts   wires it together and runs the frame loop
+scripts/    build-sim-bundle.mjs (npm run build:sim), simHash.mjs, pb-bots.mjs (load test)
+tests/      Vitest tests for src/sim, src/server and src/net
 tools/      shrink_glb.py and turn_glb.py for the GLB pipeline (see ART_GUIDE.md)
 ```
 
-`src/sim` has no DOM or Three.js imports (enforced by `tsconfig.sim.json` and an ESLint rule), so
-the same code can run on the Phase 5 server.
+`src/sim`, `src/server` and `src/net/protocol.ts` have no DOM or Three.js imports (enforced by
+`tsconfig.sim.json` and an ESLint rule), so the same code runs in Nakama's JS runtime.
 
 ## Swapping art
 

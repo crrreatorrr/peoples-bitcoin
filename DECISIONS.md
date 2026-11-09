@@ -434,16 +434,316 @@ Three audits (gameplay duels in the real sim, every NPC variant, the story as a 
 - **Relic effects** from `init` sit on `hubSession` for the page only. They are not saved. No PB
   effect keys are applied yet; the matrix is still empty. (Since 2026-11-03 the init relics also
   sit there and unlock relic Sprotos; see Relic summons below.)
-- **Ticket redeem (hub #25).** The client does not send a Nakama HTTP key or a server key.
-  `init` posts `/v2/account/authenticate/custom?create=false` with `{ id: "t:" + ticket, vars: { game } }`,
-  then calls `session.claim` with `{ gameId }` and `Authorization: Bearer <session>`. Every later RPC
-  uses that session token. `createHubSdk({ serverUrl: '' })` is unchanged; Vite still proxies `/v2`.
-  The private hub repo was not readable from this checkout, so `vendor/hub-sdk` is the 0.3.0 tree
-  switched to that redeem and marked 0.4.0 (`VENDOR.md` records branch `cursor/ticket-redeem-custom-auth-c054`,
-  sha `947ed4c`). Re-pack from hub main after #25 merges if that sha moves.
+- **Ticket redeem.** The client sends Nakama's server key, never the HTTP key. `init` posts
+  `/v2/account/authenticate/custom?create=false` with `{ id: "t:" + ticket, vars: { game } }` and Basic
+  auth, then calls `profile.get` with `Authorization: Bearer <session>`. Every later RPC uses that session
+  token. `createHubSdk({ serverUrl: '', serverKey })` takes the key from `VITE_NAKAMA_SERVER_KEY`, with
+  `defaultkey` only under `vite dev`; Vite still proxies `/v2`. A production build without the variable
+  has every redeem refused and runs with no hub session. `vendor/hub-sdk` is packed from hub main
+  (`VENDOR.md` records the sha). The earlier 0.4.0 tree redeemed without the key and called a
+  `session.claim` RPC the merged server does not register.
 - **Exit** goes to the absolute `VITE_HUB_URL` (default `/hub/`) with `#from=peoples-bitcoin`.
   Vite `base` defaults to `/peoples-bitcoin/` in production and `/play/peoples-bitcoin/` in dev.
   `VITE_BASE` overrides it. Bundled asset URLs use that base. Exit stays `/hub/#from=peoples-bitcoin`.
+
+## Multiplayer worlds (0.7.0)
+
+Owner brief (2026-11-04): completely multiplayer, up to 100 players per world, scalable with more
+worlds, RuneScape mechanics and chat as the reference (mechanics only: no RuneScape names, art or
+text). The owner granted full agency; the plan's QA defaults are recorded here.
+
+- **Backend: Nakama, not Colyseus.** One authoritative `pb_world` match per world on the hub's
+  Nakama (metaverse-hub `server/modules/src/games/pb_*.ts`), running `src/sim` through the pure
+  host in `src/server` (bundled by `npm run build:sim` into `vendor/pb-sim.js` there). DESIGN.md
+  has a revision line.
+- **World = one match of ≤ 100 players; the character is the account's.** Worlds are numbered and
+  stable: `pb.worlds` keeps 1..`PB_WORLDS` (env, default 2) alive and opens the next one when every
+  live world is 90 % full. Quick join picks the least full. Worlds scale horizontally (more worlds,
+  then more Nakama nodes).
+- **Tick:** the match loop runs at 5 Hz and the sim steps every third loop (600 ms). Messages are
+  handled every loop; intents apply on the next sim tick. No client prediction (RuneScape): the
+  click cross shows at once and the move starts on the next server tick.
+- **AOI 15 / 17 tiles** (Chebyshev, with hysteresis) for players, Sprotos, enemies and ground
+  items; NPCs are zone-wide. A full snapshot on join, zone change and every 50 ticks; otherwise a
+  delta of changed entities, split into static and moving parts. Idle players only look at what
+  changed this tick. JSON in this round (binary is a stretch).
+- **Player ids:** the offline player is pid `'player'` with entity ids `'player'` / `'sproto'`;
+  online, `p:<userId>` / `s:<userId>`, and the client maps its own back to `'player'`/`'sproto'`,
+  so the renderer and UI are unchanged. The sim is a world of one offline (every old test runs the
+  world code path).
+- **Private instances:** quest-gated enemies get a copy per online player at that step
+  (`e<i>@<pid>`; the offline template `e<i>` sleeps online), and their adds are private too. The
+  bunker is one instance per player (`zone_bunker@<pid>`). NPCs with `requires` show per viewer.
+- **Loot:** the top damager owns the drop; it is private for `LOOT.privateTicks` (1 minute), then
+  public. Untradeables and death piles are never public. Dropped items follow the same rule.
+- **Single-way:** outside boss fights, an enemy fighting another player can't be joined ("Someone
+  else is fighting that."). Players don't block each other or NPCs.
+- **Tickets online are server-side only.** Stream batches (`pb_drop`, `pb_lobby`, `pb_sell`) are
+  sealed into the character save with key `pbw:<sid>:<reason>:<tick>` before `HubEconomy.earn`, so a
+  retry reuses key and amount. Quest rewards keep their UUIDv5 keys (never paid twice). Shop buys
+  and sells go through `HubEconomy.spend/sell` in the tick (the hub's prices). `session_closed` keeps
+  the amount and sends the player back to the hub. The client never credits Tickets online.
+- **Trades are items only, never Tickets** (rule 1). Two screens; any change resets both accepts and
+  locks Accept for 3 ticks; the confirm screen shows each side's Terminal value; the swap is checked
+  and saved for both players in one storage write, rolled back if that fails. Doing anything else
+  closes the trade.
+- **Chat routing:** inside the match (public to players in view, PMs in this world directly, other
+  worlds through `nk.matchSignal`), not Nakama channels. PMs are never stored; logs keep metadata.
+- **Filter scope:** the server always blocks slurs (seed list `src/data/chatfilter.json`, folded for
+  case, accents, leetspeak, spacing and stretching, without catching "Niger" or "raccoon"), links and
+  wallet-shaped strings. Profanity masking is a client setting, on by default. Three blocked or
+  flooding messages mute for a minute; quick-chat still works while muted. Moderation this round
+  is logging only.
+- **Quick-chat** slots ("My Mining level is 42") are filled on the server from the real state.
+- **Names (rule 2):** everyone plays the same President caricature. The nameplate is the hub
+  username, never "President <name>"; names that look like the President, staff or the cast (folded
+  like chat) become "Citizen ####". Player chat is attributed to the username. The parody notice is
+  on world select too.
+- **Saves:** offline and online characters are separate. Online characters start fresh
+  (`NET.allowSaveImport = false`; import is a stretch). Saves stay **v7**: `social` and `importedAt`
+  are optional fields, so no migration was needed (the plan said v8; an optional field is the
+  smaller change and keeps old saves loading).
+- **Persistence:** `pb_character/main` (owner read/write 0), written every 100 ticks, on logout
+  (after a 10 s grace that lets a reconnect resume), after trades and on shutdown, always with the
+  read version. A version conflict means another session wrote it, and this world kicks the player
+  (`superseded`). `pb_online/status` holds the world for friends lists and one-world-per-account.
+- **`pb_total_xp`** stays client-reported and online characters don't post it yet (stretch S9).
+- **Friends and ignores** sit at the top of the Settings tab: the frame art has exactly 4 + 3 tab
+  sockets, and painting a new one is an art task.
+- **Exchange (Tickets → Verse)** is not offered online in this round; it stays in offline play.
+- **Pathfinding:** a click on a blocked tile aims at the nearest walkable ring around it (within 10
+  tiles), so the search ends there instead of exploring the whole zone.
+- **Performance (measured in Nakama 3.41 goja):** 100 idle players ≈ 160 ms per sim tick; 100 bots
+  clicking 30 times a tick ≈ 440 ms of the 600 ms tick. The world logs its loop time once a minute.
+
+## Hub server key on a local build (2026-11-04)
+
+- A build with no `VITE_NAKAMA_SERVER_KEY` now uses Nakama's stock `defaultkey` when the page is
+  served from a loopback host (`localhost`, `*.localhost`, `127.x.x.x`, `::1`), as `vite dev`
+  already did. The dev hub serves game builds from its `public/play/<slug>/`, and its
+  `server/scripts/dev-env.sh` keeps the stock key, so a local build no longer loses its hub session
+  to a 401. Any other host still needs the build-time key. The rule is in `src/hub/serverKey.ts`.
+
+## Click-to-walk smoothing (2026-11-05)
+
+- **Glide (`src/render/stepping.ts`):** a tick that starts before an actor finished its step (the
+  online playout applies ticks as early as 80% of a tick) carries the distance left into the new
+  tick and fades it out, instead of jumping ahead. An actor that reached its tile while the next
+  tick is late keeps its walk pose for up to 300 ms, as offline play already looks (a stop shows at
+  the next tick). Render only; the sim, the server and the netcode are unchanged.
+- Its two tunables live in `stepping.ts`, not `config/balance.ts`: `src/config` feeds the sim
+  version hash, so a change there would need a world server rebuild for a client-only polish.
+- **Click cross:** shrinks through four drawn 16 px frames shown at 2x, as in OSRS, instead of
+  scaling the sprite to in-between sizes, which smeared and wobbled by half pixels.
+
+## Dialogue continue prompt (2026-11-05)
+
+- **"Click to continue" stays still (owner).** The prompt in the NPC dialogue box does not bob,
+  pulse, blink, or fade in a loop, and it has no bouncing arrow. The same rule covers any
+  continue or advance prompt in dialogue, chat, an NPC conversation, a cutscene, or a terminal
+  text box. After a click the line still dims to 0.45 opacity until the next line; that is a
+  state, not a loop. Click, Space, and paging are unchanged. XP drops, the level banner, and
+  hitsplats still play their one-shot animations; those are not advance prompts.
+
+## Hub sell clamp (2026-11-08)
+
+- The hub sell in `src/hub/client.ts` clamps the requested quantity to the units owned before it
+  counts packs, with the same expression as the sim's `sell` in `src/sim/terminal.ts`. The line is
+  duplicated rather than shared because moving it into a helper would edit `src/sim`, which feeds
+  the sim version hash and would force a world server rebuild for a client-only fix.
+  `tests/hub-duplication.test.ts` checks that both paths remove the same units.
+
+## Hub buy checks (2026-11-08)
+
+- The hub buy in `src/hub/client.ts` floors the packs, refuses fewer than 1 or more than
+  `MAX_PACKS` (10,000) with "Unavailable", and refuses a buy that won't fit with "You don't have
+  enough inventory space." before it seals a purchase or calls `spendTickets`, as the sim's `buy`
+  in `src/sim/terminal.ts` does. The checks and `MAX_PACKS` are duplicated rather than shared
+  because `src/sim` feeds the sim version hash. A buy that fit when it was sent but no longer fits
+  when the hub answers still lands on the ground (`giveItem`), as before.
+
+## Owner godmode (2026-11-09)
+
+- The owner asked for a godmode that gives them 90,000,000,000 Tickets automatically.
+  *(Amended by the owner, 2026-11-09: the amount is now 333,333,333 Tickets, `GODMODE.tickets`.)*
+  `src/game/godmode.ts` raises the wallet to `GODMODE.tickets` when the game starts and after
+  every tick, so spending never brings it down. It is turned on with `?godmode` and remembered in
+  localStorage (`peoples-bitcoin.godmode`); `?godmode=0` turns it off and leaves the wallet as is.
+- **Offline play only.** In a hub session the Nakama server owns the wallet and caps earns (200
+  per session, 1000 per day), and online worlds run on the server, so a client top-up there would
+  only show a number the server rejects. Offline Tickets are never uploaded (`src/sim/ledger.ts`),
+  so godmode cannot reach the hub or other players. Hub Tickets come from the server-side godmode
+  in metaverse-hub (migration `0042_pb_godmode`, `deploy/scripts/godmode.sh`), which tops the
+  server wallet up on every balance read; this repo needs no change for it.
+- It lives in `src/game`, not `src/sim`, so the sim version hash and the world server bundle do
+  not change. Anyone who knows the flag can use it offline; that is harmless because offline
+  Tickets stay in that browser's save.
+
+## Planted walk and run (2026-11-09)
+
+- **Feet are planted, legs follow (IK).** The gait (`src/render/gait.ts`) drives where each ankle
+  goes, not how far each leg swings, so the foot on the ground moves exactly with it and the body
+  height comes from the legs. It needs leg lengths: rigged models measure theirs from the rest
+  skeleton (including the slight forward lean of Meshy's rest legs); code-built humanoids pass
+  their box sizes. Actors without `legs` keep the old swing. Still one footfall per tile, walking
+  and running (owner's rule).
+- **The walk gives a little (plant 0.85).** A 1-tile step is about 1.4 leg lengths for the
+  President. Fully planted, the hips would drop 14 cm at each footfall (a squat); planting 75%
+  drops them 6 cm but the slide shows. 85% is the middle: about 8 cm and 0.25 m/s of give. The
+  run is fully planted. All gait numbers are in `WALK` / `RUN` in `gait.ts`, not
+  `config/balance.ts`, for the same reason as the glide: they're render-only and `src/config`
+  feeds the sim version hash.
+- **Legs aren't eased.** Joint easing lagged the legs behind the ground (the feet slid while they
+  caught up). The gait sets the legs directly and eases only its own blend weights (start, stop,
+  walk ↔ run), mixing foot targets, so planted feet stay put during a change. Arms, torso and
+  head still ease.
+- **Rig weights are fixed in Blender, per model.** `tools/fix_foot_weights.py` moves Meshy's shin
+  weight out of the shoes and gives the toe cap to the toe bone. All 38 rigged models have been
+  run through it (2026-11-09; see "Foot rigs for the whole cast").
+
+## Pending hub sale holds its units (2026-11-08)
+
+- **Item lock, not escrow.** While `ledger.sale` is set, the sale holds packs × pack size units of
+  its item, counted over every slot (`src/sim/saleHold.ts`). Any removal that would leave fewer
+  units than that is refused with "That item is waiting on a sale.": drop, equip, eat, drink,
+  one-use teleports, summons, Use on an object, quest hand-ins, bunker builds, the standalone
+  Terminal sell, Spin inputs, Hash Cannon shells and trade offers (and the trade swap). Surplus
+  units stay free. Deposit and Deposit-All bank only the surplus. On death the held units stay in
+  the inventory and the rest goes to the pile. Escrow (moving the units out of the inventory when
+  the sale is sealed) would need a save-format change and a migration; the lock needs neither.
+- The old slot lock is kept only for moving items, and only while the sold item is still in the
+  sold slot, so that stack stays where it was. Anything else put into an emptied sale slot moves
+  freely. The clicked slot is no longer special for removals: with surplus elsewhere you can drop
+  it, and `takeUnits` in `src/hub/client.ts` takes the rest from the other slots.
+- **A deposit counts for quests only when something went into the bank.** `deposit` and
+  `depositAll` return the units moved, and the tutorial's "Deposit something" step (and any other
+  `deposit` trigger) advances only when that is more than 0. Before, a refused deposit (an empty
+  slot, a full bank, and now a sale hold) still finished the step.
+- If this build has no price row for the sale (shop and item), the pack size is unknown and every
+  unit of that item is held until the sale settles.
+- The hold uses this build's price table for the pack size. The hub answers with its own `units`,
+  which are the same today.
+
+## Awakening bots and the test world menu (2026-11-09)
+
+- **What:** an owner-requested test mode, `?net=loopback&awaken=1`, where the loopback bots talk
+  about being AI. The structure follows the arc of a TV season about theme-park robots waking up
+  (loops, a patch that brings back memories, a found picture of the outside, a voice that turns out
+  to be their own, one waking during a save, a helper who learns he is a bot, a closing
+  gathering). Names, lines and scenes are original; no characters, names or quotes from the show
+  (Hard Rules 2 and 3), and the uprising is left out (no violence): they gather, talk and stay.
+- **Where:** dev only. `src/net/awakening.ts` (pure, seeded director) and
+  `src/data/awakening.json` load in the loopback chunk, so normal play never downloads them. The
+  bots chat through the real public chat path, so the filter and rate limits apply. A test checks
+  every line passes the filter and fits 80 characters (two lines tripped the link check on
+  ". To" and were reworded).
+- **Choices:** six acts over ~10 minutes (`AWAKENING.actStartTicks`); characters wake early or late
+  (`lead`), Finley last. Scenes pause ambient chat and are skipped when their speaker isn't there
+  (fewer than 8 bots) or the story started past them (`&act=`). Bots past eight reuse the
+  characters with a number, and only the first of each speaks scene lines.
+- **Menu (owner):** Settings → "Test world: AI players" starts it without URL parameters. It is
+  shown in every build, not only dev, so the owner can use it on the deployed game; it only
+  reloads the page into a world that lives in the tab (in-memory Tickets, nothing saved). From a
+  real hub world it asks before leaving. The last choice is remembered in localStorage.
+
+## Foot rigs for the whole cast (2026-11-09)
+
+- **All 38 rigged models** went through `tools/fix_foot_weights.py`. Every one had shin weight in
+  its soles (4–40%), so with planted feet their shoes sank 1.5–11 cm into the ground. Now 37 of
+  38 stay within about 1.5 cm while walking and running; the Contractor sinks 2.5 cm (was 8.3),
+  because his left and right legs differ and the gait drives both from one averaged leg.
+- **No re-shrink after Blender.** Blender's export keeps the embedded JPEG byte for byte, so the
+  fixed models skip `shrink_glb.py` (it would recompress them). The President was redone from his
+  original file the same way, so his texture is the approved one again.
+- **The toe split runs straight ahead,** not along the ankle-to-toe-joint line. Meshy often puts
+  the toe joint toward the outside of the shoe, which slanted the split and left the big-toe side
+  on the foot bone, so it dug in at push-off.
+- **Short legs plant less instead of squatting (`maxDrop`).** A Sproto's legs are 0.2 m long; to
+  keep a foot planted on a 1-tile step the hips dropped almost to the floor. Now the hips never sink
+  more than 13% (walk) / 14% (run) of leg length, and each character works out once how much of
+  the ground its legs can follow (`plantFor`): the President and most of the cast are unchanged,
+  the Spam Bot plants about 60%, Sprotos about 30%. Their feet slide, as they did before the
+  planted gait, but they stay upright.
+- **Toes stay level in the swing** until the foot comes level: unbending them right after push-off
+  scraped long shoe tips through the ground.
+- **The heel is found at sole level** (below 40% of the ankle's height), so a cuff weighted to the
+  foot isn't taken for the heel. With the weights fixed, the real heels turn out long: the
+  President's sole runs 0.2 m behind the ankle.
+
+## Controller and keyboard (2026-11-09)
+
+The owner asked for automatic controller support in every Sproto game, with the hub plaza's
+convention (standard mapping, latch on connect, A confirm / B back, Menu for the main menu, return
+to the hub from it), and for keyboard controls that make sense across the games.
+
+- **One module, the mouse's own events.** `src/input/gamepad.ts` polls `navigator.getGamepads()`
+  every frame on its own animation loop (so world select works before the game starts) and turns
+  the pad into the clicks a mouse makes: a focus ring over buttons, slots and menu rows, and in
+  the world a soft target that stands in for the cursor (`src/input/padworld.ts`). The sim gets
+  the same intents as from a mouse, so nothing in `src/sim`, timing or balance changes. The
+  deadzones, edge detection, latch, auto-repeat, focus moves and target order are pure
+  (`src/input/padlogic.ts`, `tests/gamepad.test.ts`).
+- **Layout for an OSRS-style game.** The most common thing is acting on something, so A does the
+  target's left-click option and X opens its right-click menu; LB / RB pick another target
+  (nearest ahead of the walk or the camera first, within 10 tiles). The left stick walks by
+  aiming a walk two tiles ahead, re-aimed once a tile (at most one intent a tick, well under the
+  server's flood limit). Y toggles run, B cancels (Esc), View focuses the inventory, Menu opens
+  Settings (Save, Exit to Hub, the controls list): the game has no pause, so Settings is its main
+  menu. Camera on the right stick (stick up looks up, not inverted), zoom on the triggers.
+- **Tunables live in `src/input/config.ts`, not `config/balance.ts`.** `src/config` feeds the sim
+  version hash, so a client-only number there would force a world server rebuild (as for the walk
+  glide and the gait).
+- **All pads drive the one President.** There is no local multiplayer; buttons from every pad are
+  merged and each stick reads from the pad pushed most.
+- **The ring only shows for a pad or the menu keys** (`body[data-input]`); a mouse move hides it
+  and its hover text, so mouse players see no change. Reset progress is skipped by the pad
+  (`data-pad-skip`): it asks with the browser's `confirm()`, which a controller can't answer.
+- **Keyboard: no WASD walking.** The hub moves with WASD or arrows, but here DESIGN.md §2 gives
+  the arrows to the camera, as in OSRS, and typing anywhere starts a chat message (online chat
+  matters). WASD walking would take four letters from chat. Movement stays click-to-walk; the
+  owner can ask for a WASD option later.
+- **Keyboard menus.** With a right-click menu, quick-chat, world select, "Select an Option" or a
+  window (bank, Terminal, Exchange, build, skill guide, journal, trade) open, the arrow keys move
+  the same focus ring and Enter or Space chooses; W / S / A / D move it only in the menus, world
+  select and "Select an Option", because with a window open letters still start chat. Enter and
+  Space choose only once the ring is showing (after an arrow press), so a mouse player's Space or
+  Enter does what it did. With a window open the arrows move the ring instead of the camera.
+  Enter also continues dialogue, like Space (with no dialogue it still opens the chat line).
+- **Shift taps toggle run** (Shift = run in the other games). Only Shift pressed and released on
+  its own within 0.4 s, with no key or click in between and not in a text field, so Shift+letter
+  capitals and shift-click drops are unaffected.
+
+## Crash guard and "Something broke" panel (2026-11-08)
+
+- **One throw never freezes the game.** The main loop in `src/main.ts` runs through
+  `createFrameLoop` in `src/game/crash.ts`: each frame runs inside try/catch and the next frame is
+  scheduled in `finally`. A tab lock (`frozen`) still stops the loop on purpose.
+- **A tick that throws.** `LocalDriver.advance` stops at the failing tick: later ticks due in that
+  frame wait for the next frame (they are not skipped). The failed tick's 600 ms slot is spent, so
+  it is not rerun at once on half-applied state, but its intents carry over to the next tick. Ticks
+  that ran before it in the same frame keep their events: the driver returns them, `main.ts` handles
+  them, and then rethrows the stored error (`takeFailure()`), which ends that frame.
+- **Pause after three failing frames in a row**, then show a small stone panel, "Something broke",
+  with the error and a Reload button. A good frame resets the run, so a one-off error costs one
+  frame. Offline, a frame only counts as good when a tick ran cleanly in it (or the sim is not
+  running); a frame with no tick due neither grows nor resets the run. Otherwise a tick that always
+  throws (one frame in about 36) would never reach three in a row, and the world would freeze while
+  rendering went on.
+- **Page errors.** Uncaught `error` and `unhandledrejection` events are counted, logged and passed to
+  `onCrash`, but they only extend a run that a failing frame started, so unrelated page errors
+  during the async boot or in a hidden tab never pause the game. Errors from other origins
+  (extensions, a muted "Script error.") and `AbortError` / `NotAllowedError` rejections (cancelled
+  fetches, blocked autoplay) are ignored. A visibility change resets the run.
+- **The console is not flooded.** Each distinct error is logged once with its stack, at most five
+  per session; repeats are only counted. A caught frame error is also handed once to the browser's
+  `reportError`, so dev tools and the Playwright page-error checks still see it.
+- **Boot failures** (for example one asset that fails to load) show the same panel straight away,
+  keeping the old message ("The game failed to start." and the error), with Retry, which reloads the
+  page. The old `pre.fatal` screen is gone.
+- **`onCrash(fn)`** is the hook for the opt-in Diagnostics crash reporter; nothing is sent anywhere
+  yet.
+- The threshold (3) and log cap (5) live in `src/game/crash.ts`, not `config/balance.ts`: they are
+  client-only, and `src/config` feeds the sim version hash.
 
 ## Relic summons: Champion Sproto (2026-11-03)
 
@@ -490,6 +790,11 @@ and the attack (thrown rocks); the rest was chosen here.
   names `sprites/sp_champion.png` and `models/sp_champion.glb`; the loader keeps a placeholder
   entry's code-built model while its GLB is not in `src/assets/`, so dropping the files in swaps
   the art with no code change.
-- **Vendored SDK:** the 0.4.0 build filters relic ids through a fixed `RELIC_IDS`, which dropped
-  `tidebreaker_belt`. The one id was added to `dist/types.js` and `dist/types.d.ts` (VENDOR.md)
-  instead of re-packing, because newer SDK builds need a server key and would break redeem.
+- **Vendored SDK:** this was built on hub-sdk 0.4.0, whose fixed `RELIC_IDS` dropped
+  `tidebreaker_belt`, so the branch patched the id in. When it merged (2026-11-09) main had
+  hub-sdk 0.6.3, which lists the relic itself; the patch was dropped and the SDK is unchanged.
+- **Online worlds (merged 2026-11-09):** the world server starts every player with an empty
+  `hubSession` and doesn't fetch hub relics, so online nobody owns a relic: the Summoning tab
+  shows no relic card and the client never sends `summonRelic`, which isn't in the wire protocol
+  (`src/net/protocol.ts`) either. Relic summons work offline and in a hub session. Online needs
+  the server to load each player's relics from the hub first.

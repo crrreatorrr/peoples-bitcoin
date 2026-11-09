@@ -6,7 +6,32 @@
 import { GROUND_ITEMS } from '../config/balance';
 import { addItem, canAdd, removeSlot } from './inventory';
 import { progressQuests } from './quests';
-import type { GameState, GroundItem, SimContext, SimEvent, ZoneState } from './state';
+import { LOOT } from '../config/balance';
+import {
+  PLAYER_ID,
+  type GameState,
+  type GroundItem,
+  type SimContext,
+  type SimEvent,
+  type ZoneState,
+} from './state';
+
+/**
+ * Online, what a player drops or loots is theirs for LOOT.privateTicks, then
+ * anyone's. Untradeables (value 0) never turn public. Offline: no owner.
+ */
+export function privacyFor(
+  state: GameState,
+  ctx: SimContext,
+  itemId: string,
+  ownerPid = state.pid,
+): { owner: string; publicAt?: number } | undefined {
+  if (ownerPid === PLAYER_ID) return undefined;
+  const tradeable = (ctx.content.items.get(itemId)?.value ?? 0) > 0;
+  return tradeable
+    ? { owner: ownerPid, publicAt: state.tick + LOOT.privateTicks }
+    : { owner: ownerPid };
+}
 
 export function spawnGroundItem(
   zone: ZoneState,
@@ -16,9 +41,17 @@ export function spawnGroundItem(
   y: number,
   despawnTick: number,
   stackable: boolean,
+  privacy?: { owner: string; publicAt?: number },
 ): void {
   const pile = stackable
-    ? zone.groundItems.find((g) => g.itemId === itemId && g.x === x && g.y === y)
+    ? zone.groundItems.find(
+        (g) =>
+          g.itemId === itemId &&
+          g.x === x &&
+          g.y === y &&
+          g.owner === privacy?.owner &&
+          g.publicAt === privacy?.publicAt,
+      )
     : undefined;
   if (pile) {
     pile.qty += qty;
@@ -34,6 +67,8 @@ export function spawnGroundItem(
       x,
       y,
       despawnTick,
+      ...(privacy ? { owner: privacy.owner } : {}),
+      ...(privacy?.publicAt !== undefined ? { publicAt: privacy.publicAt } : {}),
     });
   }
 }
@@ -51,6 +86,7 @@ export function dropToGround(state: GameState, ctx: SimContext, slot: number): v
     player.pos.y,
     state.tick + GROUND_ITEMS.despawnTicks,
     stackable,
+    privacyFor(state, ctx, dropped.itemId),
   );
 }
 
@@ -77,6 +113,7 @@ export function giveItem(
     y,
     state.tick + GROUND_ITEMS.despawnTicks,
     item.stackable,
+    privacyFor(state, ctx, itemId),
   );
   events.push({
     type: 'message',

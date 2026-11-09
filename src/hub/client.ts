@@ -4,7 +4,7 @@
  */
 import { TERMINAL_SHOP_ID, TICKETS } from '../config/balance';
 import { giveItem } from '../sim/ground';
-import { countItem, removeItem } from '../sim/inventory';
+import { canAdd, countItem, removeItem } from '../sim/inventory';
 import {
   ackStreamBatch,
   dropStreamBatch,
@@ -38,9 +38,10 @@ import { ackSeal, forgetSeal, reconcileSeals, rememberSeal } from './ledgerStore
 import { questEarnWireKey, uuidv7 } from './uuid';
 
 const QUEST_REASON = 'pb_quest';
+/** Most packs one buy may ask for. Mirrors `MAX_PACKS` in src/sim/terminal.ts (hashed, so not imported). */
+const MAX_PACKS = 10_000;
 
 export class HubClient {
-  private readonly bridge = new HubBridge();
   private readonly inflight = new Set<string>();
   /** Owner id for the cross-tab hub-ledger lock. */
   private readonly lockOwner = uuidv7();
@@ -51,13 +52,21 @@ export class HubClient {
     private readonly say: (text: string, kind?: MessageKind) => void,
     private readonly queue: (intent: Intent) => void,
     private readonly save: () => boolean,
+    /** Shared with world select, which may have redeemed the ticket already. */
+    private readonly bridge: HubBridge = new HubBridge(),
   ) {}
+
+  /** After the first start, a later start redeems again (a new hub session). */
+  private reinit = false;
 
   async start(): Promise<void> {
     const outcome = await Promise.race([
-      this.bridge.init().then(() => 'ok' as const),
+      (this.bridge.initialized && !this.reinit ? Promise.resolve() : this.bridge.init()).then(
+        () => 'ok' as const,
+      ),
       new Promise<'timeout'>((resolve) => setTimeout(() => resolve('timeout'), 8000)),
     ]);
+    this.reinit = true;
     if (outcome === 'timeout') console.warn('[hub] init timed out; running standalone');
     this.applyLink();
     if (this.state.hubSession.mode !== 'hub') return;
@@ -159,12 +168,21 @@ export class HubClient {
     const row = this.ctx.content.ticketPrices.find(
       (r) => r.shopId === shopId && r.itemId === itemId,
     );
-    if (!row || packs < 1) {
+    const item = this.ctx.content.items.get(itemId);
+    // The same checks as the sim's `buy` (src/sim/terminal.ts), duplicated rather than shared
+    // because src/sim is hashed into SIM_VERSION: whole packs, 1..MAX_PACKS, and room for them.
+    const n = Math.floor(packs);
+    if (!row || !item || !(n >= 1 && n <= MAX_PACKS)) {
       this.say('Unavailable');
       return;
     }
+    const units = row.packSize * n;
+    if (!canAdd(this.state.player.inventory, item, item.stackable ? 1 : units)) {
+      this.say("You don't have enough inventory space.");
+      return;
+    }
     const key = uuidv7();
-    this.state.player.ledger.purchase = { key, shopId, itemId, packs };
+    this.state.player.ledger.purchase = { key, shopId, itemId, packs: n };
     if (!this.save()) {
       this.state.player.ledger.purchase = null;
       this.say('Saving is unavailable in this browser.');
@@ -186,7 +204,11 @@ export class HubClient {
     if (!(wanted > 0)) return;
     const row = sellListing(this.ctx.content, this.openShopId(), item.id);
     if (row) {
-      const packs = Math.floor(wanted / row.packSize);
+      // Clamp to the units owned, exactly as the sim's sell does (src/sim/terminal.ts, `sell`).
+      // Duplicated rather than shared because src/sim is hashed into SIM_VERSION.
+      const packs = Math.floor(
+        Math.min(wanted, countItem(player.inventory, item.id)) / row.packSize,
+      );
       if (packs < 1) {
         this.say(`You need a full pack of ${row.packSize}.`);
         return;

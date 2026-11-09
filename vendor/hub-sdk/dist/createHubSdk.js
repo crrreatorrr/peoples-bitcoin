@@ -2,11 +2,12 @@ import { resolveHubEnv } from './env';
 import { HubSdkError } from './errors';
 import { relicForEvent } from './events';
 import { pbShopRow } from './pbShop';
+import { EMPTY_SAVE, encodeSave } from './save';
 import { createLiveHubSdk } from './live';
-import { createNakamaClient } from './nakama';
+import { createNakamaClient, LOCAL_NAKAMA } from './nakama';
 import { getOrCreateDeviceId, readNumber, writeNumber } from './storage';
 import { readTicketParam, stripTicketParam, verifyMockTicket } from './ticket';
-import { GAME_IDS, MOCK_TICKET_EARN_CAP, TICKETS_PER_VERSE, VERSE_DAILY_CAP, canonicalGameId, isBoardId, isRelicId, } from './types';
+import { GAME_IDS, MOCK_TICKET_EARN_CAP, NOBU_TRIAL_CEIL_MS, NOBU_TRIAL_FLOOR_MS, TICKETS_PER_VERSE, VERSE_DAILY_CAP, canonicalGameId, isBoardId, isRelicId, } from './types';
 const BOARD_MODE = {
     hpos10i_act_time: 'asc-best',
     nobu_trial_time: 'asc-best',
@@ -14,6 +15,9 @@ const BOARD_MODE = {
     sproto_wins: 'desc-incr',
     meta: 'desc-set',
 };
+function isNobuVariant(value) {
+    return Object.prototype.hasOwnProperty.call(NOBU_TRIAL_FLOOR_MS, value);
+}
 function dayKey(now) {
     return new Date(now).toISOString().slice(0, 10);
 }
@@ -45,6 +49,7 @@ export function createHubSdk(env = {}) {
         const client = env.client ??
             createNakamaClient({
                 serverUrl: env.serverUrl ?? '',
+                serverKey: env.serverKey ?? LOCAL_NAKAMA.serverKey,
             });
         return createLiveHubSdk(env, client);
     }
@@ -173,6 +178,17 @@ function createMockHubSdk(env) {
         active = session;
         return session;
     }
+    function mockSessionInfo() {
+        if (!active)
+            return null;
+        return {
+            token: `mock.${active.playerId}`,
+            playerId: active.playerId,
+            game: active.game,
+            ranked: active.ranked,
+            expiresAt: resolved.now() + 7_200_000,
+        };
+    }
     async function withIdem(playerId, key, rpc, body, run) {
         if (!key)
             throw new HubSdkError('bad_key', 'Idempotency key is required');
@@ -191,6 +207,27 @@ function createMockHubSdk(env) {
         return response;
     }
     return {
+        async redeemTicket({ game: gameId }) {
+            const game = canonicalGameId(gameId);
+            if (!game)
+                throw new HubSdkError('bad_game', `Unknown game "${gameId}"`);
+            const token = readTicketParam(resolved.readHash());
+            resolved.writeHash(stripTicketParam(resolved.readHash()));
+            if (!token)
+                throw new HubSdkError('ticket_invalid', 'Missing ticket');
+            const claims = await verifyMockTicket(token);
+            if (!claims)
+                throw new HubSdkError('ticket_invalid', 'Ticket signature or payload is not valid');
+            if (claims.exp * 1000 <= resolved.now())
+                throw new HubSdkError('ticket_expired', 'Ticket expired');
+            if (claims.game !== game)
+                throw new HubSdkError('ticket_game', 'Ticket is for a different game');
+            if (spentSet().has(claims.jti))
+                throw new HubSdkError('ticket_used', 'Ticket was already redeemed');
+            markSpent(claims.jti);
+            const session = openSession(claims);
+            return { token: `mock.${session.playerId}`, refreshToken: `mock-refresh.${session.playerId}` };
+        },
         async init(gameId) {
             const game = canonicalGameId(gameId);
             if (!game)
@@ -250,20 +287,85 @@ function createMockHubSdk(env) {
                 throw new HubSdkError('bad_board', `Unknown board "${boardId}"`);
             if (!Number.isFinite(value) || value < 0)
                 throw new HubSdkError('bad_score', 'Score must be a non-negative number');
-            if (!active || !active.ranked)
+            if (!active)
                 return;
-            const storageKey = `hub:score:${active.playerId}:${boardId}`;
+            // Same rules as the server's HubBoards.submit (Contract C13).
+            const metaObj = (meta && typeof meta === 'object' ? meta : {});
+            if (boardId === 'meta' || boardId === 'sproto_wins')
+                return { accepted: false, reason: 'server_board' };
+            if (!active.ranked && (active.game === 'hpos10i' || active.game === 'sproto'))
+                return { accepted: false, reason: 'unranked' };
+            if (metaObj.godMode === true)
+                return { accepted: false, reason: 'god_mode' };
+            let variant = '';
+            if (boardId === 'nobu_trial_time') {
+                variant = String(metaObj.level ?? '');
+                if (!isNobuVariant(variant))
+                    throw new HubSdkError('bad_variant', 'Unknown level');
+                const floor = NOBU_TRIAL_FLOOR_MS[variant];
+                if (!Number.isInteger(value))
+                    throw new HubSdkError('bad_score', 'Time must be integer milliseconds');
+                if (value < floor || value > NOBU_TRIAL_CEIL_MS)
+                    throw new HubSdkError('implausible_score', 'Time is out of bounds');
+            }
+            const storageKey = `hub:score:${active.playerId}:${boardId}${variant ? `:${variant}` : ''}`;
             const previous = readNumber(resolved.local, storageKey);
             const hasPrevious = resolved.local.getItem(storageKey) !== null;
             const mode = BOARD_MODE[boardId];
-            let next = value;
+            const whole = Math.round(value);
+            let next = whole;
             if (mode === 'asc-best')
-                next = hasPrevious ? Math.min(previous, value) : value;
+                next = hasPrevious ? Math.min(previous, whole) : whole;
             if (mode === 'desc-incr')
-                next = previous + value;
+                next = previous + whole;
+            const posted = !hasPrevious || next !== previous;
             writeNumber(resolved.local, storageKey, next);
-            if (meta && typeof meta === 'object')
-                resolved.local.setItem(`${storageKey}:meta`, stable(meta));
+            if (posted)
+                resolved.local.setItem(`${storageKey}:meta`, stable(metaObj));
+            return { accepted: true, posted, value: next, order: mode === 'asc-best' ? 'asc' : 'desc' };
+        },
+        getSession() {
+            return mockSessionInfo();
+        },
+        async refreshSession() {
+            return mockSessionInfo();
+        },
+        async getLeaderboard(boardId, opts) {
+            if (!isBoardId(boardId))
+                throw new HubSdkError('bad_board', `Unknown board "${boardId}"`);
+            const variant = opts?.variant ?? '';
+            const order = BOARD_MODE[boardId] === 'asc-best' ? 'asc' : 'desc';
+            if (!active)
+                return { boardId, variant, order, rows: [], me: null };
+            if (boardId === 'nobu_trial_time' && !isNobuVariant(variant))
+                throw new HubSdkError('bad_variant', 'Unknown level');
+            const raw = resolved.local.getItem(`hub:score:${active.playerId}:${boardId}${variant ? `:${variant}` : ''}`);
+            if (raw === null)
+                return { boardId, variant, order, rows: [], me: null };
+            const row = { userId: active.playerId, name: active.playerId, value: Number(raw), rank: 1 };
+            return { boardId, variant, order, rows: [row], me: row };
+        },
+        async loadSave() {
+            if (!active)
+                return { ...EMPTY_SAVE };
+            const raw = resolved.local.getItem(`hub:save:${active.playerId}:${active.game}`);
+            if (raw === null)
+                return { ...EMPTY_SAVE };
+            try {
+                const stored = JSON.parse(raw);
+                return { data: stored.data, updatedAt: stored.updatedAt };
+            }
+            catch {
+                return { ...EMPTY_SAVE };
+            }
+        },
+        async writeSave(data) {
+            const text = encodeSave(data);
+            if (!active)
+                return { ...EMPTY_SAVE };
+            const stored = { data: JSON.parse(text), updatedAt: bucketNow() };
+            resolved.local.setItem(`hub:save:${active.playerId}:${active.game}`, JSON.stringify(stored));
+            return stored;
         },
         async earnTickets(amount, reason, key) {
             if (!key)

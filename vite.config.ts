@@ -1,5 +1,6 @@
 import { loadEnv } from 'vite';
 import { defineConfig } from 'vitest/config';
+import { simHash } from './scripts/simHash.mjs';
 
 /**
  * Public path for this build. `VITE_BASE` overrides it (a path or an absolute
@@ -25,6 +26,8 @@ function appBase(command: 'build' | 'serve', mode: string): string {
 
 export default defineConfig(({ command, mode }) => ({
   base: appBase(command, mode),
+  // The client and the server bundle (npm run build:sim) must agree on this.
+  define: { __PB_SIM_VERSION__: JSON.stringify(simHash()) },
   server: {
     proxy: {
       '/v2': { target: 'http://127.0.0.1:7350', changeOrigin: true },

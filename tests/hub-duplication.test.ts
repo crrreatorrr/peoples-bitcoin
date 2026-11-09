@@ -2,6 +2,7 @@
  * Client duplication. The hub SDK is mocked so each earn, spend, exchange,
  * and relic event is counted. A case that the client still gets wrong is left failing.
  */
+import { readFileSync } from 'node:fs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   HubSdkError,
@@ -95,6 +96,8 @@ class ScriptedHub {
   shopError: HubSdkError | null = null;
   spendUnits: number | null = null;
   sellUnits: number | null = null;
+  /** When set, a sell answers with packs × this many units, as the server does. */
+  sellPackSize: number | null = null;
   spendBalance: number | null = null;
   sellBalance: number | null = null;
   sellCredited: number | null = null;
@@ -119,6 +122,9 @@ class ScriptedHub {
       sellItem?: (shopId: string, itemId: string, packs: number, key: string) => Promise<unknown>;
       getTicketBalance?: () => Promise<unknown>;
     } = {
+      redeemTicket: async () => {
+        throw new Error('redeemTicket is not used by the bridge');
+      },
       init: async () => {
         if (this.initError) throw this.initError;
         if (this.linked) {
@@ -296,7 +302,7 @@ class ScriptedHub {
       shop_id: shopId,
       item_id: itemId,
       packs,
-      units: this.sellUnits ?? packs,
+      units: this.sellUnits ?? packs * (this.sellPackSize ?? 1),
       credited: this.sellCredited ?? 0,
       balance: this.sellBalance ?? this.serverBalance,
     };
@@ -1193,6 +1199,56 @@ describe('shop on SDK 0.2.0', () => {
   });
 });
 
+describe('hub sell clamps to the units owned', () => {
+  function packSizeOf(itemId: string): number {
+    const row = content().ticketPrices.find(
+      (r) => r.shopId === 'shop_terminal' && r.itemId === itemId,
+    );
+    if (!row) throw new Error(`no terminal row for ${itemId}`);
+    return row.packSize;
+  }
+
+  /** Units the offline sim removes for the same sell, the reference the hub must match. */
+  function simUnits(itemId: string, owned: number, qty: number | 'all'): number {
+    const { state, ctx } = newGame();
+    give(state, itemId, owned);
+    state.player.interface = { kind: 'terminal', shopId: 'shop_terminal' };
+    runTick(state, ctx, [{ type: 'sell', slot: 0, qty }]);
+    return owned - countItem(state.player.inventory, itemId);
+  }
+
+  const cases: Array<{ itemId: string; owned: number; qty: number | 'all' }> = [
+    { itemId: 'gun_campaign_pistol', owned: 3, qty: 10 },
+    { itemId: 'gun_campaign_pistol', owned: 3, qty: 'all' },
+    { itemId: 'gun_campaign_pistol', owned: 3, qty: 2 },
+    { itemId: 'item_rounds', owned: 250, qty: 1000 },
+    { itemId: 'item_rounds', owned: 250, qty: 'all' },
+    { itemId: 'item_rounds', owned: 250, qty: 150 },
+    { itemId: 'item_rounds', owned: 50, qty: 1000 },
+  ];
+
+  for (const { itemId, owned, qty } of cases) {
+    it(`sells no more than owned: ${owned} × ${itemId}, Sell ${qty}`, async () => {
+      const packSize = packSizeOf(itemId);
+      const { state, ctx } = newGame();
+      give(state, itemId, owned);
+      script.sellPackSize = packSize;
+      const { hub } = attach(state, ctx);
+      await hub.start();
+      hub.sell(0, qty);
+      await settle();
+
+      const ownedPacks = Math.floor(owned / packSize);
+      const packs = script.sells.reduce((sum, call) => sum + call.packs, 0);
+      expect(packs).toBeLessThanOrEqual(ownedPacks);
+      const removed = owned - countItem(state.player.inventory, itemId);
+      expect(removed).toBe(packs * packSize);
+      expect(removed).toBe(simUnits(itemId, owned, qty));
+      expect(state.player.ledger.sale).toBeNull();
+    });
+  }
+});
+
 describe('earn caps from getTicketBalance', () => {
   it('clamps a batch to the smaller cap and keeps the rest pending', async () => {
     const { state, ctx } = newGame();
@@ -1663,6 +1719,36 @@ describe('earn caps from getTicketBalance', () => {
   });
 });
 
+describe('a pending sale holds every unit it sells (PB-W-1-03)', () => {
+  it('a retried sale of 3 pistols cannot be paid while 2 of them were banked or dropped', async () => {
+    const { state, ctx } = newGame();
+    give(state, 'gun_campaign_pistol', 3);
+    const { hub } = attach(state, ctx);
+    await hub.start();
+    script.loseSell = true; // the hub commits the sale, then the reply is lost
+    hub.sell(0, 'all');
+    await settle();
+    expect(state.player.ledger.sale).toMatchObject({ itemId: 'gun_campaign_pistol', packs: 3 });
+    expect(countItem(state.player.inventory, 'gun_campaign_pistol')).toBe(3);
+
+    // The other two slots: bank one, drop one, while the sale waits for its retry.
+    state.player.interface = { kind: 'bank' };
+    runTick(state, ctx, [{ type: 'deposit', slot: 1, qty: 'all' }]);
+    state.player.interface = null;
+    runTick(state, ctx, [{ type: 'dropItem', slot: 2 }]);
+    expect(countItem(state.player.inventory, 'gun_campaign_pistol')).toBe(3);
+    expect(state.player.bank).toEqual([]);
+    expect(state.zone.groundItems).toEqual([]);
+
+    hub.checkpoint();
+    await settle();
+    expect(script.sells.at(-1)).toMatchObject({ itemId: 'gun_campaign_pistol', packs: 3 });
+    expect(state.player.ledger.sale).toBeNull();
+    // Every unit the hub paid for left the game.
+    expect(countItem(state.player.inventory, 'gun_campaign_pistol')).toBe(0);
+  });
+});
+
 describe('two tabs', () => {
   it('does not double-send a key when two instances share one save', async () => {
     const { state, ctx } = newGame();
@@ -1856,5 +1942,84 @@ describe('M8 content-only items on the hub', () => {
     expect(countItem(state.player.inventory, 'item_leaked_memo')).toBe(0);
     expect(countItem(state.player.inventory, 'pet_sproto_pup')).toBe(0);
     expect(state.player.currencies.tickets).toBe(wallet);
+  });
+});
+
+describe('hub buy makes the same checks as the sim buy (PB-W-1-04)', () => {
+  /** A hub session at the Terminal, with every inventory slot but `free` taken. */
+  async function atTerminal(free: number) {
+    const { state, ctx } = newGame();
+    const used = state.player.inventory.filter(Boolean).length;
+    give(state, 'item_scrap_hash', state.player.inventory.length - used - free);
+    state.player.interface = { kind: 'terminal', shopId: 'shop_terminal' };
+    const { hub, said } = attach(state, ctx);
+    await hub.start();
+    return { state, hub, said };
+  }
+
+  it('refuses a buy that will not fit, before any Tickets are spent', async () => {
+    const { state, hub, said } = await atTerminal(0);
+    hub.buy('shop_terminal', 'gun_campaign_pistol', 1);
+    hub.buy('shop_terminal', 'item_rounds', 1);
+    await settle();
+    expect(said).toContain("You don't have enough inventory space.");
+    expect(script.spends).toEqual([]);
+    expect(state.player.ledger.purchase).toBeNull();
+    expect(state.zone.groundItems).toEqual([]);
+  });
+
+  it('counts one slot per unstackable unit', async () => {
+    const { state, hub, said } = await atTerminal(2);
+    hub.buy('shop_terminal', 'gun_campaign_pistol', 3);
+    await settle();
+    expect(said).toContain("You don't have enough inventory space.");
+    expect(script.spends).toEqual([]);
+
+    hub.buy('shop_terminal', 'gun_campaign_pistol', 2);
+    await settle();
+    expect(script.spends).toEqual([expect.objectContaining({ packs: 2 })]);
+    expect(countItem(state.player.inventory, 'gun_campaign_pistol')).toBe(2);
+    expect(state.zone.groundItems).toEqual([]);
+  });
+
+  it('a stackable fits onto the stack already carried', async () => {
+    const { state, hub } = await atTerminal(1);
+    give(state, 'item_rounds', 5);
+    script.spendUnits = 100; // one pack of rounds
+    hub.buy('shop_terminal', 'item_rounds', 1);
+    await settle();
+    expect(script.spends).toEqual([expect.objectContaining({ itemId: 'item_rounds', packs: 1 })]);
+    expect(countItem(state.player.inventory, 'item_rounds')).toBe(105);
+  });
+
+  it('refuses fewer than one pack, more than the sim allows, and non-numbers', async () => {
+    const { hub, said } = await atTerminal(5);
+    for (const packs of [0, -1, 0.5, Number.NaN, Number.POSITIVE_INFINITY, 10_001]) {
+      hub.buy('shop_terminal', 'item_rounds', packs);
+    }
+    await settle();
+    expect(script.spends).toEqual([]);
+    expect(said.filter((s) => s === 'Unavailable')).toHaveLength(6);
+  });
+
+  it("the client's MAX_PACKS matches the sim's, so the copies cannot drift", () => {
+    const maxPacks = (path: string): number => {
+      const text = new TextDecoder().decode(readFileSync(path));
+      const m = /^const MAX_PACKS = ([\d_]+);$/m.exec(text);
+      if (!m) throw new Error(`no MAX_PACKS in ${path}`);
+      return Number(m[1].replaceAll('_', ''));
+    };
+    const sim = maxPacks('src/sim/terminal.ts');
+    expect(sim).toBeGreaterThan(0);
+    expect(maxPacks('src/hub/client.ts')).toBe(sim);
+  });
+
+  it('sends whole packs only, as the sim floors them', async () => {
+    const { state, hub } = await atTerminal(5);
+    script.spendUnits = 100; // one pack of rounds
+    hub.buy('shop_terminal', 'item_rounds', 1.9);
+    await settle();
+    expect(script.spends).toEqual([expect.objectContaining({ packs: 1 })]);
+    expect(countItem(state.player.inventory, 'item_rounds')).toBe(100);
   });
 });

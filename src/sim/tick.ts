@@ -14,7 +14,7 @@ import {
 } from '../config/balance';
 import { deposit, depositAll, withdraw } from './bank';
 import { build, builtOption, hotspotActions, useStation } from './bunker';
-import { approachEnemy, tickPlayerAttack } from './combat';
+import { approachEnemy, drainMailbox, fightingSomeoneElse, tickPlayerAttack } from './combat';
 import { stepEnemies } from './enemies';
 import { drink, expireBoosts } from './boosts';
 import { eat, equipFromInventory, setStyle, unequip } from './equipment';
@@ -25,11 +25,13 @@ import { swapSlots } from './inventory';
 import { stepNpcs } from './npcs';
 import { findPath } from './pathfinding';
 import { metFlag, npcLines, progressQuests } from './quests';
+import { SALE_HOLD_MESSAGE, saleBlocks } from './saleHold';
 import { dismiss, stepSproto, summonFromInventory, summonRelic, useSpecial } from './sprotos';
 import {
   findEntity,
   gridOf,
   maxHp,
+  viewFor,
   type EntityRef,
   type GameState,
   type Intent,
@@ -37,33 +39,89 @@ import {
   type SimContext,
   type SimEvent,
   type Tile,
+  type WorldState,
 } from './state';
 import { startTeleport, tickTeleport } from './teleport';
 import { buy, sell } from './terminal';
 import { useItemOn } from './uses';
 import { handleDeath, passGate, startDying, usePortal } from './zones';
 
+/** One tick of a single player's game (a world of one, or this player's slice of a bigger one). */
 export function runTick(state: GameState, ctx: SimContext, intents: readonly Intent[]): SimEvent[] {
-  const events: SimEvent[] = [];
-  state.tick++;
-  const player = state.player;
-  if (player.dyingUntil === null && player.teleport === null) {
-    for (const intent of intents) applyIntent(state, ctx, intent, events);
-    stepMovement(state);
-    stepActions(state, ctx, events);
-  } else {
-    player.stepsThisTick = [{ ...player.pos }];
+  return runWorldTick(state.world, ctx, { [state.pid]: intents })[state.pid] ?? [];
+}
+
+/**
+ * One 600 ms tick of a whole world. Order: each player (join order) handles
+ * intents, moves, acts, lands teleports and runs their Sproto; then each zone
+ * instance with players steps its enemies; then deaths; then each zone's NPCs,
+ * respawns and despawns; then each player's timers. Returns each pid's events.
+ * Zones nobody is in sleep; their timers compare against the tick, so they
+ * catch up when someone arrives.
+ */
+export function runWorldTick(
+  world: WorldState,
+  ctx: SimContext,
+  intents: Readonly<Record<string, readonly Intent[]>>,
+): Record<string, SimEvent[]> {
+  world.tick++;
+  const out: Record<string, SimEvent[]> = {};
+  const views = world.joinSeq.map((pid) => viewFor(world, pid));
+  for (const v of views) out[v.pid] = [];
+  const eventsOf = (pid: string): SimEvent[] => (out[pid] ??= []);
+  const collect = (): void => {
+    for (const v of views) {
+      const box = drainMailbox(v);
+      if (box.length > 0) out[v.pid].push(...box);
+    }
+  };
+
+  for (const state of views) {
+    const events = out[state.pid];
+    const player = state.player;
+    if (player.dyingUntil === null && player.teleport === null) {
+      for (const intent of intents[state.pid] ?? []) applyIntent(state, ctx, intent, events);
+      stepMovement(state);
+      stepActions(state, ctx, events);
+    } else {
+      player.stepsThisTick = [{ ...player.pos }];
+    }
+    tickTeleport(state, ctx, events);
+    stepSproto(state, ctx, events);
+    collect();
   }
-  tickTeleport(state, ctx, events);
-  stepSproto(state, ctx, events);
-  stepEnemies(state, ctx, events);
-  if (player.hp <= 0 && player.dyingUntil === null) startDying(state, events);
-  if (player.dyingUntil !== null && state.tick >= player.dyingUntil)
-    handleDeath(state, ctx, events);
-  stepNpcs(state, ctx);
-  stepTimers(state, ctx, events);
-  if (state.tick % AUTOSAVE_EVERY_TICKS === 0) events.push({ type: 'autosave' });
-  return events;
+  for (const group of zoneGroups(world, views)) stepEnemies(group, ctx, eventsOf);
+  collect();
+  for (const state of views) {
+    const events = out[state.pid];
+    const player = state.player;
+    if (player.hp <= 0 && player.dyingUntil === null) startDying(state, events);
+    if (player.dyingUntil !== null && state.tick >= player.dyingUntil)
+      handleDeath(state, ctx, events);
+  }
+  for (const group of zoneGroups(world, views)) {
+    stepNpcs(group, ctx);
+    stepZoneTimers(group[0]);
+  }
+  for (const state of views) {
+    const events = out[state.pid];
+    stepTimers(state, ctx, events);
+    if (state.tick % AUTOSAVE_EVERY_TICKS === 0) events.push({ type: 'autosave' });
+  }
+  collect();
+  return out;
+}
+
+/** Players grouped by zone instance, in join order of each zone's first player. */
+function zoneGroups(world: WorldState, views: readonly GameState[]): GameState[][] {
+  const groups = new Map<string, GameState[]>();
+  for (const v of views) {
+    const key = world.playerZone[v.pid];
+    const group = groups.get(key);
+    if (group) group.push(v);
+    else groups.set(key, [v]);
+  }
+  return [...groups.values()];
 }
 
 /** Moving or starting a new action closes open interfaces, as in OSRS. */
@@ -84,6 +142,10 @@ function applyIntent(state: GameState, ctx: SimContext, intent: Intent, events: 
     case 'interact': {
       const entity = findEntity(state, intent.targetId);
       if (!entity || !entityActions(state, ctx, entity).includes(intent.action)) break;
+      if (entity.kind === 'enemy' && fightingSomeoneElse(state, ctx, entity.instance)) {
+        events.push({ type: 'message', kind: 'game', text: 'Someone else is fighting that.' });
+        break;
+      }
       interrupt(player);
       player.action = { targetId: intent.targetId, action: intent.action, nextAttemptTick: null };
       if (entity.kind === 'enemy') approachEnemy(state, ctx, entity.instance);
@@ -108,30 +170,30 @@ function applyIntent(state: GameState, ctx: SimContext, intent: Intent, events: 
       player.autoRetaliate = !player.autoRetaliate;
       break;
     case 'dropItem':
-      if (!saleLocked(state, intent.slot, events)) dropToGround(state, ctx, intent.slot);
+      if (!slotHeld(state, ctx, intent.slot, 'stack', events))
+        dropToGround(state, ctx, intent.slot);
       break;
     case 'moveItem':
       if (saleLocked(state, intent.from, events) || saleLocked(state, intent.to, events)) break;
       swapSlots(player.inventory, intent.from, intent.to);
       break;
     case 'equip':
-      if (!saleLocked(state, intent.slot, events))
+      if (!slotHeld(state, ctx, intent.slot, 'stack', events))
         equipFromInventory(state, ctx, intent.slot, events);
       break;
     case 'unequip':
       unequip(state, ctx, intent.slot, events);
       break;
     case 'eat':
-      if (!saleLocked(state, intent.slot, events)) eat(state, ctx, intent.slot, events);
+      if (!slotHeld(state, ctx, intent.slot, 1, events)) eat(state, ctx, intent.slot, events);
       break;
     case 'drink':
-      if (!saleLocked(state, intent.slot, events)) drink(state, ctx, intent.slot, events);
+      if (!slotHeld(state, ctx, intent.slot, 1, events)) drink(state, ctx, intent.slot, events);
       break;
     case 'teleport':
-      if (!saleLocked(state, intent.slot, events)) startTeleport(state, ctx, intent.slot, events);
+      startTeleport(state, ctx, intent.slot, events); // checks the sale hold itself
       break;
     case 'useItem': {
-      if (saleLocked(state, intent.slot, events)) break;
       const item = player.inventory[intent.slot];
       const target = findEntity(state, intent.targetId);
       if (!item || !target || (target.kind !== 'object' && target.kind !== 'npc')) {
@@ -157,7 +219,8 @@ function applyIntent(state: GameState, ctx: SimContext, intent: Intent, events: 
       chooseOption(state, ctx, intent.index, events);
       break;
     case 'summon':
-      summonFromInventory(state, ctx, intent.slot, events);
+      if (!slotHeld(state, ctx, intent.slot, 1, events))
+        summonFromInventory(state, ctx, intent.slot, events);
       break;
     case 'summonRelic':
       summonRelic(state, ctx, intent.sprotoId, events);
@@ -178,16 +241,13 @@ function applyIntent(state: GameState, ctx: SimContext, intent: Intent, events: 
       advanceDialogue(state);
       break;
     case 'deposit':
-      if (ui?.kind === 'bank' && !saleLocked(state, intent.slot, events)) {
-        deposit(player, intent.slot, intent.qty, events);
+      // Only a deposit that put something in the bank counts for quests.
+      if (ui?.kind === 'bank' && deposit(player, ctx.content, intent.slot, intent.qty, events) > 0)
         progressQuests(state, ctx, { type: 'deposit' }, events);
-      }
       break;
     case 'depositAll':
-      if (ui?.kind === 'bank') {
-        depositAll(player, events);
+      if (ui?.kind === 'bank' && depositAll(player, ctx.content, events) > 0)
         progressQuests(state, ctx, { type: 'deposit' }, events);
-      }
       break;
     case 'withdraw':
       if (ui?.kind === 'bank') {
@@ -317,10 +377,6 @@ function stepActions(state: GameState, ctx: SimContext, events: SimEvent[]): voi
 function stepTimers(state: GameState, ctx: SimContext, events: SimEvent[]): void {
   expireBoosts(state, ctx, events);
   const player = state.player;
-  for (const obj of state.zone.objects) {
-    if (obj.depletedUntil !== null && state.tick >= obj.depletedUntil) obj.depletedUntil = null;
-  }
-  despawnGroundItems(state);
   if (player.overhead && state.tick >= player.overhead.untilTick) player.overhead = null;
   if (state.tick % COMBAT.hpRegenEveryTicks === 0)
     player.hp = Math.min(maxHp(player), player.hp + 1);
@@ -330,10 +386,42 @@ function stepTimers(state: GameState, ctx: SimContext, events: SimEvent[]): void
   );
 }
 
+/** Object respawns and ground-item despawns in one zone instance. */
+function stepZoneTimers(state: GameState): void {
+  for (const obj of state.zone.objects) {
+    if (obj.depletedUntil !== null && state.tick >= obj.depletedUntil) obj.depletedUntil = null;
+  }
+  despawnGroundItems(state);
+}
+
+/**
+ * A pending hub sale keeps the sold stack in its slot, so its units are taken from where they were
+ * sold. Anything else in that slot moves freely (`takeUnits` also finds a moved stack).
+ */
 function saleLocked(state: GameState, slot: number, events: SimEvent[]): boolean {
-  if (state.player.ledger.sale?.slot !== slot) return false;
-  events.push({ type: 'message', kind: 'game', text: 'That item is waiting on a sale.' });
+  const sale = state.player.ledger.sale;
+  if (!sale || sale.slot !== slot || state.player.inventory[slot]?.itemId !== sale.itemId)
+    return false;
+  events.push({ type: 'message', kind: 'game', text: SALE_HOLD_MESSAGE });
   return true;
+}
+
+/**
+ * True, with a message, when taking `qty` units (or the whole stack) from
+ * `slot` would leave fewer of that item than a pending hub sale needs. Any slot
+ * of the item counts, not only the one that was sold (src/sim/saleHold.ts).
+ */
+function slotHeld(
+  state: GameState,
+  ctx: SimContext,
+  slot: number,
+  qty: number | 'stack',
+  events: SimEvent[],
+): boolean {
+  const stack = state.player.inventory[slot];
+  if (!stack) return false;
+  const n = qty === 'stack' ? stack.qty : qty;
+  return saleBlocks(state.player, ctx.content, stack.itemId, n, events);
 }
 
 function sayPublic(state: GameState, text: string, events: SimEvent[]): void {

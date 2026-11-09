@@ -1,7 +1,5 @@
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { isRelicId, memoryKeyValue, RELIC_IDS, type NakamaClient } from '@metaverse/hub-sdk';
-import { createLiveHubSdk } from '../vendor/hub-sdk/dist/live.js';
 import { describe, expect, it } from 'vitest';
 
 function filesUnder(dir: string): string[] {
@@ -55,59 +53,44 @@ export function vendoredSdkManifestSha256(root = 'vendor/hub-sdk'): string {
     .digest('hex');
 }
 
-// Source: crrreatorrr/metaverse-hub branch cursor/ticket-redeem-custom-auth-c054 @ 947ed4c,
-// plus the local `tidebreaker_belt` RELIC_IDS patch (VENDOR.md).
-describe('vendored hub SDK 0.4.0', () => {
+// Source: crrreatorrr/metaverse-hub main @ 5cc4e48 (PR #90)
+describe('vendored hub SDK 0.6.3', () => {
+  // Hub main redeems with custom auth plus the server key, then profile.get. It registers
+  // no session.claim RPC, so a vendor that calls one never gets a session.
+  it('redeems the way the merged hub server expects', () => {
+    const read = (file: string) =>
+      new TextDecoder().decode(readFileSync(`vendor/hub-sdk/dist/${file}`));
+    expect(read('live.js')).not.toContain('session.claim');
+    expect(read('live.js')).not.toContain('session.redeem');
+    expect(read('nakama.js')).toContain('Authorization: `Basic ${btoa(`${serverKey}:`)}`');
+  });
+
   it('pins the package version, the byte hash, and the standard manifest', () => {
     const pkg = JSON.parse(
       new TextDecoder().decode(readFileSync('vendor/hub-sdk/package.json')),
     ) as {
       version: string;
     };
-    expect(pkg.version).toBe('0.4.0');
+    expect(pkg.version).toBe('0.6.3');
     const hash = vendoredSdkSha256();
     expect(hash, `byte hash ${hash}`).toBe(
-      '6c0886430b6d4d5376e85855d087076b27e737161c9f7648b19e167cb36ffb10',
+      'ee97a2a0b9127d1e6b3ce6ee55137bfa6fc1ce8931f2313b7b790bb1cc95c7ab',
     );
     const manifest = vendoredSdkManifestSha256();
     expect(manifest, `manifest ${manifest}`).toBe(
-      '2d114f113c4109e557591539a328300ab0f485f2bd742ec0a0af1696ade2c5a5',
+      '27cdebe0727d428ed25ef62c00e9f34f8acff4d0cc5e8c824e87fc55d12b0f2f',
     );
-  });
-});
-
-describe('vendored hub SDK relic ids', () => {
-  it('keeps the Tidebreaker Belt, so init() does not drop it from relics', () => {
-    expect(RELIC_IDS).toContain('tidebreaker_belt');
-    expect(isRelicId('tidebreaker_belt')).toBe(true);
-    expect(isRelicId('not_a_relic')).toBe(false);
-  });
-});
-
-describe('vendored hub SDK init relics', () => {
-  it('passes tidebreaker_belt through a redeemed session, and still drops unknown ids', async () => {
-    const client = {
-      authenticateDevice: async () => ({ token: 'device', userId: 'u1' }),
-      authenticateCustom: async () => ({ token: 'auth', userId: 'u1' }),
-      rpc: async (id: string) => {
-        if (id !== 'session.claim') throw new Error(`unexpected rpc ${id}`);
-        return {
-          token: 'session',
-          playerId: 'p1',
-          sid: 's1',
-          ranked: false,
-          relics: ['tinubu_crown', 'tidebreaker_belt', 'made_up_relic'],
-          effects: {},
-          ticketsCapLeft: 200,
-          serverTime: 1,
-        };
-      },
-    } as unknown as NakamaClient;
-    const sdk = createLiveHubSdk(
-      { readHash: () => '#t=ticket-1', local: memoryKeyValue(), session: memoryKeyValue() },
-      client,
+    const iife = createHash('sha256')
+      .update(readFileSync('vendor/hub-sdk/dist/hub-sdk.iife.js'))
+      .digest('hex');
+    expect(iife, `iife ${iife}`).toBe(
+      '4ceb36321fc09820c4ef6292b8bd31ebaa198f0a9b90d38bcbd458505222df76',
     );
-    const profile = await sdk.init('peoples-bitcoin');
-    expect(profile.relics).toEqual(['tinubu_crown', 'tidebreaker_belt']);
+    const pin = JSON.parse(
+      new TextDecoder().decode(readFileSync('vendor/hub-sdk/SOURCE.pin.json')),
+    ) as { version: string; iifeSha256: string; global: string };
+    expect(pin.version).toBe('0.6.3');
+    expect(pin.global).toBe('HubSDK');
+    expect(pin.iifeSha256).toBe(iife);
   });
 });

@@ -6,6 +6,7 @@ import { BUNKER_ZONE_ID, hasRespawnBed } from './bunker';
 import { isWalkable } from './grid';
 import { spawnGroundItem } from './ground';
 import { progressQuests } from './quests';
+import { saleHeldUnits } from './saleHold';
 import {
   createZoneState,
   gridOf,
@@ -13,6 +14,7 @@ import {
   maxHp,
   npcInstance,
   PLAYER_ID,
+  zoneKeyFor,
   type GameState,
   type ObjectInstance,
   type SimContext,
@@ -39,10 +41,11 @@ export function changeZone(
     const def = ctx.content.zones.get(zoneId);
     if (!def) return;
     // Enemies left behind forget you.
-    for (const e of state.zone.enemies) e.target = null;
-    state.otherZones[state.zone.id] = state.zone;
-    state.zone = state.otherZones[zoneId] ?? createZoneState(def, ctx.content);
-    delete state.otherZones[zoneId];
+    forgetPlayer(state);
+    const world = state.world;
+    const key = zoneKeyFor(zoneId, state.pid);
+    world.zones[key] ??= createZoneState(def, ctx.content);
+    world.playerZone[state.pid] = key;
     events.push({ type: 'zoneChanged', zoneId });
   }
   player.pos = { x: at.x, y: at.y };
@@ -57,6 +60,13 @@ export function changeZone(
   }
   showUnlockedNpcs(state, ctx.content);
   progressQuests(state, ctx, { type: 'enterZone', zone: zoneId }, events);
+}
+
+/** Enemies in the player's zone that were fighting the player or their Sproto drop the fight. */
+export function forgetPlayer(state: GameState): void {
+  for (const e of state.zone.enemies) {
+    if (e.target === state.selfId || e.target === state.sprotoId) e.target = null;
+  }
 }
 
 /** Adds the zone's NPCs whose `requires` the player now has; they turn up the next time you arrive. */
@@ -127,8 +137,8 @@ export function startDying(state: GameState, events: SimEvent[]): void {
   player.action = null;
   player.interface = null;
   player.dialogue = null;
-  for (const e of state.zone.enemies) if (e.target !== null) e.target = null;
-  events.push({ type: 'death', entityId: PLAYER_ID });
+  forgetPlayer(state);
+  events.push({ type: 'death', entityId: state.selfId });
   events.push({ type: 'message', kind: 'warning', text: 'Oh dear, you are dead!' });
 }
 
@@ -143,13 +153,31 @@ export function handleDeath(state: GameState, ctx: SimContext, events: SimEvent[
   });
   if (DEATH.dropInventory) {
     const until = state.tick + DEATH.pileDespawnTicks;
+    // Units a pending hub sale is waiting for stay with you too, or the pile would sell twice.
+    const sale = player.ledger.sale;
+    let held = sale ? saleHeldUnits(player, ctx.content, sale.itemId) : 0;
     player.inventory.forEach((s, i) => {
       if (!s) return;
       const def = ctx.content.items.get(s.itemId);
       if (def?.value === 0) return; // untradeables (quest items) stay with you, as in OSRS
+      const keep = s.itemId === sale?.itemId ? Math.min(s.qty, held) : 0;
+      held -= keep;
+      if (keep === s.qty) return;
       const stackable = def?.stackable ?? false;
-      spawnGroundItem(state.zone, s.itemId, s.qty, player.pos.x, player.pos.y, until, stackable);
-      player.inventory[i] = null;
+      // Online, a death pile is only ever yours.
+      const owner = state.pid === PLAYER_ID ? undefined : { owner: state.pid };
+      spawnGroundItem(
+        state.zone,
+        s.itemId,
+        s.qty - keep,
+        player.pos.x,
+        player.pos.y,
+        until,
+        stackable,
+        owner,
+      );
+      if (keep > 0) s.qty = keep;
+      else player.inventory[i] = null;
     });
     events.push({
       type: 'message',
@@ -157,7 +185,7 @@ export function handleDeath(state: GameState, ctx: SimContext, events: SimEvent[
       text: 'Your inventory was left where you fell. Hurry back for it!',
     });
   }
-  for (const e of state.zone.enemies) if (e.target !== null) e.target = null;
+  forgetPlayer(state);
   player.sproto = null;
   player.hp = maxHp(player);
   player.runEnergy = MOVEMENT.runEnergyMax;

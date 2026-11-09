@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "build:sim": "node scripts/build-sim-bundle.mjs"
   },
   "dependencies": {
     "@metaverse/hub-sdk": "file:vendor/hub-sdk",

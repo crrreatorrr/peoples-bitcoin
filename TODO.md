@@ -13,11 +13,36 @@
       (hpos10i_core, `summon_run_regen`), `pb_summon_nobu` (cones_tip, `summon_fetch`) and
       `pb_summon_duelist_sproto` (tinubu_crown, `summon_stun`). Add each as a `relic` Sproto in
       `sprotos.json` like `sp_champion`
-- [ ] Re-pack `vendor/hub-sdk` from hub main once redeem works without a server key; drop the
-      local `tidebreaker_belt` patch then (VENDOR.md)
 - [ ] More quests (DESIGN.md §12), and more to do in The World Out There beyond the ferry to Moonward
 - [ ] Moonward Academy: library and potions content (spellbooks, brewing) beyond decoration
 - [ ] Balance pass: XP rates, drop values, Terminal prices, enemy stats (all in data/balance.ts)
+
+## Controller and keyboard (2026-11-09)
+
+- [ ] Check the layout with a real controller (Xbox, PlayStation, Switch): stick walking feel,
+      soft-target choice in crowds, trigger zoom speed. Tested so far with a stubbed pad only.
+- [ ] Owner decision: an optional WASD walking mode (today: click to walk, letters start chat)
+- [ ] Controller text entry (chat, private messages, adding friends) needs an on-screen keyboard;
+      quick-chat and the pad's menus cover the rest
+
+## Online (0.7.0) leftovers
+
+- [ ] S1 Clan / channel chat and a Clan tab
+- [ ] S2 Swamp Exchange (player buy and sell orders, server-side order book)
+- [ ] S3 Hopium shared across worlds; Day chant; wells
+- [ ] S4 Raids and group bosses with multi-way areas (DESIGN §11 late bosses, The Old Coin)
+- [ ] S5 PvP in The Trenches (skull/risk, single-way PvP)
+- [ ] S6 Binary delta encoding; spatial-hash AOI for zones over 100×100
+- [ ] S7 Report button, admin mute and kick, a trade audit table, bot heuristics
+- [ ] S9 Server-side `pb_total_xp` and the `pb.quest_complete` relic event for online characters
+- [ ] S10 Follow a player, emotes, world hopping with a cooldown, friends' column in world select
+- [ ] S11 Mobile layout for world select, the trade window and the friends list
+- [ ] Save import ("Bring your offline President online"): off by decision; would need an HTTP RPC
+- [ ] Exchange (Tickets → Verse) online
+- [ ] A Friends tab of its own (needs a tab socket painted into the frame art)
+- [ ] Goja tick time: 100 players clicking 30 times a tick use ~440 ms of the 600 ms tick on one dev
+      machine. Profile the sim phase (pathfinding, enemies) and entity serialization if a world fills
+- [ ] Clickable "wishes to trade with you" line (today: Trade with the player back)
 
 ## QA leftovers (0.6.1 audit)
 
@@ -47,7 +72,7 @@
 ## OSRS features deferred to their phase
 
 - Phase 3: random events, emotes
-- Phase 5: Grand Exchange (Swamp Exchange), friends/clan chat, world switching
+- Phase 5: Grand Exchange (Swamp Exchange), clan chat (friends, PMs and worlds shipped in 0.7.0)
 - Phase 6: music player, roof toggle
 - Not planned in DESIGN.md: prayer, spellbook, special attack (Command/Sprotos fill that role),
   achievement diaries, collection log, world map (one zone so far), doors

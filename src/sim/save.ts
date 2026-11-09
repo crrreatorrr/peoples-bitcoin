@@ -8,7 +8,7 @@
  * version by one.
  */
 import { z } from 'zod';
-import { ECONOMY, INVENTORY_SIZE, MOVEMENT, SUMMONING } from '../config/balance';
+import { ECONOMY, INVENTORY_SIZE, MOVEMENT, SOCIAL, SUMMONING } from '../config/balance';
 import type { Content } from './content';
 import { buildZoneGrid, isWalkable } from './grid';
 import {
@@ -16,11 +16,13 @@ import {
   createZoneState,
   emptyEquipment,
   emptyLedger,
+  emptySocial,
   maxHp,
   type CombatStyle,
   type GameState,
   type Inventory,
   type InventorySlot,
+  type PlayerState,
 } from './state';
 import { EQUIP_SLOTS } from './schemas';
 import { showUnlockedNpcs } from './zones';
@@ -81,6 +83,16 @@ const LedgerSchema = z.object({
   submittedXp: z.number().nonnegative(),
 });
 
+const Filter = z.enum(['on', 'friends', 'off']);
+const NameRef = z.object({ id: z.string(), name: z.string() });
+const SocialSchema = z.object({
+  friends: z.array(NameRef),
+  ignores: z.array(NameRef),
+  publicFilter: Filter,
+  privateFilter: Filter,
+  tradeFilter: Filter,
+});
+
 const SaveSchema = z.object({
   version: z.literal(SAVE_VERSION),
   savedAt: z.number(),
@@ -108,6 +120,10 @@ const SaveSchema = z.object({
     collected: z.record(z.string(), z.number()),
     summoningPoints: z.number(),
     autoRetaliate: z.boolean(),
+    /** Online only (0.7.0): friends, ignores and chat filters. Optional, so v7 saves still load. */
+    social: SocialSchema.optional(),
+    /** Online only: set when an offline save was brought online. */
+    importedAt: z.number().optional(),
   }),
   economy: z.object({
     priceUsd: z.number().positive(),
@@ -258,6 +274,11 @@ export function serialize(state: GameState, now: number): SaveData {
       collected: { ...p.collected },
       summoningPoints: p.summoning.points,
       autoRetaliate: p.autoRetaliate,
+      social: {
+        ...p.social,
+        friends: p.social.friends.map((f) => ({ ...f })),
+        ignores: p.social.ignores.map((f) => ({ ...f })),
+      },
     },
     economy: { ...state.economy, history: [...state.economy.history] },
     objects: state.zone.objects.map((o) => ({ id: o.id, depletedUntil: o.depletedUntil })),
@@ -347,6 +368,14 @@ export function deserialize(raw: unknown, content: Content): GameState | null {
   p.collected = { ...save.player.collected };
   p.summoning.points = clamp(save.player.summoningPoints, 0, SUMMONING.pointsMax);
   p.autoRetaliate = save.player.autoRetaliate;
+  const social = save.player.social;
+  p.social = social
+    ? {
+        ...social,
+        friends: social.friends.slice(0, SOCIAL.maxFriends).map((f) => ({ ...f })),
+        ignores: social.ignores.slice(0, SOCIAL.maxIgnores).map((f) => ({ ...f })),
+      }
+    : emptySocial();
 
   state.economy = {
     ...save.economy,
@@ -371,4 +400,13 @@ function restoreInventory(saved: (InventorySlot | null)[], content: Content): In
 
 function clamp(v: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, v));
+}
+
+/** One online character: the player and the zone they were in, or null if unreadable. */
+export function deserializePlayer(
+  raw: unknown,
+  content: Content,
+): { player: PlayerState; zoneId: string } | null {
+  const state = deserialize(raw, content);
+  return state ? { player: state.player, zoneId: state.zone.id } : null;
 }

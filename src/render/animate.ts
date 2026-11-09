@@ -7,6 +7,7 @@
 import type * as THREE from 'three';
 import type { AttackStyle } from '../sim/state';
 import type { ActorModel } from './actors';
+import { gait, type LegPose } from './gait';
 import type { HoldKind } from './gear';
 
 /** Skilling loops: pick swings, hammering, talking with your hands, typing. */
@@ -44,6 +45,8 @@ const BLEND_RATE = 22;
 const BLEND_RATE_MOVING = 40;
 /** Gait cycle radians per tile travelled: one footfall per tile, walking or running (as in OSRS). */
 export const STRIDE_RAD_PER_TILE = Math.PI;
+/** Seconds to ease into or out of the foot-planted gait, and between walking and running. */
+const GAIT_BLEND_S = 0.16;
 
 interface Pose {
   armLx: number;
@@ -56,6 +59,12 @@ interface Pose {
   legRx: number;
   shinLx: number;
   shinRx: number;
+  /** Ankles and toes (rigged characters only), and the hips' yaw. */
+  footLx: number;
+  footRx: number;
+  toeLx: number;
+  toeRx: number;
+  hipsY: number;
   torsoX: number;
   torsoY: number;
   headX: number;
@@ -101,6 +110,11 @@ function humanPose(actor: ActorModel, a: AnimInput): Pose {
     legRx: 0,
     shinLx: 0,
     shinRx: 0,
+    footLx: 0,
+    footRx: 0,
+    toeLx: 0,
+    toeRx: 0,
+    hipsY: 0,
     torsoX: actor.hunch,
     torsoY: 0,
     headX: 0,
@@ -112,13 +126,14 @@ function humanPose(actor: ActorModel, a: AnimInput): Pose {
   if (a.moving) walk(p, actor, a);
   else {
     p.torsoX += 0.015 * Math.sin(t * 2);
-    if (a.work) work(p, a.work, t);
+    if (a.work) work(p, actor, a.work, t);
     if (actor.pose === 'phone') {
       p.armLx = -2.1;
       p.armLz = 0.35;
       p.foreLx = -2.2;
     }
   }
+  if (actor.legs) plantFeet(p, actor, a);
   const k = (a.now - a.attackAt) / ATTACK_MS;
   if (k >= 0 && k < 1) attack(p, actor, a.attackStyle, k);
   else {
@@ -212,11 +227,52 @@ function stroll(p: Pose, actor: ActorModel, phase: number): void {
   p.shinRx = 0.75 * Math.max(0, -c);
   p.bodyY = actor.bodyY + 0.03 * (Math.abs(c) - 0.5);
   p.torsoX += 0.04;
+  // Shoulders turn a little against the legs.
+  p.torsoY = 0.05 * s;
   const swing = 0.45 * s;
   if (swingsFreely(actor.left) && actor.right !== 'rifle' && actor.right !== 'heavy') {
     p.armLx += swing;
+    // The elbow bends a touch more as the arm swings forward.
+    if (actor.left === null) p.foreLx -= 0.25 * Math.max(0, -s);
   }
-  if (swingsFreely(actor.right)) p.armRx -= swing * (actor.right === null ? 1 : 0.5);
+  if (swingsFreely(actor.right)) {
+    p.armRx -= swing * (actor.right === null ? 1 : 0.5);
+    if (actor.right === null) p.foreRx -= 0.25 * Math.max(0, s);
+  }
+}
+
+/**
+ * Legs with known lengths step with planted feet (gait.ts) instead of
+ * swinging: the hips, knees, ankles and body height follow the feet. The gait
+ * eases in when the actor sets off and out when it stops, and from walk to run.
+ */
+function plantFeet(p: Pose, actor: ActorModel, a: AnimInput): void {
+  const step = a.dt / GAIT_BLEND_S;
+  actor.gaitBlend = clamp01((actor.gaitBlend ?? 0) + (a.moving ? step : -step));
+  actor.runBlend = clamp01((actor.runBlend ?? 0) + (a.moving && a.running ? step : -step));
+  if (actor.gaitBlend === 0) return;
+  const tile = 1 / actor.root.scale.x;
+  const g = gait(
+    a.phase,
+    actor.legs!,
+    tile,
+    smoothstep(actor.runBlend),
+    smoothstep(actor.gaitBlend),
+  );
+  const leg = (from: LegPose, side: 'L' | 'R') => {
+    p[`leg${side}x`] = from.hip;
+    p[`shin${side}x`] = from.knee;
+    p[`foot${side}x`] = from.ankle;
+    p[`toe${side}x`] = from.toe;
+  };
+  leg(g.left, 'L');
+  leg(g.right, 'R');
+  p.bodyY = actor.bodyY + g.hipDrop;
+  if (actor.joints?.hips) {
+    // The hips turn with the stride; the chest keeps its own turn on top.
+    p.hipsY = g.hipYaw;
+    p.torsoY -= p.hipsY;
+  }
 }
 
 /**
@@ -266,17 +322,21 @@ function run(p: Pose, actor: ActorModel, phase: number): void {
   }
 }
 
-function work(p: Pose, kind: WorkAnim, t: number): void {
+function work(p: Pose, actor: ActorModel, kind: WorkAnim, t: number): void {
   switch (kind) {
     case 'swing': {
-      // Slow raise overhead, fast strike, short rest.
+      // One-handed pick: the tool arm (right) does a slow raise overhead, a fast
+      // strike and a short rest; the other arm stays down, bobbing a little.
       const u = (t * 1.1) % 1;
-      const raise = u < 0.6 ? easeInOut(u / 0.6) : u < 0.78 ? 1 - easeIn((u - 0.6) / 0.18) : 0;
+      const raise = swingRaise(u);
       p.armRx = -0.35 - 2.3 * raise;
-      p.armLx = p.armRx;
-      p.armLz = -0.35;
-      p.foreRx = p.foreLx = -0.25;
+      // The elbow cocks on the way up and snaps straight on the strike.
+      p.foreRx = -0.2 - 0.45 * raise;
       p.torsoX += 0.28 * (1 - raise);
+      // A free hand drifts back as the pick goes up, for balance; a held
+      // item or shield keeps its hold pose with the same small bob.
+      p.armLx += SWING_OFF_ARM_BOB * raise;
+      if (actor.left === null || actor.left === 'carry') p.foreLx = -0.2 - 0.1 * raise;
       break;
     }
     case 'hammer': {
@@ -392,14 +452,31 @@ function applyPose(actor: ActorModel, p: Pose, dt: number, moving: boolean): voi
   ease(j.armR, 'z', p.armRz);
   ease(j.foreL, 'x', p.foreLx);
   ease(j.foreR, 'x', p.foreRx);
-  ease(j.legL, 'x', p.legLx);
-  ease(j.legR, 'x', p.legRx);
-  ease(j.shinL, 'x', p.shinLx);
-  ease(j.shinR, 'x', p.shinRx);
   ease(j.torso, 'x', p.torsoX);
   ease(j.torso, 'y', p.torsoY);
   ease(j.head, 'x', p.headX);
-  actor.body.position.y += (p.bodyY - actor.body.position.y) * k;
+  if (actor.legs) {
+    // Planted feet can't lag behind the ground, so the legs take their pose as is
+    // (plantFeet already eased the gait in and out).
+    j.legL.rotation.set(p.legLx, -p.hipsY, 0);
+    j.legR.rotation.set(p.legRx, -p.hipsY, 0);
+    j.shinL.rotation.x = p.shinLx;
+    j.shinR.rotation.x = p.shinRx;
+    if (j.footL && j.footR && j.toeL && j.toeR && j.hips) {
+      j.footL.rotation.x = p.footLx;
+      j.footR.rotation.x = p.footRx;
+      j.toeL.rotation.x = p.toeLx;
+      j.toeR.rotation.x = p.toeRx;
+      j.hips.rotation.y = p.hipsY;
+    }
+    actor.body.position.y = p.bodyY;
+  } else {
+    ease(j.legL, 'x', p.legLx);
+    ease(j.legR, 'x', p.legRx);
+    ease(j.shinL, 'x', p.shinLx);
+    ease(j.shinR, 'x', p.shinRx);
+    actor.body.position.y += (p.bodyY - actor.body.position.y) * k;
+  }
   actor.body.position.z += (p.bodyZ - actor.body.position.z) * k;
 }
 
@@ -444,7 +521,17 @@ function fall(actor: ActorModel, ms: number): void {
   actor.root.position.y = -0.3 * sink;
 }
 
+/** How far the off arm drifts back (radians, + is backward) at the top of a pick swing. */
+export const SWING_OFF_ARM_BOB = 0.15;
+
+/** Pick swing height through one cycle `u` (0..1): slow raise, fast strike, short rest. */
+export function swingRaise(u: number): number {
+  return u < 0.6 ? easeInOut(u / 0.6) : u < 0.78 ? 1 - easeIn((u - 0.6) / 0.18) : 0;
+}
+
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
+const smoothstep = (t: number) => t * t * (3 - 2 * t);
 const easeIn = (t: number) => t * t;
 const easeOut = (t: number) => 1 - (1 - t) * (1 - t);
 const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t));

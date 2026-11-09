@@ -14,9 +14,116 @@
   title belt (round wave-emblem plate), red fighting wraps and a rock held over the shoulder.
   `sprites/sp_champion.png` and `models/sp_champion.glb` are registered in the manifest; the
   loader keeps the placeholder until those files exist.
-- **Vendored hub SDK:** `RELIC_IDS` gains `tidebreaker_belt` (one-line patch, see
-  `vendor/hub-sdk/VENDOR.md`); without it `init()` silently dropped the new relic.
-- `npm run typecheck` passes again: the DOM-free sim pass no longer includes `tests/`.
+- **Offline and hub sessions only:** online worlds don't load hub relics yet, so the Summon card
+  doesn't show there (merged 2026-11-09 onto hub-sdk 0.6.3, which lists `tidebreaker_belt`
+  itself; the branch's local SDK patch was dropped).
+
+## Unreleased
+
+- **Controller support:** any standard-mapping controller works with no setup. Left stick or
+  D-pad walks, A does the soft target's left-click option, X its right-click menu, LB / RB change
+  target, Y toggles run, B cancels, right stick and triggers move the camera, View opens the
+  inventory and Menu opens Settings (Exit to Hub). Menus, windows, dialogue and world select get a
+  focus ring (A choose, X options, B back). A button held when the pad appears is ignored until
+  released, so the hub's A doesn't leak in; hot-plug works. Layout in the README.
+- **Keyboard:** the arrow keys (and W / S / A / D in menus) move the same focus ring through
+  right-click menus, world select, "Select an Option" and windows, and Enter or Space chooses;
+  Enter also continues dialogue; tapping Shift toggles run. The Settings controls list and the
+  README match the bindings. Client only; `SIM_VERSION` is unchanged.
+- hub-sdk 0.6.3 is vendored from hub main (`5cc4e48`, PR #90). Same methods and types. The classic
+  script is `vendor/hub-sdk/dist/hub-sdk.iife.js` (global `HubSDK`).
+- **Godmode (owner):** `?godmode` keeps the offline Ticket wallet at 333,333,333 Tickets and is
+  remembered in the browser; `?godmode=0` turns it off. Offline play only; hub sessions and online
+  worlds keep the server wallet. Client only; `SIM_VERSION` is unchanged.
+- **Test world menu:** Settings has a "Test world: AI players" box: how many AI players (0–99),
+  awakening story / quick-chat / silent, story speed, and Start, Restart or Leave test world. The
+  test world now joins its one world directly instead of showing world select.
+- **Dev (awakening bots):** `?net=loopback&awaken=1` gives the in-page bots names and a story:
+  eight Treasury citizens (262 original lines, six scripted scenes) loop, glitch, question, see
+  behind the world and wake up, then gather and talk freely. `&pace=` and `&act=` speed it up or
+  skip ahead. Dev only; `SIM_VERSION` is unchanged.
+- **Dev (silent bots):** `?net=loopback&chat=0` runs the in-page world with bots that only walk,
+  never chat, and `CHAT=0` does the same for the `scripts/pb-bots.mjs` load test. Client and dev
+  tools only; `SIM_VERSION` is unchanged.
+- **Fix (hub sell):** a Sell-N larger than the stack (for example Sell 10 on 3 items) asked the hub
+  for Tickets for all N while only the owned items were removed. The hub sell now clamps to the
+  units owned, as the offline sim already did. Client only; `SIM_VERSION` is unchanged.
+- **Fix (hub buy):** a hub-session buy now makes the same checks as the offline buy before it
+  spends Tickets: whole packs only, 1 to 10,000 packs, and room in the inventory. A full inventory
+  used to pay and then drop the goods on the ground. Client only; `SIM_VERSION` is unchanged.
+- **Fix (hub sell, item dupe):** a pending hub sale locked only the slot that was clicked, but a
+  sale can span several slots (3 pistols are 3 slots). While it waited for a retry, the other units
+  could be banked, dropped, used, handed in, built with, traded or left in a death pile, and the
+  retry still paid for every pack. Now no removal may leave fewer units of the sold item than the
+  sale needs (packs × pack size); surplus units are still free, and you keep the held units when
+  you die. This edits `src/sim` and `src/server`, so `SIM_VERSION` changes and the hub's vendored
+  `pb-sim.js` must be rebuilt.
+- **Fix (tutorial):** the "Deposit something at a Bank Booth" step no longer completes when the
+  deposit was refused (an empty slot, a full bank, or units held for a sale). An unrelated item
+  put into an emptied sale slot can now be moved.
+- **Crash guard:** one error in a frame no longer freezes the game or floods the console. The
+  main loop always reschedules; after three failing frames in a row the game pauses and shows a
+  "Something broke" panel with Reload. A tick that keeps throwing trips the panel too, its intents
+  carry over and earlier ticks keep their events. Uncaught page errors are counted but only pause
+  the game together with failing frames (other-origin errors and aborted fetches are ignored), and a
+  failed boot shows the same panel with Retry instead of a bare error screen. Each distinct error is logged
+  once. `onCrash()` is ready for the opt-in Diagnostics reporter and sends nothing. Client only;
+  `SIM_VERSION` is unchanged.
+
+## Unreleased — Foot rigs for the whole cast (2026-11-09)
+
+- **Every rigged character's shoes fixed in Blender** (`tools/fix_foot_weights.py`, all 38
+  models). Their soles carried 4–40% shin weight, so their shoes sank 1.5–11 cm into the ground as
+  they walked; now 37 of 38 stay within about 1.5 cm (the Contractor 2.5 cm). Dropping the unused baked
+  clips shrinks `src/assets/models` from 11 to 7 MB; textures are unchanged.
+- **Short-legged characters stay upright:** the hips never sink more than about an eighth of the
+  leg length; legs too short for a 1-tile step (Sprotos, the Spam Bot) plant less of it and their
+  feet slide instead of the body squatting to the floor.
+- Toes stay level through the start of the swing, so long shoe tips don't scrape the ground; the
+  toe split in the Blender tool runs straight ahead, catching the big-toe side of the shoe.
+
+## Unreleased — Planted walk and run (2026-11-09)
+
+- **Feet stay on the ground.** Rigged characters and code-built humanoids now step on planted
+  feet (`src/render/gait.ts`): each foot follows a path that moves back with the ground, rolls
+  heel → flat → toe, swings through and lands moving with the ground; two-bone IK turns that into
+  hip, knee, ankle and toe angles, and the hips sit as high as the planted legs reach. Before, the
+  legs swung by fixed angles: walking, both feet left the ground 43% of the time (up to 10 cm),
+  and the running foot slid at 2.4 m/s against the ground.
+- **The run is fully planted** (no slide mid-stance), with a flight phase, a heel kick and a
+  bounce lowest mid-stance. **The walk** gives 15% of the ground's travel (a 1-tile step is long
+  for the President's legs; fully planted, the hips would bob 14 cm) and bobs about 8 cm.
+- **More of the body moves:** rigged characters now turn the hips with the stride (the chest turns
+  against them), bend at the ankles and toes, and a lean curves the whole spine instead of
+  pivoting at the shoulders. Free arms bend a little more at the elbow on the forward swing.
+- Starting, stopping and switching between walk and run blend where the feet go, not joint angles,
+  so the feet stay on the ground through the change (0.16 s).
+- **President rig fixed in Blender** (`tools/fix_foot_weights.py`): the shoes carried shin weight
+  and the toe cap was half foot, half toe, so the sole sank up to 5 cm as the knee bent and the toe
+  dug 3 cm into the floor at push-off. Now under 1 cm. The unused baked clip is gone (492 → 342 KB).
+- `gait.html` (dev only): the President walking and running on a treadmill at game speed, with
+  foot-contact numbers (`window.gaitMeasure()`); `?model=<id>` for other rigged models.
+
+## 0.7.0 — Online worlds (2026-11-04)
+
+- **Worlds of up to 100 players**, run server-side as `pb_world` matches on the hub's Nakama with
+  this repo's sim (`npm run build:sim`). More worlds open as they fill (`pb.worlds`).
+- **World select** with Quick join and Play offline; `?net=loopback` runs a world in the page.
+- **Other players** in the shared President look, in their own gear, with nameplates, speech and
+  minimap dots; their Sprotos too. Only what is near you is sent (15-tile view).
+- **Chat, RuneScape-style:** public chat in view with overhead text, private messages in and
+  across worlds, Private and Trade tabs with On / Friends / Off filters, quick-chat filled in from
+  your real stats, friends (with their world) and ignore lists, rate limits and mutes. Slurs, links
+  and wallet addresses are blocked on the server; profanity is masked on the client.
+- **Trading:** two screens, accept reset on any change, Terminal value on the confirm screen, the
+  swap saved for both players at once. Items only, never Tickets.
+- **Server-authoritative:** intents only, validated; Tickets earned, spent and sold on the server
+  with sealed, idempotent keys; one session per account; OCC saves.
+- Multiplayer sim: shared zones, private quest-boss copies and bunkers, loot owned by the top
+  damager (private for a minute), single-way "Someone else is fighting that."
+- hub-sdk 0.5.0 (realtime) is vendored. Saves stay v7 (online fields are optional).
+- Faster pathfinding (no allocation in heap swaps; clicks on blocked tiles aim at the nearest
+  walkable ring).
 
 ## Unreleased — Hub Tickets
 

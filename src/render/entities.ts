@@ -26,7 +26,9 @@ import { levelForXp } from '../sim/xp';
 import { dressFor, holdRight, type ActorModel } from './actors';
 import { DEATH_MS, poseActor, STRIDE_RAD_PER_TILE, type WorkAnim } from './animate';
 import { HpBar } from './effects';
+import type { RemoteActor } from '../net/replica';
 import type { AssetLoader } from './loader';
+import { Glide, interpolateSteps } from './stepping';
 
 export const PLAYER_MODEL = 'player_president';
 const SMOKE_BOB = 0.06;
@@ -52,6 +54,8 @@ interface ActorView {
   hitAt: number;
   diedAt: number;
   hpBar: HpBar;
+  /** Smooths walking across ticks that start early or late. */
+  glide: Glide;
 }
 
 interface Doing {
@@ -76,6 +80,8 @@ export class EntityRenderer {
   private readonly player: ActorView;
   private sproto: ActorView | null = null;
   private readonly npcs = new Map<string, ActorView>();
+  /** Other players and their Sprotos (online). */
+  private readonly others = new Map<string, ActorView>();
   private readonly enemies = new Map<string, ActorView>();
   private readonly objects: ObjectView[] = [];
   private readonly groundItems = new Map<string, THREE.Mesh>();
@@ -122,8 +128,17 @@ export class EntityRenderer {
     this.updateSproto(state, t, dt, now);
     this.updateEnemies(state, t, dt, now);
     for (const npc of state.zone.npcs) {
-      const view = this.npcs.get(npc.id);
-      if (!view) continue;
+      let view = this.npcs.get(npc.id);
+      if (!view) {
+        // Online, NPCs can turn up after the zone was built (an unlock, a resync).
+        const def = this.content.npcs.get(npc.defId);
+        if (!def) continue;
+        view = this.createActor(def.model);
+        view.root.userData.entityId = npc.id;
+        interpolateSteps([npc], 1, view.root.position, this.segment);
+        this.pickables.push(view.root);
+        this.npcs.set(npc.id, view);
+      }
       const talking = state.player.dialogue?.npcId === npc.id;
       const facing = talking || state.player.action?.targetId === npc.id;
       this.drive(view, [npc.from, npc], t, dt, now, npc, {
@@ -211,7 +226,54 @@ export class EntityRenderer {
   private viewOf(entityId: string): ActorView | null {
     if (entityId === PLAYER_ID) return this.player;
     if (entityId === SPROTO_ID) return this.sproto;
-    return this.enemies.get(entityId) ?? this.npcs.get(entityId) ?? null;
+    return (
+      this.enemies.get(entityId) ?? this.npcs.get(entityId) ?? this.others.get(entityId) ?? null
+    );
+  }
+
+  /**
+   * Other players (the same President model, dressed in their gear) and their
+   * Sprotos, interpolated along the tiles they stepped this tick.
+   */
+  updateOthers(others: Iterable<RemoteActor>, t: number, dt: number, now: number): void {
+    const live = new Set<string>();
+    for (const o of others) {
+      live.add(o.id);
+      const parts = o.look.split('|');
+      const dress = parts.slice(0, 3).join('|');
+      const modelId =
+        o.kind === 'p' ? PLAYER_MODEL : (this.content.sprotos.get(o.defId)?.model ?? '');
+      if (!modelId) continue;
+      let view = this.others.get(o.id);
+      if (view && view.modelId !== modelId) {
+        this.scene.remove(view.root);
+        this.unpick(view.root);
+        view = undefined;
+      }
+      if (!view) {
+        view = this.createActor(modelId, o.kind === 'p' ? dress : '');
+        view.root.userData.entityId = o.id;
+        interpolateSteps([o.steps.at(-1) ?? o], 1, view.root.position, this.segment);
+        this.pickables.push(view.root);
+        this.others.set(o.id, view);
+      }
+      if (o.kind === 'p' && dress !== view.dressKey) this.redress(view, dress);
+      if (o.kind === 'p') holdRight(view.actor, parts[3] || null);
+      if (!o.dying) view.diedAt = -Infinity;
+      const target = o.target ? this.positionOf(o.target) : null;
+      this.drive(view, o.steps.length > 0 ? o.steps : [o], t, dt, now, o, {
+        combat: target !== null,
+        work: null,
+        face: target ? { x: target.x - 0.5, y: target.z - 0.5 } : null,
+      });
+      view.hpBar.set(o.hp / Math.max(1, o.maxHp), now - view.hitAt < HP_BAR_MS);
+    }
+    for (const [id, view] of this.others) {
+      if (live.has(id)) continue;
+      this.scene.remove(view.root);
+      this.unpick(view.root);
+      this.others.delete(id);
+    }
   }
 
   private objectModel(state: GameState, obj: ObjectInstance): string {
@@ -335,6 +397,7 @@ export class EntityRenderer {
         // Respawned: stand up at the spawn point.
         view.diedAt = -Infinity;
         view.hitAt = -Infinity;
+        view.glide.reset();
         interpolateSteps([enemy], 1, view.root.position, this.segment);
       }
       view.root.visible = !dead || now - view.diedAt < DEATH_MS;
@@ -343,12 +406,15 @@ export class EntityRenderer {
         poseActor(view.actor, { ...idleInput(now, dt), diedAt: view.diedAt });
         continue;
       }
+      const other = enemy.target ? this.others.get(enemy.target) : undefined;
       const target =
         enemy.target === PLAYER_ID
           ? state.player.pos
           : enemy.target === SPROTO_ID
             ? state.player.sproto
-            : null;
+            : other
+              ? { x: other.root.position.x - 0.5, y: other.root.position.z - 0.5 }
+              : null;
       this.drive(view, [enemy.from, enemy], t, dt, now, enemy, {
         combat: target != null,
         work: null,
@@ -381,8 +447,7 @@ export class EntityRenderer {
     doing: Doing,
   ): void {
     const before = this.scratch.copy(view.root.position);
-    const moved = interpolateSteps(steps, t, view.root.position, this.segment);
-    const moving = moved && t < 1;
+    const moving = view.glide.place(steps, t, now, view.root.position, this.segment);
     const distance = before.distanceTo(view.root.position);
     if (distance < TELEPORT_DISTANCE) view.phase += distance * STRIDE_RAD_PER_TILE;
 
@@ -449,6 +514,7 @@ export class EntityRenderer {
       hitAt: -Infinity,
       diedAt: -Infinity,
       hpBar: new HpBar(),
+      glide: new Glide(),
     };
     root.add(view.actor.root, view.hpBar.sprite);
     view.hpBar.sprite.position.y = view.actor.height + 0.25;
@@ -487,30 +553,6 @@ function idleInput(now: number, dt: number) {
     hitAt: -Infinity,
     diedAt: -Infinity,
   };
-}
-
-/** Positions `out` along the tiles stepped this tick; returns true if the actor moved. */
-function interpolateSteps(
-  steps: readonly Tile[],
-  t: number,
-  out: THREE.Vector3,
-  segment: { dx: number; dz: number },
-): boolean {
-  const last = steps.length - 1;
-  const moved = last > 0 && (steps[0].x !== steps[last].x || steps[0].y !== steps[last].y);
-  if (!moved) {
-    out.set(steps[last].x + 0.5, 0, steps[last].y + 0.5);
-    return false;
-  }
-  const f = t * last;
-  const i = Math.min(last - 1, Math.floor(f));
-  const local = f - i;
-  const a = steps[i];
-  const b = steps[i + 1];
-  out.set(a.x + (b.x - a.x) * local + 0.5, 0, a.y + (b.y - a.y) * local + 0.5);
-  segment.dx = b.x - a.x;
-  segment.dz = b.y - a.y;
-  return true;
 }
 
 /** Turns at a fixed rate toward `angle`; returns how far off it still is (radians). */

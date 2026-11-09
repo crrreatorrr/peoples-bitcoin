@@ -5,21 +5,32 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig(
-  { ignores: ['dist', 'coverage', 'node_modules', 'vendor'] },
+  { ignores: ['dist', 'dist-sim', 'coverage', 'node_modules', 'vendor'] },
   js.configs.recommended,
   tseslint.configs.recommended,
   { languageOptions: { globals: { ...globals.browser } } },
+  { files: ['scripts/**/*.mjs'], languageOptions: { globals: { ...globals.node } } },
   {
-    // The simulation must stay pure so it can run on the server (phase 5).
-    files: ['src/sim/**/*.ts'],
+    // The simulation, server host and protocol must stay pure: they run in Nakama's JS runtime.
+    files: ['src/sim/**/*.ts', 'src/server/**/*.ts', 'src/net/protocol.ts', 'src/net/simVersion.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
         {
           patterns: [
             {
-              group: ['three', 'three/*', '**/render/**', '**/ui/**', '**/input/**'],
-              message: 'src/sim must not import Three.js, DOM, render, ui or input code.',
+              group: [
+                'three',
+                'three/*',
+                '**/render/**',
+                '**/ui/**',
+                '**/input/**',
+                '**/hub/**',
+                '**/game/**',
+                '@metaverse/*',
+              ],
+              message:
+                'src/sim, src/server and the protocol must not import Three.js, DOM, render, ui, input, hub or game code.',
             },
           ],
         },

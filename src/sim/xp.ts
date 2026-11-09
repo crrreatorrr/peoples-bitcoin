@@ -19,10 +19,16 @@ export function xpForLevel(level: number): number {
   return XP_TABLE[clamped];
 }
 
+/** Binary search: this runs for every player and enemy check on a busy server world. */
 export function levelForXp(xp: number): number {
-  let level = 1;
-  while (level < XP_CURVE.maxLevel && xp >= XP_TABLE[level + 1]) level++;
-  return level;
+  let lo = 1;
+  let hi = XP_CURVE.maxLevel;
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1;
+    if (xp >= XP_TABLE[mid]) lo = mid;
+    else hi = mid - 1;
+  }
+  return lo;
 }
 
 /**

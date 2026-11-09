@@ -20,6 +20,7 @@ Build in phases (section 15). Do not start a phase until the previous one passes
 - **Bank** is in Phase 1 (pulled forward from Phase 3).
 - **Art:** sprites and icons come from Higgsfield (AI-generated, original characters only).
 - **Wording:** "jeet" comes from an ethnic slur (Hard Rule 4), so the Dumper Leviathan's adds are "paper-hands fish".
+- **Multiplayer (2026-11-04, owner brief):** §1 "Colyseus" is replaced by the hub's Nakama: an authoritative `pb_world` match per world (up to 100 players, more worlds as they fill) runs `src/sim` through `src/server`. Phase 5 moves ahead of the Phase 3–4 leftovers. See DECISIONS.md "Multiplayer worlds (0.7.0)".
 
 ---
 
