@@ -599,3 +599,26 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
 - **Rig weights are fixed in Blender, per model.** `tools/fix_foot_weights.py` moves Meshy's shin
   weight out of the shoes and gives the toe cap to the toe bone. Only the President has been run
   through it so far; the other rigged models likely have the same bleed.
+
+## Pending hub sale holds its units (2026-11-08)
+
+- **Item lock, not escrow.** While `ledger.sale` is set, the sale holds packs × pack size units of
+  its item, counted over every slot (`src/sim/saleHold.ts`). Any removal that would leave fewer
+  units than that is refused with "That item is waiting on a sale.": drop, equip, eat, drink,
+  one-use teleports, summons, Use on an object, quest hand-ins, bunker builds, the standalone
+  Terminal sell, Spin inputs, Hash Cannon shells and trade offers (and the trade swap). Surplus
+  units stay free. Deposit and Deposit-All bank only the surplus. On death the held units stay in
+  the inventory and the rest goes to the pile. Escrow (moving the units out of the inventory when
+  the sale is sealed) would need a save-format change and a migration; the lock needs neither.
+- The old slot lock is kept only for moving items, and only while the sold item is still in the
+  sold slot, so that stack stays where it was. Anything else put into an emptied sale slot moves
+  freely. The clicked slot is no longer special for removals: with surplus elsewhere you can drop
+  it, and `takeUnits` in `src/hub/client.ts` takes the rest from the other slots.
+- **A deposit counts for quests only when something went into the bank.** `deposit` and
+  `depositAll` return the units moved, and the tutorial's "Deposit something" step (and any other
+  `deposit` trigger) advances only when that is more than 0. Before, a refused deposit (an empty
+  slot, a full bank, and now a sale hold) still finished the step.
+- If this build has no price row for the sale (shop and item), the pack size is unknown and every
+  unit of that item is held until the sale settles.
+- The hold uses this build's price table for the pack size. The hub answers with its own `units`,
+  which are the same today.

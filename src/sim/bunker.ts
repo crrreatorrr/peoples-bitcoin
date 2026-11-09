@@ -9,6 +9,7 @@ import { SUMMONING, TERMINAL_SHOP_ID } from '../config/balance';
 import { giveItem } from './ground';
 import { bestTool, countItem, removeItem } from './inventory';
 import { progressQuests } from './quests';
+import { SALE_HOLD_MESSAGE, spareUnits } from './saleHold';
 import type { BuildOption, ObjectDef } from './schemas';
 import {
   maxHp,
@@ -63,6 +64,10 @@ export function buildProblem(
     if (countItem(player.inventory, m.item) < m.qty) {
       return `Needs ${m.qty} × ${ctx.content.items.get(m.item)?.name ?? m.item}.`;
     }
+  }
+  // Materials a pending hub sale is waiting for can't be built with.
+  if (option.materials.some((m) => spareUnits(player, ctx.content, m.item) < m.qty)) {
+    return SALE_HOLD_MESSAGE;
   }
   return null;
 }

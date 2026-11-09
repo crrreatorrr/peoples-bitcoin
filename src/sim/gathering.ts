@@ -14,7 +14,8 @@ import { giveItem } from './ground';
 import { bestTool, canAdd } from './inventory';
 import { progressQuests } from './quests';
 import { chance, nextFloat } from './rng';
-import type { GameState, ObjectInstance, SimContext, SimEvent } from './state';
+import { SALE_HOLD_MESSAGE, spareUnits } from './saleHold';
+import type { GameState, InventorySlot, ObjectInstance, SimContext, SimEvent } from './state';
 import { grantXp } from './xp';
 
 export function successChance(level: number, levelReq: number, toolBonus: number): number {
@@ -125,17 +126,22 @@ export function tickProcessing(
   if (!action || !skill) return;
   const level = effectiveLevel(player, skillId, state.tick);
   const recipes = ctx.content.recipesBySkill.get(skillId) ?? [];
-  const slot = player.inventory.findIndex((s) =>
-    recipes.some((r) => r.input === s?.itemId && r.levelReq <= level),
+  const workable = (s: InventorySlot | null): s is InventorySlot =>
+    recipes.some((r) => r.input === s?.itemId && r.levelReq <= level);
+  // Inputs a pending hub sale is waiting for are skipped.
+  const slot = player.inventory.findIndex(
+    (s) => workable(s) && spareUnits(player, ctx.content, s.itemId) > 0,
   );
   if (slot === -1) {
     const anyInput = player.inventory.some((s) => recipes.some((r) => r.input === s?.itemId));
     events.push({
       type: 'message',
       kind: 'game',
-      text: anyInput
-        ? `You need a higher ${skill.name} level to work with what you're carrying.`
-        : `You have nothing to ${skill.name.toLowerCase()} here.`,
+      text: player.inventory.some(workable)
+        ? SALE_HOLD_MESSAGE
+        : anyInput
+          ? `You need a higher ${skill.name} level to work with what you're carrying.`
+          : `You have nothing to ${skill.name.toLowerCase()} here.`,
     });
     player.action = null;
     return;
