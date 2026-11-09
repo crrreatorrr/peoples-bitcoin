@@ -37,8 +37,13 @@ Clicks act on press, like OSRS.
 - **Mouse wheel:** zoom
 - **F-keys (OSRS defaults):** F1 Combat, F2 Skills, F3 Quests, F4 Equipment, F6 Summoning (Magic position), F10 Settings; Esc returns to Inventory
 - **Minimap:** click to walk, scroll to zoom; click the compass to face north
-- **Chat:** start typing (or press Enter), Enter to send. Space continues NPC dialogue; number
-  keys 1–5 pick a "Select an Option" answer.
+- **Chat:** start typing (or press Enter), Enter to send. Space or Enter continues NPC dialogue;
+  number keys 1–5 pick a "Select an Option" answer.
+- **Menus and windows from the keyboard:** with a right-click menu, world select, "Select an
+  Option", the bank, the Terminal or another window open, the arrow keys move a yellow focus ring
+  (W / S / A / D too in the menus, world select and "Select an Option"; in windows letters still
+  start a chat message), and Enter or Space chooses. Esc closes, as before.
+- **Shift (tap it on its own):** toggle run, like the Motion orb. Shift-click still drops.
 - **Inventory:** left-click uses (Wield, Wear, Drink, Recite, Summon, Read...), shift-click drops,
   drag to rearrange, right-click for options. **Use** an item, then click an object or NPC to use
   it on that ("Use X -> Y").
@@ -53,6 +58,34 @@ Clicks act on press, like OSRS.
 - **Skills:** click a skill for its guide
 - **Orbs** (beside the minimap): XP counter toggle, Hitpoints, run, Sproto special
 - **Esc:** close windows and return to the Inventory tab
+
+There is no keyboard walking: as in OSRS you click to walk, the arrow keys turn the camera and
+typing anywhere starts a chat message (see DECISIONS.md "Controller and keyboard").
+
+### Controller
+
+Any controller with the browser's standard mapping works with no setup (Xbox names below;
+PlayStation and Switch buttons work by position). It is detected on its first button press; a
+button already held at that moment (the A that chose the hub portal) is ignored until released.
+Mouse and keyboard keep working alongside it, and the prompts follow the last device used.
+
+| Button | In the world | In menus, windows, the side panel, dialogue, world select |
+| --- | --- | --- |
+| Left stick / D-pad | Walk (camera-relative) | Move the focus ring |
+| A | Do the target's left-click option (Talk-to, Attack, Mine, Take...) | Choose / left-click; continue dialogue |
+| X | The target's right-click menu | Right-click the focused item (Use, Drop, Withdraw-X...) |
+| B | Cancel: close windows, drop a pending Use | Back / close; leave a dialogue |
+| LB / RB | Previous / next target (nearest ahead first) | Previous / next side-panel tab |
+| Y | Toggle run | Toggle run |
+| Right stick | Turn and tilt the camera (stick up looks up) | Turn the camera |
+| LT / RT | Zoom out / in | Zoom out / in |
+| Right stick click | Face north | Face north |
+| View | Inventory (focus in the side panel; again to leave) | Inventory |
+| Menu | Settings: Save, **Exit to Hub**, controls (again to leave) | Settings |
+
+The yellow ring in the world marks the soft target and the top-left text shows what A will do.
+Settings → Reset progress and the Add / Del friend and ignore buttons need the mouse or keyboard
+(they ask with a browser dialog), as does typing in chat.
 
 Progress autosaves to `localStorage` every 10 ticks and when the tab is hidden or closed.
 Settings → Reset progress starts over.
@@ -111,7 +144,7 @@ src/
   assets/   character GLBs (Higgsfield), sprites and icons
   ui/       HTML overlay: ticker HUD, chat, inventory, skills, tooltips, context menu, world
             select, friends, quick-chat, trade
-  input/    mouse and keyboard
+  input/    mouse, keyboard and controller (padlogic.ts is the pure, tested part)
   server/   pure world host for online play (AOI, deltas, chat, trade, Tickets), bundled for Nakama
   net/      wire protocol, transports (hub realtime, in-page loopback), replica, jitter buffer
   game/     drivers: local tick loop (offline) and the online driver; world select flow

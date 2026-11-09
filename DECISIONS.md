@@ -599,3 +599,46 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
 - **Rig weights are fixed in Blender, per model.** `tools/fix_foot_weights.py` moves Meshy's shin
   weight out of the shoes and gives the toe cap to the toe bone. Only the President has been run
   through it so far; the other rigged models likely have the same bleed.
+
+## Controller and keyboard (2026-11-09)
+
+The owner asked for automatic controller support in every Sproto game, with the hub plaza's
+convention (standard mapping, latch on connect, A confirm / B back, Menu for the main menu, return
+to the hub from it), and for keyboard controls that make sense across the games.
+
+- **One module, the mouse's own events.** `src/input/gamepad.ts` polls `navigator.getGamepads()`
+  every frame on its own animation loop (so world select works before the game starts) and turns
+  the pad into the clicks a mouse makes: a focus ring over buttons, slots and menu rows, and in
+  the world a soft target that stands in for the cursor (`src/input/padworld.ts`). The sim gets
+  the same intents as from a mouse, so nothing in `src/sim`, timing or balance changes. The
+  deadzones, edge detection, latch, auto-repeat, focus moves and target order are pure
+  (`src/input/padlogic.ts`, `tests/gamepad.test.ts`).
+- **Layout for an OSRS-style game.** The most common thing is acting on something, so A does the
+  target's left-click option and X opens its right-click menu; LB / RB pick another target
+  (nearest ahead of the walk or the camera first, within 10 tiles). The left stick walks by
+  aiming a walk two tiles ahead, re-aimed once a tile (at most one intent a tick, well under the
+  server's flood limit). Y toggles run, B cancels (Esc), View focuses the inventory, Menu opens
+  Settings (Save, Exit to Hub, the controls list): the game has no pause, so Settings is its main
+  menu. Camera on the right stick (stick up looks up, not inverted), zoom on the triggers.
+- **Tunables live in `src/input/config.ts`, not `config/balance.ts`.** `src/config` feeds the sim
+  version hash, so a client-only number there would force a world server rebuild (as for the walk
+  glide and the gait).
+- **All pads drive the one President.** There is no local multiplayer; buttons from every pad are
+  merged and each stick reads from the pad pushed most.
+- **The ring only shows for a pad or the menu keys** (`body[data-input]`); a mouse move hides it
+  and its hover text, so mouse players see no change. Reset progress is skipped by the pad
+  (`data-pad-skip`): it asks with the browser's `confirm()`, which a controller can't answer.
+- **Keyboard: no WASD walking.** The hub moves with WASD or arrows, but here DESIGN.md §2 gives
+  the arrows to the camera, as in OSRS, and typing anywhere starts a chat message (online chat
+  matters). WASD walking would take four letters from chat. Movement stays click-to-walk; the
+  owner can ask for a WASD option later.
+- **Keyboard menus.** With a right-click menu, quick-chat, world select, "Select an Option" or a
+  window (bank, Terminal, Exchange, build, skill guide, journal, trade) open, the arrow keys move
+  the same focus ring and Enter or Space chooses; W / S / A / D move it only in the menus, world
+  select and "Select an Option", because with a window open letters still start chat. Enter and
+  Space choose only once the ring is showing (after an arrow press), so a mouse player's Space or
+  Enter does what it did. With a window open the arrows move the ring instead of the camera.
+  Enter also continues dialogue, like Space (with no dialogue it still opens the chat line).
+- **Shift taps toggle run** (Shift = run in the other games). Only Shift pressed and released on
+  its own within 0.4 s, with no key or click in between and not in a text field, so Shift+letter
+  capitals and shift-click drops are unaffected.
