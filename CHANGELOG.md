@@ -14,6 +14,28 @@
   spends Tickets: whole packs only, 1 to 10,000 packs, and room in the inventory. A full inventory
   used to pay and then drop the goods on the ground. Client only; `SIM_VERSION` is unchanged.
 
+## Unreleased — Planted walk and run (2026-11-09)
+
+- **Feet stay on the ground.** Rigged characters and code-built humanoids now step on planted
+  feet (`src/render/gait.ts`): each foot follows a path that moves back with the ground, rolls
+  heel → flat → toe, swings through and lands moving with the ground; two-bone IK turns that into
+  hip, knee, ankle and toe angles, and the hips sit as high as the planted legs reach. Before, the
+  legs swung by fixed angles: walking, both feet left the ground 43% of the time (up to 10 cm),
+  and the running foot slid at 2.4 m/s against the ground.
+- **The run is fully planted** (no slide mid-stance), with a flight phase, a heel kick and a
+  bounce lowest mid-stance. **The walk** gives 15% of the ground's travel (a 1-tile step is long
+  for the President's legs; fully planted, the hips would bob 14 cm) and bobs about 8 cm.
+- **More of the body moves:** rigged characters now turn the hips with the stride (the chest turns
+  against them), bend at the ankles and toes, and a lean curves the whole spine instead of
+  pivoting at the shoulders. Free arms bend a little more at the elbow on the forward swing.
+- Starting, stopping and switching between walk and run blend where the feet go, not joint angles,
+  so the feet stay on the ground through the change (0.16 s).
+- **President rig fixed in Blender** (`tools/fix_foot_weights.py`): the shoes carried shin weight
+  and the toe cap was half foot, half toe, so the sole sank up to 5 cm as the knee bent and the toe
+  dug 3 cm into the floor at push-off. Now under 1 cm. The unused baked clip is gone (492 → 342 KB).
+- `gait.html` (dev only): the President walking and running on a treadmill at game speed, with
+  foot-contact numbers (`window.gaitMeasure()`); `?model=<id>` for other rigged models.
+
 ## 0.7.0 — Online worlds (2026-11-04)
 
 - **Worlds of up to 100 players**, run server-side as `pb_world` matches on the hub's Nakama with
