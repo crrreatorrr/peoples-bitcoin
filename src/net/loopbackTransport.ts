@@ -1,7 +1,8 @@
 /**
  * Runs a world host in the page, with in-memory I/O and a few bots, so the
  * online client can be built and played without Nakama (`?net=loopback`).
- * Bots walk around the Treasury and now and then say a quick-chat line.
+ * Bots walk around the Treasury and now and then say a quick-chat line
+ * (`chat: false` keeps them silent: players only).
  */
 import { NET } from '../config/balance';
 import type { Content } from '../sim/content';
@@ -21,6 +22,8 @@ const BOT_LINES = ['hi', 'attention', 'notbitcon', 'gremlin', 'motion', 'trade',
 export interface LoopbackOptions {
   content?: Content;
   bots?: number;
+  /** false: bots only walk and never chat. Default true. */
+  chat?: boolean;
   /** Starting Tickets for every account (the loopback wallet is in memory). */
   tickets?: number;
   /** false: the caller drives `host.loop()` (tests). */
@@ -96,6 +99,7 @@ export class LoopbackTransport implements Transport {
   readonly io: ReturnType<typeof memoryIO>;
   private readonly me: Presence;
   private readonly bots: Presence[] = [];
+  private readonly botChat: boolean;
   private timer: ReturnType<typeof setInterval> | null = null;
   private joined = false;
   private loops = 0;
@@ -105,6 +109,7 @@ export class LoopbackTransport implements Transport {
 
   constructor(opts: LoopbackOptions = {}) {
     this.io = memoryIO(opts.tickets);
+    this.botChat = opts.chat !== false;
     this.host = createWorldHost({
       worldNo: 1,
       matchId: 'loopback-1',
@@ -190,7 +195,7 @@ export class LoopbackTransport implements Transport {
           OP.INTENTS,
           JSON.stringify({ seq: this.loops, intents: [{ type: 'walk', x, y }] }),
         );
-      } else if (r < 0.17 + i * 0.001) {
+      } else if (this.botChat && r < 0.17 + i * 0.001) {
         const phrase = BOT_LINES[Math.floor(Math.random() * BOT_LINES.length)];
         this.host.message(bot, OP.CHAT, JSON.stringify({ ch: 'quick', phrase }));
       }

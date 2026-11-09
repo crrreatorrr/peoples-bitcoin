@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Dev (silent bots):** `?net=loopback&chat=0` runs the in-page world with bots that only walk,
+  never chat, and `CHAT=0` does the same for the `scripts/pb-bots.mjs` load test. Client and dev
+  tools only; `SIM_VERSION` is unchanged.
 - **Fix (hub sell):** a Sell-N larger than the stack (for example Sell 10 on 3 items) asked the hub
   for Tickets for all N while only the owned items were removed. The hub sell now clamps to the
   units owned, as the offline sim already did. Client only; `SIM_VERSION` is unchanged.

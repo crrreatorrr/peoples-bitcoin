@@ -70,13 +70,14 @@ fresh and saved on the server (offline saves stay offline).
   as before.
 - **`?net=loopback`** (dev): runs a world in the page with bots (`&bots=3`, default 3), so the
   online client can be built and tried without Nakama: `npm run dev`, then
-  `http://localhost:5173/play/peoples-bitcoin/?net=loopback&bots=5`.
+  `http://localhost:5173/play/peoples-bitcoin/?net=loopback&bots=5`. Bots walk and now and then
+  quick-chat; add `&chat=0` for players only, with no bot chat.
 - **With a local hub Nakama:** in metaverse-hub, `cd server && docker compose up` (see its README),
   then here `npm run build:sim -- --out ../metaverse-hub/server/modules/vendor/pb-sim.js`, rebuild
   the hub module, and open the game through the hub portal. The client and the bundle must come
   from the same commit (their sim version is a hash of the sim sources; a mismatch is refused).
 - **Load test:** `NAKAMA_URL=http://127.0.0.1:7350 BOTS=100 node scripts/pb-bots.mjs` runs guest
-  bots through the portal; the world logs its loop time about once a minute.
+  bots through the portal (`CHAT=0` keeps them from chatting); the world logs its loop time about once a minute.
 
 Online controls (RuneScape-style):
 

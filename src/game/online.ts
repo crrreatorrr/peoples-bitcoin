@@ -30,9 +30,11 @@ async function transportFor(content: Content, bridge: HubBridge): Promise<Transp
   const params = new URLSearchParams(window.location.search);
   if (params.get('net') === 'loopback') {
     const bots = Math.min(99, Math.max(0, Number(params.get('bots') ?? 3) || 0));
+    // &chat=0: bots only walk, so the chat stays empty (players only).
+    const chat = params.get('chat') !== '0';
     // Dev only: the in-page server is its own chunk, so normal play never downloads it.
     const { LoopbackTransport } = await import('../net/loopbackTransport');
-    return new LoopbackTransport({ content, bots });
+    return new LoopbackTransport({ content, bots, chat });
   }
   const outcome = await Promise.race([
     bridge.init().then(() => 'ok' as const),
