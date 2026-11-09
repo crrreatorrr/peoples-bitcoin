@@ -11,12 +11,14 @@
 import * as THREE from 'three';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import { hat, holdRight, type ActorModel, type Joints, type Look } from './actors';
+import type { LegGeometry } from './gait';
 import { gearModel } from './gear';
 import { box, lambert, shade } from './kit';
 
 type ProxyName = Exclude<keyof Joints, 'handL' | 'handR'>;
 
 const BONES: Record<ProxyName, string> = {
+  hips: 'Hips',
   torso: 'Spine',
   head: 'Head',
   armL: 'LeftArm',
@@ -27,9 +29,23 @@ const BONES: Record<ProxyName, string> = {
   shinL: 'LeftLeg',
   legR: 'RightUpLeg',
   shinR: 'RightLeg',
+  footL: 'LeftFoot',
+  footR: 'RightFoot',
+  toeL: 'LeftToeBase',
+  toeR: 'RightToeBase',
 };
 
+/**
+ * The torso joint bends the whole back: its turn is shared out along these
+ * bones (hips to chest), so a lean curves the spine instead of pivoting at the
+ * shoulders.
+ */
+const SPINE = ['Spine02', 'Spine01', 'Spine'];
+
 const PARENT: Partial<Record<ProxyName, ProxyName>> = {
+  torso: 'hips',
+  legL: 'hips',
+  legR: 'hips',
   head: 'torso',
   armL: 'torso',
   armR: 'torso',
@@ -37,6 +53,10 @@ const PARENT: Partial<Record<ProxyName, ProxyName>> = {
   foreR: 'armR',
   shinL: 'legL',
   shinR: 'legR',
+  footL: 'shinL',
+  footR: 'shinR',
+  toeL: 'footL',
+  toeR: 'footR',
 };
 
 /** How far below the wrist the grip sits, and how wide a head is, in model meters. */
@@ -55,12 +75,14 @@ interface Link {
   fix: THREE.Quaternion | null;
   /** Forearms: the parent arm's fix, so elbows bend in the arms-down frame. */
   inherit: THREE.Quaternion | null;
+  /** Share of the joint's turn this bone takes (the spine splits the torso's). */
+  share: number;
 }
 
 /** True if the model has a skeleton this adapter can drive. */
 export function isRigged(model: THREE.Object3D): boolean {
-  return (
-    model.getObjectByName('Hips') !== undefined && model.getObjectByName('LeftArm') !== undefined
+  return [...Object.values(BONES), ...SPINE, 'LeftHand', 'RightHand'].every(
+    (name) => model.getObjectByName(name) !== undefined,
   );
 }
 
@@ -100,6 +122,9 @@ export function riggedActor(
     proxies[name].position.copy(at);
     (parentName ? proxies[parentName] : proxyRoot).add(proxies[name]);
   }
+  // Legs turn against the hips' yaw first, so they still swing along the path.
+  proxies.legL.rotation.order = 'YXZ';
+  proxies.legR.rotation.order = 'YXZ';
 
   const down = new THREE.Vector3(0, -1, 0);
   const armFix = (arm: string, fore: string) =>
@@ -107,24 +132,31 @@ export function riggedActor(
   const fixL = armFix('LeftArm', 'LeftForeArm');
   const fixR = armFix('RightArm', 'RightForeArm');
 
-  const links: Link[] = (Object.keys(BONES) as ProxyName[]).map((name) => {
-    const b = bone(BONES[name]);
+  const link = (proxy: ProxyName, boneName: string, share = 1): Link => {
+    const b = bone(boneName);
     const restWorld = b.getWorldQuaternion(new THREE.Quaternion());
     return {
-      proxy: proxies[name],
+      proxy: proxies[proxy],
       bone: b,
       restLocal: b.quaternion.clone(),
       restWorld,
       restWorldInv: restWorld.clone().invert(),
-      fix: name === 'armL' ? fixL : name === 'armR' ? fixR : null,
-      inherit: name === 'foreL' ? fixL : name === 'foreR' ? fixR : null,
+      fix: proxy === 'armL' ? fixL : proxy === 'armR' ? fixR : null,
+      inherit: proxy === 'foreL' ? fixL : proxy === 'foreR' ? fixR : null,
+      share,
     };
-  });
+  };
+  const links: Link[] = (Object.keys(BONES) as ProxyName[])
+    .filter((name) => name !== 'torso')
+    .map((name) => link(name, BONES[name]));
+  for (const name of SPINE) links.push(link('torso', name, 1 / SPINE.length));
 
   const q = new THREE.Quaternion();
+  const none = new THREE.Quaternion();
   const sync = () => {
     for (const l of links) {
       q.copy(l.proxy.quaternion);
+      if (l.share < 1) q.slerpQuaternions(none, l.proxy.quaternion, l.share);
       if (l.fix) q.multiply(l.fix);
       if (l.inherit) q.premultiply(l.inherit.clone().invert()).multiply(l.inherit);
       // bone = restLocal · (restWorld⁻¹ · q · restWorld): rotate about character axes.
@@ -155,6 +187,7 @@ export function riggedActor(
     left: null,
     muzzle: null,
     sync,
+    legs: legGeometry(model, worldPos),
   };
   wear(model, dress, height);
   const left = dress.left ? gearModel(dress.left) : null;
@@ -164,6 +197,61 @@ export function riggedActor(
   }
   holdRight(actor, dress.right ?? null);
   return actor;
+}
+
+/**
+ * Leg lengths and rest angles in the side view, averaged over both legs, from
+ * the rest skeleton; the heel is the back of the shoe's sole.
+ */
+function legGeometry(model: THREE.Object3D, at: (bone: string) => THREE.Vector3): LegGeometry {
+  const side = (s: 'Left' | 'Right') => {
+    const hip = at(`${s}UpLeg`);
+    const knee = at(`${s}Leg`);
+    const ankle = at(`${s}Foot`);
+    const ball = at(`${s}ToeBase`);
+    const span = (a: THREE.Vector3, b: THREE.Vector3) => Math.hypot(a.y - b.y, a.z - b.z);
+    const lean = (a: THREE.Vector3, b: THREE.Vector3) => Math.atan2(b.z - a.z, a.y - b.y);
+    return {
+      thigh: span(hip, knee),
+      shin: span(knee, ankle),
+      hipY: hip.y,
+      ankleY: ankle.y,
+      // No foot-weighted sole found: about half as far back as the ball is forward.
+      heel: ankle.z - Math.min(soleBack(model, s, ankle.y), ankle.z + 0.5 * (ankle.z - ball.z)),
+      ball: ball.z - ankle.z,
+      ballY: ball.y,
+      hipX: Math.abs(hip.x),
+      thighRest: lean(hip, knee),
+      shinRest: lean(knee, ankle),
+    };
+  };
+  const l = side('Left');
+  const r = side('Right');
+  return Object.fromEntries(
+    Object.entries(l).map(([k, v]) => [k, (v + r[k as keyof LegGeometry]) / 2]),
+  ) as unknown as LegGeometry;
+}
+
+/** The z of the back of a shoe: its rearmost vertex below the ankle, weighted mostly to the foot. */
+function soleBack(model: THREE.Object3D, side: 'Left' | 'Right', ankleY: number): number {
+  let back = Infinity;
+  const v = new THREE.Vector3();
+  model.traverse((o) => {
+    const mesh = o as THREE.SkinnedMesh;
+    if (!mesh.isSkinnedMesh) return;
+    const foot = mesh.skeleton.bones.findIndex((b) => b.name === `${side}Foot`);
+    const index = mesh.geometry.getAttribute('skinIndex');
+    const weight = mesh.geometry.getAttribute('skinWeight');
+    for (let i = 0; i < index.count; i++) {
+      let w = 0;
+      for (let k = 0; k < 4; k++)
+        if (index.getComponent(i, k) === foot) w = weight.getComponent(i, k);
+      if (w < 0.5) continue;
+      mesh.getVertexPosition(i, v).applyMatrix4(mesh.matrixWorld);
+      if (v.y < ankleY) back = Math.min(back, v.z);
+    }
+  });
+  return back;
 }
 
 /**
