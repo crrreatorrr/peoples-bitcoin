@@ -575,7 +575,9 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
   in metaverse-hub (migration `0042_pb_godmode`, `deploy/scripts/godmode.sh`), which tops the
   server wallet up on every balance read; this repo needs no change for it.
 - It lives in `src/game`, not `src/sim`, so the sim version hash and the world server bundle do
-  not change. Anyone who knows the flag can use it offline; that is harmless because offline
+  not change. *(Correction, 2026-11-09: `GODMODE` is in `src/config/balance.ts`, which the hash
+  covers, so the hash did change, `7cd8d3c92b4e2dbc` → `3e43004d13df6230`. The hub's `pb-sim.js`
+  was rebuilt after PB-W-1-03 at `d1ba8d9cabf317a9`.)* Anyone who knows the flag can use it offline; that is harmless because offline
   Tickets stay in that browser's save.
 
 ## Planted walk and run (2026-11-09)
@@ -743,3 +745,11 @@ to the hub from it), and for keyboard controls that make sense across the games.
   yet.
 - The threshold (3) and log cap (5) live in `src/game/crash.ts`, not `config/balance.ts`: they are
   client-only, and `src/config` feeds the sim version hash.
+
+## Hub exchange result fields (2026-11-09)
+
+- hub-sdk's `ExchangeResult` is `{ verse, ticketsLeft, balance, receiptId, verseCapLeft? }`, the
+  same in 0.5.0 and 0.6.3, and the hub's exchange RPC returns exactly those. `HubBridge.exchange`
+  read a `verseCredited` that no hub version sends, so it now maps `verse` (the Verse wallet after
+  the exchange) and the test double sends only the real fields. `ticketsDebited` stays as a
+  fallback for a reply with no `balance` or `ticketsLeft`; current hubs always send both.

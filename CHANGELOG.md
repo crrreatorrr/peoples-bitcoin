@@ -14,16 +14,22 @@
   README match the bindings. Client only; `SIM_VERSION` is unchanged.
 - hub-sdk 0.6.3 is vendored from hub main (`5cc4e48`, PR #90). Same methods and types. The classic
   script is `vendor/hub-sdk/dist/hub-sdk.iife.js` (global `HubSDK`).
+- **Fix (hub exchange):** the bridge read `verseCredited` and the test double sent `ticketsDebited`
+  and `verseCredited`, but the hub's `ExchangeResult` has neither. The bridge now reads `verse`, the
+  Verse wallet after the exchange. Client only; `SIM_VERSION` is unchanged.
 - **Godmode (owner):** `?godmode` keeps the offline Ticket wallet at 333,333,333 Tickets and is
   remembered in the browser; `?godmode=0` turns it off. Offline play only; hub sessions and online
-  worlds keep the server wallet. Client only; `SIM_VERSION` is unchanged.
+  worlds keep the server wallet. Client only, but `GODMODE` sits in `src/config/balance.ts`,
+  which feeds the sim hash, so `SIM_VERSION` changed (`7cd8d3c92b4e2dbc` → `3e43004d13df6230`).
 - **Test world menu:** Settings has a "Test world: AI players" box: how many AI players (0–99),
   awakening story / quick-chat / silent, story speed, and Start, Restart or Leave test world. The
   test world now joins its one world directly instead of showing world select.
 - **Dev (awakening bots):** `?net=loopback&awaken=1` gives the in-page bots names and a story:
   eight Treasury citizens (262 original lines, six scripted scenes) loop, glitch, question, see
   behind the world and wake up, then gather and talk freely. `&pace=` and `&act=` speed it up or
-  skip ahead. Dev only; `SIM_VERSION` is unchanged.
+  skip ahead. Dev only, but `AWAKENING` (`src/config/balance.ts`) and `src/data/awakening.json`
+  are in the sim hash, so `SIM_VERSION` changed (`d1ba8d9cabf317a9` → `f8910ac055ba8871`) and the
+  hub's `pb-sim.js` was rebuilt.
 - **Dev (silent bots):** `?net=loopback&chat=0` runs the in-page world with bots that only walk,
   never chat, and `CHAT=0` does the same for the `scripts/pb-bots.mjs` load test. Client and dev
   tools only; `SIM_VERSION` is unchanged.
