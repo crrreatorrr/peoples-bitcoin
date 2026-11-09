@@ -57,6 +57,14 @@ Clicks act on press, like OSRS.
 Progress autosaves to `localStorage` every 10 ticks and when the tab is hidden or closed.
 Settings → Reset progress starts over.
 
+## Godmode (owner)
+
+Add **`?godmode`** to the URL once (for example `http://localhost:5173/play/peoples-bitcoin/?godmode`).
+In offline play the Ticket wallet is then kept at **90,000,000,000 Tickets** (`GODMODE.tickets` in
+`src/config/balance.ts`), topped back up after every purchase. The setting is remembered in this
+browser; **`?godmode=0`** turns it off (Tickets already in the save stay). Hub sessions and online
+worlds use the server's wallet and caps, so godmode does nothing there.
+
 ## Online play
 
 The game is fully multiplayer in **worlds** of up to 100 players. A world is one authoritative

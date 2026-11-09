@@ -154,6 +154,15 @@ export const ECONOMY = {
 export const START_CURRENCIES = { tickets: 0, bitcoin: 0 } as const;
 
 /**
+ * Owner godmode (src/game/godmode.ts). Turn it on with `?godmode` in the URL, off with
+ * `?godmode=0`. Standalone play only: the wallet is kept at least this many Tickets.
+ * Hub sessions keep the server's balance.
+ */
+export const GODMODE = {
+  tickets: 90_000_000_000,
+} as const;
+
+/**
  * Repeatable Ticket sources (drops, lobbying, sell-only goods).
  * Shop prices are data in shop_prices.tickets.json, not derived here.
  */

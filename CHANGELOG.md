@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Godmode (owner):** `?godmode` keeps the offline Ticket wallet at 90,000,000,000 Tickets and is
+  remembered in the browser; `?godmode=0` turns it off. Offline play only; hub sessions and online
+  worlds keep the server wallet. Client only; `SIM_VERSION` is unchanged.
 - **Fix (hub sell):** a Sell-N larger than the stack (for example Sell 10 on 3 items) asked the hub
   for Tickets for all N while only the owned items were removed. The hub sell now clamps to the
   units owned, as the offline sim already did. Client only; `SIM_VERSION` is unchanged.

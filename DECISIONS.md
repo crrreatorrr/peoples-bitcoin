@@ -551,3 +551,18 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
   duplicated rather than shared because moving it into a helper would edit `src/sim`, which feeds
   the sim version hash and would force a world server rebuild for a client-only fix.
   `tests/hub-duplication.test.ts` checks that both paths remove the same units.
+
+## Owner godmode (2026-11-09)
+
+- The owner asked for a godmode that gives them 90,000,000,000 Tickets automatically.
+  `src/game/godmode.ts` raises the wallet to `GODMODE.tickets` when the game starts and after
+  every tick, so spending never brings it down. It is turned on with `?godmode` and remembered in
+  localStorage (`peoples-bitcoin.godmode`); `?godmode=0` turns it off and leaves the wallet as is.
+- **Offline play only.** In a hub session the Nakama server owns the wallet and caps earns (200
+  per session, 1000 per day), and online worlds run on the server, so a client top-up there would
+  only show a number the server rejects. Offline Tickets are never uploaded (`src/sim/ledger.ts`),
+  so godmode cannot reach the hub or other players. Giving hub Tickets would need an admin grant
+  on the metaverse-hub server.
+- It lives in `src/game`, not `src/sim`, so the sim version hash and the world server bundle do
+  not change. Anyone who knows the flag can use it offline; that is harmless because offline
+  Tickets stay in that browser's save.
