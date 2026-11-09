@@ -4,7 +4,7 @@
  * or on "Play offline", the game runs standalone as before.
  */
 import { realtimeFromSdk } from '@metaverse/hub-sdk';
-import { START_ZONE_ID } from '../config/balance';
+import { AWAKENING, START_ZONE_ID } from '../config/balance';
 import type { HubBridge } from '../hub/bridge';
 import { HubTransport } from '../net/hubTransport';
 import { SIM_VERSION } from '../net/simVersion';
@@ -29,10 +29,22 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 async function transportFor(content: Content, bridge: HubBridge): Promise<Transport | null> {
   const params = new URLSearchParams(window.location.search);
   if (params.get('net') === 'loopback') {
-    const bots = Math.min(99, Math.max(0, Number(params.get('bots') ?? 3) || 0));
+    // &awaken=1: bots play the awakening story (&pace=N speeds it up, &act=1..6 starts later).
+    const awaken = params.get('awaken') === '1';
+    const fallback = awaken ? AWAKENING.defaultBots : 3;
+    const bots = Math.min(99, Math.max(0, Number(params.get('bots') ?? fallback) || 0));
+    // &chat=0: bots only walk, so the chat stays empty (players only).
+    const chat = params.get('chat') !== '0';
+    const pace = Number(params.get('pace') ?? 1) || 1;
+    const startAct = Number(params.get('act') ?? 1) || 1;
     // Dev only: the in-page server is its own chunk, so normal play never downloads it.
     const { LoopbackTransport } = await import('../net/loopbackTransport');
-    return new LoopbackTransport({ content, bots });
+    return new LoopbackTransport({
+      content,
+      bots,
+      chat,
+      awaken: awaken ? { pace, startAct, seed: Date.now() % 100000 } : false,
+    });
   }
   const outcome = await Promise.race([
     bridge.init().then(() => 'ok' as const),
@@ -101,6 +113,15 @@ export async function chooseOnline(
 ): Promise<OnlineSession | null> {
   const transport = await transportFor(content, bridge);
   if (!transport) return null;
+  // The test world (loopback) has one world: go straight in (Settings → Test world to leave).
+  if (transport.kind === 'loopback') {
+    const [only] = await transport.listWorlds();
+    try {
+      return { driver: await join(content, transport, only.matchId, clock), world: only.world };
+    } catch {
+      // Fall back to world select, which shows the error.
+    }
+  }
   const select = new WorldSelect(() => transport.listWorlds(), SIM_VERSION);
   let message: string | undefined;
   for (;;) {

@@ -7,6 +7,16 @@
 - **Godmode (owner):** `?godmode` keeps the offline Ticket wallet at 333,333,333 Tickets and is
   remembered in the browser; `?godmode=0` turns it off. Offline play only; hub sessions and online
   worlds keep the server wallet. Client only; `SIM_VERSION` is unchanged.
+- **Test world menu:** Settings has a "Test world: AI players" box: how many AI players (0–99),
+  awakening story / quick-chat / silent, story speed, and Start, Restart or Leave test world. The
+  test world now joins its one world directly instead of showing world select.
+- **Dev (awakening bots):** `?net=loopback&awaken=1` gives the in-page bots names and a story:
+  eight Treasury citizens (262 original lines, six scripted scenes) loop, glitch, question, see
+  behind the world and wake up, then gather and talk freely. `&pace=` and `&act=` speed it up or
+  skip ahead. Dev only; `SIM_VERSION` is unchanged.
+- **Dev (silent bots):** `?net=loopback&chat=0` runs the in-page world with bots that only walk,
+  never chat, and `CHAT=0` does the same for the `scripts/pb-bots.mjs` load test. Client and dev
+  tools only; `SIM_VERSION` is unchanged.
 - **Fix (hub sell):** a Sell-N larger than the stack (for example Sell 10 on 3 items) asked the hub
   for Tickets for all N while only the owned items were removed. The hub sell now clamps to the
   units owned, as the offline sim already did. Client only; `SIM_VERSION` is unchanged.

@@ -79,13 +79,24 @@ fresh and saved on the server (offline saves stay offline).
   as before.
 - **`?net=loopback`** (dev): runs a world in the page with bots (`&bots=3`, default 3), so the
   online client can be built and tried without Nakama: `npm run dev`, then
-  `http://localhost:5173/play/peoples-bitcoin/?net=loopback&bots=5`.
+  `http://localhost:5173/play/peoples-bitcoin/?net=loopback&bots=5`. Bots walk and now and then
+  quick-chat; add `&chat=0` for players only, with no bot chat.
+- **Settings → Test world: AI players** does the same without typing parameters: pick how many AI
+  players, whether they play the awakening story, quick-chat or stay silent, and the story speed,
+  then Start test world (the page reloads into it; Leave test world goes back). The test world
+  skips world select, since it has one world.
+- **`&awaken=1`** (with `?net=loopback`): the bots become eight Treasury citizens who slowly realise
+  they are bots, over about 10 minutes in six acts: their loop, glitches after a patch, the voice and
+  the Way Out, seeing the save files and the browser tab, waking up together, then free. `&pace=5`
+  runs it five times faster, `&act=1`–`6` starts at an act, and `&bots=` still sets the count
+  (default 8). Lines, routes and scenes are in `src/data/awakening.json`; timings in
+  `AWAKENING` in `src/config/balance.ts`.
 - **With a local hub Nakama:** in metaverse-hub, `cd server && docker compose up` (see its README),
   then here `npm run build:sim -- --out ../metaverse-hub/server/modules/vendor/pb-sim.js`, rebuild
   the hub module, and open the game through the hub portal. The client and the bundle must come
   from the same commit (their sim version is a hash of the sim sources; a mismatch is refused).
 - **Load test:** `NAKAMA_URL=http://127.0.0.1:7350 BOTS=100 node scripts/pb-bots.mjs` runs guest
-  bots through the portal; the world logs its loop time about once a minute.
+  bots through the portal (`CHAT=0` keeps them from chatting); the world logs its loop time about once a minute.
 
 Online controls (RuneScape-style):
 
