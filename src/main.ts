@@ -4,7 +4,7 @@
  * rendering reads the resulting state every frame.
  */
 import * as THREE from 'three';
-import { INVENTORY_SIZE, START_ZONE_ID, TERMINAL_SHOP_ID, UI } from './config/balance';
+import { GODMODE, INVENTORY_SIZE, START_ZONE_ID, TERMINAL_SHOP_ID, UI } from './config/balance';
 import { HubBridge } from './hub/bridge';
 import { HubClient } from './hub/client';
 import { clearHubLedger } from './hub/ledgerStore';
@@ -40,6 +40,7 @@ import {
 import { buyPrice } from './sim/terminal';
 import { entityActions } from './sim/tick';
 import { LocalDriver, type GameDriver } from './game/driver';
+import { applyGodmode, browserStorage, godmodeEnabled } from './game/godmode';
 import { chooseOnline, type OnlineSession } from './game/online';
 import type { ChatOut } from './net/protocol';
 import type { RemoteActor } from './net/replica';
@@ -101,6 +102,8 @@ async function boot(): Promise<void> {
   const bridge = new HubBridge();
   const session: OnlineSession | null = await chooseOnline(content, bridge, clockNow);
   const online = session?.driver ?? null;
+  /** Owner godmode: standalone wallet kept at GODMODE.tickets (src/game/godmode.ts). */
+  const godmode = !online && godmodeEnabled(location.search, browserStorage());
   const loaded = online ? null : loadSavedGame(content);
   const state: GameState =
     online?.state ?? loaded?.state ?? createGameState(content, START_ZONE_ID, Date.now() >>> 0);
@@ -730,6 +733,7 @@ async function boot(): Promise<void> {
       pendingDestination = null;
       tradeWindow?.refresh();
     }
+    if (godmode) applyGodmode(state);
     const alpha = driver.alpha(now);
     const dt = Math.min(0.1, (now - lastFrameAt) / 1000);
     lastFrameAt = now;
@@ -832,6 +836,15 @@ async function boot(): Promise<void> {
   if (frozen) return;
   if (!online) await hub.start();
   if (frozen) return;
+  if (godmode) {
+    if (state.hubSession.mode === 'hub') {
+      chat.add('Godmode is on, but hub sessions use the server wallet.', 'game');
+    } else {
+      applyGodmode(state);
+      persist();
+      chat.add(`Godmode: ${GODMODE.tickets.toLocaleString('en-US')} Tickets.`, 'game');
+    }
+  }
   requestAnimationFrame(frame);
 }
 
