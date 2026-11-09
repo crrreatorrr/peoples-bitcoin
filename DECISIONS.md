@@ -597,8 +597,8 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
   walk ↔ run), mixing foot targets, so planted feet stay put during a change. Arms, torso and
   head still ease.
 - **Rig weights are fixed in Blender, per model.** `tools/fix_foot_weights.py` moves Meshy's shin
-  weight out of the shoes and gives the toe cap to the toe bone. Only the President has been run
-  through it so far; the other rigged models likely have the same bleed.
+  weight out of the shoes and gives the toe cap to the toe bone. All 38 rigged models have been
+  run through it (2026-11-09; see "Foot rigs for the whole cast").
 
 ## Pending hub sale holds its units (2026-11-08)
 
@@ -644,3 +644,27 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
   shown in every build, not only dev, so the owner can use it on the deployed game; it only
   reloads the page into a world that lives in the tab (in-memory Tickets, nothing saved). From a
   real hub world it asks before leaving. The last choice is remembered in localStorage.
+
+## Foot rigs for the whole cast (2026-11-09)
+
+- **All 38 rigged models** went through `tools/fix_foot_weights.py`. Every one had shin weight in
+  its soles (4–40%), so with planted feet their shoes sank 1.5–11 cm into the ground. Now 37 of
+  38 stay within about 1.5 cm while walking and running; the Contractor sinks 2.5 cm (was 8.3),
+  because his left and right legs differ and the gait drives both from one averaged leg.
+- **No re-shrink after Blender.** Blender's export keeps the embedded JPEG byte for byte, so the
+  fixed models skip `shrink_glb.py` (it would recompress them). The President was redone from his
+  original file the same way, so his texture is the approved one again.
+- **The toe split runs straight ahead,** not along the ankle-to-toe-joint line. Meshy often puts
+  the toe joint toward the outside of the shoe, which slanted the split and left the big-toe side
+  on the foot bone, so it dug in at push-off.
+- **Short legs plant less instead of squatting (`maxDrop`).** A Sproto's legs are 0.2 m long; to
+  keep a foot planted on a 1-tile step the hips dropped almost to the floor. Now the hips never sink
+  more than 13% (walk) / 14% (run) of leg length, and each character works out once how much of
+  the ground its legs can follow (`plantFor`): the President and most of the cast are unchanged,
+  the Spam Bot plants about 60%, Sprotos about 30%. Their feet slide, as they did before the
+  planted gait, but they stay upright.
+- **Toes stay level in the swing** until the foot comes level: unbending them right after push-off
+  scraped long shoe tips through the ground.
+- **The heel is found at sole level** (below 40% of the ankle's height), so a cuff weighted to the
+  foot isn't taken for the heel. With the weights fixed, the real heels turn out long: the
+  President's sole runs 0.2 m behind the ankle.

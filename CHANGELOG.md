@@ -34,6 +34,18 @@
   deposit was refused (an empty slot, a full bank, or units held for a sale). An unrelated item
   put into an emptied sale slot can now be moved.
 
+## Unreleased — Foot rigs for the whole cast (2026-11-09)
+
+- **Every rigged character's shoes fixed in Blender** (`tools/fix_foot_weights.py`, all 38
+  models). Their soles carried 4–40% shin weight, so their shoes sank 1.5–11 cm into the ground as
+  they walked; now 37 of 38 stay within about 1.5 cm (the Contractor 2.5 cm). Dropping the unused baked
+  clips shrinks `src/assets/models` from 11 to 7 MB; textures are unchanged.
+- **Short-legged characters stay upright:** the hips never sink more than about an eighth of the
+  leg length; legs too short for a 1-tile step (Sprotos, the Spam Bot) plant less of it and their
+  feet slide instead of the body squatting to the floor.
+- Toes stay level through the start of the swing, so long shoe tips don't scrape the ground; the
+  toe split in the Blender tool runs straight ahead, catching the big-toe side of the shoe.
+
 ## Unreleased — Planted walk and run (2026-11-09)
 
 - **Feet stay on the ground.** Rigged characters and code-built humanoids now step on planted
