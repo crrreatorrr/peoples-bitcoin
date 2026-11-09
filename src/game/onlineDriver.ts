@@ -114,6 +114,10 @@ export class OnlineDriver implements GameDriver {
     return out;
   }
 
+  takeFailure(): null {
+    return null;
+  }
+
   alpha(now: number): number {
     return this.playout.alpha(now);
   }

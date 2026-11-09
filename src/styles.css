@@ -1146,12 +1146,67 @@ body {
   }
 }
 
-.fatal {
-  margin: 24px;
-  white-space: pre-wrap;
-  color: var(--down);
+/* "Something broke": the crash guard's panel (game/crash.ts, ui/crashpanel.ts). */
+.crash-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(18, 15, 10, 0.75);
   font-family: var(--font-body);
-  font-size: 20px;
+  color: #ff981f;
+}
+.crash-overlay .crash-panel {
+  position: relative;
+  width: min(480px, 94vw);
+  max-height: 90vh;
+  overflow: auto;
+  padding: 12px;
+  font-size: 18px;
+}
+.crash-panel h2 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: #ffd27a;
+}
+.crash-panel p {
+  margin: 0 0 8px;
+}
+.crash-panel .crash-message {
+  color: var(--down);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.crash-panel summary {
+  cursor: pointer;
+  color: var(--parchment);
+}
+.crash-panel pre {
+  max-height: 30vh;
+  overflow: auto;
+  margin: 6px 0 8px;
+  padding: 6px;
+  background: #1f1a12;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.crash-panel button {
+  font-family: var(--font-body);
+  font-size: 18px;
+  padding: 4px 16px;
+  background: #3e3529;
+  color: #ff981f;
+  border: 1px solid #1c1812;
+  cursor: pointer;
+}
+.crash-panel button:hover {
+  background: #4d4233;
 }
 
 /* ── Small screens (full mobile layout lands in phase 6) ────────────────── */

@@ -43,6 +43,14 @@
 - **Fix (tutorial):** the "Deposit something at a Bank Booth" step no longer completes when the
   deposit was refused (an empty slot, a full bank, or units held for a sale). An unrelated item
   put into an emptied sale slot can now be moved.
+- **Crash guard:** one error in a frame no longer freezes the game or floods the console. The
+  main loop always reschedules; after three failing frames in a row the game pauses and shows a
+  "Something broke" panel with Reload. A tick that keeps throwing trips the panel too, its intents
+  carry over and earlier ticks keep their events. Uncaught page errors are counted but only pause
+  the game together with failing frames (other-origin errors and aborted fetches are ignored), and a
+  failed boot shows the same panel with Retry instead of a bare error screen. Each distinct error is logged
+  once. `onCrash()` is ready for the opt-in Diagnostics reporter and sends nothing. Client only;
+  `SIM_VERSION` is unchanged.
 
 ## Unreleased — Foot rigs for the whole cast (2026-11-09)
 
