@@ -61,7 +61,9 @@ def fix(src: str, dst: str) -> None:
         # Toes: in front of the ball joint the shoe belongs to the toe bone, behind it to
         # the foot, with a short ramp across the joint so the shoe creases there at push-off.
         ball = arm.matrix_world @ arm.data.bones[f'{side}ToeBase'].head_local
-        axis = Vector((ball.x - ankle.x, ball.y - ankle.y, 0)).normalized()
+        # Straight ahead (the way the toes point), not along ankle -> ball: the toe joint
+        # often sits off to one side, which would slant the split across the shoe.
+        axis = Vector((0, 1 if ball.y > ankle.y else -1, 0))
         bent = 0
         for mesh in meshes:
             groups = mesh.vertex_groups

@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { foot, gait, RUN, WALK, type LegGeometry, type LegPose } from '../src/render/gait';
+import {
+  foot,
+  gait,
+  plantFor,
+  RUN,
+  WALK,
+  type LegGeometry,
+  type LegPose,
+} from '../src/render/gait';
 
 /** The President's legs (player_president.glb), rest legs leaning slightly forward. */
 const LEGS: LegGeometry = {
@@ -42,7 +50,7 @@ describe('foot-planted gait', () => {
         const phase = (i / 64) * TAU;
         const g = gait(phase, LEGS, TILE, running ? 1 : 0);
         const shift = LEGS.hipX * Math.sin(g.hipYaw);
-        const want = foot(uLeft(phase), style, LEGS, TILE, LEG);
+        const want = foot(uLeft(phase), style, LEGS, TILE, LEG, plantFor(style, LEGS, TILE));
         const got = ankle(g.left, LEGS.hipY + g.hipDrop, -shift);
         expect(got.z).toBeCloseTo(want.z, 3);
         expect(got.y).toBeCloseTo(want.y, 3);
@@ -77,6 +85,35 @@ describe('foot-planted gait', () => {
       }
     });
   }
+
+  it('short legs plant less of the step instead of squatting', () => {
+    // A Sproto: legs a quarter as long, the same one-tile step.
+    const short: LegGeometry = {
+      ...LEGS,
+      thigh: 0.118,
+      shin: 0.078,
+      hipY: 0.251,
+      ankleY: 0.056,
+      heel: 0.03,
+      ball: 0.05,
+      ballY: 0.006,
+      hipX: 0.076,
+      thighRest: -0.01,
+      shinRest: -0.056,
+    };
+    const len = short.thigh + short.shin;
+    for (const [style, running] of [
+      [WALK, false],
+      [RUN, true],
+    ] as const) {
+      expect(plantFor(style, short, TILE)).toBeLessThan(0.5);
+      expect(plantFor(style, LEGS, TILE)).toBeGreaterThan(0.8);
+      for (let i = 0; i < 100; i++) {
+        const g = gait((i / 100) * TAU, short, TILE, running ? 1 : 0);
+        expect(g.hipDrop).toBeGreaterThanOrEqual(-style.maxDrop * len - 1e-9);
+      }
+    }
+  });
 
   it('walking always has a foot down; running has a moment with both feet up', () => {
     const down = (u: number, duty: number) => u < duty;

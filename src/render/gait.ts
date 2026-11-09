@@ -78,6 +78,11 @@ export interface GaitStyle {
   bounce: number;
   /** Planted legs reach at most this fraction of their full length (keeps a soft knee). */
   maxReach: number;
+  /**
+   * The hips never sink more than this below rest (fraction of leg length). Legs
+   * too short to cover the step within it plant less of it (the foot gives more).
+   */
+  maxDrop: number;
   hipYaw: number;
 }
 
@@ -100,6 +105,7 @@ export const WALK: GaitStyle = {
   crouch: 0.005,
   bounce: 0,
   maxReach: 0.985,
+  maxDrop: 0.13,
   hipYaw: 0.15,
 };
 
@@ -118,6 +124,7 @@ export const RUN: GaitStyle = {
   crouch: 0.06,
   bounce: 0.035,
   maxReach: 0.97,
+  maxDrop: 0.14,
   hipYaw: 0.18,
 };
 
@@ -155,7 +162,8 @@ export function gait(
   const shift = g.hipX * Math.sin(hipYaw);
   const legLen = g.thigh + g.shin;
   const limit = lerp(1, s.maxReach, weight) * legLen;
-  // The hips settle as low as the gait asks, then lower still if a foot can't reach.
+  // The hips settle as low as the gait asks, then lower still if a foot can't
+  // reach, but never past the floor the style allows.
   let hipY = lerp(g.hipY, s.hipY, weight);
   for (const [f, hipZ] of [
     [footL, -shift],
@@ -164,6 +172,7 @@ export function gait(
     const dz = Math.min(Math.abs(f.z - hipZ), limit * 0.999);
     hipY = Math.min(hipY, f.y + Math.sqrt(limit * limit - dz * dz));
   }
+  hipY = Math.max(hipY, g.hipY - lerp(0, s.maxDrop, weight) * legLen);
   return {
     left: solve(footL, hipY, -shift, g),
     right: solve(footR, hipY, shift, g),
@@ -179,15 +188,17 @@ interface Stride {
   hipY: number;
   hipYaw: number;
   maxReach: number;
+  maxDrop: number;
 }
 
 /** Where one style puts the feet and hips at `phase`. */
 function stride(phase: number, style: GaitStyle, g: LegGeometry, tile: number): Stride {
   const legLen = g.thigh + g.shin;
   const uL = frac((phase - Math.PI / 2) / TAU);
+  const plant = plantFor(style, g, tile);
   return {
-    left: foot(uL, style, g, tile, legLen),
-    right: foot(frac(uL + 0.5), style, g, tile, legLen),
+    left: foot(uL, style, g, tile, legLen, plant),
+    right: foot(frac(uL + 0.5), style, g, tile, legLen, plant),
     hipY:
       g.hipY -
       style.crouch * legLen -
@@ -195,7 +206,51 @@ function stride(phase: number, style: GaitStyle, g: LegGeometry, tile: number): 
     // Hips turn with the forward leg: the left (+x) leading turns them by −y.
     hipYaw: -style.hipYaw * Math.sin(phase),
     maxReach: style.maxReach,
+    maxDrop: style.maxDrop,
   };
+}
+
+const plants = new WeakMap<LegGeometry, Map<GaitStyle, Map<number, number>>>();
+
+/**
+ * How much of the ground a planted foot can follow (up to the style's `plant`)
+ * without the hips sinking past `maxDrop`: short legs can't cover a whole tile
+ * in one step, so their feet give more. Worked out once per legs, style and tile.
+ */
+export function plantFor(style: GaitStyle, g: LegGeometry, tile: number): number {
+  let byStyle = plants.get(g);
+  if (!byStyle) plants.set(g, (byStyle = new Map()));
+  let byTile = byStyle.get(style);
+  if (!byTile) byStyle.set(style, (byTile = new Map()));
+  const known = byTile.get(tile);
+  if (known !== undefined) return known;
+
+  const legLen = g.thigh + g.shin;
+  const limit = style.maxReach * legLen;
+  const floor = g.hipY - style.maxDrop * legLen;
+  /** The lowest the planted feet pull the hips over a cycle, planting `p` of the ground. */
+  const lowest = (p: number) => {
+    let low = Infinity;
+    for (let i = 0; i < 48; i++) {
+      const f = foot(i / 48, style, g, tile, legLen, p);
+      const dz = Math.min(Math.abs(f.z), limit * 0.999);
+      low = Math.min(low, f.y + Math.sqrt(limit * limit - dz * dz));
+    }
+    return low;
+  };
+  let plant = style.plant;
+  if (lowest(plant) < floor) {
+    let lo = 0;
+    let hi = plant;
+    for (let i = 0; i < 16; i++) {
+      const mid = (lo + hi) / 2;
+      if (lowest(mid) < floor) hi = mid;
+      else lo = mid;
+    }
+    plant = lo;
+  }
+  byTile.set(tile, plant);
+  return plant;
 }
 
 function mixStride(a: Stride, b: Stride, t: number): Stride {
@@ -205,6 +260,7 @@ function mixStride(a: Stride, b: Stride, t: number): Stride {
     hipY: lerp(a.hipY, b.hipY, t),
     hipYaw: lerp(a.hipYaw, b.hipYaw, t),
     maxReach: lerp(a.maxReach, b.maxReach, t),
+    maxDrop: lerp(a.maxDrop, b.maxDrop, t),
   };
 }
 
@@ -234,9 +290,11 @@ export function foot(
   g: LegGeometry,
   tile: number,
   legLen: number,
+  plant = s.plant,
 ): FootTarget {
-  // On the ground the foot moves back at the ground speed: 2 tiles per cycle.
-  const speed = 2 * tile * s.plant;
+  // On the ground the foot moves back at the ground speed (2 tiles per cycle),
+  // or the share of it the legs can follow.
+  const speed = 2 * tile * plant;
   const travel = speed * s.duty;
   const centre = s.reach * legLen;
   if (u < s.duty) return planted(u / s.duty, centre + travel / 2 - speed * u, s, g);
@@ -249,12 +307,14 @@ export function foot(
   // back just before it lands.
   const groundVel = -speed * (1 - s.duty) * s.retract;
   const lift = s.lift * legLen * bump(k, s.liftPeak);
-  const toeEase = 1 - smooth(clamp01(k / 0.3));
+  const pitch = lerp(start.pitch, end.pitch, smooth(k));
   return {
     z: hermite(start.z, groundVel, end.z, groundVel, k),
     y: lerp(start.y, end.y, k) + lift,
-    pitch: lerp(start.pitch, end.pitch, smooth(k)),
-    toe: start.toe * toeEase,
+    pitch,
+    // The toes stay level while the foot is still tipped down from the push-off, so a
+    // long shoe's tip doesn't scrape through the ground as it swings.
+    toe: Math.min(0, pitch),
   };
 }
 
@@ -300,7 +360,6 @@ function solve(f: FootTarget, hipY: number, hipZ: number, g: LegGeometry): LegPo
 
 const frac = (x: number) => x - Math.floor(x);
 const clamp = (x: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, x));
-const clamp01 = (x: number) => clamp(x, 0, 1);
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const smooth = (t: number) => t * t * (3 - 2 * t);
 const easeIn = (t: number) => t * t;
