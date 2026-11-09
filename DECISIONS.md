@@ -552,6 +552,15 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
   the sim version hash and would force a world server rebuild for a client-only fix.
   `tests/hub-duplication.test.ts` checks that both paths remove the same units.
 
+## Hub buy checks (2026-11-08)
+
+- The hub buy in `src/hub/client.ts` floors the packs, refuses fewer than 1 or more than
+  `MAX_PACKS` (10,000) with "Unavailable", and refuses a buy that won't fit with "You don't have
+  enough inventory space." before it seals a purchase or calls `spendTickets`, as the sim's `buy`
+  in `src/sim/terminal.ts` does. The checks and `MAX_PACKS` are duplicated rather than shared
+  because `src/sim` feeds the sim version hash. A buy that fit when it was sent but no longer fits
+  when the hub answers still lands on the ground (`giveItem`), as before.
+
 ## Owner godmode (2026-11-09)
 
 - The owner asked for a godmode that gives them 90,000,000,000 Tickets automatically.
