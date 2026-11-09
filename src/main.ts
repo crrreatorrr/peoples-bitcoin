@@ -490,6 +490,7 @@ async function boot(): Promise<void> {
               online?.dispose();
               void hub.exitToHub();
             },
+            online !== null,
           ),
         ),
       },

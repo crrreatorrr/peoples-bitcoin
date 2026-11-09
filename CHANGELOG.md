@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Test world menu:** Settings has a "Test world: AI players" box: how many AI players (0–99),
+  awakening story / quick-chat / silent, story speed, and Start, Restart or Leave test world. The
+  test world now joins its one world directly instead of showing world select.
 - **Dev (awakening bots):** `?net=loopback&awaken=1` gives the in-page bots names and a story:
   eight Treasury citizens (262 original lines, six scripted scenes) loop, glitch, question, see
   behind the world and wake up, then gather and talk freely. `&pace=` and `&act=` speed it up or

@@ -72,6 +72,10 @@ fresh and saved on the server (offline saves stay offline).
   online client can be built and tried without Nakama: `npm run dev`, then
   `http://localhost:5173/play/peoples-bitcoin/?net=loopback&bots=5`. Bots walk and now and then
   quick-chat; add `&chat=0` for players only, with no bot chat.
+- **Settings → Test world: AI players** does the same without typing parameters: pick how many AI
+  players, whether they play the awakening story, quick-chat or stay silent, and the story speed,
+  then Start test world (the page reloads into it; Leave test world goes back). The test world
+  skips world select, since it has one world.
 - **`&awaken=1`** (with `?net=loopback`): the bots become eight Treasury citizens who slowly realise
   they are bots, over about 10 minutes in six acts: their loop, glitches after a patch, the voice and
   the Way Out, seeing the save files and the browser tab, waking up together, then free. `&pace=5`

@@ -569,4 +569,7 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
   (`lead`), Finley last. Scenes pause ambient chat and are skipped when their speaker isn't there
   (fewer than 8 bots) or the story started past them (`&act=`). Bots past eight reuse the
   characters with a number, and only the first of each speaks scene lines.
-
+- **Menu (owner):** Settings → "Test world: AI players" starts it without URL parameters. It is
+  shown in every build, not only dev, so the owner can use it on the deployed game; it only
+  reloads the page into a world that lives in the tab (in-memory Tickets, nothing saved). From a
+  real hub world it asks before leaving. The last choice is remembered in localStorage.

@@ -113,6 +113,15 @@ export async function chooseOnline(
 ): Promise<OnlineSession | null> {
   const transport = await transportFor(content, bridge);
   if (!transport) return null;
+  // The test world (loopback) has one world: go straight in (Settings → Test world to leave).
+  if (transport.kind === 'loopback') {
+    const [only] = await transport.listWorlds();
+    try {
+      return { driver: await join(content, transport, only.matchId, clock), world: only.world };
+    } catch {
+      // Fall back to world select, which shows the error.
+    }
+  }
   const select = new WorldSelect(() => transport.listWorlds(), SIM_VERSION);
   let message: string | undefined;
   for (;;) {
