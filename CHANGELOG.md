@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- hub-sdk 0.6.3 is vendored from hub main (`5cc4e48`, PR #90). Same methods and types. The classic
+  script is `vendor/hub-sdk/dist/hub-sdk.iife.js` (global `HubSDK`).
 - **Godmode (owner):** `?godmode` keeps the offline Ticket wallet at 333,333,333 Tickets and is
   remembered in the browser; `?godmode=0` turns it off. Offline play only; hub sessions and online
   worlds keep the server wallet. Client only; `SIM_VERSION` is unchanged.
