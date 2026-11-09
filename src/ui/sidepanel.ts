@@ -81,6 +81,18 @@ export class SidePanel {
     return tab !== undefined;
   }
 
+  /** The open tab's id. */
+  get currentId(): string {
+    return this.current;
+  }
+
+  /** Opens the tab `step` places along (top bar, then bottom bar), wrapping. For LB / RB. */
+  cycle(step: number): void {
+    const at = this.tabs.findIndex((t) => t.id === this.current);
+    const n = this.tabs.length;
+    this.select(this.tabs[(((at + step) % n) + n) % n].id);
+  }
+
   select(id: string): void {
     const tab = this.tabs.find((t) => t.id === id);
     if (!tab) return;

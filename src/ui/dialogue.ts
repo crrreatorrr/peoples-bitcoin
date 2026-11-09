@@ -1,7 +1,7 @@
 /**
  * NPC dialogue box, drawn over the chat log: speaker, one line of text and
- * "Click to continue" (Space also continues). Shows whatever state.player.dialogue
- * points at. A line too long for the box is split into pages that each fit;
+ * "Click to continue" (Space and Enter also continue; A on a controller). Shows whatever
+ * state.player.dialogue points at. A line too long for the box is split into pages that each fit;
  * continuing shows the next page, and only the last one sends a continue intent. Like OSRS, the
  * NPC's chat head sits on the left and the player's on the right when they reply,
  * and choices appear as "Select an Option" (click, or press 1-5).
@@ -54,6 +54,16 @@ export class DialogueBox {
 
   get isOpen(): boolean {
     return !this.el.hidden;
+  }
+
+  /** A line is showing that Space, Enter or a click continues (not a "Select an Option"). */
+  get canContinue(): boolean {
+    return this.isOpen && this.options === 0;
+  }
+
+  /** The continue prompt follows the last device used ("Click to continue" / "Press A to continue"). */
+  setContinuePrompt(text: string): void {
+    this.more.textContent = text;
   }
 
   /** Picks option `index` of a "Select an Option" menu; returns false if none is showing. */
