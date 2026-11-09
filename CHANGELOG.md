@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **Dev (awakening bots):** `?net=loopback&awaken=1` gives the in-page bots names and a story:
+  eight Treasury citizens (262 original lines, six scripted scenes) loop, glitch, question, see
+  behind the world and wake up, then gather and talk freely. `&pace=` and `&act=` speed it up or
+  skip ahead. Dev only; `SIM_VERSION` is unchanged.
 - **Dev (silent bots):** `?net=loopback&chat=0` runs the in-page world with bots that only walk,
   never chat, and `CHAT=0` does the same for the `scripts/pb-bots.mjs` load test. Client and dev
   tools only; `SIM_VERSION` is unchanged.

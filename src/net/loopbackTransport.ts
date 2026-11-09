@@ -2,9 +2,11 @@
  * Runs a world host in the page, with in-memory I/O and a few bots, so the
  * online client can be built and played without Nakama (`?net=loopback`).
  * Bots walk around the Treasury and now and then say a quick-chat line
- * (`chat: false` keeps them silent: players only).
+ * (`chat: false` keeps them silent: players only). With `awaken`, they play
+ * the characters of `awakening.ts` instead and slowly realise they are bots.
  */
 import { NET } from '../config/balance';
+import { AwakeningDirector, awakeningNames, type AwakeningOptions } from './awakening';
 import type { Content } from '../sim/content';
 import {
   createWorldHost,
@@ -24,6 +26,8 @@ export interface LoopbackOptions {
   bots?: number;
   /** false: bots only walk and never chat. Default true. */
   chat?: boolean;
+  /** Bots play the awakening story (their own names, lines and routes). Ignores `chat`. */
+  awaken?: boolean | AwakeningOptions;
   /** Starting Tickets for every account (the loopback wallet is in memory). */
   tickets?: number;
   /** false: the caller drives `host.loop()` (tests). */
@@ -100,6 +104,7 @@ export class LoopbackTransport implements Transport {
   private readonly me: Presence;
   private readonly bots: Presence[] = [];
   private readonly botChat: boolean;
+  private readonly director: AwakeningDirector | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
   private joined = false;
   private loops = 0;
@@ -120,14 +125,22 @@ export class LoopbackTransport implements Transport {
     const me = opts.me ?? { userId: 'me', username: 'You' };
     this.me = { ...me, sessionId: 'loopback-me' };
     this.io.users.set(me.userId, me.username);
-    for (let i = 0; i < (opts.bots ?? 0); i++) {
+    const count = opts.bots ?? 0;
+    const names = opts.awaken ? awakeningNames(count) : [];
+    for (let i = 0; i < count; i++) {
       const bot = {
         userId: `bot${i + 1}`,
         sessionId: `loopback-bot${i + 1}`,
-        username: `Bot ${i + 1}`,
+        username: names[i] ?? `Bot ${i + 1}`,
       };
       this.io.users.set(bot.userId, bot.username);
       this.bots.push(bot);
+    }
+    if (opts.awaken) {
+      this.director = new AwakeningDirector(
+        this.bots.map((b) => b.userId),
+        opts.awaken === true ? {} : opts.awaken,
+      );
     }
     if (opts.autoLoop !== false) {
       this.timer = setInterval(() => this.pump(), 1000 / NET.loopHz);
@@ -185,6 +198,18 @@ export class LoopbackTransport implements Transport {
   }
 
   private botsAct(): void {
+    if (this.director) {
+      const actions = this.director.step();
+      for (const [i, bot] of this.bots.entries()) {
+        const a = actions[i];
+        if (a.walk) {
+          const intents = [{ type: 'walk', x: a.walk.x, y: a.walk.y }];
+          this.host.message(bot, OP.INTENTS, JSON.stringify({ seq: this.loops, intents }));
+        }
+        if (a.say) this.host.message(bot, OP.CHAT, JSON.stringify({ ch: 'public', text: a.say }));
+      }
+      return;
+    }
     for (const [i, bot] of this.bots.entries()) {
       const r = Math.random();
       if (r < 0.15) {

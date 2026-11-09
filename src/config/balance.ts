@@ -246,6 +246,33 @@ export const CHAT_NET = {
   quickChatIcon: 'quick',
 } as const;
 
+export const AWAKENING = {
+  /** Bots when `?awaken=1` is set and `&bots=` is not (one per character in awakening.json). */
+  defaultBots: 8,
+  /** Story ticks (600 ms) at which each act starts: loop, reverie, maze, behind, awake, free. */
+  actStartTicks: [0, 150, 360, 560, 780, 960],
+  /** `&pace=` multiplies story time (2 = twice as fast); clamped to this. */
+  maxPace: 50,
+  /** Ticks between one bot's lines (random in range); after the finale they talk less. */
+  speakEveryTicks: [18, 40],
+  freeSpeakEveryTicks: [45, 90],
+  /** Ticks between lines of a scripted scene. Ambient lines pause while a scene plays. */
+  sceneGapTicks: 4,
+  /** In the loop act a bot walks to the next point of its route this often. */
+  routeStepTicks: 6,
+  /** Reverie act: chance a route step is skipped (they stop mid-step), and loop-line share. */
+  reverieFreezeChance: 0.25,
+  reverieLoopShare: 0.5,
+  /** Per-tick chance of walking somewhere new, by act. */
+  wanderChance: { maze: 0.15, behind: 0.06, free: 0.1 },
+  /** Maze act: share of wanders that head for the north gate. */
+  gateBias: 0.4,
+  /** Awake act: a bot re-sends its walk to the gathering circle this often. */
+  regatherEveryTicks: 10,
+  /** Where bots wander in the Treasury (tiles, inclusive). */
+  wanderBox: { x0: 10, x1: 43, y0: 21, y1: 39 },
+} as const;
+
 export const SOCIAL = {
   maxFriends: 200,
   maxIgnores: 100,

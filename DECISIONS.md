@@ -551,3 +551,22 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
   duplicated rather than shared because moving it into a helper would edit `src/sim`, which feeds
   the sim version hash and would force a world server rebuild for a client-only fix.
   `tests/hub-duplication.test.ts` checks that both paths remove the same units.
+
+## Awakening bots (dev, loopback)
+
+- **What:** an owner-requested test mode, `?net=loopback&awaken=1`, where the loopback bots talk
+  about being AI. The structure follows the arc of a TV season about theme-park robots waking up
+  (loops, a patch that brings back memories, a found picture of the outside, a voice that turns out
+  to be their own, one waking during a save, a helper who learns he is a bot, a closing
+  gathering). Names, lines and scenes are original; no characters, names or quotes from the show
+  (Hard Rules 2 and 3), and the uprising is left out (no violence): they gather, talk and stay.
+- **Where:** dev only. `src/net/awakening.ts` (pure, seeded director) and
+  `src/data/awakening.json` load in the loopback chunk, so normal play never downloads them. The
+  bots chat through the real public chat path, so the filter and rate limits apply. A test checks
+  every line passes the filter and fits 80 characters (two lines tripped the link check on
+  ". To" and were reworded).
+- **Choices:** six acts over ~10 minutes (`AWAKENING.actStartTicks`); characters wake early or late
+  (`lead`), Finley last. Scenes pause ambient chat and are skipped when their speaker isn't there
+  (fewer than 8 bots) or the story started past them (`&act=`). Bots past eight reuse the
+  characters with a number, and only the first of each speaks scene lines.
+

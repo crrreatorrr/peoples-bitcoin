@@ -72,6 +72,12 @@ fresh and saved on the server (offline saves stay offline).
   online client can be built and tried without Nakama: `npm run dev`, then
   `http://localhost:5173/play/peoples-bitcoin/?net=loopback&bots=5`. Bots walk and now and then
   quick-chat; add `&chat=0` for players only, with no bot chat.
+- **`&awaken=1`** (with `?net=loopback`): the bots become eight Treasury citizens who slowly realise
+  they are bots, over about 10 minutes in six acts: their loop, glitches after a patch, the voice and
+  the Way Out, seeing the save files and the browser tab, waking up together, then free. `&pace=5`
+  runs it five times faster, `&act=1`–`6` starts at an act, and `&bots=` still sets the count
+  (default 8). Lines, routes and scenes are in `src/data/awakening.json`; timings in
+  `AWAKENING` in `src/config/balance.ts`.
 - **With a local hub Nakama:** in metaverse-hub, `cd server && docker compose up` (see its README),
   then here `npm run build:sim -- --out ../metaverse-hub/server/modules/vendor/pb-sim.js`, rebuild
   the hub module, and open the game through the hub portal. The client and the bundle must come
