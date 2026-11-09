@@ -20,6 +20,9 @@
 
 ## Unreleased
 
+- hub-sdk 0.6.4 is vendored from hub main (`2a82e9e`, PR #117). It adds the `marina_anchor` and
+  `dragon_scale` relic ids. The classic script is `vendor/hub-sdk/dist/hub-sdk.iife.js` (global
+  `HubSDK`).
 - **Controller support:** any standard-mapping controller works with no setup. Left stick or
   D-pad walks, A does the soft target's left-click option, X its right-click menu, LB / RB change
   target, Y toggles run, B cancels, right stick and triggers move the camera, View opens the
