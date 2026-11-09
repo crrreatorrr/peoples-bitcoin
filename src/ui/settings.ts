@@ -1,9 +1,11 @@
 import { PARODY_NOTICE } from '../config/branding';
-/** Settings tab: manual save, reset progress, and a controls cheat sheet. */
+import { buildTestWorldPanel } from './testworld';
+/** Settings tab: manual save, reset progress, a test world with AI players, and controls. */
 export function buildSettingsPanel(
   onSave: () => void,
   onReset: () => void,
   onExit: () => void,
+  online = false,
 ): HTMLElement {
   const el = document.createElement('div');
   el.className = 'settings';
@@ -44,6 +46,6 @@ export function buildSettingsPanel(
   notice.className = 'parody-notice';
   notice.textContent = PARODY_NOTICE;
 
-  el.append(save, exit, reset, help, notice);
+  el.append(save, exit, reset, buildTestWorldPanel(online), help, notice);
   return el;
 }
