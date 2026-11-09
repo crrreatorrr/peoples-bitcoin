@@ -57,6 +57,9 @@ Clicks act on press, like OSRS.
   right-click for more (including All-but-1).
 - **Skills:** click a skill for its guide
 - **Orbs** (beside the minimap): XP counter toggle, Hitpoints, run, Sproto special
+- **Summoning tab:** the active Sproto, its special and Dismiss. With no Sproto out it also lists
+  relic Sprotos the hub says you own (Champion Sproto, from Sproto Fighter's Tidebreaker Belt),
+  each with a free Summon button
 - **Esc:** close windows and return to the Inventory tab
 
 There is no keyboard walking: as in OSRS you click to walk, the arrow keys turn the camera and
@@ -172,7 +175,9 @@ tools/      shrink_glb.py and turn_glb.py for the GLB pipeline (see ART_GUIDE.md
 
 Code refers to art only by id. Edit `src/config/assets.manifest.json`: change a character's
 `look` or a prop's colors, or add `"path": "models/thing.glb"` (relative to `src/assets/`) to
-load a GLB instead.
+load a GLB instead. A code-built placeholder stays in use while its registered GLB is not in
+`src/assets/` yet (the Champion Sproto's `models/sp_champion.glb` and
+`sprites/sp_champion.png` are registered ahead of the art).
 See [ART_GUIDE.md](ART_GUIDE.md).
 
 ## Deploy

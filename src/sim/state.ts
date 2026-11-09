@@ -50,6 +50,8 @@ export type Intent =
   /** Pick an option in a "Select an Option" dialogue. */
   | { type: 'chooseOption'; index: number }
   | { type: 'summon'; slot: number }
+  /** Summon a relic-unlocked Sproto (no contract). The sim checks the hub relics. */
+  | { type: 'summonRelic'; sprotoId: string }
   | { type: 'dismiss' }
   | { type: 'special' }
   | { type: 'setStyle'; style: CombatStyle }
@@ -166,6 +168,8 @@ export interface HubSession {
   mode: 'standalone' | 'hub';
   reachable: boolean;
   effects: Record<string, number | boolean | string>;
+  /** Relic ids (or hub item ids) the hub says this player owns. Unlocks relic Sprotos. */
+  relics: string[];
   serverBalance: number | null;
   verseCapLeft: number | null;
   /** Tickets this session can still credit. Null until getTicketBalance. */
@@ -430,8 +434,8 @@ export interface SimContext {
 
 export type MessageKind = 'game' | 'npc' | 'public' | 'levelup' | 'warning' | 'quest';
 
-/** How an attack looks: a swing, a shot, or an explosive shell. */
-export type AttackStyle = 'melee' | 'gun' | 'explosive' | 'magic';
+/** How an attack looks: a swing, a shot, an explosive shell, a spell, or a thrown rock. */
+export type AttackStyle = 'melee' | 'gun' | 'explosive' | 'magic' | 'rock';
 
 export type SimEvent =
   | { type: 'message'; kind: MessageKind; text: string; speaker?: string }
@@ -503,6 +507,7 @@ export function freshHubSession(): HubSession {
     mode: 'standalone',
     reachable: false,
     effects: {},
+    relics: [],
     serverBalance: null,
     verseCapLeft: null,
     sessionCapLeft: null,

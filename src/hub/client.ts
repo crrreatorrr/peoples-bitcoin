@@ -365,8 +365,9 @@ export class HubClient {
     const link = this.state.hubSession;
     link.mode = this.bridge.mode;
     link.reachable = this.bridge.reachable;
-    // Effects apply for this session only. They are not part of the save.
+    // Effects and relics apply for this session only. They are not part of the save.
     link.effects = { ...this.bridge.effects };
+    link.relics = [...this.bridge.relics];
   }
 
   private openShopId(): string {

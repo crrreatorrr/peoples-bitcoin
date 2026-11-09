@@ -26,7 +26,7 @@ import { stepNpcs } from './npcs';
 import { findPath } from './pathfinding';
 import { metFlag, npcLines, progressQuests } from './quests';
 import { SALE_HOLD_MESSAGE, saleBlocks } from './saleHold';
-import { dismiss, stepSproto, summonFromInventory, useSpecial } from './sprotos';
+import { dismiss, stepSproto, summonFromInventory, summonRelic, useSpecial } from './sprotos';
 import {
   findEntity,
   gridOf,
@@ -221,6 +221,9 @@ function applyIntent(state: GameState, ctx: SimContext, intent: Intent, events: 
     case 'summon':
       if (!slotHeld(state, ctx, intent.slot, 1, events))
         summonFromInventory(state, ctx, intent.slot, events);
+      break;
+    case 'summonRelic':
+      summonRelic(state, ctx, intent.sprotoId, events);
       break;
     case 'dismiss':
       dismiss(state);

@@ -128,5 +128,36 @@
       "value": 0,
       "ticks": 10
     }
+  },
+  {
+    "id": "sp_champion",
+    "name": "Champion Sproto",
+    "examine": "Undefeated, mostly. Wears the Tidebreaker title belt and throws rocks like he means it.",
+    "model": "sp_champion",
+    "levelReq": 1,
+    "xp": 0,
+    "hp": 24,
+    "attack": 12,
+    "strength": 12,
+    "defense": 12,
+    "accuracy": 15,
+    "damage": 0,
+    "armor": 12,
+    "speed": 5,
+    "range": 4,
+    "type": "gun",
+    "relic": {
+      "id": "tidebreaker_belt",
+      "name": "Tidebreaker Belt",
+      "hubItem": "pb_summon_champion_sproto"
+    },
+    "throws": "rock",
+    "special": {
+      "name": "Title Shot",
+      "cost": 50,
+      "kind": "headshot",
+      "value": 0,
+      "ticks": 0
+    }
   }
 ]

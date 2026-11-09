@@ -1261,6 +1261,27 @@
     "sprite": "sprites/sp_heavy.png",
     "path": "models/sp_heavy.glb"
   },
+  "sp_champion": {
+    "placeholder": "humanoid",
+    "color": "#3f6fd8",
+    "label": "CS",
+    "look": {
+      "head": "sproto",
+      "skin": "#3f6fd8",
+      "top": "#3f6fd8",
+      "pants": "#3f6fd8",
+      "shoes": "#2f4fa8",
+      "hands": "#c62828",
+      "back": "spines",
+      "headSize": 1.6,
+      "legs": 0.55,
+      "build": 1.05,
+      "titleBelt": "#e0b43a",
+      "right": "rock"
+    },
+    "sprite": "sprites/sp_champion.png",
+    "path": "models/sp_champion.glb"
+  },
   "tile_fence": {
     "placeholder": "wall",
     "color": "#7a5a3a",

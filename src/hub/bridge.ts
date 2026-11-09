@@ -132,6 +132,8 @@ export class HubBridge {
   mode: 'standalone' | 'hub' = 'standalone';
   reachable = false;
   effects: Record<string, number | boolean | string> = {};
+  /** Relic ids from init (e.g. tidebreaker_belt). Session only; they unlock relic Sprotos. */
+  relics: string[] = [];
   private profile: InitResult | null = null;
 
   constructor(sdk: HubSdk = createGameHub()) {
@@ -160,12 +162,14 @@ export class HubBridge {
       this.mode = saved ? 'hub' : 'standalone';
       this.reachable = this.mode === 'hub';
       this.effects = { ...(this.profile?.effects ?? {}) };
+      this.relics = this.mode === 'hub' ? [...(this.profile?.relics ?? [])] : [];
     } catch (err) {
       console.warn('[hub] init failed; running standalone', err);
       this.mode = 'standalone';
       this.reachable = false;
       this.profile = null;
       this.effects = {};
+      this.relics = [];
     }
   }
 

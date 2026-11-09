@@ -35,6 +35,8 @@ export const LookSchema = z.object({
   /** Overall bib and straps. */
   bib: Color.optional(),
   belt: Color.optional(),
+  /** A big championship title belt in this color, with a round wave-emblem plate in front. */
+  titleBelt: Color.optional(),
   /** Tracksuit stripes. */
   stripes: Color.optional(),
   hood: z.boolean().default(false),
@@ -269,6 +271,7 @@ function humanoid(look: Look): ActorModel {
   if (collar) torso.add(box(0.16 * W, 0.2, 0.01, lambert(collar), 0, torsoH - 0.12, front + 0.004));
   if (look.tie) torso.add(box(0.06, 0.3, 0.01, lambert(look.tie), 0, torsoH - 0.2, front + 0.009));
   if (look.belt) torso.add(box(torsoW + 0.02, 0.06, torsoD + 0.02, lambert(look.belt), 0, 0.05, 0));
+  if (look.titleBelt) torso.add(titleBelt(look.titleBelt, torsoW, torsoD));
   if (look.stripes)
     torso.add(box(0.03, torsoH, 0.01, lambert(look.stripes), 0, torsoH / 2, front + 0.004));
   if (look.bib) {
@@ -364,6 +367,42 @@ function humanoid(look: Look): ActorModel {
   }
   holdRight(actor, look.right ?? null);
   return actor;
+}
+
+/**
+ * A fictional championship belt (the Tidebreaker title): a wide gold band, side plates,
+ * and a round front plate with a blue disc and a white zigzag wave. No real promotion's design.
+ */
+function titleBelt(color: string, torsoW: number, torsoD: number): THREE.Group {
+  const gold = lambert(color, { emissive: shade(color, 0.25) });
+  const front = torsoD / 2 + 0.02;
+  const y = 0.08;
+  const plate = tube(0.13, 0.13, 0.03, gold, 0, y, front + 0.015, 10);
+  plate.rotation.x = Math.PI / 2;
+  const disc = tube(0.085, 0.085, 0.02, lambert('#2f6fd8'), 0, y, front + 0.03, 10);
+  disc.rotation.x = Math.PI / 2;
+  const belt = group([
+    box(torsoW + 0.05, 0.13, torsoD + 0.05, gold, 0, y, 0),
+    plate,
+    disc,
+    box(0.08, 0.09, 0.02, gold, torsoW * 0.36, y, front),
+    box(0.08, 0.09, 0.02, gold, -torsoW * 0.36, y, front),
+  ]);
+  const crest = lambert('#f4f4ff');
+  for (let i = 0; i < 3; i++) {
+    const wave = box(
+      0.05,
+      0.016,
+      0.01,
+      crest,
+      (i - 1) * 0.04,
+      y + (i % 2 ? 0.012 : -0.004),
+      front + 0.042,
+    );
+    wave.rotation.z = i % 2 ? -0.6 : 0.6;
+    belt.add(wave);
+  }
+  return belt;
 }
 
 function backItem(kind: NonNullable<Look['back']>, torsoH: number, front: number, W: number) {

@@ -8,6 +8,7 @@ import {
   HubSdkError,
   relicForEvent,
   type HubSdk,
+  type RelicId,
   type SellResult,
   type SpendResult,
   type TicketBalanceResult,
@@ -20,6 +21,7 @@ import { countItem } from '../src/sim/inventory';
 import { addStreamUsd, grantQuestTickets, questEarnName } from '../src/sim/ledger';
 import { loadSavedGame, saveGame } from '../src/persist';
 import { deserialize, serialize } from '../src/sim/save';
+import { ownedRelicSprotos } from '../src/sim/sprotos';
 import type { GameState, Intent, SimContext, SimEvent } from '../src/sim/state';
 import { runTick } from '../src/sim/tick';
 import { content, give, newGame } from './helpers';
@@ -64,6 +66,8 @@ interface EventCall {
 class ScriptedHub {
   sid = 'sess-1';
   serverBalance = 1000;
+  /** Relics init reports for this player. */
+  relics: RelicId[] = [];
   /**
    * Nakama server clock, epoch milliseconds. init and getTicketBalance stamp
    * this value. Tests move it by assignment. It is not the client clock.
@@ -134,7 +138,7 @@ class ScriptedHub {
         return {
           playerId: 'p',
           ranked: false,
-          relics: [],
+          relics: [...this.relics],
           effects: {},
           ticketsCapLeft: 1000,
           serverTime: this.serverClock,
@@ -446,6 +450,33 @@ describe('relic', () => {
     reloaded.onEvents([{ type: 'questComplete', questId: 'quest_tutorial', tick: 100 }]);
     await settle();
     expect(script.events).toHaveLength(2);
+  });
+
+  it('owns Champion Sproto from a tidebreaker_belt init relic, for this session only', async () => {
+    script.relics = ['genesis_shard', 'tidebreaker_belt'];
+    const { state, ctx } = newGame();
+    const { hub } = attach(state, ctx);
+    await hub.start();
+    expect(state.hubSession.relics).toEqual(['genesis_shard', 'tidebreaker_belt']);
+    expect(ownedRelicSprotos(state, ctx.content).map((s) => s.id)).toEqual(['sp_champion']);
+    const tickets = state.player.currencies.tickets;
+    const calls = script.earns.length + script.spends.length + script.sells.length;
+    runTick(state, ctx, [{ type: 'summonRelic', sprotoId: 'sp_champion' }]);
+    expect(state.player.sproto?.defId).toBe('sp_champion');
+    expect(state.player.currencies.tickets).toBe(tickets);
+    expect(script.earns.length + script.spends.length + script.sells.length).toBe(calls);
+    saveGame(state);
+    expect(localStorage.getItem(SAVE_KEY)).not.toContain('tidebreaker_belt');
+  });
+
+  it('does not unlock relic Sprotos without a hub session', async () => {
+    script.relics = ['tidebreaker_belt'];
+    script.linked = false;
+    const { state, ctx } = newGame();
+    const { hub } = attach(state, ctx);
+    await hub.start();
+    expect(state.hubSession.relics).toEqual([]);
+    expect(ownedRelicSprotos(state, ctx.content)).toEqual([]);
   });
 
   it('does not send the relic when the save fails', async () => {

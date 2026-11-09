@@ -12,7 +12,7 @@ import { blob, box, cone, glow, group, lambert, shade, tube } from './kit';
 
 /** How a held thing is carried, which picks the arm poses. */
 export type HoldKind =
-  'pistol' | 'rifle' | 'heavy' | 'melee' | 'item' | 'carry' | 'shield' | 'staff';
+  'pistol' | 'rifle' | 'heavy' | 'melee' | 'item' | 'carry' | 'shield' | 'staff' | 'throw';
 
 /** Name of the hidden flash mesh at a gun's muzzle. */
 export const MUZZLE = 'muzzle';
@@ -303,6 +303,14 @@ function club(): THREE.Group {
   ]);
 }
 
+/** A fist-sized grey rock, held up over the shoulder to throw. */
+function rock(): THREE.Group {
+  return group([
+    blob(0.1, lambert('#8a8a90'), 0, 0.07, 0.01),
+    blob(0.06, lambert('#6a6a72'), 0.04, 0.11, 0.04),
+  ]);
+}
+
 // ── Carried at the side (arm hanging: +z points down) ────────────────────────
 
 function briefcase(color: string): THREE.Group {
@@ -465,6 +473,7 @@ export const GEAR: Record<string, GearDef> = {
   minigun: { hold: 'heavy', build: () => minigun('#3a3a40', '#4b5a2e') },
   megaphone: { hold: 'melee', build: () => megaphone('#f2f2f2', '#d62828') },
   club: { hold: 'melee', build: () => club() },
+  rock: { hold: 'throw', build: () => rock() },
   book: { hold: 'item', build: () => book('#2f6b3a') },
   tablet: { hold: 'item', build: () => tablet() },
   tray: { hold: 'item', build: () => tray() },

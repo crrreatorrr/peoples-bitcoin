@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased — Champion Sproto (Tidebreaker Belt)
+
+- **Champion Sproto** (`sp_champion`, hub item `pb_summon_champion_sproto`) is the summon that
+  Sproto Fighter's relic, the **Tidebreaker Belt** (`tidebreaker_belt`), unlocks here. Own the
+  relic in the hub and the Summoning tab offers a free Summon: no contract, no Summoning XP, no
+  quest progress, and Tickets never change. Ownership is read from the hub's init relics each
+  session and is never saved.
+- He **throws rocks**: a ranged attack, 4 tiles, every 5 ticks, 0–3 per rock
+  (`SUMMONING.rockThrow`, the hub's `summon_rock_throw`). His special, **Title Shot**, makes the
+  next rock a sure 6. Rocks lob and tumble in flight; the hit lands on the tick as usual.
+- Placeholder look until the Higgsfield art lands: a code-built Sproto with a gold fictional
+  title belt (round wave-emblem plate), red fighting wraps and a rock held over the shoulder.
+  `sprites/sp_champion.png` and `models/sp_champion.glb` are registered in the manifest; the
+  loader keeps the placeholder until those files exist.
+- **Offline and hub sessions only:** online worlds don't load hub relics yet, so the Summon card
+  doesn't show there (merged 2026-11-09 onto hub-sdk 0.6.3, which lists `tidebreaker_belt`
+  itself; the branch's local SDK patch was dropped).
+
 ## Unreleased
 
 - **Controller support:** any standard-mapping controller works with no setup. Left stick or

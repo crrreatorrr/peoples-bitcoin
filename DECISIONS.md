@@ -432,7 +432,8 @@ Three audits (gameplay duels in the real sim, every NPC variant, the story as a 
 - **Exchange** is a right-click on the Treasury terminals, steps of 10 up to 500, limited by the
   last server balance when we have one. The slot is persisted before the call.
 - **Relic effects** from `init` sit on `hubSession` for the page only. They are not saved. No PB
-  effect keys are applied yet; the matrix is still empty.
+  effect keys are applied yet; the matrix is still empty. (Since 2026-11-03 the init relics also
+  sit there and unlock relic Sprotos; see Relic summons below.)
 - **Ticket redeem.** The client sends Nakama's server key, never the HTTP key. `init` posts
   `/v2/account/authenticate/custom?create=false` with `{ id: "t:" + ticket, vars: { game } }` and Basic
   auth, then calls `profile.get` with `Authorization: Bearer <session>`. Every later RPC uses that session
@@ -745,6 +746,60 @@ to the hub from it), and for keyboard controls that make sense across the games.
   yet.
 - The threshold (3) and log cap (5) live in `src/game/crash.ts`, not `config/balance.ts`: they are
   client-only, and `src/config` feeds the sim version hash.
+
+## Relic summons: Champion Sproto (2026-11-03)
+
+Sproto Fighter, the hub's fifth game, grants the **Tidebreaker Belt** (`tidebreaker_belt`). Each
+relic unlocks one item in every other game; here it is **Champion Sproto** (hub item
+`pb_summon_champion_sproto`, Sproto id `sp_champion`). The owner decided the look (a title belt)
+and the attack (thrown rocks); the rest was chosen here.
+
+- **No relic summon existed to copy.** The hub matrix lists PB summons for the other three relics
+  (`pb_summon_speed_sproto`, `pb_summon_nobu`, `pb_summon_duelist_sproto`), but none was built in
+  this game. So the mechanism is generic: a Sproto with `relic: { id, name, hubItem }` in
+  `sprotos.json` is unlocked by that relic. The other three can be added as data (TODO).
+- **Ownership** comes from `init().relics`, copied to `hubSession.relics` by the bridge for a hub
+  session only (standalone play has none). It is read fresh each session and never saved, like
+  relic effects. The hub item id in `relics`, or a resolved `summon` effect equal to the item id
+  (the hub's equipped-loadout path, `summon` cosmetic part), also counts. The hub's gameplay part
+  `summon_rock_throw` is an object, which the vendored SDK's `flatEffects` drops, so the numbers
+  live in `balance.ts` under the hub's names and the hub matches them.
+- **Summoning it:** the Summoning tab shows a Summon button for each owned relic Sproto while no
+  Sproto is out (intent `summonRelic`, validated in the sim). No contract is used, and it gives
+  no Summoning XP (a free summon that paid XP would be a summon/dismiss farm) and doesn't tick off
+  quest `summon` steps (the tutorial step says to summon the Recruit from its contract). It still
+  follows one-at-a-time, the fall cooldown, the 30-minute tour and the level requirement
+  (level 1, so anyone who earned the relic can use it). It never touches Tickets: no shop, no
+  earn, no item.
+- **Rock throw numbers** (`SUMMONING.rockThrow`, hub `summon_rock_throw`): `rangeTiles` 4,
+  `damage` 3, `everyTicks` 5. `damage` is the max hit; each rock rolls 0..3 with the Sproto's
+  accuracy (attack 12, accuracy 15), like every Sproto attack, and needs line of sight. That is
+  at most 0.6 damage per tick: above the Recruit (max 1 every 4 ticks, range 5), below the Grunt
+  (max 4 every 4, melee), the Sniper (7 every 6, range 10) and the Heavy (6 every 2). A sidegrade: free and ranged, never the best damage. Other stats:
+  24 HP, defense 12, armor 12. The data copy of range and speed must equal `balance.ts`
+  (content check), so nothing reads a stale number.
+- **Special: Title Shot** (50 points): the next rock is a sure hit for double the max (6), the
+  same `headshot` kind the Sniper uses.
+- **Rocks resolve on the tick** (DESIGN.md §8): the attack event has style `rock`, the client
+  lobs a tumbling grey rock and delays the hitsplat to its arrival. Bosses treat it like any
+  Sproto (a tenth of the damage unless they fear it); `rock` is a valid `weakTo` style.
+- **Look (Hard Rules 3 and 5):** the Sproto is the game's own original design (`head: sproto`,
+  the same blue head, yellow face, red nose and striped quills as every Sproto), not any studio's
+  hedgehog. The belt is an invented title, the Tidebreaker belt, with a wave emblem: no real
+  promotion, brand, wrestler or logo. Higgsfield's CDN was blocked when this shipped, so it is a
+  code-built placeholder (`titleBelt` look, red `hands` as wraps, `right: rock` with a new
+  `throw` hold that cocks the rock over the shoulder and an overhand throw). The manifest already
+  names `sprites/sp_champion.png` and `models/sp_champion.glb`; the loader keeps a placeholder
+  entry's code-built model while its GLB is not in `src/assets/`, so dropping the files in swaps
+  the art with no code change.
+- **Vendored SDK:** this was built on hub-sdk 0.4.0, whose fixed `RELIC_IDS` dropped
+  `tidebreaker_belt`, so the branch patched the id in. When it merged (2026-11-09) main had
+  hub-sdk 0.6.3, which lists the relic itself; the patch was dropped and the SDK is unchanged.
+- **Online worlds (merged 2026-11-09):** the world server starts every player with an empty
+  `hubSession` and doesn't fetch hub relics, so online nobody owns a relic: the Summoning tab
+  shows no relic card and the client never sends `summonRelic`, which isn't in the wire protocol
+  (`src/net/protocol.ts`) either. Relic summons work offline and in a hub session. Online needs
+  the server to load each player's relics from the hub first.
 
 ## Hub exchange result fields (2026-11-09)
 

@@ -299,7 +299,7 @@ export const EnemyDefSchema = z.object({
   weakTo: z
     .object({
       weapons: z.array(Id).default([]),
-      styles: z.array(z.enum(['melee', 'gun', 'explosive', 'magic'])).default([]),
+      styles: z.array(z.enum(['melee', 'gun', 'explosive', 'magic', 'rock'])).default([]),
     })
     .optional(),
   /** What it says, in chat and over its head: as a fight starts, below half HP, and when beaten. */
@@ -331,7 +331,8 @@ export const SprotoDefSchema = z.object({
   examine: z.string(),
   model: Id,
   levelReq: Level,
-  xp: z.number().positive(),
+  /** Summoning XP for summoning it. Relic Sprotos are free to summon, so they give 0. */
+  xp: z.number().nonnegative(),
   ...CombatStats,
   /** Healers don't attack; they patch the player up. */
   heals: z
@@ -341,6 +342,22 @@ export const SprotoDefSchema = z.object({
       belowPct: z.number(),
     })
     .optional(),
+  /**
+   * Unlocked by a hub relic instead of a contract: summoned from the Summoning tab,
+   * for free, while the hub reports the relic (or the hub item) as owned.
+   */
+  relic: z
+    .object({
+      /** Hub relic id, e.g. tidebreaker_belt. */
+      id: Id,
+      /** Display name of the relic. */
+      name: z.string(),
+      /** Hub matrix item id, e.g. pb_summon_champion_sproto. */
+      hubItem: Id,
+    })
+    .optional(),
+  /** Throws instead of shooting; range, interval and max hit come from SUMMONING in balance.ts. */
+  throws: z.enum(['rock']).optional(),
   special: z.object({
     name: z.string(),
     cost: z.number().positive(),
