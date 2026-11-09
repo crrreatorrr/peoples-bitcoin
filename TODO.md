@@ -10,6 +10,14 @@
 - [ ] Moonward Academy: library and potions content (spellbooks, brewing) beyond decoration
 - [ ] Balance pass: XP rates, drop values, Terminal prices, enemy stats (all in data/balance.ts)
 
+## Controller and keyboard (2026-11-09)
+
+- [ ] Check the layout with a real controller (Xbox, PlayStation, Switch): stick walking feel,
+      soft-target choice in crowds, trigger zoom speed. Tested so far with a stubbed pad only.
+- [ ] Owner decision: an optional WASD walking mode (today: click to walk, letters start chat)
+- [ ] Controller text entry (chat, private messages, adding friends) needs an on-screen keyboard;
+      quick-chat and the pad's menus cover the rest
+
 ## Online (0.7.0) leftovers
 
 - [ ] S1 Clan / channel chat and a Clan tab

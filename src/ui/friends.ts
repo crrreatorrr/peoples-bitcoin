@@ -72,6 +72,7 @@ export class FriendsPanel {
     const b = document.createElement('button');
     b.textContent = label;
     b.addEventListener('click', run);
+    b.dataset.padSkip = ''; // they ask with window.prompt(), which a controller can't answer
     return b;
   }
 }

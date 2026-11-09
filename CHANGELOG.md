@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **Controller support:** any standard-mapping controller works with no setup. Left stick or
+  D-pad walks, A does the soft target's left-click option, X its right-click menu, LB / RB change
+  target, Y toggles run, B cancels, right stick and triggers move the camera, View opens the
+  inventory and Menu opens Settings (Exit to Hub). Menus, windows, dialogue and world select get a
+  focus ring (A choose, X options, B back). A button held when the pad appears is ignored until
+  released, so the hub's A doesn't leak in; hot-plug works. Layout in the README.
+- **Keyboard:** the arrow keys (and W / S / A / D in menus) move the same focus ring through
+  right-click menus, world select, "Select an Option" and windows, and Enter or Space chooses;
+  Enter also continues dialogue; tapping Shift toggles run. The Settings controls list and the
+  README match the bindings. Client only; `SIM_VERSION` is unchanged.
 - hub-sdk 0.6.3 is vendored from hub main (`5cc4e48`, PR #90). Same methods and types. The classic
   script is `vendor/hub-sdk/dist/hub-sdk.iife.js` (global `HubSDK`).
 - **Godmode (owner):** `?godmode` keeps the offline Ticket wallet at 333,333,333 Tickets and is
