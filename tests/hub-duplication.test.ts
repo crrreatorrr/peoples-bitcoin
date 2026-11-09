@@ -2,6 +2,7 @@
  * Client duplication. The hub SDK is mocked so each earn, spend, exchange,
  * and relic event is counted. A case that the client still gets wrong is left failing.
  */
+import { readFileSync } from 'node:fs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   HubSdkError,
@@ -1910,5 +1911,84 @@ describe('M8 content-only items on the hub', () => {
     expect(countItem(state.player.inventory, 'item_leaked_memo')).toBe(0);
     expect(countItem(state.player.inventory, 'pet_sproto_pup')).toBe(0);
     expect(state.player.currencies.tickets).toBe(wallet);
+  });
+});
+
+describe('hub buy makes the same checks as the sim buy (PB-W-1-04)', () => {
+  /** A hub session at the Terminal, with every inventory slot but `free` taken. */
+  async function atTerminal(free: number) {
+    const { state, ctx } = newGame();
+    const used = state.player.inventory.filter(Boolean).length;
+    give(state, 'item_scrap_hash', state.player.inventory.length - used - free);
+    state.player.interface = { kind: 'terminal', shopId: 'shop_terminal' };
+    const { hub, said } = attach(state, ctx);
+    await hub.start();
+    return { state, hub, said };
+  }
+
+  it('refuses a buy that will not fit, before any Tickets are spent', async () => {
+    const { state, hub, said } = await atTerminal(0);
+    hub.buy('shop_terminal', 'gun_campaign_pistol', 1);
+    hub.buy('shop_terminal', 'item_rounds', 1);
+    await settle();
+    expect(said).toContain("You don't have enough inventory space.");
+    expect(script.spends).toEqual([]);
+    expect(state.player.ledger.purchase).toBeNull();
+    expect(state.zone.groundItems).toEqual([]);
+  });
+
+  it('counts one slot per unstackable unit', async () => {
+    const { state, hub, said } = await atTerminal(2);
+    hub.buy('shop_terminal', 'gun_campaign_pistol', 3);
+    await settle();
+    expect(said).toContain("You don't have enough inventory space.");
+    expect(script.spends).toEqual([]);
+
+    hub.buy('shop_terminal', 'gun_campaign_pistol', 2);
+    await settle();
+    expect(script.spends).toEqual([expect.objectContaining({ packs: 2 })]);
+    expect(countItem(state.player.inventory, 'gun_campaign_pistol')).toBe(2);
+    expect(state.zone.groundItems).toEqual([]);
+  });
+
+  it('a stackable fits onto the stack already carried', async () => {
+    const { state, hub } = await atTerminal(1);
+    give(state, 'item_rounds', 5);
+    script.spendUnits = 100; // one pack of rounds
+    hub.buy('shop_terminal', 'item_rounds', 1);
+    await settle();
+    expect(script.spends).toEqual([expect.objectContaining({ itemId: 'item_rounds', packs: 1 })]);
+    expect(countItem(state.player.inventory, 'item_rounds')).toBe(105);
+  });
+
+  it('refuses fewer than one pack, more than the sim allows, and non-numbers', async () => {
+    const { hub, said } = await atTerminal(5);
+    for (const packs of [0, -1, 0.5, Number.NaN, Number.POSITIVE_INFINITY, 10_001]) {
+      hub.buy('shop_terminal', 'item_rounds', packs);
+    }
+    await settle();
+    expect(script.spends).toEqual([]);
+    expect(said.filter((s) => s === 'Unavailable')).toHaveLength(6);
+  });
+
+  it("the client's MAX_PACKS matches the sim's, so the copies cannot drift", () => {
+    const maxPacks = (path: string): number => {
+      const text = new TextDecoder().decode(readFileSync(path));
+      const m = /^const MAX_PACKS = ([\d_]+);$/m.exec(text);
+      if (!m) throw new Error(`no MAX_PACKS in ${path}`);
+      return Number(m[1].replaceAll('_', ''));
+    };
+    const sim = maxPacks('src/sim/terminal.ts');
+    expect(sim).toBeGreaterThan(0);
+    expect(maxPacks('src/hub/client.ts')).toBe(sim);
+  });
+
+  it('sends whole packs only, as the sim floors them', async () => {
+    const { state, hub } = await atTerminal(5);
+    script.spendUnits = 100; // one pack of rounds
+    hub.buy('shop_terminal', 'item_rounds', 1.9);
+    await settle();
+    expect(script.spends).toEqual([expect.objectContaining({ packs: 1 })]);
+    expect(countItem(state.player.inventory, 'item_rounds')).toBe(100);
   });
 });

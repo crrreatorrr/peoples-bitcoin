@@ -2,9 +2,17 @@
 
 ## Unreleased
 
+- hub-sdk 0.6.3 is vendored from hub main (`5cc4e48`, PR #90). Same methods and types. The classic
+  script is `vendor/hub-sdk/dist/hub-sdk.iife.js` (global `HubSDK`).
+- **Godmode (owner):** `?godmode` keeps the offline Ticket wallet at 333,333,333 Tickets and is
+  remembered in the browser; `?godmode=0` turns it off. Offline play only; hub sessions and online
+  worlds keep the server wallet. Client only; `SIM_VERSION` is unchanged.
 - **Fix (hub sell):** a Sell-N larger than the stack (for example Sell 10 on 3 items) asked the hub
   for Tickets for all N while only the owned items were removed. The hub sell now clamps to the
   units owned, as the offline sim already did. Client only; `SIM_VERSION` is unchanged.
+- **Fix (hub buy):** a hub-session buy now makes the same checks as the offline buy before it
+  spends Tickets: whole packs only, 1 to 10,000 packs, and room in the inventory. A full inventory
+  used to pay and then drop the goods on the ground. Client only; `SIM_VERSION` is unchanged.
 - **Fix (hub sell, item dupe):** a pending hub sale locked only the slot that was clicked, but a
   sale can span several slots (3 pistols are 3 slots). While it waited for a retry, the other units
   could be banked, dropped, used, handed in, built with, traded or left in a death pile, and the

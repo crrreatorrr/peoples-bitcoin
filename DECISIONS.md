@@ -552,6 +552,32 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
   the sim version hash and would force a world server rebuild for a client-only fix.
   `tests/hub-duplication.test.ts` checks that both paths remove the same units.
 
+## Hub buy checks (2026-11-08)
+
+- The hub buy in `src/hub/client.ts` floors the packs, refuses fewer than 1 or more than
+  `MAX_PACKS` (10,000) with "Unavailable", and refuses a buy that won't fit with "You don't have
+  enough inventory space." before it seals a purchase or calls `spendTickets`, as the sim's `buy`
+  in `src/sim/terminal.ts` does. The checks and `MAX_PACKS` are duplicated rather than shared
+  because `src/sim` feeds the sim version hash. A buy that fit when it was sent but no longer fits
+  when the hub answers still lands on the ground (`giveItem`), as before.
+
+## Owner godmode (2026-11-09)
+
+- The owner asked for a godmode that gives them 90,000,000,000 Tickets automatically.
+  *(Amended by the owner, 2026-11-09: the amount is now 333,333,333 Tickets, `GODMODE.tickets`.)*
+  `src/game/godmode.ts` raises the wallet to `GODMODE.tickets` when the game starts and after
+  every tick, so spending never brings it down. It is turned on with `?godmode` and remembered in
+  localStorage (`peoples-bitcoin.godmode`); `?godmode=0` turns it off and leaves the wallet as is.
+- **Offline play only.** In a hub session the Nakama server owns the wallet and caps earns (200
+  per session, 1000 per day), and online worlds run on the server, so a client top-up there would
+  only show a number the server rejects. Offline Tickets are never uploaded (`src/sim/ledger.ts`),
+  so godmode cannot reach the hub or other players. Hub Tickets come from the server-side godmode
+  in metaverse-hub (migration `0042_pb_godmode`, `deploy/scripts/godmode.sh`), which tops the
+  server wallet up on every balance read; this repo needs no change for it.
+- It lives in `src/game`, not `src/sim`, so the sim version hash and the world server bundle do
+  not change. Anyone who knows the flag can use it offline; that is harmless because offline
+  Tickets stay in that browser's save.
+
 ## Pending hub sale holds its units (2026-11-08)
 
 - **Item lock, not escrow.** While `ledger.sale` is set, the sale holds packs × pack size units of
