@@ -725,13 +725,19 @@ async function boot(): Promise<void> {
 
   // ── Main loop: fixed 600 ms ticks (local or the server's), rendering every frame ──
   let lastFrameAt = clockNow();
-  const step = (now: number) => {
-    if (frozen) return;
-    for (const events of driver.advance(now)) {
+  // Returns whether the frame counts as good for the crash guard: offline, only a frame in which a
+  // tick ran cleanly does, so a tick that always throws (one frame in ~36) still trips the panel.
+  const step = (now: number): boolean => {
+    if (frozen) return true;
+    const ticks = driver.advance(now);
+    // Ticks that ran before a failing one keep their events; the failure ends the frame after them.
+    const failure = driver.takeFailure();
+    for (const events of ticks) {
       handleEvents(events);
       pendingDestination = null;
       tradeWindow?.refresh();
     }
+    if (failure) throw failure.error;
     const alpha = driver.alpha(now);
     const dt = Math.min(0.1, (now - lastFrameAt) / 1000);
     lastFrameAt = now;
@@ -825,8 +831,9 @@ async function boot(): Promise<void> {
     quests.update(state, currentHint(state, ctx));
     journal.update(state);
     renderer.render(view.scene, cam.camera);
+    return ticks.length > 0 || !local || local.frozen;
   };
-  // Always reschedules, even when a frame throws (game/crash.ts); a throw ends that frame's ticks.
+  // Always reschedules, even when a frame throws (game/crash.ts); a failing tick ends that frame.
   // A tab lock (frozen) is a deliberate stop.
   const frame = createFrameLoop((t) => step(t + clockOffset), { stop: () => frozen });
   if (frozen) return;
@@ -990,7 +997,7 @@ function greet(chat: Chat, status: 'loaded' | 'none' | 'unreadable'): void {
 }
 
 // Uncaught errors and rejections share the loop's counter; the panel opens once the game pauses.
-crashGuard.install(window);
+crashGuard.install(window, document);
 crashGuard.onFatal((report) => showCrashPanel(report));
 
 // A failed boot (for example one asset that will not load) shows the same panel, with the error

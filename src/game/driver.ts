@@ -11,8 +11,13 @@ export interface GameDriver {
   readonly mode: 'offline' | 'online';
   readonly state: GameState;
   queue(intent: Intent): void;
-  /** Runs whatever ticks are due; each entry is one tick's events. */
+  /**
+   * Runs whatever ticks are due; each entry is one tick's events. If a tick throws, the ticks that
+   * already ran are still returned and the error waits in `takeFailure()`.
+   */
   advance(now: number): SimEvent[][];
+  /** The error from the tick that threw during the last `advance`, once; null if none did. */
+  takeFailure(): { error: unknown } | null;
   /** Progress through the current tick, 0..1, for render interpolation. */
   alpha(now: number): number;
 }
@@ -21,6 +26,7 @@ export class LocalDriver implements GameDriver {
   readonly mode = 'offline' as const;
   private pending: Intent[] = [];
   private lastTickAt: number;
+  private failure: { error: unknown } | null = null;
   frozen = false;
 
   constructor(
@@ -44,9 +50,23 @@ export class LocalDriver implements GameDriver {
       this.lastTickAt += TICK_MS;
       const intents = this.pending;
       this.pending = [];
-      out.push(runTick(this.state, this.ctx, intents));
+      try {
+        out.push(runTick(this.state, this.ctx, intents));
+      } catch (error) {
+        // The failed tick's slot is spent (it is not rerun on half-applied state), but its intents
+        // go to the next tick, and the ticks that ran before it keep their events.
+        this.pending = intents.concat(this.pending);
+        this.failure = { error };
+        break;
+      }
     }
     return out;
+  }
+
+  takeFailure(): { error: unknown } | null {
+    const f = this.failure;
+    this.failure = null;
+    return f;
   }
 
   alpha(now: number): number {

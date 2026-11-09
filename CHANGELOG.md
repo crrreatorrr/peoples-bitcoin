@@ -4,8 +4,10 @@
 
 - **Crash guard:** one error in a frame no longer freezes the game or floods the console. The
   main loop always reschedules; after three failing frames in a row the game pauses and shows a
-  "Something broke" panel with Reload. Uncaught errors and rejections count too, and a failed boot
-  shows the same panel with Retry instead of a bare error screen. Each distinct error is logged
+  "Something broke" panel with Reload. A tick that keeps throwing trips the panel too, its intents
+  carry over and earlier ticks keep their events. Uncaught page errors are counted but only pause
+  the game together with failing frames (other-origin errors and aborted fetches are ignored), and a
+  failed boot shows the same panel with Retry instead of a bare error screen. Each distinct error is logged
   once. `onCrash()` is ready for the opt-in Diagnostics reporter and sends nothing. Client only;
   `SIM_VERSION` is unchanged.
 - **Fix (hub sell):** a Sell-N larger than the stack (for example Sell 10 on 3 items) asked the hub

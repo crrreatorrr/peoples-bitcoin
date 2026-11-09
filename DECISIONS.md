@@ -556,11 +556,23 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
 
 - **One throw never freezes the game.** The main loop in `src/main.ts` runs through
   `createFrameLoop` in `src/game/crash.ts`: each frame runs inside try/catch and the next frame is
-  scheduled in `finally`. A throw ends that frame, so the remaining ticks of the frame do not run on
-  top of a broken one. A tab lock (`frozen`) still stops the loop on purpose.
+  scheduled in `finally`. A tab lock (`frozen`) still stops the loop on purpose.
+- **A tick that throws.** `LocalDriver.advance` stops at the failing tick: later ticks due in that
+  frame wait for the next frame (they are not skipped). The failed tick's 600 ms slot is spent, so
+  it is not rerun at once on half-applied state, but its intents carry over to the next tick. Ticks
+  that ran before it in the same frame keep their events: the driver returns them, `main.ts` handles
+  them, and then rethrows the stored error (`takeFailure()`), which ends that frame.
 - **Pause after three failing frames in a row**, then show a small stone panel, "Something broke",
   with the error and a Reload button. A good frame resets the run, so a one-off error costs one
-  frame. Uncaught `error` and `unhandledrejection` events feed the same counter.
+  frame. Offline, a frame only counts as good when a tick ran cleanly in it (or the sim is not
+  running); a frame with no tick due neither grows nor resets the run. Otherwise a tick that always
+  throws (one frame in about 36) would never reach three in a row, and the world would freeze while
+  rendering went on.
+- **Page errors.** Uncaught `error` and `unhandledrejection` events are counted, logged and passed to
+  `onCrash`, but they only extend a run that a failing frame started, so unrelated page errors
+  during the async boot or in a hidden tab never pause the game. Errors from other origins
+  (extensions, a muted "Script error.") and `AbortError` / `NotAllowedError` rejections (cancelled
+  fetches, blocked autoplay) are ignored. A visibility change resets the run.
 - **The console is not flooded.** Each distinct error is logged once with its stack, at most five
   per session; repeats are only counted. A caught frame error is also handed once to the browser's
   `reportError`, so dev tools and the Playwright page-error checks still see it.
@@ -571,4 +583,3 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
   yet.
 - The threshold (3) and log cap (5) live in `src/game/crash.ts`, not `config/balance.ts`: they are
   client-only, and `src/config` feeds the sim version hash.
-
