@@ -2066,3 +2066,33 @@ body {
 .tip-player {
   color: #ffffff;
 }
+
+/* ── Controller and keyboard menu focus (src/input/gamepad.ts) ──────────────
+   The ring follows focus all the time but only shows once a pad or the menu keys are used;
+   a mouse move hides it again (body[data-input]). */
+body[data-input='pad'] .pad-focus,
+body[data-input='keys'] .pad-focus {
+  outline: 2px solid #ffff00;
+  outline-offset: -2px;
+  box-shadow: 0 0 0 1px #000;
+}
+body[data-input='pad'] .menu-row.pad-focus,
+body[data-input='keys'] .menu-row.pad-focus,
+body[data-input='pad'] .world-select tr.pad-focus,
+body[data-input='keys'] .world-select tr.pad-focus {
+  background: rgba(255, 255, 255, 0.14);
+}
+/* The controller's soft target in the world: a yellow bracket around what A would act on. */
+.pad-target {
+  position: fixed;
+  z-index: 35;
+  width: 36px;
+  height: 36px;
+  transform: translate(-50%, -50%);
+  border: 2px solid #ffff00;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 1px #000,
+    inset 0 0 0 1px #000;
+  pointer-events: none;
+}

@@ -10,7 +10,10 @@ import { HubClient } from './hub/client';
 import { clearHubLedger } from './hub/ledgerStore';
 import { claimWriter } from './hub/singleWriter';
 import { GAME_TITLE, PARODY_NOTICE, PRESIDENT_NAME } from './config/branding';
+import { PAD } from './input/config';
+import { GamepadInput } from './input/gamepad';
 import { Keyboard } from './input/keyboard';
+import { PadWorld } from './input/padworld';
 import { attachMouse } from './input/mouse';
 import { clearSavedGame, loadSavedGame, saveGame } from './persist';
 import { dressFor } from './render/actors';
@@ -99,6 +102,10 @@ async function boot(): Promise<void> {
   let clockOffset = 0;
   let frozen = false;
   const clockNow = () => performance.now() + clockOffset;
+
+  // Controller (and keyboard menu keys) first, so world select can be driven before the game starts.
+  const pad = new GamepadInput();
+  pad.start();
 
   // With a hub session (or ?net=loopback), world select first; else, or "Play offline", standalone.
   const bridge = new HubBridge();
@@ -504,7 +511,8 @@ async function boot(): Promise<void> {
   sidePanel.select('inventory');
 
   // ── Mouse & keyboard ───────────────────────────────────────────────────────
-  const keyboard = new Keyboard();
+  // A tap of Shift on its own toggles run (Shift = run, as in the other Sproto games).
+  const keyboard = new Keyboard(() => queue({ type: 'toggleRun' }));
   let hover: { x: number; y: number } | null = null;
 
   attachMouse(canvas, {
@@ -548,6 +556,17 @@ async function boot(): Promise<void> {
       e.preventDefault();
     }
   });
+  /** Esc (and B on a controller): close windows, drop a pending "Use", back to Inventory. */
+  const escapeAll = () => {
+    usingSlot = null;
+    bank.close();
+    terminal.close();
+    exchange.close();
+    buildWindow.close();
+    guide.close();
+    journal.close();
+    sidePanel.select('inventory');
+  };
   window.addEventListener('keydown', (e) => {
     if (/^F\d+$/.test(e.key) && sidePanel.selectByHotkey(e.key)) {
       e.preventDefault(); // F-keys switch tabs, as in OSRS (F5 must not reload)
@@ -555,18 +574,14 @@ async function boot(): Promise<void> {
     }
     if (document.activeElement === chat.input) return;
     if (e.key === 'Escape') {
-      usingSlot = null;
-      bank.close();
-      terminal.close();
-      exchange.close();
-      buildWindow.close();
-      guide.close();
-      journal.close();
-      sidePanel.select('inventory');
+      escapeAll();
     } else if (/^[1-5]$/.test(e.key) && dialogue.choose(Number(e.key) - 1)) {
       e.preventDefault();
     } else if (e.key === ' ' && dialogue.isOpen) {
       e.preventDefault();
+      dialogue.continue();
+    } else if (e.key === 'Enter' && dialogue.canContinue) {
+      e.preventDefault(); // Enter continues too; with no dialogue it opens the chat line
       dialogue.continue();
     } else if (e.key === 'Enter') {
       chat.input.focus();
@@ -575,8 +590,76 @@ async function boot(): Promise<void> {
     }
   });
 
+  // ── Controller: the soft target stands in for the cursor in the world ─────
+  const padMarker = hudRoot.appendChild(
+    Object.assign(document.createElement('div'), { className: 'pad-target' }),
+  );
+  /** Entities near the player that offer an action, at their footprint's centre (tile units). */
+  const padTargets = () => {
+    const p = state.player.pos;
+    const reach = PAD.targetRangeTiles + 2;
+    const near = (e: { id: string; x: number; y: number }) =>
+      Math.abs(e.x - p.x) <= reach && Math.abs(e.y - p.y) <= reach;
+    const ids = [
+      ...state.zone.npcs,
+      ...state.zone.enemies.filter((e) => e.respawnAt === null),
+      ...state.zone.objects,
+      ...state.zone.groundItems,
+      ...(online ? [...online.replica.others.values()].filter((o) => o.kind === 'p') : []),
+    ]
+      .filter(near)
+      .map((e) => e.id);
+    return ids.flatMap((id) => {
+      const info = describe(id);
+      const at = info && info.actions.length > 0 ? view.entities.entityCenter(state, id) : null;
+      return at ? [{ id, x: at.x - 0.5, y: at.z - 0.5 }] : [];
+    });
+  };
+  const padScreenOf = (id: string) => {
+    const at = view.entities.entityCenter(state, id);
+    return at
+      ? view.entities.toScreen(at, view.entities.heightOf(id) * 0.5, cam.camera, canvas)
+      : null;
+  };
+  const zoneSize = () => content.zones.get(state.zone.id)!;
+  const padWorld = new PadWorld(
+    {
+      playerTile: () => state.player.pos,
+      candidates: padTargets,
+      options: (id) => menuOptions({ entityIds: [id], tile: null }),
+      screenOf: padScreenOf,
+      cameraYaw: () => cam.yawRad,
+      walk: (tile) => {
+        const z = zoneSize();
+        const x = Math.max(0, Math.min(z.width - 1, tile.x));
+        const y = Math.max(0, Math.min(z.height - 1, tile.y));
+        walk({ x, y }, false);
+      },
+      setClickAt: (x, y) => (clickAt = { x, y }),
+      openMenu,
+      showTooltip: (top, moreOptions) => tooltip.showFixed({ ...top, moreOptions }),
+      hideTooltip: () => tooltip.hide(),
+    },
+    padMarker,
+  );
+  pad.attach({
+    world: padWorld,
+    escape: escapeAll,
+    selectTab: (id) => sidePanel.select(id),
+    cycleTab: (step) => sidePanel.cycle(step),
+    currentTab: () => sidePanel.currentId,
+    toggleRun: () => queue({ type: 'toggleRun' }),
+    faceNorth: () => cam.faceNorth(),
+    leaveDialogue: () => walk(state.player.pos, false), // walking away closes it, as in OSRS
+    hideTooltip: () => tooltip.hide(),
+    deviceChanged: (device) => {
+      dialogue.setContinuePrompt(device === 'pad' ? 'Press A to continue' : 'Click to continue');
+      if (device === 'pad') hover = null; // the soft target owns the mouseover text now
+    },
+  });
+
   const updateHoverTooltip = () => {
-    if (!hover || menu.isOpen) return;
+    if (!hover || menu.isOpen || pad.lastDevice === 'pad') return;
     const [top, ...rest] = menuOptions(view.picker.pick(hover.x, hover.y));
     if (top) tooltip.showFixed({ ...top, moreOptions: rest.length });
     else tooltip.hide();
@@ -767,7 +850,15 @@ async function boot(): Promise<void> {
           }),
       );
     }
-    cam.update(dt, keyboard.cameraAxes(), view.entities.playerPosition);
+    const keys = keyboard.cameraAxes();
+    const stick = pad.camera();
+    const both = (a: number, b: number) => Math.max(-1, Math.min(1, a + b));
+    if (stick.zoom !== 0) cam.zoom(stick.zoom * PAD.zoomWheelPerSec * dt);
+    cam.update(
+      dt,
+      { yaw: both(keys.yaw, stick.yaw), pitch: both(keys.pitch, stick.pitch) },
+      view.entities.playerPosition,
+    );
     cross.update(now);
     view.bursts.update(now);
     view.tracers.update(now);

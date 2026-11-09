@@ -153,6 +153,8 @@ export function buildTestWorldPanel(online: boolean): HTMLElement {
   const start = document.createElement('button');
   start.className = 'stone-btn';
   start.textContent = current ? 'Restart test world' : 'Start test world';
+  // From a real world it asks with confirm(), which a controller can't answer: the pad skips it.
+  if (online && !current) start.dataset.padSkip = '';
   start.addEventListener('click', () => {
     const picked: TestWorldChoice = {
       bots: clampBots(Number(count.value)),
