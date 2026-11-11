@@ -11,7 +11,14 @@ import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import { z } from 'zod';
 import { UI } from '../config/balance';
 import manifestJson from '../config/assets.manifest.json';
-import { buildActor, LookSchema, staticActor, type ActorModel, type Look } from './actors';
+import {
+  buildActor,
+  LookSchema,
+  PLAYER_MODEL,
+  staticActor,
+  type ActorModel,
+  type Look,
+} from './actors';
 import { share } from './kit';
 import { flatten, isRigged, riggedActor } from './rigged';
 import { buildPlaceholder, iconCanvas, terrainPart, type TerrainPart } from './placeholders';
@@ -168,9 +175,11 @@ export class AssetLoader {
     const entry = this.entry(id);
     const source = this.models.get(id);
     if (source && isRigged(source))
-      return riggedActor(source, entry.scale, { ...held(entry), ...dress });
+      return riggedActor(source, entry.scale, { ...held(entry), ...dress }, id === PLAYER_MODEL);
     if (source) return staticActor(this.model(id, entry), entry.motion);
-    return buildActor(entry, dress) ?? staticActor(this.model(id, entry));
+    const actor = buildActor(entry, dress) ?? staticActor(this.model(id, entry));
+    actor.playerLocomotion = id === PLAYER_MODEL;
+    return actor;
   }
 
   private model(id: string, entry: AssetEntry): THREE.Object3D {

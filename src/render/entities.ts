@@ -23,7 +23,7 @@ import {
   type Tile,
 } from '../sim/state';
 import { levelForXp } from '../sim/xp';
-import { dressFor, holdRight, type ActorModel } from './actors';
+import { dressFor, holdRight, PLAYER_MODEL, type ActorModel } from './actors';
 import { DEATH_MS, poseActor, STRIDE_RAD_PER_TILE, type WorkAnim } from './animate';
 import { HpBar } from './effects';
 import { THROW_ORIGIN } from './gear';
@@ -31,7 +31,6 @@ import type { RemoteActor } from '../net/replica';
 import type { AssetLoader } from './loader';
 import { Glide, interpolateSteps } from './stepping';
 
-export const PLAYER_MODEL = 'player_president';
 const SMOKE_BOB = 0.06;
 const GROUND_ITEM_SIZE = 0.5;
 /** HP bars stay up this long after a hit. */
@@ -40,6 +39,7 @@ const HP_BAR_MS = 4000;
 const WORK_BURST_MS = 1400;
 /** Moving further than this in one frame is a teleport, not a step. */
 const TELEPORT_DISTANCE = 2.5;
+const PLAYER_TURN_SPEED = RENDER.turnSpeed * 1.55;
 
 interface ActorView {
   /** Positioned on the tile, turned to face. */
@@ -469,6 +469,11 @@ export class EntityRenderer {
     const moving = view.glide.place(steps, t, now, view.root.position, this.segment);
     const distance = before.distanceTo(view.root.position);
     if (distance < TELEPORT_DISTANCE) view.phase += distance * STRIDE_RAD_PER_TILE;
+    else if (view.actor.playerLocomotion) {
+      view.phase = 0;
+      view.actor.gaitBlend = view.actor.runBlend = 0;
+      view.actor.settleBlend = 0;
+    }
 
     const face = doing.face;
     const dir = moving
@@ -477,9 +482,18 @@ export class EntityRenderer {
         ? { dx: face.x - here.x, dz: face.y - here.y }
         : null;
     let facingAway = 0;
+    const facingBefore = view.facing;
     if (dir && (dir.dx !== 0 || dir.dz !== 0)) {
       facingAway = turnToward(view, Math.atan2(dir.dx, dir.dz), dt);
     }
+    const playerTurn =
+      view.actor.playerLocomotion && dt > 0
+        ? (view.facing - facingBefore) / (PLAYER_TURN_SPEED * dt)
+        : 0;
+    const runEffort =
+      steps.length > 2
+        ? 1 - Math.max(0, Math.min(1, (facingAway - Math.PI / 12) / ((Math.PI * 5) / 12)))
+        : 0;
 
     poseActor(view.actor, {
       now,
@@ -488,6 +502,8 @@ export class EntityRenderer {
       // Two steps this tick is a run, but like OSRS the run cycle waits until
       // the actor faces its way; while turning it steps along at a walk.
       running: steps.length > 2 && (!moving || facingAway < Math.PI / 4),
+      runEffort: view.actor.playerLocomotion ? runEffort : undefined,
+      turn: playerTurn,
       phase: view.phase,
       combat: doing.combat,
       work: moving ? null : doing.work,
@@ -543,8 +559,13 @@ export class EntityRenderer {
 
   /** Rebuilds the player's model after armor changes. */
   private redress(view: ActorView, dressKey: string): void {
-    view.root.remove(view.actor.root);
+    const old = view.actor;
+    view.root.remove(old.root);
     view.actor = this.assets.actor(view.modelId, dressFor(dressKey.split('|')));
+    view.actor.gaitBlend = old.gaitBlend;
+    view.actor.runBlend = old.runBlend;
+    view.actor.settleBlend = old.settleBlend;
+    view.actor.supportFoot = old.supportFoot;
     view.dressKey = dressKey;
     view.root.add(view.actor.root);
     view.hpBar.sprite.position.y = view.actor.height + 0.25;
@@ -574,11 +595,14 @@ function idleInput(now: number, dt: number) {
   };
 }
 
-/** Turns at a fixed rate toward `angle`; returns how far off it still is (radians). */
+/** Turns toward `angle`; returns how far off it still is (radians). */
 function turnToward(view: ActorView, angle: number, dt: number): number {
   let diff = angle - view.facing;
   diff = Math.atan2(Math.sin(diff), Math.cos(diff));
-  const step = RENDER.turnSpeed * dt;
+  const step =
+    view.actor.playerLocomotion && Math.abs(diff) > 0.005
+      ? Math.min(PLAYER_TURN_SPEED * dt, Math.abs(diff) * (1 - Math.exp(-16 * dt)))
+      : RENDER.turnSpeed * dt;
   view.facing += Math.abs(diff) <= step ? diff : Math.sign(diff) * step;
   view.root.rotation.y = view.facing;
   return Math.max(0, Math.abs(diff) - step);

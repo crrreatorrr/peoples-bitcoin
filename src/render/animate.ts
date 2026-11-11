@@ -7,7 +7,7 @@
 import type * as THREE from 'three';
 import type { AttackStyle } from '../sim/state';
 import type { ActorModel } from './actors';
-import { gait, type LegPose } from './gait';
+import { gait, PRESIDENT_RUN, PRESIDENT_WALK, type LegPose } from './gait';
 import type { HoldKind } from './gear';
 
 /** Skilling loops: pick swings, hammering, talking with your hands, typing. */
@@ -20,6 +20,9 @@ export interface AnimInput {
   dt: number;
   moving: boolean;
   running: boolean;
+  /** Run effort through a turn, and signed turn speed relative to its render limit. */
+  runEffort?: number;
+  turn?: number;
   /** Walk cycle angle, advanced by distance travelled so feet don't slide. */
   phase: number;
   /** Standing with a target to fight: hold the weapon ready. */
@@ -56,6 +59,8 @@ interface Pose {
   armRz: number;
   foreLx: number;
   foreRx: number;
+  wristLy: number;
+  wristRy: number;
   legLx: number;
   legRx: number;
   shinLx: number;
@@ -68,7 +73,10 @@ interface Pose {
   hipsY: number;
   torsoX: number;
   torsoY: number;
+  torsoZ: number;
   headX: number;
+  headY: number;
+  headZ: number;
   bodyY: number;
   bodyZ: number;
 }
@@ -107,6 +115,8 @@ function humanPose(actor: ActorModel, a: AnimInput): Pose {
     armRz: -0.06,
     foreLx: -0.12,
     foreRx: -0.12,
+    wristLy: 0,
+    wristRy: 0,
     legLx: 0,
     legRx: 0,
     shinLx: 0,
@@ -118,14 +128,19 @@ function humanPose(actor: ActorModel, a: AnimInput): Pose {
     hipsY: 0,
     torsoX: actor.hunch,
     torsoY: 0,
+    torsoZ: 0,
     headX: 0,
+    headY: 0,
+    headZ: 0,
     bodyY: actor.bodyY,
     bodyZ: 0,
   };
   const t = a.now / 1000;
+  if (actor.legs) blendGait(actor, a);
   holdPose(p, actor, a.combat && !a.moving);
-  if (a.moving) walk(p, actor, a);
-  else {
+  if (actor.playerLocomotion) presidentStride(p, actor, a);
+  else if (a.moving) walk(p, actor, a);
+  if (!a.moving) {
     p.torsoX += 0.015 * Math.sin(t * 2);
     if (a.work) work(p, actor, a.work, t);
     if (actor.pose === 'phone') {
@@ -208,6 +223,58 @@ function holdPose(p: Pose, actor: ActorModel, ready: boolean): void {
 const swingsFreely = (hold: HoldKind | null) =>
   hold === null || hold === 'carry' || hold === 'pistol' || hold === 'melee';
 
+function blendGait(actor: ActorModel, a: AnimInput): void {
+  const seconds = actor.playerLocomotion ? (a.moving ? 0.11 : 0.24) : GAIT_BLEND_S;
+  actor.gaitBlend = clamp01((actor.gaitBlend ?? 0) + (a.moving ? 1 : -1) * (a.dt / seconds));
+  if (actor.playerLocomotion) {
+    const settle = (actor.settleBlend ?? 0) + (a.moving ? -1 : 1) * (a.dt / 0.12);
+    actor.settleBlend = actor.gaitBlend > 0 ? clamp01(settle) : 0;
+    if (!a.moving) {
+      // Finish the current stride before releasing the run blend into idle.
+      if (actor.gaitBlend === 0) actor.runBlend = 0;
+      return;
+    }
+  }
+  const target = a.moving ? (a.runEffort ?? Number(a.running)) : 0;
+  const run = actor.runBlend ?? 0;
+  const step = a.dt / GAIT_BLEND_S;
+  actor.runBlend = Math.max(run - step, Math.min(run + step, target));
+}
+
+/** The upper body shares the leg blend, with arm drive, shoulder counter-rotation and a steady gaze. */
+function presidentStride(p: Pose, actor: ActorModel, a: AnimInput): void {
+  const weight = smoothstep(actor.gaitBlend ?? 0);
+  if (weight === 0) return;
+  const run = smoothstep(actor.runBlend ?? 0);
+  const swing = Math.sin(a.phase - 0.15);
+  const rock = Math.cos(a.phase - 0.3);
+  const stride = (0.38 + 0.25 * run) * swing * weight;
+
+  p.torsoX += (0.035 + 0.215 * run + 0.022 * run * Math.cos(a.phase * 2)) * weight;
+  p.torsoY = (0.085 + 0.05 * run) * swing * weight;
+  p.torsoZ = (0.027 * rock - 0.105 * (a.turn ?? 0)) * weight;
+  p.headX = (-0.032 - 0.155 * run) * weight;
+  p.headY = -0.8 * p.torsoY;
+  p.headZ = -0.8 * p.torsoZ;
+
+  if (actor.right === 'rifle' || actor.right === 'heavy') {
+    const bob = 0.045 * Math.cos(a.phase * 2) * weight;
+    p.armLx += bob;
+    p.armRx += bob;
+    return;
+  }
+  if (swingsFreely(actor.left)) p.armLx += stride;
+  if (swingsFreely(actor.right)) p.armRx -= stride * (actor.right ? 0.42 : 1);
+  if (actor.left === null) {
+    p.foreLx -= (0.13 + run + 0.22 * Math.max(0, -swing)) * weight;
+    p.wristLy = (0.72 + 0.48 * run) * weight;
+  }
+  if (actor.right === null) {
+    p.foreRx -= (0.13 + run + 0.22 * Math.max(0, swing)) * weight;
+    p.wristRy = -(0.72 + 0.48 * run) * weight;
+  }
+}
+
 /**
  * Gait. `phase` advances π per tile, so each tile is one footfall; the left
  * leg is forward when sin(phase) > 0. Negative x rotation swings a limb forward.
@@ -248,18 +315,21 @@ function stroll(p: Pose, actor: ActorModel, phase: number): void {
  * eases in when the actor sets off and out when it stops, and from walk to run.
  */
 function plantFeet(p: Pose, actor: ActorModel, a: AnimInput): void {
-  const step = a.dt / GAIT_BLEND_S;
-  actor.gaitBlend = clamp01((actor.gaitBlend ?? 0) + (a.moving ? step : -step));
-  actor.runBlend = clamp01((actor.runBlend ?? 0) + (a.moving && a.running ? step : -step));
-  if (actor.gaitBlend === 0) return;
+  const weight = actor.gaitBlend ?? 0;
+  if (weight === 0) return;
   const tile = 1 / actor.root.scale.x;
+  const settle = smoothstep(actor.settleBlend ?? 0);
   const g = gait(
     a.phase,
     actor.legs!,
     tile,
-    smoothstep(actor.runBlend),
-    smoothstep(actor.gaitBlend),
+    smoothstep(actor.runBlend ?? 0),
+    smoothstep(weight),
+    actor.playerLocomotion ? PRESIDENT_WALK : undefined,
+    actor.playerLocomotion ? PRESIDENT_RUN : undefined,
+    settle > 0 && actor.supportFoot ? { blend: settle, support: actor.supportFoot } : undefined,
   );
+  if (settle === 0 || !actor.supportFoot) actor.supportFoot = g.support;
   const leg = (from: LegPose, side: 'L' | 'R') => {
     p[`leg${side}x`] = from.hip;
     p[`shin${side}x`] = from.knee;
@@ -453,9 +523,16 @@ function applyPose(actor: ActorModel, p: Pose, dt: number, moving: boolean): voi
   ease(j.armR, 'z', p.armRz);
   ease(j.foreL, 'x', p.foreLx);
   ease(j.foreR, 'x', p.foreRx);
+  if (j.wristL && j.wristR) {
+    ease(j.wristL, 'y', p.wristLy);
+    ease(j.wristR, 'y', p.wristRy);
+  }
   ease(j.torso, 'x', p.torsoX);
   ease(j.torso, 'y', p.torsoY);
+  ease(j.torso, 'z', p.torsoZ);
   ease(j.head, 'x', p.headX);
+  ease(j.head, 'y', p.headY);
+  ease(j.head, 'z', p.headZ);
   if (actor.legs) {
     // Planted feet can't lag behind the ground, so the legs take their pose as is
     // (plantFeet already eased the gait in and out).
@@ -463,13 +540,13 @@ function applyPose(actor: ActorModel, p: Pose, dt: number, moving: boolean): voi
     j.legR.rotation.set(p.legRx, -p.hipsY, 0);
     j.shinL.rotation.x = p.shinLx;
     j.shinR.rotation.x = p.shinRx;
-    if (j.footL && j.footR && j.toeL && j.toeR && j.hips) {
+    if (j.footL && j.footR && j.toeL && j.toeR) {
       j.footL.rotation.x = p.footLx;
       j.footR.rotation.x = p.footRx;
       j.toeL.rotation.x = p.toeLx;
       j.toeR.rotation.x = p.toeRx;
-      j.hips.rotation.y = p.hipsY;
     }
+    if (j.hips) j.hips.rotation.y = p.hipsY;
     actor.body.position.y = p.bodyY;
   } else {
     ease(j.legL, 'x', p.legLx);

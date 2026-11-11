@@ -8,7 +8,7 @@ import * as THREE from 'three';
 import { z } from 'zod';
 import { ARMOR_LOOKS, gearModel, MUZZLE, type HoldKind } from './gear';
 import { blob, box, canvasTexture, cone, glow, group, lambert, shade, tube } from './kit';
-import type { LegGeometry } from './gait';
+import type { GaitPose, LegRig } from './gait';
 
 const Color = z.string().regex(/^#[0-9a-fA-F]{6}$/);
 
@@ -113,7 +113,9 @@ export interface Joints {
   shinR: THREE.Group;
   handL: THREE.Group;
   handR: THREE.Group;
-  /** Rigged characters only: the pelvis, ankles and toes. */
+  /** Extra joints driven on the GLB skeleton. */
+  wristL?: THREE.Group;
+  wristR?: THREE.Group;
   hips?: THREE.Group;
   footL?: THREE.Group;
   footR?: THREE.Group;
@@ -142,13 +144,17 @@ export interface ActorModel {
   /** Rigged GLBs copy the posed joints onto their bones after each pose. */
   sync?: () => void;
   /** Leg lengths, for the foot-planted gait (gait.ts); without them the legs just swing. */
-  legs?: LegGeometry;
+  legs?: LegRig;
+  playerLocomotion?: boolean;
   /** How far into the gait the legs are, 0 standing to 1 striding, and walking to running (animate.ts eases both). */
   gaitBlend?: number;
   runBlend?: number;
+  settleBlend?: number;
+  supportFoot?: GaitPose['support'];
 }
 
 export const ACTOR_KINDS = new Set(['humanoid', 'sludge', 'wraith', 'sock']);
+export const PLAYER_MODEL = 'player_president';
 
 /** Builds an actor, or null if the spec isn't an actor kind. `dress` overrides the look. */
 export function buildActor(spec: ActorSpec, dress: Partial<Look> = {}): ActorModel | null {
@@ -236,11 +242,12 @@ function humanoid(look: Look): ActorModel {
   const legs = ([1, -1] as const).map((side) => {
     const leg = joint(side * 0.11 * W, 0, 0);
     const knee = joint(0, -thigh, 0);
+    const ankle = joint(0, -shin, 0);
+    const toe = joint(0, -0.07, 0.12);
     leg.add(box(0.17 * W, thigh, 0.2, pants, 0, -thigh / 2, 0), knee);
-    knee.add(
-      box(0.16 * W, shin, 0.19, pants, 0, -shin / 2, 0),
-      box(0.18 * W, 0.08, 0.28, shoe, 0, -shin - 0.03, 0.04),
-    );
+    knee.add(box(0.16 * W, shin, 0.19, pants, 0, -shin / 2, 0), ankle);
+    ankle.add(box(0.18 * W, 0.08, 0.22, shoe, 0, -0.03, 0.01), toe);
+    toe.add(box(0.18 * W, 0.08, 0.06, shoe, 0, 0.04, 0.03));
     if (look.coat)
       leg.add(box(0.22 * W, thigh + 0.1, 0.25, lambert(look.coat), 0, -thigh / 2 - 0.03, 0));
     if (look.stripes)
@@ -260,7 +267,7 @@ function humanoid(look: Look): ActorModel {
       );
     }
     body.add(leg);
-    return { leg, knee };
+    return { leg, knee, ankle, toe };
   });
 
   const torso = joint(0, 0.02, 0);
@@ -327,6 +334,10 @@ function humanoid(look: Look): ActorModel {
     legR: legs[1].leg,
     shinL: legs[0].knee,
     shinR: legs[1].knee,
+    footL: legs[0].ankle,
+    footR: legs[1].ankle,
+    toeL: legs[0].toe,
+    toeR: legs[1].toe,
     armL: arms[0].arm,
     armR: arms[1].arm,
     foreL: arms[0].elbow,
@@ -340,7 +351,7 @@ function humanoid(look: Look): ActorModel {
     body,
     bodyY: hipY,
     joints,
-    // The shoe runs from 0.1 behind the ankle to 0.18 in front. No pelvis or ankle joints.
+    // The shoe runs from 0.1 behind the ankle to 0.18 in front. The pelvis does not yaw.
     legs: {
       thigh,
       shin,

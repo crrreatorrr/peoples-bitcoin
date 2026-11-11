@@ -1,8 +1,13 @@
+import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
+import { buildActor } from '../src/render/actors';
+import { poseActor, type AnimInput } from '../src/render/animate';
 import {
   foot,
   gait,
   plantFor,
+  PRESIDENT_RUN,
+  PRESIDENT_WALK,
   RUN,
   WALK,
   type LegGeometry,
@@ -27,12 +32,17 @@ const TILE = 1;
 const TAU = Math.PI * 2;
 
 /** Where the joint angles actually put the ankle, relative to the point under the hip joint. */
-function ankle(p: LegPose, hipY: number, hipZ = 0): { z: number; y: number; footPitch: number } {
-  const thigh = LEGS.thighRest - p.hip;
-  const shin = LEGS.shinRest - p.hip - p.knee;
+function ankle(
+  p: LegPose,
+  hipY: number,
+  hipZ = 0,
+  g = LEGS,
+): { z: number; y: number; footPitch: number } {
+  const thigh = g.thighRest - p.hip;
+  const shin = g.shinRest - p.hip - p.knee;
   return {
-    z: hipZ + LEGS.thigh * Math.sin(thigh) + LEGS.shin * Math.sin(shin),
-    y: hipY - LEGS.thigh * Math.cos(thigh) - LEGS.shin * Math.cos(shin),
+    z: hipZ + g.thigh * Math.sin(thigh) + g.shin * Math.sin(shin),
+    y: hipY - g.thigh * Math.cos(thigh) - g.shin * Math.cos(shin),
     footPitch: -(p.hip + p.knee + p.ankle),
   };
 }
@@ -145,5 +155,63 @@ describe('foot-planted gait', () => {
     const later = foot(uLeft(Math.PI / 2 + 1), WALK, LEGS, TILE, LEG);
     expect(at.pitch).toBeGreaterThan(0); // heel down, toes up
     expect(at.z).toBeGreaterThan(later.z);
+  });
+
+  it('the President uses both shoe pivots and plants nearly the full walking stride', () => {
+    const left = { ...LEGS, heel: 0.197, ball: 0.103, shinRest: 0.031 };
+    const right = { ...LEGS, heel: 0.205, ball: 0.092, shinRest: 0.053 };
+    const plant = Math.min(
+      plantFor(PRESIDENT_WALK, left, TILE),
+      plantFor(PRESIDENT_WALK, right, TILE),
+    );
+    expect(plant).toBeGreaterThan(0.96);
+
+    for (const phase of [0.55, 2.13, 3.22, 4.95, 5.46]) {
+      const pose = gait(phase, { left, right }, TILE, 0, 1, PRESIDENT_WALK);
+      for (const [side, g, offset] of [
+        ['left', left, 0],
+        ['right', right, 0.5],
+      ] as const) {
+        const want = foot((uLeft(phase) + offset) % 1, PRESIDENT_WALK, g, TILE, LEG, plant);
+        const shift = (side === 'left' ? -1 : 1) * g.hipX * Math.sin(pose.hipYaw);
+        const got = ankle(pose[side], g.hipY + pose.hipDrop, shift, g);
+        expect(got.z).toBeCloseTo(want.z, 3);
+        expect(got.y).toBeCloseTo(want.y, 3);
+      }
+    }
+  });
+
+  it('matches ground speed just before a running foot lands', () => {
+    const u = 0.98;
+    const du = 0.001;
+    const a = foot(u, PRESIDENT_RUN, LEGS, TILE, LEG);
+    const b = foot(u + du, PRESIDENT_RUN, LEGS, TILE, LEG);
+    expect((b.z - a.z) / du).toBeCloseTo(-2 * TILE, 6);
+  });
+
+  it('keeps the same supporting foot when movement resumes during a stop', () => {
+    const actor = buildActor({ placeholder: 'humanoid', color: '#777', scale: 1 })!;
+    actor.playerLocomotion = true;
+    const input: AnimInput = {
+      now: 0,
+      dt: 1 / 60,
+      moving: true,
+      running: true,
+      phase: 1.3,
+      combat: false,
+      work: null,
+      attackAt: -Infinity,
+      attackStyle: 'melee',
+      hitAt: -Infinity,
+      diedAt: -Infinity,
+    };
+    for (let i = 0; i < 20; i++) poseActor(actor, input);
+    for (let i = 0; i < 7; i++) poseActor(actor, { ...input, moving: false });
+    const before = actor.joints!.footL!.getWorldPosition(new THREE.Vector3());
+    const support = actor.supportFoot;
+    poseActor(actor, { ...input, dt: 1 / 240 });
+    const after = actor.joints!.footL!.getWorldPosition(new THREE.Vector3());
+    expect(actor.supportFoot).toBe(support);
+    expect(after.distanceTo(before)).toBeLessThan(0.025);
   });
 });
