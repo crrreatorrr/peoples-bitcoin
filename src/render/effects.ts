@@ -104,6 +104,7 @@ interface Shot {
   startedAt: number;
   flightMs: number;
   arc: number;
+  origin?: () => THREE.Vector3 | null;
   /** Rocks tumble end over end as they fly. */
   tumble: boolean;
   onArrive?: () => void;
@@ -135,7 +136,7 @@ export class Tracers {
     to: THREE.Vector3,
     kind: ShotKind,
     now: number,
-    onArrive?: () => void,
+    launch: { origin?: () => THREE.Vector3 | null; delayMs?: number; onArrive?: () => void } = {},
   ): number {
     const a = from.clone().setY(from.y + 1.1);
     const b = to.clone().setY(to.y + 0.8);
@@ -152,24 +153,45 @@ export class Tracers {
     }[kind];
     const mesh = new THREE.Mesh(geometry, this.materials[kind]);
     mesh.position.copy(a);
+    mesh.visible = false;
     this.scene.add(mesh);
     const arc = kind === 'explosive' ? 0.25 * tiles : kind === 'rock' ? 0.18 * tiles : 0;
     const tumble = kind === 'rock';
-    this.active.push({ mesh, from: a, to: b, startedAt: now, flightMs, arc, tumble, onArrive });
-    return flightMs;
+    const delay = launch.delayMs ?? 0;
+    this.active.push({
+      mesh,
+      from: a,
+      to: b,
+      startedAt: now + delay,
+      flightMs,
+      arc,
+      tumble,
+      origin: launch.origin,
+      onArrive: launch.onArrive,
+    });
+    return delay + flightMs;
   }
 
   update(now: number): void {
     for (let i = this.active.length - 1; i >= 0; i--) {
       const shot = this.active[i];
       const k = (now - shot.startedAt) / shot.flightMs;
+      if (k < 0) continue;
       if (k >= 1) {
         this.scene.remove(shot.mesh);
         this.active.splice(i, 1);
         shot.onArrive?.();
         continue;
       }
-      shot.mesh.position.lerpVectors(shot.from, shot.to, Math.max(0, k));
+      // Actors are posed before this update, so sample the launch point once as it fires.
+      if (!shot.mesh.visible) {
+        const at = shot.origin?.();
+        if (at) shot.from.copy(at);
+        shot.mesh.position.copy(shot.from);
+        shot.mesh.visible = true;
+        continue;
+      }
+      shot.mesh.position.lerpVectors(shot.from, shot.to, k);
       shot.mesh.position.y += shot.arc * 4 * k * (1 - k);
       shot.mesh.rotation.y = now / 60;
       if (shot.tumble) shot.mesh.rotation.x = now / 90;

@@ -14,8 +14,9 @@ import { blob, box, cone, glow, group, lambert, shade, tube } from './kit';
 export type HoldKind =
   'pistol' | 'rifle' | 'heavy' | 'melee' | 'item' | 'carry' | 'shield' | 'staff' | 'throw';
 
-/** Name of the hidden flash mesh at a gun's muzzle. */
+/** Launch point at the barrel or staff tip, with a hidden flash attached. */
 export const MUZZLE = 'muzzle';
+export const THROW_ORIGIN = 'throw-origin';
 
 interface GearDef {
   hold: HoldKind;
@@ -40,11 +41,11 @@ function alongX(mesh: THREE.Mesh): THREE.Mesh {
   return mesh;
 }
 
-function withMuzzle(g: THREE.Group, y: number, z: number, size = 0.08, color = '#ffd23f') {
-  const flash = blob(size, glow(color), 0, y, z + size * 0.6);
-  flash.name = MUZZLE;
-  flash.visible = false;
-  g.add(flash);
+function withMuzzle(g: THREE.Group, y: number, z: number, size = 0.08, color = '#ffd23f', x = 0) {
+  const muzzle = group([blob(size, glow(color), 0, 0, size * 0.6)], x, y, z);
+  muzzle.name = MUZZLE;
+  muzzle.visible = false;
+  g.add(muzzle);
   return g;
 }
 
@@ -130,7 +131,7 @@ function minigun(barrel: string, body: string): THREE.Group {
       ),
     );
   }
-  return withMuzzle(g, 0.07, 0.63, 0.1);
+  return withMuzzle(g, 0.07, 0.63, 0.1, '#ffd23f', 0.05);
 }
 
 // ── Melee weapons and tools (handle along +y) ────────────────────────────────
@@ -305,10 +306,9 @@ function club(): THREE.Group {
 
 /** A fist-sized grey rock, held up over the shoulder to throw. */
 function rock(): THREE.Group {
-  return group([
-    blob(0.1, lambert('#8a8a90'), 0, 0.07, 0.01),
-    blob(0.06, lambert('#6a6a72'), 0.04, 0.11, 0.04),
-  ]);
+  const held = blob(0.1, lambert('#8a8a90'), 0, 0.07, 0.01);
+  held.name = THROW_ORIGIN;
+  return group([held, blob(0.06, lambert('#6a6a72'), 0.04, 0.11, 0.04)]);
 }
 
 // ── Carried at the side (arm hanging: +z points down) ────────────────────────

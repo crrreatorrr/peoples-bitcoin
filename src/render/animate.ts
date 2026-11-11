@@ -40,6 +40,7 @@ const FLASH_MS = 80;
 /** A throw lets go of the rock at this fraction of the attack and holds a new one again at the next. */
 const THROW_RELEASE = 0.4;
 const THROW_REGRAB = 0.9;
+export const THROW_RELEASE_MS = ATTACK_MS * THROW_RELEASE;
 /** How fast joints ease toward their target pose (per second); faster while moving so the gait keeps its snap. */
 const BLEND_RATE = 22;
 const BLEND_RATE_MOVING = 40;

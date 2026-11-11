@@ -17,6 +17,7 @@ import { PadWorld } from './input/padworld';
 import { attachMouse } from './input/mouse';
 import { clearSavedGame, loadSavedGame, saveGame } from './persist';
 import { dressFor } from './render/actors';
+import { THROW_RELEASE_MS } from './render/animate';
 import { OrbitCamera } from './render/camera';
 import { ChatHeads } from './render/chatheads';
 import { PALETTES } from './render/effects';
@@ -704,8 +705,7 @@ async function boot(): Promise<void> {
 
   // ── Sim events ─────────────────────────────────────────────────────────────
   const skillName = (id: string) => content.skills.get(id)?.name ?? id;
-  const handleEvents = (events: SimEvent[]) => {
-    const now = clockNow();
+  const handleEvents = (events: SimEvent[], now: number) => {
     // Shots in flight this tick: hits on their targets (and a shell's splash) land on arrival.
     const flight = new Map<string, number>();
     let splashDelay = 0;
@@ -731,18 +731,22 @@ async function boot(): Promise<void> {
           break;
         }
         case 'attack': {
-          view.entities.playAttack(e.attackerId, e.style, now);
+          const entities = view.entities;
+          entities.playAttack(state, e.attackerId, e.style, now);
           if (e.style === 'melee') break;
           const explosive = e.style === 'explosive';
-          const from = view.entities.positionOf(e.attackerId);
-          const to = view.entities.positionOf(e.targetId);
+          const from = entities.positionOf(e.attackerId);
+          const to = entities.positionOf(e.targetId);
           if (!from || !to) break;
           const kind = explosive
             ? 'explosive'
             : e.style === 'magic' || e.style === 'rock'
               ? e.style
               : 'shot';
-          const ms = view.tracers.fire(from, to, kind, now);
+          const ms = view.tracers.fire(from, to, kind, now, {
+            origin: () => entities.projectileOrigin(e.attackerId, e.style),
+            delayMs: kind === 'rock' ? THROW_RELEASE_MS : 0,
+          });
           flight.set(e.targetId, ms);
           if (kind === 'magic') {
             view.bursts.spawn(to, PALETTES.magic, now + ms, {
@@ -833,7 +837,7 @@ async function boot(): Promise<void> {
     // Ticks that ran before a failing one keep their events; the failure ends the frame after them.
     const failure = driver.takeFailure();
     for (const events of ticks) {
-      handleEvents(events);
+      handleEvents(events, now);
       pendingDestination = null;
       tradeWindow?.refresh();
     }
