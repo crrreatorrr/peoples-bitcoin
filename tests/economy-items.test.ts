@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { TICKETS } from '../src/config/balance';
 import { countItem } from '../src/sim/inventory';
+import { formatTickets } from '../src/sim/ledger';
 import { buyPrice, sellPrice } from '../src/sim/terminal';
 import { runTick } from '../src/sim/tick';
 import { xpForLevel } from '../src/sim/xp';
@@ -30,6 +31,44 @@ describe('Trading Terminal', () => {
     expect(sellPrice(state, ctx, 'item_scrap_hash', 2)).toBe(
       Math.floor((hash * 2) / TICKETS.usdPerTicket),
     );
+  });
+
+  it('says what a sell-only sale was worth, even a fraction of a Ticket', () => {
+    const { state, ctx } = atTerminal();
+    give(state, 'item_scrap_hash', 1);
+    const slot = state.player.inventory.findIndex((s) => s?.itemId === 'item_scrap_hash');
+    let events = runTick(state, ctx, [{ type: 'sell', slot, qty: 1 }]);
+    // 6.9 USD at 1 Ticket per 25 USD: no whole Ticket yet, but the line still shows.
+    expect(state.player.currencies.tickets).toBe(0);
+    expect(state.player.ledger.offlineRemainder.pb_sell).toBeCloseTo(6.9 / TICKETS.usdPerTicket);
+    expect(messages(events)).toContain('You sell 1 × Scrap Hash for 0.28 Tickets.');
+
+    // Four make a whole Ticket, as the tutorial step says.
+    give(state, 'item_scrap_hash', 3);
+    events = [];
+    for (let i = 0; i < 3; i++) {
+      const s = state.player.inventory.findIndex((x) => x?.itemId === 'item_scrap_hash');
+      events.push(...runTick(state, ctx, [{ type: 'sell', slot: s, qty: 1 }]));
+    }
+    expect(state.player.currencies.tickets).toBe(1);
+    expect(messages(events).filter((m) => m.startsWith('You sell'))).toHaveLength(3);
+  });
+
+  it('writes "1 Ticket", not "1 Tickets"', () => {
+    expect(formatTickets(1)).toBe('1 Ticket');
+    expect(formatTickets(2)).toBe('2 Tickets');
+    expect(formatTickets(1234)).toBe('1,234 Tickets');
+    expect(formatTickets(0.276)).toBe('0.28 Tickets');
+    expect(formatTickets(1.5)).toBe('1.50 Tickets');
+    expect(formatTickets(0.999)).toBe('1 Ticket');
+    expect(formatTickets(0.001)).toBe('less than 0.01 Tickets');
+    expect(formatTickets(0)).toBe('0 Tickets');
+    const { state, ctx } = atTerminal();
+    state.player.currencies.tickets = 5;
+    give(state, 'gun_campaign_pistol', 1);
+    const slot = state.player.inventory.findIndex((s) => s?.itemId === 'gun_campaign_pistol');
+    const events = runTick(state, ctx, [{ type: 'sell', slot, qty: 1 }]);
+    expect(messages(events)).toContain('You sell 1 × Campaign Pistol for 1 Ticket.');
   });
 
   it('buys when you can afford it and have room', () => {

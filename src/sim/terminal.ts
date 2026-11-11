@@ -5,7 +5,7 @@
  * as a pb_sell stream, including the fractional remainder.
  */
 import { TICKETS, TERMINAL_SHOP_ID } from '../config/balance';
-import { addStreamUsd, spendTickets } from './ledger';
+import { addStreamUsd, formatTickets, spendTickets, streamTickets } from './ledger';
 import { addItem, canAdd, removeItem } from './inventory';
 import { buyCost, sellCredit, sellListing, shopStocks } from './prices';
 import { progressQuests } from './quests';
@@ -71,9 +71,7 @@ export function buy(
     state.player.currencies.tickets = result.balance;
   } else if (!spendTickets(state, cost, itemId, events)) return;
   addItem(state.player.inventory, item, units);
-  say(
-    `You buy ${units.toLocaleString('en-US')} × ${item.name} for ${cost.toLocaleString('en-US')} Tickets.`,
-  );
+  say(`You buy ${units.toLocaleString('en-US')} × ${item.name} for ${formatTickets(cost)}.`);
   progressQuests(state, ctx, { type: 'buy', item: itemId }, events);
   progressQuests(state, ctx, { type: 'obtain', item: itemId }, events);
 }
@@ -125,9 +123,7 @@ export function sell(
       removeFromSlot(state, item.id, units, slot);
       player.currencies.tickets += credit;
     }
-    say(
-      `You sell ${units.toLocaleString('en-US')} × ${item.name} for ${credit.toLocaleString('en-US')} Tickets.`,
-    );
+    say(`You sell ${units.toLocaleString('en-US')} × ${item.name} for ${formatTickets(credit)}.`);
     progressQuests(state, ctx, { type: 'sell' }, events);
     return;
   }
@@ -138,12 +134,12 @@ export function sell(
   }
   const units = Math.min(wanted, owned);
   removeFromSlot(state, item.id, units, slot);
-  const whole = addStreamUsd(state, 'pb_sell', item.value * units);
-  if (whole > 0) {
-    say(
-      `You sell ${units.toLocaleString('en-US')} × ${item.name} for ${whole.toLocaleString('en-US')} Tickets.`,
-    );
-  }
+  // Always say what the sale was worth, even when it banks only a fraction of a Ticket.
+  const usd = item.value * units;
+  addStreamUsd(state, 'pb_sell', usd);
+  say(
+    `You sell ${units.toLocaleString('en-US')} × ${item.name} for ${formatTickets(streamTickets(usd))}.`,
+  );
   progressQuests(state, ctx, { type: 'sell' }, events);
 }
 

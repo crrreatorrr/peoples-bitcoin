@@ -115,7 +115,7 @@ export class SkillGuide {
             level: b.levelReq,
             icon: b.model,
             name: b.name,
-            detail: `Toolkit tier ${b.toolTier} · ${b.xp} XP`,
+            detail: `Toolkit tier ${b.toolTier} · ${b.xp} XP, again on every rebuild`,
           });
         }
       }

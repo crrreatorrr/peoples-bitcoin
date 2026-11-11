@@ -5,7 +5,7 @@
     "examine": "Chief of Staff. Tall, tireless, and extremely proud of the mustache.",
     "model": "npc_morelight",
     "actions": ["Talk-to"],
-    "wanderRadius": 1,
+    "wanderRadius": 0,
     "lines": [
       "President. Morelight, Chief of Staff. The mustache and I are at your service, and neither of us believes the official story.",
       "If you're ever lost, follow the yellow arrow. If the arrow is lost, assume it was tampered with, and come and find me."
@@ -374,7 +374,7 @@
     "examine": "Ticky Bickworth, Treasurer. Bought the wrong coin. Or the right one. Feels terrible about it either way.",
     "model": "npc_treasurer",
     "actions": ["Talk-to"],
-    "wanderRadius": 2,
+    "wanderRadius": 0,
     "lines": [
       "ATTENTION ATTENTION! Oh. President. Sorry. Habit.",
       "About the national reserve... I may have misread the ticker. Slightly. Completely.",
@@ -842,6 +842,7 @@
     "lines": [
       "LISTEN UP, PRESIDENT! You are soft! You are slow! You are, frankly, very well dressed!",
       "Buy a gun at the Terminal! Every gun takes the same Rounds! Here's a stack, on the house!",
+      "And six Soundbites! RATIONS! When your health runs low, click one in your inventory and recite it! Do NOT wait until you are on the floor!",
       {
         "player": "What about cannons?"
       },
@@ -870,7 +871,8 @@
       }
     ],
     "repeat": [
-      "BACK AGAIN, RECRUIT? You already have your Rounds! I am not made of Rounds!",
+      "BACK AGAIN, RECRUIT? You already have your Rounds and your rations! I am not made of Rounds!",
+      "Health low? Click a Soundbite in your inventory! Recite it BEFORE you fall over!",
       "Accurate, Rapid or Longrange in the Equipment tab! Take the gun off and you swing your gavel!",
       "And SERGEANT SANDBAG laughs at gavels! Use what you bought at the Terminal! From a distance! DISMISSED!"
     ]
@@ -971,6 +973,8 @@
         "lines": [
           "Inspector Greysuit signed off. The hatch is yours, President. Climb down any time.",
           "Build spots are marked down there. Click one to see what you can build.",
+          "Those three Concrete Bags cover a Storage Locker and a Med Bay. Build the Med Bay first thing: rest there and you heal in full, free.",
+          "Want a higher Construction level? Rebuild something. Every rebuild trains the skill, same as the first build.",
           "Bigger builds need a Pro or Elite Toolkit, plus Concrete, Steel Beams and Circuit Boards from the Terminal.",
           {
             "player": "Find anything interesting while digging?"

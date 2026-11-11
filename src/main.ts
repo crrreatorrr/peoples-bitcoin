@@ -45,6 +45,7 @@ import { buyPrice } from './sim/terminal';
 import { entityActions } from './sim/tick';
 import { createFrameLoop, crashGuard } from './game/crash';
 import { LocalDriver, type GameDriver } from './game/driver';
+import { LowHpWatch } from './game/feedback';
 import { applyGodmode, browserStorage, godmodeEnabled } from './game/godmode';
 import { chooseOnline, type OnlineSession } from './game/online';
 import type { ChatOut } from './net/protocol';
@@ -704,6 +705,7 @@ async function boot(): Promise<void> {
   };
 
   // ── Sim events ─────────────────────────────────────────────────────────────
+  const lowHp = new LowHpWatch();
   const skillName = (id: string) => content.skills.get(id)?.name ?? id;
   const handleEvents = (events: SimEvent[], now: number) => {
     // Shots in flight this tick: hits on their targets (and a shell's splash) land on arrival.
@@ -840,6 +842,13 @@ async function boot(): Promise<void> {
       handleEvents(events, now);
       pendingDestination = null;
       tradeWindow?.refresh();
+    }
+    if (ticks.length > 0) {
+      const warning = lowHp.check(state, content);
+      if (warning) {
+        chat.add(warning, 'warning');
+        hud.pulseHp();
+      }
     }
     if (godmode) applyGodmode(state);
     if (failure) throw failure.error;

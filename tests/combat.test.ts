@@ -82,11 +82,38 @@ describe('fighting', () => {
     expect(state.player.skills.shooting).toBeGreaterThan(0);
     expect(state.player.skills.hitpoints).toBeGreaterThan(xpForLevel(10));
     expect(target.respawnAt).not.toBeNull();
-    // A Sludgeling drops 0.5–2 USD. That is a fraction of a Ticket (1 per 25 USD).
+    // A Sludgeling's table rolls 0.5–2 USD, times TICKETS.dropUsdMultiplier. That is still a
+    // fraction of a Ticket (1 per 25 USD), and the kill says what it was worth.
+    const [min, max] = content().drops.get('drops_sludgeling')!.usd;
+    expect([min, max]).toEqual([0.5, 2]);
+    expect(TICKETS.dropUsdMultiplier).toBeGreaterThan(1);
     expect(state.player.currencies.tickets).toBe(0);
     const carry = state.player.ledger.offlineRemainder.pb_drop;
-    expect(carry).toBeGreaterThanOrEqual(0.5 / TICKETS.usdPerTicket);
-    expect(carry).toBeLessThanOrEqual(2 / TICKETS.usdPerTicket);
+    expect(carry).toBeGreaterThanOrEqual((min * TICKETS.dropUsdMultiplier) / TICKETS.usdPerTicket);
+    expect(carry).toBeLessThanOrEqual((max * TICKETS.dropUsdMultiplier) / TICKETS.usdPerTicket);
+    const loot = messages(events).find((m) => m.startsWith('You loot '));
+    expect(loot).toBe(`You loot ${carry.toFixed(2)} Tickets.`);
+  });
+
+  it('Defense XP is COMBAT.defenseXpPerDamageTaken per point of damage taken', () => {
+    const { state, ctx } = newGame(3);
+    changeZone(state, ctx, 'zone_trenches', { x: 20, y: 115 }, []);
+    state.zone.enemies = [];
+    const enemy = newEnemy('e900', 'enemy_heckler', 20, 114, content(), false);
+    state.zone.enemies.push(enemy);
+    state.player.autoRetaliate = false;
+    state.player.skills.hitpoints = xpForLevel(50);
+    state.player.hp = 50;
+    enemy.target = 'player';
+    let taken = 0;
+    for (let i = 0; i < 400 && taken < 5; i++) {
+      for (const e of runTick(state, ctx, [])) {
+        if (e.type === 'hitsplat' && e.targetId === 'player') taken += e.damage;
+      }
+    }
+    expect(taken).toBeGreaterThanOrEqual(5);
+    expect(COMBAT.defenseXpPerDamageTaken).toBe(3);
+    expect(state.player.skills.defense).toBe(taken * COMBAT.defenseXpPerDamageTaken);
   });
 
   it('melee swings are attack events too, for the player and for enemies', () => {

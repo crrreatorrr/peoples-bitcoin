@@ -9,7 +9,7 @@ import { currentHint, npcLines, progressQuests, questPoints } from '../src/sim/q
 import { newEnemy, type GameState, type SimContext, type SimEvent } from '../src/sim/state';
 import { runTick } from '../src/sim/tick';
 import { changeZone } from '../src/sim/zones';
-import { xpForLevel } from '../src/sim/xp';
+import { levelForXp, xpForLevel } from '../src/sim/xp';
 import { content, give, messages, newGame, objectOf, runUntil, treasuryGrid } from './helpers';
 
 /** Wakes the Building Inspector (he only turns up for his step) and beats him. */
@@ -25,6 +25,49 @@ const talkTo = (npcDef: string) => (state: ReturnType<typeof newGame>['state']) 
   const npc = state.zone.npcs.find((n) => n.defId === npcDef)!;
   return [{ type: 'interact' as const, targetId: npc.id, action: 'Talk-to' }];
 };
+
+describe('tutorial rations', () => {
+  it('the Sergeant hands over Rounds and six Soundbites before the first fight', () => {
+    const { state, ctx } = newGame();
+    runUntil(state, ctx, () => state.player.dialogue !== null, talkTo('npc_drill_sergeant')(state));
+    expect(state.player.quests.quest_tutorial.done).toContain('talk_sergeant');
+    expect(countItem(state.player.inventory, 'item_rounds')).toBe(150);
+    expect(countItem(state.player.inventory, 'item_tp_soundbite')).toBe(6);
+    // Being handed food is not spinning it: that step still waits for the Press Podium.
+    expect(state.player.quests.quest_tutorial.done).not.toContain('spin');
+    expect(state.player.quests.quest_tutorial.done).not.toContain('eat');
+
+    // Eating a ration heals and ticks off the eat step (steps are unordered).
+    state.player.dialogue = null;
+    state.player.hp = 3;
+    const slot = state.player.inventory.findIndex((s) => s?.itemId === 'item_tp_soundbite');
+    runTick(state, ctx, [{ type: 'eat', slot }]);
+    expect(state.player.hp).toBe(7);
+    expect(state.player.quests.quest_tutorial.done).toContain('eat');
+    expect(state.player.quests.quest_tutorial.done).not.toContain('spin');
+  });
+
+  it('the spin step completes by spinning a scandal at the podium', () => {
+    const { state, ctx } = newGame(7);
+    give(state, 'item_raw_minor_scandal', 20);
+    const podium = objectOf(state, 'obj_press_podium');
+    runUntil(
+      state,
+      ctx,
+      () => (state.player.skills.spin ?? 0) > 0,
+      [{ type: 'interact', targetId: podium.id, action: 'Spin' }],
+      400,
+    );
+    expect(state.player.quests.quest_tutorial.done).toContain('spin');
+  });
+
+  it("the Sergeant's lines say what the rations are for", () => {
+    const sergeant = content().npcs.get('npc_drill_sergeant')!;
+    const text = sergeant.lines.filter((l) => typeof l === 'string').join(' ');
+    expect(text).toMatch(/Soundbites/);
+    expect(text).toMatch(/health runs low/i);
+  });
+});
 
 describe('tutorial', () => {
   it('starts active, points at Morelight, and pays for steps in any order', () => {
@@ -247,6 +290,40 @@ describe('Bunker Down and Construction', () => {
 
     runTick(state, ctx, [{ type: 'interact', targetId: spot.id, action: 'Open' }]);
     expect(state.player.interface).toEqual({ kind: 'bank' });
+  });
+
+  it("Bunker Down's reward builds the Storage Locker and the Med Bay straight away", () => {
+    const { state, ctx } = newGame();
+    const reward = content().quests.get('quest_bunker')!.reward!;
+    // What the quest hands over: a basic toolkit, three Concrete Bags and Construction XP.
+    state.player.unlocks.push('bunker');
+    for (const s of reward.items) give(state, s.item, s.qty);
+    state.player.skills.construction = reward.xp.construction;
+    expect(levelForXp(state.player.skills.construction)).toBe(2);
+    give(state, 'item_scrap_hash', 15);
+    changeZone(state, ctx, 'zone_bunker', { x: 10, y: 11 }, []);
+
+    for (const [spotId, buildId, name] of [
+      ['obj_hotspot_storage', 'build_locker', 'Storage Locker'],
+      ['obj_hotspot_medbay', 'build_medbay', 'Med Bay'],
+    ] as const) {
+      const spot = objectOf(state, spotId);
+      state.player.pos = { x: spot.x, y: spot.y + 1 };
+      runTick(state, ctx, [{ type: 'interact', targetId: spot.id, action: 'Build' }]);
+      const events = runTick(state, ctx, [{ type: 'build', buildId }]);
+      expect(messages(events)).toContain(`You build the ${name}.`);
+      expect(state.player.bunker[hotspotKey('zone_bunker', spot)]).toBe(buildId);
+    }
+    expect(countItem(state.player.inventory, 'item_concrete_bag')).toBe(0);
+
+    // The Med Bay is the free full heal.
+    const medbay = objectOf(state, 'obj_hotspot_medbay');
+    state.player.hp = 1;
+    const action = content().objects.get('obj_hotspot_medbay')!.builds[0];
+    expect(action.provides).toBe('heal');
+    runUntil(state, ctx, () => state.player.hp === 10, [
+      { type: 'interact', targetId: medbay.id, action: 'Rest' },
+    ]);
   });
 
   it('server farms fill up over time and are collected', () => {

@@ -5,6 +5,7 @@
  */
 import { MOVEMENT, SUMMONING, UI } from '../config/balance';
 import { COIN_TICKER } from '../config/branding';
+import { walletFraction } from '../game/feedback';
 import { maxHp, type GameState } from '../sim/state';
 import { span } from './tooltips';
 
@@ -12,6 +13,12 @@ const amount = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
 
 export class Hud {
   private readonly wallet = document.createElement('div');
+  private readonly walletText = span('ticker-wallet-text', '');
+  /** The fraction of a Ticket earned but not yet whole, e.g. "+0.28". */
+  private readonly walletPart = span('ticker-fraction', '');
+  /** Thin bar: the fullest source's progress to its next whole Ticket. */
+  private readonly walletBar = document.createElement('div');
+  private readonly walletFill = document.createElement('div');
   private readonly runOrb = document.createElement('button');
   private readonly runValue = span('orb-value', '');
   private readonly hpOrb = document.createElement('div');
@@ -40,7 +47,12 @@ export class Hud {
     head.className = 'ticker-head';
     head.append(span('ticker-symbol', COIN_TICKER));
     this.wallet.className = 'ticker-wallet';
-    ticker.replaceChildren(head, this.wallet);
+    this.wallet.append(this.walletText, this.walletPart);
+    this.walletBar.className = 'ticker-bar';
+    this.walletFill.className = 'ticker-bar-fill';
+    this.walletBar.append(this.walletFill);
+    this.walletBar.hidden = true;
+    ticker.replaceChildren(head, this.wallet, this.walletBar);
 
     this.xpButton.className = 'orb orb-xp';
     this.xpButton.title = 'Toggle XP counter';
@@ -68,10 +80,20 @@ export class Hud {
 
   update(state: GameState): void {
     const tickets = state.player.currencies.tickets;
-    const walletKey = `${tickets}`;
+    const part = walletFraction(state);
+    const walletKey = `${tickets}|${part.total.toFixed(2)}|${part.progress.toFixed(2)}`;
     if (walletKey !== this.walletKey) {
       this.walletKey = walletKey;
-      this.wallet.textContent = `Wallet: ${amount.format(tickets)} ${COIN_TICKER}`;
+      this.walletText.textContent = `Wallet: ${amount.format(tickets)} ${COIN_TICKER}`;
+      const show = part.parts.length > 0;
+      this.walletPart.textContent = show ? ` +${part.total.toFixed(2)}` : '';
+      this.walletBar.hidden = !show;
+      this.walletFill.style.width = `${Math.round(part.progress * 100)}%`;
+      const tip = show
+        ? `Part-Tickets earned so far: ${part.parts.join(', ')}. Each fills up to a whole Ticket.`
+        : '';
+      this.wallet.title = tip;
+      this.walletBar.title = tip;
     }
 
     const hp = state.player.hp;
@@ -81,7 +103,7 @@ export class Hud {
       this.hpKey = hpKey;
       this.hpValue.textContent = String(hp);
       this.hpOrb.style.setProperty('--fill', `${(hp / max) * 100}%`);
-      this.hpOrb.classList.toggle('low', hp <= max * 0.3);
+      this.hpOrb.classList.toggle('low', hp > 0 && hp <= max * UI.lowHpWarnPct);
     }
 
     const points = Math.floor(state.player.summoning.points);
@@ -122,6 +144,14 @@ export class Hud {
     }
     this.xpDrops.append(drop);
     setTimeout(() => drop.remove(), UI.xpDropMs);
+  }
+
+  /** One short pulse on the Hitpoints orb (the low-health warning). */
+  pulseHp(): void {
+    this.hpOrb.classList.remove('pulse');
+    // Restart the one-shot animation if it is already running.
+    void this.hpOrb.offsetWidth;
+    this.hpOrb.classList.add('pulse');
   }
 
   banner(text: string): void {

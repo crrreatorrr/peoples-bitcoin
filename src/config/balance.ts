@@ -68,12 +68,18 @@ export const COMBAT = {
   xpPerDamage: 4,
   hpXpPerDamage: 4 / 3,
   /** Defense XP for each point of damage taken (DESIGN.md: Defense trains by taking hits). */
-  defenseXpPerDamageTaken: 1,
+  defenseXpPerDamageTaken: 3,
   /** Eating pushes the next attack back this many ticks. */
   eatDelayTicks: 3,
   /** Single-way combat: after one enemy hits you, others can't for this many ticks (OSRS). */
   singleWayTicks: 8,
   hpRegenEveryTicks: 100,
+  /**
+   * Out of combat the player recovers faster: 1 HP every this many ticks once nothing has hit
+   * them and their own attack timer has been clear for `idleAfterTicks`. Enemies keep the slow rate.
+   */
+  hpRegenIdleEveryTicks: 10,
+  idleAfterTicks: 16,
   /** Explosions hit enemies within this many tiles of the target for a share of the damage. */
   splashRadius: 1,
   splashShare: 0.5,
@@ -189,6 +195,11 @@ export const TICKETS = {
   questCap: 158,
   exchangeStep: 10,
   exchangeMax: 500,
+  /**
+   * Every enemy coin roll (drop table `usd`) is multiplied by this before it becomes Tickets,
+   * bosses included, so fighting pays for the gear fighting needs.
+   */
+  dropUsdMultiplier: 4,
 } as const;
 
 // ── Bank, ground items, chat, NPCs ───────────────────────────────────────────
@@ -367,6 +378,8 @@ export const UI = {
   pixelIcons: true,
   /** Overhead chat sits this high above the player's feet (world units). */
   overheadHeight: 1.95,
+  /** With food in the pack, warn once when HP first falls to this share of the maximum or less. */
+  lowHpWarnPct: 0.3,
 } as const;
 
 export const FIREWORKS = {

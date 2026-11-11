@@ -298,7 +298,7 @@
         "name": "Med Bay",
         "examine": "Rest here to heal fully.",
         "model": "build_medbay",
-        "levelReq": 5,
+        "levelReq": 2,
         "toolTier": 1,
         "materials": [
           {

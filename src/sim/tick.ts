@@ -374,11 +374,22 @@ function stepActions(state: GameState, ctx: SimContext, events: SimEvent[]): voi
   }
 }
 
+/**
+ * Out of combat: nothing has attacked the player, and the player's own attack timer (set by
+ * every attack, and pushed back by eating) has been clear, for COMBAT.idleAfterTicks.
+ */
+export function isIdle(state: GameState): boolean {
+  const player = state.player;
+  const quietSince = Math.max(player.lastHitBy?.tick ?? -Infinity, player.nextAttackTick);
+  return state.tick - quietSince >= COMBAT.idleAfterTicks;
+}
+
 function stepTimers(state: GameState, ctx: SimContext, events: SimEvent[]): void {
   expireBoosts(state, ctx, events);
   const player = state.player;
   if (player.overhead && state.tick >= player.overhead.untilTick) player.overhead = null;
-  if (state.tick % COMBAT.hpRegenEveryTicks === 0)
+  const regenEvery = isIdle(state) ? COMBAT.hpRegenIdleEveryTicks : COMBAT.hpRegenEveryTicks;
+  if (state.tick % regenEvery === 0 && player.dyingUntil === null)
     player.hp = Math.min(maxHp(player), player.hp + 1);
   player.summoning.points = Math.min(
     SUMMONING.pointsMax,

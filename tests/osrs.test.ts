@@ -6,7 +6,7 @@ import { directStep } from '../src/sim/grid';
 import { countItem } from '../src/sim/inventory';
 import { deserialize, migrate, serialize } from '../src/sim/save';
 import { newEnemy, type GameState } from '../src/sim/state';
-import { runTick } from '../src/sim/tick';
+import { isIdle, runTick } from '../src/sim/tick';
 import { changeZone } from '../src/sim/zones';
 import { xpForLevel } from '../src/sim/xp';
 import { content, give, gridFromRows, messages, newGame, objectOf, runUntil } from './helpers';
@@ -96,6 +96,57 @@ describe('enemy movement', () => {
     state.player.pos = { x: 2, y: 120 };
     for (let i = 0; i < COMBAT.hpRegenEveryTicks; i++) runTick(state, ctx, []);
     expect(enemy.hp).toBe(6);
+  });
+
+  it('the player recovers 1 HP every hpRegenIdleEveryTicks once out of combat', () => {
+    const { state, ctx } = arena('enemy_heckler');
+    state.zone.enemies = [];
+    state.player.skills.hitpoints = xpForLevel(40);
+    state.player.hp = 1;
+    // Fresh from a fight: the last hit landed this tick.
+    state.player.lastHitBy = { id: 'e900', tick: state.tick };
+    const start = state.tick;
+    while (state.tick - start < COMBAT.idleAfterTicks - 1) runTick(state, ctx, []);
+    // Still "in combat": at most the slow rate so far.
+    expect(state.player.hp).toBeLessThanOrEqual(2);
+    const hp = state.player.hp;
+    for (let i = 0; i < 10 * COMBAT.hpRegenIdleEveryTicks + 1; i++) runTick(state, ctx, []);
+    expect(state.player.hp).toBe(hp + 10);
+    // 1 → 10 HP takes under a minute of standing still (it was 15 minutes).
+    expect(9 * COMBAT.hpRegenIdleEveryTicks * 0.6).toBeLessThan(60);
+  });
+
+  it('keeps the slow rate while enemies are still attacking or the player is', () => {
+    const { state, ctx, enemy } = arena('enemy_heckler');
+    state.player.skills.hitpoints = xpForLevel(99);
+    state.player.skills.defense = xpForLevel(99);
+    state.player.hp = 50;
+    state.player.autoRetaliate = false;
+    enemy.target = 'player';
+    state.player.pos = { x: enemy.x, y: enemy.y + 1 };
+    let healed = 0;
+    let hurt = 0;
+    for (let i = 0; i < 200; i++) {
+      const before = state.player.hp;
+      const events = runTick(state, ctx, []);
+      const dmg = events.reduce(
+        (n, e) => n + (e.type === 'hitsplat' && e.targetId === 'player' ? e.damage : 0),
+        0,
+      );
+      hurt += dmg;
+      healed += state.player.hp - before + dmg;
+    }
+    expect(isIdle(state)).toBe(false);
+    expect(healed).toBeLessThanOrEqual(Math.ceil(200 / COMBAT.hpRegenEveryTicks));
+    expect(hurt).toBeGreaterThanOrEqual(0);
+
+    // The player's own attacks count too: a fresh attack timer is not idle.
+    const shooter = arena('enemy_heckler');
+    shooter.state.zone.enemies = [];
+    shooter.state.player.nextAttackTick = shooter.state.tick + 4;
+    expect(isIdle(shooter.state)).toBe(false);
+    for (let i = 0; i < COMBAT.idleAfterTicks + 4; i++) runTick(shooter.state, shooter.ctx, []);
+    expect(isIdle(shooter.state)).toBe(true);
   });
 
   it('a ranged attacker standing on its target steps off and fights', () => {
