@@ -827,3 +827,43 @@ and the attack (thrown rocks); the rest was chosen here.
   read a `verseCredited` that no hub version sends, so it now maps `verse` (the Verse wallet after
   the exchange) and the test double sends only the real fields. `ticketsDebited` stays as a
   fallback for a reply with no `balance` or `ticketsLeft`; current hubs always send both.
+
+## Feedback window (2026-11-11)
+
+- **The window is the hub SDK's** (`installFeedback`, hub-sdk 0.7.0). `src/game/feedback.ts` is
+  the adapter and `src/game/feedbackContext.ts` builds the context (pure, unit tested). The SDK
+  copy is from the hub branch `claude/festive-ptolemy-4mg8oe` at `b9ac308`, not hub main yet.
+- **N belongs to feedback.** Typing anywhere used to start a chat message, so a first N would
+  have focused the chat line. The adapter is installed at the very top of `boot()`, before the
+  controller's capture-phase key listener and every other key listener, so the SDK's window
+  capture listener runs first and stops N (keydown, keypress and keyup) whenever the target is
+  not a text field. Cost: a chat message that starts with "n" needs Enter (or a click on the chat
+  line) first. In the chat line N types normally and N-N does nothing.
+- **Pause.** The game had no pause, only the tab-lock `frozen` flag, which ends the frame loop for
+  good. Offline, the window sets a separate `feedbackPaused` flag: `step` returns early, so no
+  ticks, animation or rendering run. On resume `clockOffset` is reduced by the time the window was
+  up, so the game clock continues from the moment it stopped: no catch-up ticks, and tick phase,
+  effects and click markers are where they were. The previous flag value is restored, not just
+  cleared. Wall-clock things outside the sim (hub calls, autosave on tab hide) keep running.
+  Online (`pb_world`) and under the tab lock `pause()` returns `false` and the window says the
+  game keeps running.
+- **Input while the window is up.** The SDK stops every key event. On open the adapter also
+  releases held camera keys (their keyup never arrives), hides the hover tooltip and suspends the
+  controller (`GamepadInput.suspend`): the pad moves nothing, and B closes the window. The
+  backdrop takes all pointer input. Intents already queued are left alone.
+- **Screenshot.** The SDK composites every visible canvas (the low-res WebGL view and the
+  minimap) in the frame after the game's own render, so the WebGL canvas is not blank without
+  `preserveDrawingBuffer`. `beforeCapture` renders one more frame anyway, which covers a loop that
+  is not running (after the crash panel). DOM panels (chat, side panel) are not in the picture.
+- **Tunables live in `src/input/config.ts` (`FEEDBACK`), not `config/balance.ts`:** `src/config`
+  feeds the sim version hash, and a change there would lock clients out of online worlds until the
+  hub rebuilds `pb_world`, the same reason the controller tunables are there.
+- **Version string:** `package.json` version, sim hash and short commit
+  (`__PB_VERSION__`, `__PB_COMMIT__` in `vite.config.ts`; the commit comes from `VITE_COMMIT`,
+  `GITHUB_SHA` or `git rev-parse`, and is left out when none is available).
+- **Recent errors:** the crash guard keeps counts, not a list, so the adapter keeps the last 10
+  reports from `crashGuard.onCrash`. The SDK's own "Something went wrong · Send report" toast stays
+  on next to the game's crash panel.
+- **Context:** zone id as the level, `offline` / `online` as the mode, the player's tile (zones
+  have no planes, so no z), game time as ticks × 0.6 s. The dev-only `window.__game` hook also
+  exposes `feedback` and `hubSdk` so QA can stub the transport.

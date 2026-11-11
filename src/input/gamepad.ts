@@ -102,6 +102,22 @@ export class GamepadInput {
   private preferred: string | null = null;
   /** Inventory slot to return to when View opens the inventory again. */
   private lastInvSlot = 0;
+  /** Set while the feedback window is up: B calls it, and nothing else reaches the game. */
+  private suspendedBack: (() => void) | null = null;
+
+  /**
+   * Hand the controller and the menu keys to an overlay outside the game (the feedback window).
+   * While suspended the pad moves nothing in the game; B calls `onBack`. `resume()` ends it.
+   */
+  suspend(onBack: () => void): void {
+    this.suspendedBack = onBack;
+    this.frameState = null;
+    this.hooks?.world.hide();
+  }
+
+  resume(): void {
+    this.suspendedBack = null;
+  }
 
   start(): void {
     const loop = () => {
@@ -160,6 +176,7 @@ export class GamepadInput {
    * is showing, so a mouse player's Space or Enter keeps doing what it did. Never while typing.
    */
   private onKey(e: KeyboardEvent): void {
+    if (this.suspendedBack) return;
     if (!e.isTrusted || e.ctrlKey || e.metaKey || e.altKey) return;
     const t = e.target;
     if (
@@ -211,6 +228,11 @@ export class GamepadInput {
 
   private poll(now: number): void {
     const f = this.tracker.update(this.readPads());
+    if (this.suspendedBack) {
+      // Presses are still tracked, so a button held now is not a fresh press afterwards.
+      if (f.connected && f.pressed[BTN.B]) this.suspendedBack();
+      return;
+    }
     this.frameState = f;
     if (f.active) this.setDevice('pad');
     const scope = this.scope();
