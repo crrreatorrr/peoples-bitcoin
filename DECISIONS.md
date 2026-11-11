@@ -545,6 +545,11 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
   state, not a loop. Click, Space, and paging are unchanged. XP drops, the level banner, and
   hitsplats still play their one-shot animations; those are not advance prompts.
 
+- **Fixed footer and page size (2026-11-10).** The speaker, dialogue, and prompt occupy separate
+  rows, with the prompt centered on the bottom row. The dialogue shows at most three rendered
+  lines per page, or fewer if the panel is shorter. Resize and font changes refit the current page
+  from its starting point. Only the last page advances the conversation in the sim.
+
 ## Hub sell clamp (2026-11-08)
 
 - The hub sell in `src/hub/client.ts` clamps the requested quantity to the units owned before it
