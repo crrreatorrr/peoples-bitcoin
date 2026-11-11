@@ -48,12 +48,13 @@ function buildSoundRow(sound: SoundControls): HTMLElement {
   return row;
 }
 
-/** Settings tab: manual save, sound, reset progress, a test world with AI players, and controls. */
+/** Settings tab: manual save, feedback, sound, reset progress, a test world with AI players, and controls. */
 export function buildSettingsPanel(
   onSave: () => void,
   onReset: () => void,
   onExit: () => void,
   online = false,
+  onFeedback?: () => void,
   sound?: SoundControls,
 ): HTMLElement {
   const el = document.createElement('div');
@@ -78,6 +79,11 @@ export function buildSettingsPanel(
   exit.textContent = 'Exit to Hub';
   exit.addEventListener('click', onExit);
 
+  const feedback = document.createElement('button');
+  feedback.className = 'stone-btn';
+  feedback.textContent = 'Send feedback';
+  feedback.addEventListener('click', () => onFeedback?.());
+
   const help = document.createElement('ul');
   help.className = 'controls-help';
   for (const line of [
@@ -90,6 +96,7 @@ export function buildSettingsPanel(
     'Space / Enter: continue dialogue; 1-5: pick an option',
     'Menus and windows: arrow keys move, Enter / Space choose, Esc closes',
     'F1-F4, F6, F10: tabs; Esc: Inventory; Enter or typing: chat',
+    'N twice (not while typing): send feedback',
     'Controller: left stick / D-pad walk, A act, X options, LB / RB target',
     'Controller: right stick camera, LT / RT zoom, Y run, B cancel',
     'Controller: View inventory, Menu this tab (Exit to Hub)',
@@ -103,7 +110,7 @@ export function buildSettingsPanel(
   notice.className = 'parody-notice';
   notice.textContent = PARODY_NOTICE;
 
-  el.append(save, exit);
+  el.append(save, exit, ...(onFeedback ? [feedback] : []));
   if (sound) el.append(buildSoundRow(sound));
   el.append(reset, buildTestWorldPanel(online), help, notice);
   return el;

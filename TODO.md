@@ -34,6 +34,16 @@
 - [ ] H2: owner decision on an in-game 18+ confirmation if the plaza does not gate the portal
 - [ ] Human playtest of the first 40 minutes on a real GPU (plan section 9), with sound on
 
+## Feedback window (2026-11-11)
+
+- [ ] Re-vendor hub-sdk from hub **main** once the hub's feedback branch
+      (`claude/festive-ptolemy-4mg8oe`, `b9ac308`) merges, and update `VENDOR.md`,
+      `SOURCE.pin.json` and `tests/sdk-hash.test.ts`
+- [ ] Try the window against a real hub session (sent note, id toast, offline queue); so far it
+      was driven with a stubbed transport only
+- [ ] The window has no controller navigation: a pad can open it from Settings and close it with
+      B, but picking options and sending need a keyboard or mouse
+
 ## Controller and keyboard (2026-11-09)
 
 - [ ] Check the layout with a real controller (Xbox, PlayStation, Switch): stick walking feel,

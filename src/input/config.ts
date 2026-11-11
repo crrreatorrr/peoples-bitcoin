@@ -35,3 +35,11 @@ export const KEYS = {
   /** A Shift press and release with nothing else in between, within this long, toggles run. */
   shiftTapMaxMs: 400,
 } as const;
+
+/** The in-game feedback window (hub SDK `installFeedback`, src/game/feedback.ts). */
+export const FEEDBACK = {
+  /** Longest gap between the two N presses that open the window. */
+  doubleTapMs: 400,
+  /** Crash-guard errors kept for a note, newest last. */
+  recentErrors: 10,
+} as const;

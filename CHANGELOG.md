@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased — In-game feedback window (2026-11-11)
+
+- **N twice opens a feedback window** (also Settings → Send feedback): seven options, an optional
+  note and a screenshot taken just before the window appeared, which you can draw on. The window
+  comes from hub-sdk 0.7.0 (`installFeedback`); `src/game/feedback.ts` is this game's adapter,
+  themed with the game's stone, parchment and gold and its two fonts.
+- Each note carries the zone, offline or online, the player's tile, game time, a player summary
+  (HP, levels, inventory count, current action and combat target, open window), the world number,
+  the build (`0.1.0 · sim <hash> · <commit>`), recent crash-guard errors and breadcrumbs (start or
+  world join, zone change, death, level-up, quest step, bank / Terminal / build / exchange opened,
+  trade opened).
+- **Pause:** offline the whole game holds still while the window is up and resumes at the exact
+  moment it stopped (the game clock is wound back by the time spent in the window). An online
+  world cannot stop, so the window says the game keeps running. Either way nothing typed into the
+  window reaches the game, held camera keys are released and the controller is parked (B closes
+  the window).
+- **N and chat:** N now belongs to feedback. A single N outside a text field no longer starts a
+  chat message; in the chat line N types as usual and N-N does not open the window.
+- hub-sdk 0.7.0 is vendored from the hub branch `claude/festive-ptolemy-4mg8oe` (`b9ac308`), which
+  is not on hub main yet; `tests/sdk-hash.test.ts` pins it. Notes need a signed-in hub session.
+- No sim, config or data file changed, so the sim version is the same and online worlds need no
+  rebuild.
+
 ## Unreleased — Gameplay improvement plan (2026-11-11)
 
 Items from `docs/gameplay-improvement-plan.md`. The sim, config and data changed, so

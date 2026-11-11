@@ -21,10 +21,13 @@ export class Keyboard {
     });
     // A click while Shift is held is a shift-click (drop), not a tap.
     window.addEventListener('pointerdown', () => this.shiftTap.cancel(), { capture: true });
-    window.addEventListener('blur', () => {
-      this.held.clear();
-      this.shiftTap.cancel();
-    });
+    window.addEventListener('blur', () => this.release());
+  }
+
+  /** Forget every held key (focus left the game, or a window took the keyboard). */
+  release(): void {
+    this.held.clear();
+    this.shiftTap.cancel();
   }
 
   /** Each axis is -1, 0 or 1. */

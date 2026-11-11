@@ -69,6 +69,12 @@ Clicks act on press, like OSRS.
   relic Sprotos the hub says you own (Champion Sproto, from Sproto Fighter's Tidebreaker Belt),
   each with a free Summon button
 - **Esc:** close windows and return to the Inventory tab
+- **N twice: send feedback.** Press N twice quickly (not while typing in chat), or use Settings →
+  Send feedback. A small window takes a few options, an optional note and a screenshot from just
+  before it opened; Esc closes it and the game carries on exactly where it was. Offline the world
+  holds still while the window is up; an online world keeps running. Notes are sent through the
+  hub, so this needs a signed-in hub session: standalone play shows a one-line message instead.
+  A lone N does nothing, so chat messages that start with "n" are begun with Enter first.
 
 There is no keyboard walking: as in OSRS you click to walk, the arrow keys turn the camera and
 typing anywhere starts a chat message (see DECISIONS.md "Controller and keyboard").

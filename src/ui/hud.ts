@@ -5,7 +5,7 @@
  */
 import { MOVEMENT, SUMMONING, UI } from '../config/balance';
 import { COIN_TICKER } from '../config/branding';
-import { walletFraction } from '../game/feedback';
+import { walletFraction } from '../game/hudFeedback';
 import { maxHp, type GameState } from '../sim/state';
 import { span } from './tooltips';
 

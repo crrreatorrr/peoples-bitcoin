@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { UI } from '../src/config/balance';
-import { LowHpWatch, isLowHp, walletFraction } from '../src/game/feedback';
+import { LowHpWatch, isLowHp, walletFraction } from '../src/game/hudFeedback';
 import { addStreamUsd } from '../src/sim/ledger';
 import { content, give, newGame } from './helpers';
 
