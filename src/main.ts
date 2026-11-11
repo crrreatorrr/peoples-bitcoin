@@ -303,6 +303,7 @@ async function boot(): Promise<void> {
     packSize: (itemId) =>
       content.ticketPrices.find((row) => row.shopId === openShopId() && row.itemId === itemId)
         ?.packSize ?? 1,
+    levelOf: (skillId) => levelForXp(state.player.skills[skillId] ?? 0),
   });
   const exchange = new ExchangeWindow(
     hudRoot,
