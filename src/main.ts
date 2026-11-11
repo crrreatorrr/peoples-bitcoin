@@ -43,6 +43,9 @@ import {
 } from './sim/state';
 import { buyPrice } from './sim/terminal';
 import { entityActions } from './sim/tick';
+import { AUDIO } from './audio/config';
+import { cuesFor } from './audio/cues';
+import { browserAudioContext, loadAudioSettings, Sfx } from './audio/sfx';
 import { createFrameLoop, crashGuard } from './game/crash';
 import { LocalDriver, type GameDriver } from './game/driver';
 import { LowHpWatch } from './game/feedback';
@@ -124,6 +127,12 @@ async function boot(): Promise<void> {
     if (!frozen) driver.queue(intent);
   };
 
+  // Sound effects are synthesised; browsers keep them silent until the first click or key.
+  const audioStore = browserStorage();
+  const sfx = new Sfx(loadAudioSettings(audioStore), audioStore, browserAudioContext);
+  const unlockAudio = () => sfx.unlock();
+  window.addEventListener('pointerdown', unlockAudio, { capture: true });
+  window.addEventListener('keydown', unlockAudio, { capture: true });
   const chat = new Chat($('#chatbox'), PRESIDENT_NAME, (text) => queue({ type: 'chat', text }));
   if (loaded) greet(chat, loaded.status);
   else greetOnline(chat, session!);
@@ -507,6 +516,21 @@ async function boot(): Promise<void> {
               void hub.exitToHub();
             },
             online !== null,
+            {
+              get volume() {
+                return sfx.volume;
+              },
+              get muted() {
+                return sfx.muted;
+              },
+              step: AUDIO.volumeStep,
+              setVolume: (v) => sfx.setVolume(v),
+              setMuted: (m) => sfx.setMuted(m),
+              preview: () => {
+                sfx.unlock();
+                sfx.play('purchase');
+              },
+            },
           ),
         ),
       },
@@ -714,6 +738,7 @@ async function boot(): Promise<void> {
     let splashDelay = 0;
     // OSRS shows one XP drop per tick, with an icon for each skill.
     const xpThisTick = new Map<string, number>();
+    for (const cue of cuesFor(events)) sfx.play(cue);
     for (const e of events) {
       switch (e.type) {
         case 'message':

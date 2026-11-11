@@ -930,6 +930,15 @@ body {
   gap: 8px;
 }
 
+.settings-sound {
+  display: flex;
+  gap: 4px;
+}
+
+.settings-sound .stone-btn:first-child {
+  flex: 1;
+}
+
 .stone-btn {
   font-family: var(--font-body);
   font-size: 18px;
