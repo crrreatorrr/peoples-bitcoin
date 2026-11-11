@@ -159,7 +159,9 @@ export class EntityRenderer {
   /** Something attacked: swing, shoot or lunge. */
   playAttack(state: GameState, attackerId: string, style: AttackStyle, now: number): void {
     const view =
-      this.viewOf(attackerId) ?? (attackerId === SPROTO_ID ? this.ensureSproto(state) : null);
+      attackerId === SPROTO_ID && state.player.sproto
+        ? this.ensureSproto(state)
+        : this.viewOf(attackerId);
     if (!view) return;
     view.attackAt = now;
     view.attackStyle = style;
