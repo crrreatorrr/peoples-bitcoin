@@ -18,9 +18,14 @@ describe('Trading Terminal', () => {
     const hash = content().items.get('item_scrap_hash')!.value;
     expect(hash).toBe(6.9);
     state.economy.priceUsd = 0.069;
-    expect(buyPrice(state, ctx, 'gun_campaign_pistol', 1)).toBe(25);
+    expect(buyPrice(state, ctx, 'gun_campaign_pistol', 1)).toBe(2);
     state.economy.priceUsd = 0.138;
-    expect(buyPrice(state, ctx, 'gun_campaign_pistol', 1)).toBe(25);
+    expect(buyPrice(state, ctx, 'gun_campaign_pistol', 1)).toBe(2);
+    expect(sellPrice(state, ctx, 'gun_campaign_pistol', 1)).toBe(1);
+    state.player.currencies.tickets = 2;
+    runTick(state, ctx, [{ type: 'buy', itemId: 'gun_campaign_pistol', qty: 1 }]);
+    expect(countItem(state.player.inventory, 'gun_campaign_pistol')).toBe(1);
+    expect(state.player.currencies.tickets).toBe(0);
     // Sell-only goods: floor(usd / 25). Two Scrap Hash are 13.8 USD, so 0 Tickets.
     expect(sellPrice(state, ctx, 'item_scrap_hash', 2)).toBe(
       Math.floor((hash * 2) / TICKETS.usdPerTicket),

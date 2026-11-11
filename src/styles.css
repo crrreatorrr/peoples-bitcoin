@@ -409,14 +409,14 @@ body {
 }
 
 .dialogue {
+  --dialogue-padding: min(28px, 6%);
   position: absolute;
   inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 6px 28px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 4px;
+  padding: 6px 0;
   text-align: center;
   background: var(--parchment);
   border: 2px solid var(--edge-dark);
@@ -427,14 +427,23 @@ body {
 .dialogue-speaker {
   color: #7a0e0e;
   font-size: 20px;
+  line-height: 1.05;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dialogue-speaker,
+.dialogue-text {
+  margin-inline: var(--dialogue-padding);
 }
 
 .chathead {
   position: absolute;
   top: 50%;
   left: 12px;
-  width: 84px;
-  height: 84px;
+  width: clamp(0px, calc(26% - 48px), 84px);
+  aspect-ratio: 1;
   transform: translateY(-50%);
   image-rendering: pixelated;
 }
@@ -445,7 +454,7 @@ body {
 }
 
 .dialogue:has(.chathead:not([hidden])) {
-  padding-inline: 104px;
+  --dialogue-padding: clamp(4px, calc(26% - 28px), 104px);
 }
 
 .dialogue.player .dialogue-speaker {
@@ -458,12 +467,18 @@ body {
 
 .dialogue-text {
   font-size: 20px;
-  line-height: 1.05;
+  line-height: 1.15;
+  max-block-size: 3lh;
+  overflow: hidden;
+  overflow-wrap: anywhere;
 }
 
 .dialogue-continue {
+  padding-inline: 4px;
   color: #0a2a8a;
   font-size: 18px;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
 }
 
 .dialogue.waiting .dialogue-continue {
@@ -1226,6 +1241,23 @@ body {
   }
 }
 
+@media (max-width: 500px) {
+  .dialogue {
+    padding-block: 3px;
+    gap: 2px;
+  }
+
+  .dialogue-speaker,
+  .dialogue-text {
+    font-size: 16px;
+  }
+
+  .dialogue-continue {
+    padding-inline: 0;
+    font-size: clamp(12px, 3.5vw, 16px);
+  }
+}
+
 /* ── Hitsplats ──────────────────────────────────────────────────────────── */
 
 #hitsplats {
@@ -1814,6 +1846,13 @@ body {
 }
 
 .dialogue.choosing {
+  --dialogue-padding: 0px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding-inline: 28px;
   cursor: default;
 }
 

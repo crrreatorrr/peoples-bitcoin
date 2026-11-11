@@ -27,8 +27,8 @@ export class DialogueBox {
   private readonly menu = document.createElement('div');
   private options = 0;
   private key = '';
-  private pages: string[] = [];
-  private page = 0;
+  private unreadText = '';
+  private nextPageText = '';
   private waiting = false;
 
   constructor(
@@ -50,6 +50,12 @@ export class DialogueBox {
       if (this.options === 0) this.continue();
     });
     host.append(this.el);
+
+    const reflow = () => {
+      if (this.canContinue && !this.waiting) this.showPage();
+    };
+    new ResizeObserver(reflow).observe(this.text);
+    document.fonts.addEventListener('loadingdone', reflow);
   }
 
   get isOpen(): boolean {
@@ -78,9 +84,9 @@ export class DialogueBox {
   /** Shows the next page of a long line, else advances one line; extra presses before the next tick are ignored. */
   continue(): void {
     if (!this.isOpen || this.waiting || this.options > 0) return;
-    if (this.page < this.pages.length - 1) {
-      this.page += 1;
-      this.text.textContent = this.pages[this.page];
+    if (this.nextPageText) {
+      this.unreadText = this.nextPageText;
+      this.showPage();
       return;
     }
     this.waiting = true;
@@ -103,6 +109,7 @@ export class DialogueBox {
     this.el.classList.toggle('choosing', this.options > 0);
     this.more.hidden = this.options > 0;
     this.text.hidden = this.options > 0;
+    this.menu.hidden = this.options === 0;
     this.menu.replaceChildren(
       ...(line.options ?? []).map((text, i) => {
         const btn = document.createElement('button');
@@ -120,42 +127,49 @@ export class DialogueBox {
       return;
     }
     this.speaker.textContent = line.speaker;
-    this.pages = this.paginate(line.text);
-    this.page = 0;
-    this.text.textContent = this.pages[0];
+    this.unreadText = line.text.trim().replace(/\s+/g, ' ');
+    this.showPage();
   }
 
-  /** Splits `text` into pages that fit in the box, as long as possible, ending on a sentence where one can. */
-  private paginate(text: string): string[] {
-    const fits = (words: string[]) => {
-      this.text.textContent = words.join(' ');
-      return this.el.scrollHeight <= this.el.clientHeight;
+  /** Fits the current page in the text row, leaving the rest for the next press. */
+  private showPage(): void {
+    const fits = (text: string) => {
+      this.text.textContent = text;
+      return this.text.scrollHeight <= this.text.clientHeight;
     };
-    const words = text.split(' ');
-    if (fits(words)) return [text];
-    const pages: string[] = [];
-    let start = 0;
-    while (start < words.length) {
-      // The most words from `start` that still fit (at least one, so a page always moves on).
-      let lo = start + 1;
-      let hi = words.length;
+    this.nextPageText = '';
+    if (fits(this.unreadText)) return;
+
+    const fittingCount = (parts: string[], separator: string) => {
+      let lo = 0;
+      let hi = parts.length;
       while (lo < hi) {
         const mid = Math.ceil((lo + hi) / 2);
-        if (fits(words.slice(start, mid))) lo = mid;
+        if (fits(parts.slice(0, mid).join(separator))) lo = mid;
         else hi = mid - 1;
       }
-      // Rather end the page on a sentence, if one ends after its first third.
-      if (lo < words.length) {
-        for (let i = lo; i > start + (lo - start) / 3; i--) {
-          if (/[.!?]$/.test(words[i - 1])) {
-            lo = i;
-            break;
-          }
+      return lo;
+    };
+
+    const words = this.unreadText.split(' ');
+    let count = fittingCount(words, ' ');
+    let page: string;
+    if (count === 0) {
+      // A single long word can span pages on a narrow screen.
+      const characters = Array.from(words[0]);
+      page = characters.slice(0, Math.max(1, fittingCount(characters, ''))).join('');
+    } else {
+      // Prefer a sentence ending after the first third of the available page.
+      for (let i = count; i > count / 3; i--) {
+        if (/[.!?]$/.test(words[i - 1])) {
+          count = i;
+          break;
         }
       }
-      pages.push(words.slice(start, lo).join(' '));
-      start = lo;
+      page = words.slice(0, count).join(' ');
     }
-    return pages;
+
+    this.text.textContent = page;
+    this.nextPageText = this.unreadText.slice(page.length).trimStart();
   }
 }
