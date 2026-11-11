@@ -3,6 +3,7 @@
  * inputs → movement → actions (skilling, interacting, the player's attacks) →
  * Sproto AI → enemies → death → NPCs → regen/timers → autosave.
  */
+import { answerShout } from './bossMechanics';
 import {
   AUTOSAVE_EVERY_TICKS,
   CHAT,
@@ -441,6 +442,7 @@ function sayPublic(state: GameState, text: string, events: SimEvent[]): void {
   const player = state.player;
   player.overhead = { text: clean, untilTick: state.tick + CHAT.overheadTicks };
   events.push({ type: 'message', kind: 'public', speaker: player.name, text: clean });
+  answerShout(state, clean, events);
 }
 
 function advanceDialogue(state: GameState): void {

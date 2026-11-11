@@ -94,7 +94,41 @@ export const COMBAT = {
 
 export const BOSSES = {
   /** A boss hit with a weapon it isn't weak to (EnemyDef.weakTo) takes this share of the damage. */
-  offWeaponScale: 0.1,
+  offWeaponScale: 0.4,
+  /**
+   * Sludge Mother (`boss.mechanic: 'sludge'`): at or below `belowHpShare` of her HP she marks
+   * the tiles within `radius` of her target every `everyTicks`; `landAfterTicks` later sludge
+   * lands there for 1..`maxDamage` on anyone who hasn't moved.
+   */
+  sludge: {
+    belowHpShare: 0.5,
+    everyTicks: 10,
+    landAfterTicks: 3,
+    radius: 1,
+    maxDamage: 4,
+  },
+  /**
+   * Wrong-Namer Chief (`'heckle'`): every `everyTicks` he shouts the wrong ticker. Saying the
+   * right one in chat (or the quick-chat line) within `answerTicks` avoids "Heckled": the
+   * player's accuracy roll is multiplied by `accuracyScale` for `heckledTicks`.
+   */
+  heckle: {
+    everyTicks: 12,
+    answerTicks: 8,
+    heckledTicks: 10,
+    accuracyScale: 0.75,
+  },
+  /**
+   * Captain Motion (`'flee'`): at or below `atHpShare` of his HP he stops fighting and runs
+   * for the north barricade. Finish him within `ticks` or he comes back with at least
+   * `returnHpShare` of his HP. (The plan's 20 ticks and 50% made the Shooting 45 rifle duel
+   * unwinnable in simulation; 40 and 30% keep it where it was. See DECISIONS.md.)
+   */
+  flee: {
+    atHpShare: 0.1,
+    ticks: 40,
+    returnHpShare: 0.3,
+  },
 } as const;
 
 export const ENEMIES = {

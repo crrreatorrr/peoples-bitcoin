@@ -36,6 +36,11 @@
     "placeholder": "water",
     "color": "#2f6f9e"
   },
+  "fx_sludge_mark": {
+    "placeholder": "tilemark",
+    "color": "#b8e03a",
+    "accent": "#3b4a1e"
+  },
   "player_president": {
     "placeholder": "humanoid",
     "look": {

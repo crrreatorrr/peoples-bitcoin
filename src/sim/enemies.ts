@@ -6,6 +6,7 @@
  */
 import { COMBAT, ENEMIES, SUMMONING } from '../config/balance';
 import { barkOnAggro } from './barks';
+import { stepBossMechanic } from './bossMechanics';
 import { effectiveLevel } from './boosts';
 import {
   accuracyRoll,
@@ -128,6 +129,11 @@ export function stepEnemies(
     const events = eventsOf(view.pid);
     barkOnAggro(view, ctx, enemy, events);
     const targetPos = foe ? (foe.sproto ? foe.view.player.sproto : foe.view.player.pos) : null;
+    // A boss mechanic can keep the boss busy (Captain Motion running away).
+    const busy = def.boss?.mechanic
+      ? stepBossMechanic(foe?.view ?? null, ctx, enemy, def, events)
+      : false;
+    if (busy) continue;
     if (foe && targetPos) fight(foe, ctx, enemy, targetPos, events, views);
     else if (chebyshev(enemy, enemy.spawn) > def.wanderRadius) walkHome(first, ctx, enemy, views);
     else wander(first, ctx, enemy, def.wanderRadius, views);

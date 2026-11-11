@@ -53,18 +53,23 @@ describe('weapon-locked bosses', () => {
     const cannon = item('gun_hash_cannon');
     expect(damageAfterWeakness(state, ctx, enemy, cannon, 'explosive', 40, [])).toBe(40);
     expect(damageAfterWeakness(state, ctx, enemy, item('gun_press_pass_smg'), 'gun', 40, [])).toBe(
-      4,
+      40 * BOSSES.offWeaponScale,
     );
   });
 
-  it('still take a tenth of small hits on average, instead of rounding them all to 0', () => {
+  it('the wrong weapon is slow, not useless: it does 40% (BOSSES.offWeaponScale)', () => {
+    expect(BOSSES.offWeaponScale).toBe(0.4);
+  });
+
+  it('still take their share of small hits on average, instead of rounding them all to 0', () => {
     const { state, ctx, enemy } = boss('enemy_lockdown_warden');
     const rifle = item('gun_treasury_rifle');
     let total = 0;
     for (let i = 0; i < 1000; i++)
       total += damageAfterWeakness(state, ctx, enemy, rifle, 'gun', 5, []);
-    expect(total / 1000).toBeGreaterThan(0.4);
-    expect(total / 1000).toBeLessThan(0.6);
+    const mean = 5 * BOSSES.offWeaponScale;
+    expect(total / 1000).toBeGreaterThan(mean - 0.1);
+    expect(total / 1000).toBeLessThan(mean + 0.1);
   });
 
   it('move the market once, not every time they respawn', () => {
@@ -85,7 +90,9 @@ describe('weapon-locked bosses', () => {
 
   it('barely notice Sprotos', () => {
     const { state, ctx, enemy } = boss('enemy_captain_motion');
-    expect(damageAfterWeakness(state, ctx, enemy, null, null, 50, [])).toBe(5);
+    expect(damageAfterWeakness(state, ctx, enemy, null, null, 50, [])).toBe(
+      50 * BOSSES.offWeaponScale,
+    );
   });
 
   it('leave ordinary enemies alone', () => {

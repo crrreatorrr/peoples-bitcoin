@@ -7,6 +7,7 @@ import { COMBAT, GROUND_ITEMS, TICKETS } from '../config/balance';
 import { bark, barkOnAggro, barkOnHurt } from './barks';
 import { damageAfterWeakness } from './weakness';
 import { effectiveLevel } from './boosts';
+import { heckleScale } from './bossMechanics';
 import { addStreamUsd, formatTickets, streamTickets } from './ledger';
 import { attackProfile, consumeAmmo } from './equipment';
 import {
@@ -193,7 +194,9 @@ export function tickPlayerAttack(
   const styleBonus = player.style === 'accurate' || player.style === 'bash' ? COMBAT.styleBonus : 0;
   const effective = level + COMBAT.levelOffset + styleBonus;
   const attRoll =
-    accuracyRoll(effective, profile.accuracyBonus) * triangleMultiplier(profile.type, def.type);
+    accuracyRoll(effective, profile.accuracyBonus) *
+    triangleMultiplier(profile.type, def.type) *
+    heckleScale(state);
   const defRoll = accuracyRoll(def.defense + COMBAT.levelOffset, def.armor);
   const rally = state.tick < player.rally.untilTick ? 1 + player.rally.pct : 1;
   const max = Math.floor(maxHit(effective, profile.damageBonus) * rally);

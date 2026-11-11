@@ -4,7 +4,14 @@
  * rendering reads the resulting state every frame.
  */
 import * as THREE from 'three';
-import { GODMODE, INVENTORY_SIZE, START_ZONE_ID, TERMINAL_SHOP_ID, UI } from './config/balance';
+import {
+  GODMODE,
+  INVENTORY_SIZE,
+  START_ZONE_ID,
+  TERMINAL_SHOP_ID,
+  TICK_MS,
+  UI,
+} from './config/balance';
 import { HubBridge } from './hub/bridge';
 import { HubClient } from './hub/client';
 import { clearHubLedger } from './hub/ledgerStore';
@@ -748,6 +755,17 @@ async function boot(): Promise<void> {
           xpThisTick.set(e.skillId, (xpThisTick.get(e.skillId) ?? 0) + e.amount);
           view.entities.playWork(state, e.skillId, now);
           break;
+        case 'telegraph': {
+          // Where a boss attack will land: mark the tiles until it does.
+          const art = assets.entry('fx_sludge_mark');
+          view.marks.mark(
+            e.tiles,
+            { color: art.color ?? '#b8e03a', accent: art.accent ?? '#3b4a1e' },
+            now,
+            Math.max(1, e.landsAtTick - state.tick) * TICK_MS,
+          );
+          break;
+        }
         case 'levelUp':
           hud.banner(`${skillName(e.skillId)} level ${e.level}!`);
           view.bursts.spawn(view.entities.playerPosition, PALETTES.fireworks, now, { lift: 1.2 });
@@ -914,6 +932,7 @@ async function boot(): Promise<void> {
     cross.update(now);
     view.bursts.update(now);
     view.tracers.update(now);
+    view.marks.update(now);
     const hint = hintTarget();
     view.hint.update(hint?.pos ?? null, hint?.height ?? 0, now / 1000);
     updateHoverTooltip();

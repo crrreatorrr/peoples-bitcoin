@@ -8,7 +8,8 @@
 import { CHAT, CHAT_NET } from '../config/balance';
 import quickchat from '../data/quickchat.json';
 import type { Content } from '../sim/content';
-import { combatLevel } from '../sim/combat';
+import { answerShout } from '../sim/bossMechanics';
+import { combatLevel, mailbox } from '../sim/combat';
 import type { ChatFilter, GameState } from '../sim/state';
 import { levelForXp } from '../sim/xp';
 import type { ChatIn, ChatOut } from '../net/protocol';
@@ -158,6 +159,8 @@ function sayPublic(env: ChatEnv, who: ChatMember, text: string, quick: boolean):
   const line: ChatOut = { ch: 'public', from: who.name, text, id: who.view.selfId };
   if (quick) line.quick = true;
   env.send(who.uid, line);
+  // Naming the coin answers the Wrong-Namer Chief's shout; its line rides the next tick's events.
+  answerShout(who.view, text, mailbox(who.view));
   for (const h of env.hearers(who)) {
     if (h.uid === who.uid || ignores(h.view, who.uid)) continue;
     if (!filterAllows(h.view.player.social.publicFilter, isFriend(h.view, who.uid))) continue;
