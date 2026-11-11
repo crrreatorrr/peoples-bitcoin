@@ -3,9 +3,8 @@
 ## Unreleased — Gameplay improvement plan (2026-11-11)
 
 Items from `docs/gameplay-improvement-plan.md`. The sim, config and data changed, so
-`SIM_VERSION` moves from `7cd8d3c92b4e2dbc` to the value printed by
-`node -e "import('./scripts/simHash.mjs').then(m=>console.log(m.simHash()))"`; the hub needs a
-new `pb-sim.js` (`npm run build:sim`) before online worlds accept this client.
+`SIM_VERSION` moves from `7cd8d3c92b4e2dbc` (main) to `6ab4c4a13b686fc9`; the hub needs a new `pb-sim.js`
+(`npm run build:sim`) before online worlds accept this client.
 
 **The first fifteen minutes**
 
