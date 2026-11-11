@@ -4,7 +4,7 @@ import { successChance } from '../src/sim/gathering';
 import { countItem } from '../src/sim/inventory';
 import { runTick } from '../src/sim/tick';
 import { xpForLevel } from '../src/sim/xp';
-import { give, messages, newGame, objectOf, runUntil } from './helpers';
+import { content, give, messages, newGame, objectOf, runUntil } from './helpers';
 
 const act = (targetId: string, action: string) => [{ type: 'interact' as const, targetId, action }];
 
@@ -60,6 +60,17 @@ describe('gathering skills', () => {
     expect(countItem(state.player.inventory, 'item_raw_minor_scandal')).toBe(1);
   });
 
+  it('each lobbyist tier pays more than the last, and the Broker is trimmed', () => {
+    const pay = (objectId: string) =>
+      content()
+        .skills.get('lobbying')!
+        .actions.find((a) => a.objectId === objectId)!.payUsd!;
+    const mean = (r: readonly number[]) => (r[0] + r[1]) / 2;
+    expect(pay('obj_lobbyist_broker')).toEqual([32, 52]);
+    expect(mean(pay('obj_lobbyist_junior'))).toBeLessThan(mean(pay('obj_lobbyist_veteran')));
+    expect(mean(pay('obj_lobbyist_veteran'))).toBeLessThan(mean(pay('obj_lobbyist_broker')));
+  });
+
   it('lobbying pays a fraction of a Ticket per favor, except when blackmailed', () => {
     const { state, ctx } = newGame(99);
     give(state, 'item_business_cards');
@@ -71,6 +82,8 @@ describe('gathering skills', () => {
       state.player.currencies.tickets + state.player.ledger.offlineRemainder.pb_lobby;
     let paid = 0;
     let blackmailed = 0;
+    /** Paid favors that banked no whole Ticket; they used to print nothing. */
+    let silentBefore = 0;
     for (
       let i = 0;
       i < 4000 && (paid < 3 || blackmailed < 1 || state.player.currencies.tickets < 1);
@@ -90,9 +103,15 @@ describe('gathering skills', () => {
         paid++;
         expect(delta).toBeGreaterThanOrEqual(min - 1e-9);
         expect(delta).toBeLessThanOrEqual(max + 1e-9);
+        // Every paid favor says its amount, even when no whole Ticket landed.
+        const line = messages(events).find((m) => m.startsWith('You do a favor'));
+        expect(line).toMatch(/^You do a favor and get paid 0\.\d\d Tickets\.$/);
+        expect(Number(line!.match(/paid ([\d.]+) /)![1])).toBeCloseTo(delta, 2);
+        if (state.player.currencies.tickets === beforeTickets) silentBefore++;
       }
     }
     expect(paid).toBeGreaterThanOrEqual(3);
+    expect(silentBefore).toBeGreaterThanOrEqual(1);
     expect(blackmailed).toBeGreaterThanOrEqual(1);
     expect(state.player.currencies.tickets).toBeGreaterThanOrEqual(1);
     expect(countItem(state.player.inventory, 'item_raw_minor_scandal')).toBe(0);

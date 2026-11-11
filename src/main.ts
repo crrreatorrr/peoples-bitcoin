@@ -4,7 +4,14 @@
  * rendering reads the resulting state every frame.
  */
 import * as THREE from 'three';
-import { GODMODE, INVENTORY_SIZE, START_ZONE_ID, TERMINAL_SHOP_ID, UI } from './config/balance';
+import {
+  GODMODE,
+  INVENTORY_SIZE,
+  START_ZONE_ID,
+  TERMINAL_SHOP_ID,
+  TICK_MS,
+  UI,
+} from './config/balance';
 import { HubBridge } from './hub/bridge';
 import { HubClient } from './hub/client';
 import { clearHubLedger } from './hub/ledgerStore';
@@ -43,10 +50,14 @@ import {
 } from './sim/state';
 import { buyPrice } from './sim/terminal';
 import { entityActions } from './sim/tick';
+import { AUDIO } from './audio/config';
+import { cuesFor } from './audio/cues';
+import { browserAudioContext, loadAudioSettings, Sfx } from './audio/sfx';
 import { createFrameLoop, crashGuard } from './game/crash';
 import { createFeedback } from './game/feedback';
 import { newQuestSteps } from './game/feedbackContext';
 import { LocalDriver, type GameDriver } from './game/driver';
+import { LowHpWatch } from './game/hudFeedback';
 import { applyGodmode, browserStorage, godmodeEnabled } from './game/godmode';
 import { chooseOnline, type OnlineSession } from './game/online';
 import type { ChatOut } from './net/protocol';
@@ -130,6 +141,12 @@ async function boot(): Promise<void> {
     if (!frozen) driver.queue(intent);
   };
 
+  // Sound effects are synthesised; browsers keep them silent until the first click or key.
+  const audioStore = browserStorage();
+  const sfx = new Sfx(loadAudioSettings(audioStore), audioStore, browserAudioContext);
+  const unlockAudio = () => sfx.unlock();
+  window.addEventListener('pointerdown', unlockAudio, { capture: true });
+  window.addEventListener('keydown', unlockAudio, { capture: true });
   const chat = new Chat($('#chatbox'), PRESIDENT_NAME, (text) => queue({ type: 'chat', text }));
   if (loaded) greet(chat, loaded.status);
   else greetOnline(chat, session!);
@@ -313,6 +330,7 @@ async function boot(): Promise<void> {
     packSize: (itemId) =>
       content.ticketPrices.find((row) => row.shopId === openShopId() && row.itemId === itemId)
         ?.packSize ?? 1,
+    levelOf: (skillId) => levelForXp(state.player.skills[skillId] ?? 0),
   });
   const exchange = new ExchangeWindow(
     hudRoot,
@@ -523,6 +541,21 @@ async function boot(): Promise<void> {
             },
             online !== null,
             () => feedback.handle.open(),
+            {
+              get volume() {
+                return sfx.volume;
+              },
+              get muted() {
+                return sfx.muted;
+              },
+              step: AUDIO.volumeStep,
+              setVolume: (v) => sfx.setVolume(v),
+              setMuted: (m) => sfx.setMuted(m),
+              preview: () => {
+                sfx.unlock();
+                sfx.play('purchase');
+              },
+            },
           ),
         ),
       },
@@ -722,6 +755,7 @@ async function boot(): Promise<void> {
   };
 
   // ── Sim events ─────────────────────────────────────────────────────────────
+  const lowHp = new LowHpWatch();
   const skillName = (id: string) => content.skills.get(id)?.name ?? id;
   // Breadcrumbs for feedback notes: the last few things that happened, kept by the SDK.
   const questSeen = new Map<string, number>();
@@ -741,6 +775,7 @@ async function boot(): Promise<void> {
     let splashDelay = 0;
     // OSRS shows one XP drop per tick, with an icon for each skill.
     const xpThisTick = new Map<string, number>();
+    for (const cue of cuesFor(events)) sfx.play(cue);
     for (const e of events) {
       switch (e.type) {
         case 'message':
@@ -750,6 +785,17 @@ async function boot(): Promise<void> {
           xpThisTick.set(e.skillId, (xpThisTick.get(e.skillId) ?? 0) + e.amount);
           view.entities.playWork(state, e.skillId, now);
           break;
+        case 'telegraph': {
+          // Where a boss attack will land: mark the tiles until it does.
+          const art = assets.entry('fx_sludge_mark');
+          view.marks.mark(
+            e.tiles,
+            { color: art.color ?? '#b8e03a', accent: art.accent ?? '#3b4a1e' },
+            now,
+            Math.max(1, e.landsAtTick - state.tick) * TICK_MS,
+          );
+          break;
+        }
         case 'levelUp':
           hud.banner(`${skillName(e.skillId)} level ${e.level}!`);
           crumb('level_up', { skill: e.skillId, level: e.level });
@@ -890,6 +936,13 @@ async function boot(): Promise<void> {
       pendingDestination = null;
       tradeWindow?.refresh();
     }
+    if (ticks.length > 0) {
+      const warning = lowHp.check(state, content);
+      if (warning) {
+        chat.add(warning, 'warning');
+        hud.pulseHp();
+      }
+    }
     if (godmode) applyGodmode(state);
     if (failure) throw failure.error;
     const alpha = driver.alpha(now);
@@ -928,6 +981,7 @@ async function boot(): Promise<void> {
     cross.update(now);
     view.bursts.update(now);
     view.tracers.update(now);
+    view.marks.update(now);
     const hint = hintTarget();
     view.hint.update(hint?.pos ?? null, hint?.height ?? 0, now / 1000);
     updateHoverTooltip();

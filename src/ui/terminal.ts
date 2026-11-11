@@ -2,9 +2,13 @@
  * A shop window. Prices come from the Ticket table, per pack. Like an OSRS
  * shop, left-click checks the price and right-click buys. Selling happens
  * from the inventory while this window is open.
+ *
+ * Stock is sorted into tabs (weapons, armor, tools...). Each item shows its name,
+ * its price and the skill level it needs; items the player can't use yet are dimmed.
  */
 import type { Content } from '../sim/content';
 import type { MenuOption } from './contextmenu';
+import { requirements, SHOP_CATEGORIES, shopCategory, type ShopCategoryId } from './shopCategories';
 import { span, type Tooltip } from './tooltips';
 
 export type ShopStatus = 'local' | 'ready' | 'offline' | 'pending';
@@ -19,6 +23,16 @@ export interface TerminalHandlers {
   /** Tickets for `packs` packs, or null if this shop doesn't stock it. */
   priceOf(itemId: string, packs: number): number | null;
   packSize(itemId: string): number;
+  /** The player's level in a skill, for the "needs level" labels. */
+  levelOf(skillId: string): number;
+}
+
+interface Row {
+  itemId: string;
+  cell: HTMLElement;
+  price: HTMLElement;
+  req: HTMLElement | null;
+  category: ShopCategoryId;
 }
 
 const amount = new Intl.NumberFormat('en-US');
@@ -29,7 +43,9 @@ export class TerminalWindow {
   private readonly wallet = span('terminal-wallet', '');
   private readonly rate = span('terminal-rate', '');
   private readonly title = document.createElement('h2');
-  private readonly priceLabels = new Map<string, HTMLElement>();
+  private readonly tabs = document.createElement('div');
+  private readonly tabButtons = new Map<ShopCategoryId, HTMLButtonElement>();
+  private rows: Row[] = [];
   private closing = false;
   private key = '';
   private shopId: string | null = null;
@@ -59,7 +75,16 @@ export class TerminalWindow {
       this.rate,
       span('terminal-hint', 'Buy: right-click an item. Sell: click items in your inventory.'),
     );
-    this.el.append(header, this.grid, footer);
+    this.tabs.className = 'terminal-tabs';
+    for (const c of SHOP_CATEGORIES) {
+      const tab = document.createElement('button');
+      tab.className = 'terminal-tab';
+      tab.textContent = c.name;
+      tab.addEventListener('click', () => this.showCategory(c.id));
+      this.tabButtons.set(c.id, tab);
+      this.tabs.append(tab);
+    }
+    this.el.append(header, this.tabs, this.grid, footer);
     root.append(this.el);
   }
 
@@ -69,7 +94,7 @@ export class TerminalWindow {
     this.shopId = shopId;
     this.key = '';
     this.grid.replaceChildren();
-    this.priceLabels.clear();
+    this.rows = [];
     const shop = content.shops.get(shopId);
     this.title.textContent = shop?.name ?? 'Shop';
     for (const entry of shop?.stock ?? []) {
@@ -82,8 +107,13 @@ export class TerminalWindow {
       img.alt = def.name;
       img.draggable = false;
       const price = span('terminal-price', '');
-      this.priceLabels.set(def.id, price);
-      cell.append(img, price);
+      const text = document.createElement('div');
+      text.className = 'terminal-text';
+      text.append(span('terminal-name', def.name));
+      const req = def.requires.length > 0 ? span('terminal-req', '') : null;
+      if (req) text.append(req);
+      cell.append(img, text, price);
+      this.rows.push({ itemId: def.id, cell, price, req, category: shopCategory(def) });
       const reqs = def.requires
         .map((r) => `${content.skills.get(r.skill)?.name ?? r.skill} ${r.level}`)
         .join(', ');
@@ -138,6 +168,17 @@ export class TerminalWindow {
       cell.addEventListener('mouseleave', () => tooltip.hide());
       this.grid.append(cell);
     }
+    // Tabs with nothing in this shop are hidden; a small shop shows no tabs at all.
+    const used = new Set(this.rows.map((r) => r.category));
+    for (const [id, tab] of this.tabButtons) tab.hidden = id !== 'all' && !used.has(id);
+    this.tabs.hidden = used.size < 2;
+    this.showCategory('all');
+  }
+
+  private showCategory(id: ShopCategoryId): void {
+    for (const [tabId, tab] of this.tabButtons) tab.classList.toggle('on', tabId === id);
+    for (const row of this.rows) row.cell.hidden = id !== 'all' && row.category !== id;
+    this.grid.scrollTop = 0;
   }
 
   get isOpen(): boolean {
@@ -159,7 +200,11 @@ export class TerminalWindow {
     this.el.hidden = !shopId || this.closing;
     if (!shopId || this.el.hidden) return;
     if (shopId !== this.shopId) this.build(shopId);
-    const key = `${wallet}|${status}`;
+    const levels = this.rows
+      .flatMap((r) => this.content.items.get(r.itemId)?.requires ?? [])
+      .map((r) => this.h.levelOf(r.skill))
+      .join(',');
+    const key = `${wallet}|${status}|${levels}`;
     if (key === this.key) return;
     this.key = key;
     this.wallet.textContent = `Wallet: ${amount.format(wallet)} Tickets`;
@@ -169,10 +214,19 @@ export class TerminalWindow {
         : status === 'pending'
           ? 'Purchase pending'
           : 'Prices in Tickets';
-    for (const [itemId, label] of this.priceLabels) {
-      const price = this.h.priceOf(itemId, 1) ?? 0;
-      label.textContent = compact(price);
-      label.classList.toggle('too-expensive', price > wallet);
+    for (const row of this.rows) {
+      const price = this.h.priceOf(row.itemId, 1) ?? 0;
+      row.price.textContent = compact(price);
+      row.price.classList.toggle('too-expensive', price > wallet);
+      const def = this.content.items.get(row.itemId);
+      if (!def || !row.req) continue;
+      const reqs = requirements(def, this.h.levelOf);
+      row.req.textContent = reqs
+        .map((r) => `${this.content.skills.get(r.skill)?.name ?? r.skill} ${r.level}`)
+        .join(', ');
+      const locked = reqs.some((r) => !r.met);
+      row.cell.classList.toggle('locked', locked);
+      row.req.classList.toggle('unmet', locked);
     }
   }
 }

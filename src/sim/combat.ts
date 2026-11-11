@@ -3,11 +3,12 @@
  * accRoll = (level + 8 + style) * (accuracy + 64); defRoll likewise with armor.
  * Hit chance uses the OSRS comparison; damage on a hit is 0..maxHit.
  */
-import { COMBAT, GROUND_ITEMS } from '../config/balance';
+import { COMBAT, GROUND_ITEMS, TICKETS } from '../config/balance';
 import { bark, barkOnAggro, barkOnHurt } from './barks';
 import { damageAfterWeakness } from './weakness';
 import { effectiveLevel } from './boosts';
-import { addStreamUsd } from './ledger';
+import { heckleScale } from './bossMechanics';
+import { addStreamUsd, formatTickets, streamTickets } from './ledger';
 import { attackProfile, consumeAmmo } from './equipment';
 import {
   chebyshev,
@@ -193,7 +194,9 @@ export function tickPlayerAttack(
   const styleBonus = player.style === 'accurate' || player.style === 'bash' ? COMBAT.styleBonus : 0;
   const effective = level + COMBAT.levelOffset + styleBonus;
   const attRoll =
-    accuracyRoll(effective, profile.accuracyBonus) * triangleMultiplier(profile.type, def.type);
+    accuracyRoll(effective, profile.accuracyBonus) *
+    triangleMultiplier(profile.type, def.type) *
+    heckleScale(state);
   const defRoll = accuracyRoll(def.defense + COMBAT.levelOffset, def.armor);
   const rally = state.tick < player.rally.untilTick ? 1 + player.rally.pct : 1;
   const max = Math.floor(maxHit(effective, profile.damageBonus) * rally);
@@ -349,12 +352,15 @@ function dropLoot(
   if (!table) return;
   const events = maybeEvents ?? mailbox(state);
   const [min, max] = table.usd;
-  const paid = addStreamUsd(state, 'pb_drop', min + (max - min) * nextFloat(state.rng));
-  if (paid > 0) {
+  // Fighting pays TICKETS.dropUsdMultiplier times the table's roll. Every coin drop says
+  // what it was worth, even when it banks only a fraction of a Ticket.
+  const usd = (min + (max - min) * nextFloat(state.rng)) * TICKETS.dropUsdMultiplier;
+  addStreamUsd(state, 'pb_drop', usd);
+  if (usd > 0) {
     events.push({
       type: 'message',
       kind: 'game',
-      text: `You loot ${paid.toLocaleString('en-US')} Tickets.`,
+      text: `You loot ${formatTickets(streamTickets(usd))}.`,
     });
   }
   const despawn = state.tick + GROUND_ITEMS.despawnTicks;

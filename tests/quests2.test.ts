@@ -1,6 +1,6 @@
 /** 0.5 mechanics: drinks, teleports, using items, dialogue choices, quest drops and spawns, outfits. */
 import { describe, expect, it } from 'vitest';
-import { OUTFITS, TELEPORT } from '../src/config/balance';
+import { OUTFITS, TELEPORT, TICKETS } from '../src/config/balance';
 import { effectiveLevel } from '../src/sim/boosts';
 import { damageEnemy } from '../src/sim/combat';
 import { xpMultiplier } from '../src/sim/equipment';
@@ -217,10 +217,13 @@ describe('quest-only drops and branching choices', () => {
     });
     const choice = Math.round(Math.sqrt(6000));
     const gained = state.player.currencies.tickets - before;
-    // The leverage choice is its own quest earn (77). The Raider's coin drop is 1–2 more.
+    // The leverage choice is its own quest earn (77). The Raider's coin drop comes on top:
+    // its table's USD roll times TICKETS.dropUsdMultiplier, plus a carried fraction.
+    const [, maxUsd] = content().drops.get('drops_corporate_raider')!.usd;
+    const maxDrop = (maxUsd * TICKETS.dropUsdMultiplier) / TICKETS.usdPerTicket;
     expect(choice).toBe(77);
     expect(gained).toBeGreaterThanOrEqual(choice);
-    expect(gained).toBeLessThan(choice + 5);
+    expect(gained).toBeLessThanOrEqual(choice + Math.ceil(maxDrop) + 1);
     expect(countItem(state.player.inventory, 'item_exit_permit')).toBe(1);
     const fixer = content().npcs.get('npc_fixer')!;
     talk(state, ctx, 'npc_fixer');

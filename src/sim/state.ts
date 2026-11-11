@@ -268,6 +268,8 @@ export interface PlayerState {
   social: SocialState;
   /** Display name online (the hub username); the nameplate. Offline it is unused. */
   displayName?: string;
+  /** "Heckled" by the Wrong-Namer Chief: accuracy is down until this tick. Not saved. */
+  heckledUntil?: number;
 }
 
 export type ChatFilter = 'on' | 'friends' | 'off';
@@ -343,6 +345,14 @@ export interface EnemyInstance {
   owner?: string;
   /** pid → damage dealt this life; the top damager owns the loot. Multiplayer only. */
   damageBy?: Record<string, number>;
+  /** Boss mechanics (bossMechanics.ts): the tick the next one may start. */
+  nextMechanicTick?: number;
+  /** Sludge Mother: tiles marked for falling sludge, and the tick it lands. */
+  sludge?: { tiles: Tile[]; landsAt: number };
+  /** Wrong-Namer Chief: an open shout `pid` can still answer until `until`. */
+  shout?: { until: number; pid: string; answered: boolean };
+  /** Captain Motion: running away until this tick. */
+  flee?: { until: number };
 }
 
 export interface GroundItem {
@@ -448,6 +458,8 @@ export type SimEvent =
   /** The player started teleporting (for the sparkle). */
   | { type: 'teleport' }
   | { type: 'autosave' }
+  /** Tiles marked for a boss attack that lands on `landsAtTick` (a render cue). */
+  | { type: 'telegraph'; kind: 'sludge'; tiles: [number, number][]; landsAtTick: number }
   /** A quest just flipped to complete. */
   | { type: 'questComplete'; questId: string; tick: number }
   /** A quest Ticket reward is waiting to be sent on its own key. */
@@ -598,6 +610,11 @@ export function newEnemy(
     overhead: null,
     said: { aggro: false, hurt: false },
     resisted: null,
+    // Explicit, so a respawn (Object.assign over the old instance) clears boss mechanics.
+    nextMechanicTick: undefined,
+    sludge: undefined,
+    shout: undefined,
+    flee: undefined,
   };
 }
 

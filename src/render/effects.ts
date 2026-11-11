@@ -200,6 +200,62 @@ export class Tracers {
 }
 
 /** A bouncing yellow arrow over the tutorial's next target. */
+/**
+ * Flat warning marks on ground tiles: where a boss attack is about to land (the Sludge
+ * Mother's falling sludge). They pulse faster as the landing nears, then go.
+ * The color comes from the asset manifest, so final art can replace the placeholder.
+ */
+export class TileMarks {
+  private readonly active: { mesh: THREE.Mesh; startedAt: number; endsAt: number }[] = [];
+  private readonly geometry = new THREE.PlaneGeometry(0.92, 0.92).rotateX(-Math.PI / 2);
+
+  constructor(private readonly scene: THREE.Scene) {}
+
+  /** Marks `tiles` from `now` until `now + durationMs`. */
+  mark(
+    tiles: readonly (readonly [number, number])[],
+    colors: { color: string; accent: string },
+    now: number,
+    durationMs: number,
+  ): void {
+    for (const [x, y] of tiles) {
+      const mesh = new THREE.Mesh(
+        this.geometry,
+        new THREE.MeshBasicMaterial({
+          color: colors.color,
+          transparent: true,
+          opacity: 0.5,
+          depthWrite: false,
+        }),
+      );
+      mesh.position.set(x + 0.5, 0.04, y + 0.5);
+      mesh.renderOrder = 2;
+      mesh.userData.accent = colors.accent;
+      mesh.userData.color = colors.color;
+      this.scene.add(mesh);
+      this.active.push({ mesh, startedAt: now, endsAt: now + durationMs });
+    }
+  }
+
+  update(now: number): void {
+    for (let i = this.active.length - 1; i >= 0; i--) {
+      const m = this.active[i];
+      const material = m.mesh.material as THREE.MeshBasicMaterial;
+      if (now >= m.endsAt) {
+        this.scene.remove(m.mesh);
+        material.dispose();
+        this.active.splice(i, 1);
+        continue;
+      }
+      // Blink between the two manifest colors, three times, quicker toward the end.
+      const t = (now - m.startedAt) / (m.endsAt - m.startedAt);
+      const on = Math.floor(t * t * 6 + t * 2) % 2 === 0;
+      material.color.set(on ? m.mesh.userData.color : m.mesh.userData.accent);
+      material.opacity = 0.35 + 0.4 * t;
+    }
+  }
+}
+
 export class HintArrow {
   private readonly mesh: THREE.Mesh;
 

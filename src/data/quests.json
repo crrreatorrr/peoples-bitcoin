@@ -66,7 +66,7 @@
       },
       {
         "id": "sell",
-        "text": "Sell something at the Trading Terminal in the main hall.",
+        "text": "Sell something at the Trading Terminal in the main hall. About four Scrap Hash make one Ticket.",
         "trigger": {
           "type": "sell"
         },
@@ -89,6 +89,10 @@
             {
               "item": "item_rounds",
               "qty": 150
+            },
+            {
+              "item": "item_tp_soundbite",
+              "qty": 6
             }
           ]
         }
@@ -191,8 +195,8 @@
         "id": "spin",
         "text": "Spin a scandal into a Soundbite at the Press Podium.",
         "trigger": {
-          "type": "obtain",
-          "item": "item_tp_soundbite"
+          "type": "xp",
+          "skill": "spin"
         },
         "hint": {
           "object": "obj_press_podium"

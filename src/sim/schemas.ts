@@ -321,6 +321,8 @@ export const EnemyDefSchema = z.object({
           max: z.number().int().positive(),
         })
         .optional(),
+      /** A fight mechanic beyond adds (src/sim/bossMechanics.ts; numbers in BOSSES). */
+      mechanic: z.enum(['sludge', 'heckle', 'flee']).optional(),
     })
     .optional(),
 });

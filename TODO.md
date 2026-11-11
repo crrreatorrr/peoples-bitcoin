@@ -3,8 +3,11 @@
 ## Next
 
 - [ ] Gun specials from DESIGN.md §8: shotgun 3-tile cone, minigun spin-up, railgun Hopium scaling
-- [ ] Boss mechanics beyond adds: Sludge Mother floor sludge, Wrong-Namer Chief ticker typing,
-      Captain Motion rage-quit run
+- [x] Boss mechanics beyond adds: Sludge Mother floor sludge, Wrong-Namer Chief ticker typing,
+      Captain Motion rage-quit run (2026-11-11; DESIGN.md §11 is now out of step: owner to edit)
+- [ ] Mechanics for the other weapon-locked bosses (Rogue Process, Pundit, Corporate Raider,
+      Gatecrasher, Lockdown Warden, Rugmancer, Grizz, the Extractor): the wrong weapon now does
+      40%, and they have nothing but their HP to answer it
 - [ ] Sprotos 6–12 (Engineer, Scout, Shield, Commander, Paratrooper, Golden Sproto)
 - [ ] Champion Sproto art: Higgsfield sprite to `src/assets/sprites/sp_champion.png` and the rigged
       GLB to `src/assets/models/sp_champion.glb` (paths already in the manifest; the CDN was
@@ -15,7 +18,21 @@
       `sprotos.json` like `sp_champion`
 - [ ] More quests (DESIGN.md §12), and more to do in The World Out There beyond the ferry to Moonward
 - [ ] Moonward Academy: library and potions content (spellbooks, brewing) beyond decoration
-- [ ] Balance pass: XP rates, drop values, Terminal prices, enemy stats (all in data/balance.ts)
+- [ ] Balance pass: XP rates, drop values, Terminal prices, enemy stats (all in data/balance.ts).
+      Done 2026-11-11 from `docs/gameplay-improvement-plan.md`: combat coin ×4, Broker pay,
+      Defense XP, idle regen, Med Bay level. Still open: hours to The Way Out (plan decision 4)
+      and the boss weapon prices, which belong to the hub's price CSV
+
+## Gameplay improvement plan leftovers (2026-11-11)
+
+- [ ] A4: open a dialogue on a real GPU (Chrome, Firefox, Safari) and look for the black
+      rectangle over the chat log; headless Chromium showed it
+- [ ] D3: bring the coin back as a market mood (step the price walk, Pump and Dump events, XP
+      and drop effects that never touch Tickets, the ticker in the HUD). Not started; settle the
+      DESIGN.md story question below at the same time
+- [ ] H1: say when the hub's session cap is reached and when it resets
+- [ ] H2: owner decision on an in-game 18+ confirmation if the plaza does not gate the portal
+- [ ] Human playtest of the first 40 minutes on a real GPU (plan section 9), with sound on
 
 ## Feedback window (2026-11-11)
 
@@ -86,6 +103,8 @@
 - Phase 6: music player, roof toggle
 - Not planned in DESIGN.md: prayer, spellbook, special attack (Command/Sprotos fill that role),
   achievement diaries, collection log, world map (one zone so far), doors
+
+- Phase 6 sound: effects shipped 2026-11-11 (synthesised, `src/audio`); music is still open
 
 ## Later phases
 

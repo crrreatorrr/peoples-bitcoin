@@ -5,7 +5,7 @@
 import type * as THREE from 'three';
 import type { Content } from '../sim/content';
 import type { GameState } from '../sim/state';
-import { Bursts, HintArrow, Tracers } from './effects';
+import { Bursts, HintArrow, TileMarks, Tracers } from './effects';
 import { EntityRenderer } from './entities';
 import { disposeScene } from './kit';
 import type { AssetLoader } from './loader';
@@ -18,6 +18,7 @@ export class ZoneView {
   readonly entities: EntityRenderer;
   readonly bursts: Bursts;
   readonly tracers: Tracers;
+  readonly marks: TileMarks;
   readonly hint: HintArrow;
   readonly picker: Picker;
 
@@ -34,6 +35,7 @@ export class ZoneView {
     this.entities = new EntityRenderer(this.scene, assets, content, state);
     this.bursts = new Bursts(this.scene);
     this.tracers = new Tracers(this.scene);
+    this.marks = new TileMarks(this.scene);
     this.hint = new HintArrow(this.scene);
     this.picker = new Picker(camera, canvas, terrain, this.entities.pickables, zone);
   }

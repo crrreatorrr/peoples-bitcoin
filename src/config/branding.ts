@@ -12,3 +12,7 @@ export const PRESIDENT_NAME = 'President Obama';
 /** Shown at start and in Settings: the game is satire, not an endorsement. */
 export const PARODY_NOTICE =
   "The People's Bitcoin is a parody for adults (18+). It is not affiliated with or endorsed by Barack Obama or any other real person, and its currencies are fictional.";
+
+/** The fictional coin's ticker, and what the Wrong-Namers call it ("it's a con"). */
+export const COIN_SYMBOL = '$BITCOIN';
+export const COIN_SYMBOL_WRONG = '$BITCON';

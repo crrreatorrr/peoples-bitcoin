@@ -2,7 +2,9 @@
 import { describe, expect, it } from 'vitest';
 import { CHAT_NET } from '../../src/config/balance';
 import { OP } from '../../src/net/protocol';
+import { newEnemy } from '../../src/sim/state';
 import { xpForLevel } from '../../src/sim/xp';
+import { content } from '../helpers';
 import { fakeIO, testWorld } from './helpers';
 
 const lines = (w: ReturnType<typeof testWorld>, uid: string) =>
@@ -78,6 +80,35 @@ describe('online chat', () => {
     expect(lines(w, 'b').filter((l) => l.ch === 'public').length).toBeLessThanOrEqual(
       CHAT_NET.publicPerWindow,
     );
+  });
+
+  it("naming the coin in public or quick-chat answers the Wrong-Namer Chief's shout", () => {
+    for (const msg of [
+      { ch: 'public', text: "it's $BITCOIN!" },
+      { ch: 'quick', phrase: 'itsbitcoin' },
+      { ch: 'quick', phrase: 'notbitcon' },
+    ]) {
+      const w = three();
+      const view = w.host.viewOf('a')!;
+      const chief = newEnemy('e900', 'enemy_wrongnamer_chief', 30, 30, content(), false);
+      chief.owner = view.pid;
+      chief.shout = { until: view.tick + 8, pid: view.pid, answered: false };
+      view.zone.enemies.push(chief);
+      w.send('a', OP.CHAT, msg);
+      w.flush();
+      expect(chief.shout.answered, JSON.stringify(msg)).toBe(true);
+    }
+    // Someone else saying it does not answer for you; nor does the wrong name.
+    const w = three();
+    const view = w.host.viewOf('a')!;
+    const chief = newEnemy('e900', 'enemy_wrongnamer_chief', 30, 30, content(), false);
+    chief.owner = view.pid;
+    chief.shout = { until: view.tick + 8, pid: view.pid, answered: false };
+    view.zone.enemies.push(chief);
+    w.send('b', OP.CHAT, { ch: 'public', text: '$BITCOIN' });
+    w.send('a', OP.CHAT, { ch: 'public', text: '$BITCON' });
+    w.flush();
+    expect(chief.shout.answered).toBe(false);
   });
 
   it('quick-chat slots come from the server state', () => {

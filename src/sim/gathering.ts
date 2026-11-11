@@ -8,7 +8,7 @@
 import { GATHERING } from '../config/balance';
 import { effectiveLevel } from './boosts';
 import type { GatherNode } from './content';
-import { addStreamUsd } from './ledger';
+import { addStreamUsd, formatTickets, streamTickets } from './ledger';
 import { xpMultiplier } from './equipment';
 import { giveItem } from './ground';
 import { bestTool, canAdd } from './inventory';
@@ -73,26 +73,36 @@ export function tickGathering(
   action.nextAttemptTick = state.tick + GATHERING.attemptIntervalTicks;
   if (!chance(state.rng, successChance(level, stats.levelReq, tool.tool!.bonus))) return;
 
-  let amount = 0;
+  // What this success paid, fraction included, so every paid favor says its amount.
+  let paidUsd = 0;
+  let unpaid = false;
   if (output) giveItem(state, ctx, output.id, 1, events);
   if (stats.payUsd) {
     const roll = nextFloat(state.rng);
     if (stats.unpaid && chance(state.rng, stats.unpaid.chance)) {
+      unpaid = true;
       events.push({ type: 'message', kind: 'warning', text: stats.unpaid.message });
     } else {
-      amount = addStreamUsd(state, 'pb_lobby', rollUsd(stats.payUsd, roll));
+      paidUsd = rollUsd(stats.payUsd, roll);
+      addStreamUsd(state, 'pb_lobby', paidUsd);
     }
   }
+  // `{amount} Tickets` in the data becomes "0.18 Tickets" or "1 Ticket".
   const text = stats.message
     .replace('{item}', output?.name ?? '')
-    .replace('{amount}', amount.toLocaleString('en-US'));
-  if (!stats.payUsd || amount > 0) events.push({ type: 'message', kind: 'game', text });
+    .replace('{amount} Tickets', formatTickets(streamTickets(paidUsd)))
+    .replace('{amount}', formatTickets(streamTickets(paidUsd)));
+  if (!unpaid) events.push({ type: 'message', kind: 'game', text });
 
   if (stats.rare && chance(state.rng, stats.rare.chance)) {
-    events.push({ type: 'message', kind: 'levelup', text: stats.rare.message });
     if (stats.rare.item) giveItem(state, ctx, stats.rare.item, 1, events);
-    if (stats.rare.usd)
-      addStreamUsd(state, 'pb_lobby', rollUsd(stats.rare.usd, nextFloat(state.rng)));
+    let rareText = stats.rare.message;
+    if (stats.rare.usd) {
+      const usd = rollUsd(stats.rare.usd, nextFloat(state.rng));
+      addStreamUsd(state, 'pb_lobby', usd);
+      rareText += ` (${formatTickets(streamTickets(usd))})`;
+    }
+    events.push({ type: 'message', kind: 'levelup', text: rareText });
   }
 
   grantXp(

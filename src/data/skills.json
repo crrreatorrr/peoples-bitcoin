@@ -175,7 +175,7 @@
         "message": "You do a favor and get paid {amount} Tickets.",
         "depleteChance": 0.25,
         "respawnTicks": 12,
-        "payUsd": [40, 70],
+        "payUsd": [32, 52],
         "unpaid": {
           "chance": 0.2,
           "message": "Blackmail! They have photos, so this favor is on the house."

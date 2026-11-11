@@ -17,6 +17,7 @@
       "name": "Rally cries",
       "phrases": [
         { "id": "notbitcon", "text": "It's not $BITCON." },
+        { "id": "itsbitcoin", "text": "It's $BITCOIN!" },
         { "id": "gremlin", "text": "Free my Gremlin!" },
         { "id": "vow", "text": "I took the Never Sell Vow." },
         { "id": "motion", "text": "Maximum motion!" },

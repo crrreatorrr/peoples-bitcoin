@@ -50,6 +50,28 @@ export function addStreamUsd(state: GameState, reason: StreamReason, usd: number
   return whole;
 }
 
+/** Tickets (with their fraction) that `usd` from a repeatable source is worth. */
+export function streamTickets(usd: number): number {
+  return usd > 0 ? usd / TICKETS.usdPerTicket : 0;
+}
+
+/**
+ * "1 Ticket", "12 Tickets", "0.28 Tickets". Fractions show two decimals; a
+ * positive amount too small for that reads "less than 0.01 Tickets".
+ */
+export function formatTickets(amount: number): string {
+  if (!(amount > 0)) return '0 Tickets';
+  if (Number.isInteger(amount)) {
+    return `${amount.toLocaleString('en-US')} ${amount === 1 ? 'Ticket' : 'Tickets'}`;
+  }
+  const rounded = Math.round(amount * 100) / 100;
+  if (rounded <= 0) return 'less than 0.01 Tickets';
+  if (Number.isInteger(rounded)) {
+    return `${rounded.toLocaleString('en-US')} ${rounded === 1 ? 'Ticket' : 'Tickets'}`;
+  }
+  return `${rounded.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Tickets`;
+}
+
 /**
  * Local shop debit. Hub purchases do not call this; they wait for the server.
  * `itemId` is the choke point a later tickets.spend RPC can use.
@@ -86,7 +108,7 @@ export function grantQuestTickets(
     events.push({
       type: 'message',
       kind: 'quest',
-      text: `You receive ${amount.toLocaleString('en-US')} Tickets.`,
+      text: `You receive ${formatTickets(amount)}.`,
     });
     state.player.ledger.questEarns.push({
       name,

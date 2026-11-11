@@ -329,6 +329,7 @@
     "respawnTicks": 100,
     "drops": "drops_sludge_mother",
     "boss": {
+      "mechanic": "sludge",
       "adds": {
         "enemy": "enemy_sludgeling",
         "everyTicks": 12,
@@ -374,6 +375,7 @@
     "respawnTicks": 150,
     "drops": "drops_wrongnamer_chief",
     "boss": {
+      "mechanic": "heckle",
       "adds": {
         "enemy": "enemy_sockpuppet",
         "everyTicks": 15,
@@ -423,7 +425,9 @@
     "aggroRange": 4,
     "respawnTicks": 200,
     "drops": "drops_captain_motion",
-    "boss": {},
+    "boss": {
+      "mechanic": "flee"
+    },
     "barks": {
       "aggro": [
         "Can't stop! Won't stop! Momentum is everything!",
