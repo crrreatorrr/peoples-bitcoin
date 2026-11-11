@@ -1,5 +1,66 @@
 # Changelog
 
+## Unreleased — Gameplay improvement plan (2026-11-11)
+
+Items from `docs/gameplay-improvement-plan.md`. The sim, config and data changed, so
+`SIM_VERSION` moves from `7cd8d3c92b4e2dbc` to the value printed by
+`node -e "import('./scripts/simHash.mjs').then(m=>console.log(m.simHash()))"`; the hub needs a
+new `pb-sim.js` (`npm run build:sim`) before online worlds accept this client.
+
+**The first fifteen minutes**
+
+- **Rations before the first fight (A1).** Sergeant Retain hands over six Soundbites with the
+  Rounds and says what they are for. The tutorial bot (24 seeds, eating at 4 HP or less) went
+  from a death in 20 of 24 runs to none, in 9.0 minutes on average. The "spin" step now completes
+  on Spin XP, so being handed food does not skip the Press Podium; the "sell" step says about four
+  Scrap Hash make one Ticket.
+- **The tutors stand still (A2).** Morelight and the Treasurer no longer wander.
+- **Every payout says its amount (A3).** A sale, a paid favor or a coin drop that banks only part
+  of a Ticket prints it ("You sell 1 × Scrap Hash for 0.28 Tickets."). Whale donations show their
+  amount. "1 Ticket", not "1 Tickets".
+- **The wallet shows the fraction (C1):** "+0.28" beside the wallet and a thin bar for the source
+  closest to its next whole Ticket.
+- **Low-health prompt (C3):** one warning line and a pulse on the Hitpoints orb when HP first
+  drops to 30% (`UI.lowHpWarnPct`) with food in the pack.
+
+**Economy and sustain**
+
+- **Fighting pays (B1).** `TICKETS.dropUsdMultiplier` = 4 on every enemy coin roll, bosses
+  included. Simulated coin over Shooting 1–45 plus Melee 1–40: about 225 → about 900 Tickets.
+- **The Broker is trimmed (B2).** `payUsd` [40, 70] → [32, 52]: about 1,130 / 1,600 Tickets an
+  hour at Lobbying 40 / 60 → about 860 / 1,220.
+- **Defense keeps up (B3).** `COMBAT.defenseXpPerDamageTaken` 1 → 3. Defense at Shooting 45 went
+  from 22 to 30 in simulation and the healing need on FUD Wraiths from about 1,530 to about 1,070
+  HP an hour.
+- **Recover out of combat (B4).** With nothing attacking and your own attack timer clear for
+  `COMBAT.idleAfterTicks` (16), you regain 1 HP every `COMBAT.hpRegenIdleEveryTicks` (10) ticks:
+  1 → 10 HP in under a minute. Enemies keep the slow rate.
+- **The Med Bay is reachable (B5).** It needs Construction 2, so Bunker Down's reward builds the
+  Storage Locker and the Med Bay straight away. The Contractor and the skill guide say that
+  rebuilding trains Construction.
+
+**Clarity and feedback**
+
+- **Terminal tabs (C2).** Weapons, Armor, Tools, Food & drinks, Contracts, Materials and Travel
+  tabs; each item shows its name and the level it needs, and is dimmed until you have it.
+  Left-click is still Value and right-click still buys.
+- **Sound effects (C4).** Synthesised tones (no sound files) for hits, misses, wounds, mining,
+  shopping, level-ups, quest completion and death, with Sound on/off and volume buttons in
+  Settings. Only your own actions make noise.
+
+**Bosses**
+
+- **Mechanics for the three Trench bosses (D1).** The Sludge Mother, below half HP, marks the
+  ground around you and sludge lands there three ticks later: step off. The Wrong-Namer Chief
+  shouts $BITCON every 12 ticks: say $BITCOIN in chat (or the quick-chat line) within 8 ticks or
+  be Heckled (accuracy −25% for 10 ticks). Captain Motion rage-quits at 10% HP and runs for the
+  north barricade: finish him within 40 ticks or he returns with 30% HP.
+- **The wrong weapon does 40%, not 10% (D2).** `BOSSES.offWeaponScale` 0.1 → 0.4, for every
+  weapon-locked boss and for Sprotos.
+
+Not done: A4 (needs a real GPU), D3 (the coin as a market mood) and the hub items H1–H3. See
+DECISIONS.md "Gameplay improvement plan".
+
 ## Unreleased — Champion Sproto (Tidebreaker Belt)
 
 - **Champion Sproto** (`sp_champion`, hub item `pb_summon_champion_sproto`) is the summon that

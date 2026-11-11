@@ -827,3 +827,125 @@ and the attack (thrown rocks); the rest was chosen here.
   read a `verseCredited` that no hub version sends, so it now maps `verse` (the Verse wallet after
   the exchange) and the test double sends only the real fields. `ticketsDebited` stays as a
   fallback for a reply with no `balance` or `ticketsLeft`; current hubs always send both.
+
+## Gameplay improvement plan (2026-11-11)
+
+The owner read `docs/gameplay-improvement-plan.md` and said "implement everything". Where the plan
+left a decision to the owner, its recommended option was taken; where a number was a starting
+point, it was tuned with the plan's simulations (rebuilt outside the repo, as before).
+
+**Owner decisions, as taken**
+
+1. **Hub caps and prices:** keep the caps, do B1. Halving the eight boss weapon prices is the
+   hub's change (its price CSV feeds `src/data/shop_prices.tickets.json`); nothing was edited here.
+2. **Off-weapon rule:** `BOSSES.offWeaponScale` 0.1 → 0.4, shipped with the boss mechanics.
+3. **The coin as a mechanic (D3):** not built. The plan puts it after phases A to C and ties it to
+   the open question of which story DESIGN.md describes (TODO.md), and it reverses "the live USD
+   price is no longer stepped or shown" (Hub Tickets, above). It stays a TODO item.
+4. **Hours to The Way Out:** unchanged; the plan says to decide after a person has played A and B.
+   `COMBAT.xpPerDamage` and the two weapon gates were not touched.
+
+**Tutorial**
+
+- **Rations:** `talk_sergeant` gives 150 Rounds and 6 Soundbites. Six, not four: an earlier trial
+  with four left a death.
+- **The "spin" step is now a Spin XP trigger,** not "obtain a Soundbite". Rewards go through
+  `giveItem`, which reports an obtain, so the Sergeant's rations would have ticked off the step
+  that teaches making food. Spin XP is only granted for a successful spin. The "eat" step still
+  completes on the first ration eaten; steps are unordered, so that is fine.
+- **Every tutor has `wanderRadius` 0.** Morelight (1) and the Treasurer (2) were the only two that
+  moved. The wander tests moved to Moonward's students, the nearest NPCs that still wander.
+
+**Payout messages**
+
+- `formatTickets` (`src/sim/ledger.ts`) writes every Ticket amount: "1 Ticket", "12 Tickets",
+  "0.28 Tickets", "less than 0.01 Tickets". Sell-only sales, paid favors and coin drops always
+  print what the action was worth (`streamTickets(usd)`), which is the fraction added to the
+  stream, not the whole Tickets that happened to land. A blackmailed favor still prints only the
+  blackmail line. Whale donations append their amount in brackets.
+- The wallet's fraction is the sum of the three stream remainders (loot, favors, sales). Each
+  stream fills its own Ticket, so the bar shows the fullest one and the tooltip lists all three.
+  Standalone reads `offlineRemainder`; a hub session reads the stream pockets.
+
+**Economy**
+
+- **Combat coin ×4** is one constant (`TICKETS.dropUsdMultiplier`) applied to the USD roll in
+  `dropLoot`, not 26 table edits. It raises Ticket inflow from `pb_drop`; the hub's batch, session
+  and daily caps are unchanged, so in hub play it changes which activity fills the cap.
+- **Broker pay is [32, 52],** not the plan's [30, 50]. At [30, 50] the Broker at Lobbying 40 paid
+  822 Tickets an hour against 793 for the Veteran one level below, so the unlock was barely a
+  step up; [32, 52] gives 863 / 1,093 / 1,222 at 40 / 50 / 60, on the plan's 870 / 1,200 target.
+- **Defense XP per damage taken is 3.** Combat level rises a little sooner, so low enemies stop
+  being aggressive sooner (`COMBAT.aggroLevelMultiplier`).
+- **Idle regeneration departs from OSRS.** "Idle" means no enemy has attacked the player
+  (`lastHitBy.tick`, hits and misses) and the player's own attack timer (`nextAttackTick`, which
+  eating also pushes back) has been clear for `COMBAT.idleAfterTicks`. No new saved field. The
+  check is on `state.tick % hpRegenIdleEveryTicks`, like the slow rate, so it never double-counts.
+  Enemies keep the slow rate.
+- **Med Bay at Construction 2.** Bunker Down leaves the player at level 2 with a basic toolkit
+  and three Concrete Bags: one for the Storage Locker, two for the Med Bay.
+
+**Client feedback**
+
+- The low-health prompt and the wallet fraction are pure helpers in `src/game/feedback.ts`
+  (tested), called from `main.ts` and the HUD. The threshold is `UI.lowHpWarnPct` in
+  `balance.ts`; it also drives the orb's red ring, which had a hard-coded 0.3.
+- **Shop tabs** are derived from item data (`src/ui/shopCategories.ts`): weapon or ammo, tool,
+  food or drink, contract, teleport, other worn gear, else materials. A tab with nothing in the
+  open shop is hidden, and a shop with one kind of stock shows no tabs. Names and requirements
+  are always visible; unmet requirements are red and the item is dimmed, never hidden.
+
+**Sound effects**
+
+- **Synthesised, no files.** `src/audio/cues.ts` turns a tick's `SimEvent`s into cue names and
+  `src/audio/sfx.ts` plays each cue as a few Web Audio oscillator notes. Nothing to load, license
+  or approve as art. Only the local player's own hits, wounds and actions make noise, so a full
+  online world stays quiet; at most one of each cue per tick, with a minimum gap between repeats.
+- **Tunables live in `src/audio/config.ts`, not `config/balance.ts`:** sound is client-only and
+  `src/config` feeds the sim version hash (as for the walk glide, the gait and the controller).
+- Volume is a mute button and two step buttons, not a slider, so a controller can use it. The
+  setting is in localStorage key `peoples-bitcoin.audio`. Audio starts on the first click or key
+  press, as browsers require.
+
+**Boss mechanics** (`src/sim/bossMechanics.ts`, numbers in `BOSSES`)
+
+- A boss opts in with `boss.mechanic` in `enemies.json` (`sludge`, `heckle`, `flee`). All three
+  Trench bosses are quest-gated, so online each player's copy is private and its mechanic only
+  ever marks, shouts at, hears and runs from that player.
+- **Sludge Mother:** below half HP, every 10 ticks, she marks the walkable tiles within 1 of her
+  target; 3 ticks later anyone still on one takes 1–4. The damage roll is the only RNG the
+  mechanics use. The marks reach the client as a `telegraph` sim event (offline and through the
+  online delta's events, so the wire format is unchanged), drawn as flat tile marks whose two
+  colors come from the manifest entry `fx_sludge_mark` (a placeholder, Hard Rule 5). A player who
+  joins mid-telegraph misses that one cue. Simulated at Shooting 15 with the shotgun: stepping
+  off wins 20 of 20, standing still 0 of 20.
+- **Wrong-Namer Chief:** every 12 ticks he shouts $BITCON; answer within 8 ticks or be Heckled
+  (accuracy roll ×0.75 for 10 ticks). DESIGN.md says 3 ticks, which is 1.8 seconds and too short
+  to type. Any public chat line containing "bitcoin", or "not $BITCON", counts, so the existing
+  quick-chat line "It's not $BITCON." works and a new one, "It's $BITCOIN!", was added for
+  controllers. Offline the sim's `chat` intent answers; online the server's chat handler does
+  (public and quick-chat), and its confirmation line rides the next tick's events. The debuff is
+  `PlayerState.heckledUntil`, optional and not saved. The tickers are `COIN_SYMBOL` and
+  `COIN_SYMBOL_WRONG` in `branding.ts`. Simulated at Melee 30 with the Iron Gavel: answering wins
+  16 of 20 (the fight as it was), staying silent 8 of 20.
+- **Captain Motion:** at 10% HP he stops attacking and runs for the near side of the barricade
+  north of his spawn. **The plan's 20 ticks and 50% were changed to 40 ticks and 30%.** At
+  Shooting 45 the rifle does about 0.5 damage a tick, so 22 HP in 20 ticks was not reachable:
+  0 of 20 duels won (Accurate), against 5 of 20 before the mechanic. With 40 / 30% it is 5 of 20
+  on Accurate, 14 of 20 on Rapid and 19 of 20 at Shooting 50, the same as before the mechanic;
+  letting him run wins 0 of 20. DESIGN.md's one-hour zone lock was not built (too harsh for a
+  solo quest). He can rage-quit again each time he is brought back down.
+- **Wrong weapon 40%:** applies to every weapon-locked boss and to Sprotos. The eight bosses
+  without a mechanic are easier with the wrong weapon than before; giving them mechanics is a
+  TODO item. The right weapon is still the fast way: a Shooting 15 pistol loses to the Sludge
+  Mother 20 of 20.
+- DESIGN.md §11 still describes the older mechanics (3-tick typing, the zone lock); the owner
+  edits DESIGN.md.
+
+**Not done**
+
+- **A4** (the black rectangle during dialogue) needs a real GPU in desktop Chrome, Firefox and
+  Safari; only headless Chromium is available to an agent.
+- **D3**, as decision 3 above.
+- **H1–H3** are hub-side or need the hub server; nothing in this repo changed for them.
+- **Boss weapon prices** were not halved here: `shop_prices.tickets.json` is copied from the hub.

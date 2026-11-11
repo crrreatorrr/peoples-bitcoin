@@ -49,8 +49,16 @@ Clicks act on press, like OSRS.
   it on that ("Use X -> Y").
 - **Trading Terminal** (main hall) and other shops (the Staffwright's Stall at Moonward): left-click
   shows the Ticket price, right-click buys a pack; with a shop open, inventory clicks sell.
+  Tabs along the top sort the stock (Weapons, Armor, Tools, Food & drinks, Contracts, Materials,
+  Travel); each item shows its name and the level it needs, dimmed until you have it.
   Right-click a Treasury terminal and choose Exchange to turn Tickets into Verse (hub session).
 - **Settings → Exit to Hub** leaves for the hub (`VITE_HUB_URL`, default `/hub/`)
+- **Settings → Sound:** on/off and Vol − / Vol + (remembered in this browser). Sound starts after
+  your first click or key press; the effects are synthesised, so there are no sound files.
+- **Wallet (top-left):** whole Tickets, then the fraction earned toward the next one ("+0.28")
+  and a thin bar. Loot, favors and sales each fill their own Ticket.
+- **Boss fights:** marked ground means something is about to land there, so step off it; when
+  the Wrong-Namer Chief shouts the wrong name, type the right one ($BITCOIN) or use quick-chat.
 - **Equipment tab:** combat styles, Auto Retaliate; click (or right-click) a slot to remove gear
 - **Quests tab:** quest list and points; click a quest for its journal. Follow the yellow arrow.
 - **Bank:** use a bank booth in the Treasury hall. 1/5/10/All set the left-click amount;
@@ -158,10 +166,12 @@ src/
   assets/   character GLBs (Higgsfield), sprites and icons
   ui/       HTML overlay: ticker HUD, chat, inventory, skills, tooltips, context menu, world
             select, friends, quick-chat, trade
+  audio/    synthesised sound effects: sim events to cues, Web Audio notes, settings
   input/    mouse, keyboard and controller (padlogic.ts is the pure, tested part)
   server/   pure world host for online play (AOI, deltas, chat, trade, Tickets), bundled for Nakama
   net/      wire protocol, transports (hub realtime, in-page loopback), replica, jitter buffer
-  game/     drivers: local tick loop (offline) and the online driver; world select flow
+  game/     drivers: local tick loop (offline) and the online driver; world select flow;
+            feedback.ts (wallet fraction, low-health prompt)
   main.ts   wires it together and runs the frame loop
 scripts/    build-sim-bundle.mjs (npm run build:sim), simHash.mjs, pb-bots.mjs (load test)
 tests/      Vitest tests for src/sim, src/server and src/net
