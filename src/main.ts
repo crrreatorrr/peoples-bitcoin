@@ -44,6 +44,8 @@ import {
 import { buyPrice } from './sim/terminal';
 import { entityActions } from './sim/tick';
 import { createFrameLoop, crashGuard } from './game/crash';
+import { createFeedback } from './game/feedback';
+import { newQuestSteps } from './game/feedbackContext';
 import { LocalDriver, type GameDriver } from './game/driver';
 import { applyGodmode, browserStorage, godmodeEnabled } from './game/godmode';
 import { chooseOnline, type OnlineSession } from './game/online';
@@ -104,12 +106,17 @@ async function boot(): Promise<void> {
   let frozen = false;
   const clockNow = () => performance.now() + clockOffset;
 
-  // Controller (and keyboard menu keys) first, so world select can be driven before the game starts.
+  // The feedback window (N twice) goes in before every other key listener: its capture listener
+  // then sees N first, so the game never does and a lone N does not start a chat message.
+  const bridge = new HubBridge();
+  const feedback = createFeedback(bridge.sdk);
+  const crumb = feedback.handle.breadcrumb;
+
+  // Controller (and keyboard menu keys) next, so world select can be driven before the game starts.
   const pad = new GamepadInput();
   pad.start();
 
   // With a hub session (or ?net=loopback), world select first; else, or "Play offline", standalone.
-  const bridge = new HubBridge();
   const session: OnlineSession | null = await chooseOnline(content, bridge, clockNow);
   const online = session?.driver ?? null;
   /** Owner godmode: standalone wallet kept at GODMODE.tickets (src/game/godmode.ts). */
@@ -126,6 +133,10 @@ async function boot(): Promise<void> {
   const chat = new Chat($('#chatbox'), PRESIDENT_NAME, (text) => queue({ type: 'chat', text }));
   if (loaded) greet(chat, loaded.status);
   else greetOnline(chat, session!);
+  crumb(online ? 'world_join' : 'offline_start', {
+    zone: state.zone.id,
+    ...(session ? { world: session.world } : { save: loaded?.status ?? 'none' }),
+  });
   let resetting = false;
   const tabLock = document.querySelector<HTMLElement>('#tab-lock');
   const freeze = () => {
@@ -405,6 +416,12 @@ async function boot(): Promise<void> {
       chat.setFilters(s.filters);
     });
     online.trade.add((t) => tradeWindow?.update(t));
+    let trading = false;
+    online.trade.add(() => {
+      const open = tradeWindow?.isOpen ?? false;
+      if (open && !trading) crumb('trade_open');
+      trading = open;
+    });
     online.kicked.add((reason) => showKick(reason));
   }
   /** Right-click actions on another player. */
@@ -505,6 +522,7 @@ async function boot(): Promise<void> {
               void hub.exitToHub();
             },
             online !== null,
+            () => feedback.handle.open(),
           ),
         ),
       },
@@ -705,6 +723,18 @@ async function boot(): Promise<void> {
 
   // ── Sim events ─────────────────────────────────────────────────────────────
   const skillName = (id: string) => content.skills.get(id)?.name ?? id;
+  // Breadcrumbs for feedback notes: the last few things that happened, kept by the SDK.
+  const questSeen = new Map<string, number>();
+  newQuestSteps(questSeen, state.player.quests, true);
+  let crumbInterface: string | null = state.player.interface?.kind ?? null;
+  const crumbTick = () => {
+    for (const step of newQuestSteps(questSeen, state.player.quests)) crumb('quest_step', step);
+    const open = state.player.interface?.kind ?? null;
+    if (open !== crumbInterface) {
+      crumbInterface = open;
+      if (open) crumb('interface_open', { kind: open, zone: state.zone.id });
+    }
+  };
   const handleEvents = (events: SimEvent[], now: number) => {
     // Shots in flight this tick: hits on their targets (and a shell's splash) land on arrival.
     const flight = new Map<string, number>();
@@ -722,6 +752,7 @@ async function boot(): Promise<void> {
           break;
         case 'levelUp':
           hud.banner(`${skillName(e.skillId)} level ${e.level}!`);
+          crumb('level_up', { skill: e.skillId, level: e.level });
           view.bursts.spawn(view.entities.playerPosition, PALETTES.fireworks, now, { lift: 1.2 });
           break;
         case 'hitsplat': {
@@ -777,6 +808,9 @@ async function boot(): Promise<void> {
         case 'death': {
           const delay = flight.get(e.entityId) ?? 0;
           view.entities.markDeath(e.entityId, now + delay);
+          if (e.entityId === state.selfId) {
+            crumb('death', { zone: state.zone.id, x: state.player.pos.x, y: state.player.pos.y });
+          }
           const at = view.entities.positionOf(e.entityId);
           if (at && e.entityId !== PLAYER_ID) {
             view.bursts.spawn(at, PALETTES.sludge, now + delay, {
@@ -794,6 +828,7 @@ async function boot(): Promise<void> {
           old.dispose();
           minimap.setZone(content.zones.get(e.zoneId)!);
           hitsplats.clear();
+          crumb('zone_change', { zone: e.zoneId });
           break;
         }
         case 'autosave':
@@ -801,6 +836,7 @@ async function boot(): Promise<void> {
       }
     }
     if (!online) hub.onEvents(events);
+    crumbTick();
     if (xpThisTick.size > 0) {
       hud.xpDrop([...xpThisTick].map(([id, amount]) => ({ icon: glyph(`skill_${id}`), amount })));
     }
@@ -823,16 +859,29 @@ async function boot(): Promise<void> {
       }
     };
     Object.assign(window, {
-      __game: { state, queue, content, ctx, view: () => view, advance, renderer, cam },
+      __game: {
+        state,
+        queue,
+        content,
+        ctx,
+        view: () => view,
+        advance,
+        renderer,
+        cam,
+        feedback: feedback.handle,
+        hubSdk: bridge.sdk,
+      },
     });
   }
 
   // ── Main loop: fixed 600 ms ticks (local or the server's), rendering every frame ──
   let lastFrameAt = clockNow();
+  /** The feedback window is up and the world is stopped (offline only). */
+  let feedbackPaused = false;
   // Returns whether the frame counts as good for the crash guard: offline, only a frame in which a
   // tick ran cleanly does, so a tick that always throws (one frame in ~36) still trips the panel.
   const step = (now: number): boolean => {
-    if (frozen) return true;
+    if (frozen || feedbackPaused) return true;
     const ticks = driver.advance(now);
     // Ticks that ran before a failing one keep their events; the failure ends the frame after them.
     const failure = driver.takeFailure();
@@ -949,6 +998,34 @@ async function boot(): Promise<void> {
   // Always reschedules, even when a frame throws (game/crash.ts); a failing tick ends that frame.
   // A tab lock (frozen) is a deliberate stop.
   const frame = createFrameLoop((t) => step(t + clockOffset), { stop: () => frozen });
+
+  feedback.attach({
+    state,
+    mode: online ? 'online' : 'offline',
+    world: session?.world ?? null,
+    // An online world cannot stop. Offline the whole game holds still: no ticks and no frames,
+    // and on resume the game clock is wound back by the time the window was up, so tick timing,
+    // animations and effects carry on from the exact moment they stopped.
+    pause: () => {
+      if (online || frozen) return false;
+      const token = { was: feedbackPaused, at: performance.now() };
+      feedbackPaused = true;
+      return token;
+    },
+    resume: (token) => {
+      const t = token as { was: boolean; at: number };
+      if (!t.was) clockOffset -= performance.now() - t.at;
+      feedbackPaused = t.was;
+    },
+    render: () => renderer.render(view.scene, cam.camera),
+    inputHeld: (held) => {
+      if (!held) return pad.resume();
+      keyboard.release(); // a key held when the window opened never gets its keyup
+      hover = null;
+      tooltip.hide();
+      pad.suspend(() => feedback.handle.close());
+    },
+  });
   if (frozen) return;
   if (!online) await hub.start();
   if (frozen) return;
