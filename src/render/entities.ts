@@ -26,6 +26,7 @@ import { levelForXp } from '../sim/xp';
 import { dressFor, holdRight, type ActorModel } from './actors';
 import { DEATH_MS, poseActor, STRIDE_RAD_PER_TILE, type WorkAnim } from './animate';
 import { HpBar } from './effects';
+import { THROW_ORIGIN } from './gear';
 import type { RemoteActor } from '../net/replica';
 import type { AssetLoader } from './loader';
 import { Glide, interpolateSteps } from './stepping';
@@ -156,11 +157,22 @@ export class EntityRenderer {
   }
 
   /** Something attacked: swing, shoot or lunge. */
-  playAttack(attackerId: string, style: AttackStyle, now: number): void {
-    const view = this.viewOf(attackerId);
+  playAttack(state: GameState, attackerId: string, style: AttackStyle, now: number): void {
+    const view =
+      attackerId === SPROTO_ID && state.player.sproto
+        ? this.ensureSproto(state)
+        : this.viewOf(attackerId);
     if (!view) return;
     view.attackAt = now;
     view.attackStyle = style;
+  }
+
+  /** World position of the weapon on the currently posed actor. */
+  projectileOrigin(attackerId: string, style: AttackStyle): THREE.Vector3 | null {
+    const actor = this.viewOf(attackerId)?.actor;
+    const anchor =
+      style === 'rock' ? actor?.joints?.handR.getObjectByName(THROW_ORIGIN) : actor?.muzzle;
+    return anchor?.getWorldPosition(new THREE.Vector3()) ?? null;
   }
 
   /** Something died: it falls over before disappearing (or, for the player, respawning). */
@@ -355,7 +367,7 @@ export class EntityRenderer {
     this.player.hpBar.set(p.hp / maxHp(p), now - this.player.hitAt < HP_BAR_MS);
   }
 
-  private updateSproto(state: GameState, t: number, dt: number, now: number): void {
+  private ensureSproto(state: GameState): ActorView | null {
     const s = state.player.sproto;
     const modelId = s ? this.content.sprotos.get(s.defId)?.model : undefined;
     if (this.sproto && (!s || this.sproto.modelId !== modelId)) {
@@ -363,21 +375,28 @@ export class EntityRenderer {
       this.unpick(this.sproto.root);
       this.sproto = null;
     }
-    if (!s || !modelId) return;
+    if (!s || !modelId) return null;
     if (!this.sproto) {
       this.sproto = this.createActor(modelId);
       this.sproto.root.userData.entityId = SPROTO_ID;
       this.pickables.push(this.sproto.root);
       interpolateSteps([s], 1, this.sproto.root.position, this.segment);
     }
+    return this.sproto;
+  }
+
+  private updateSproto(state: GameState, t: number, dt: number, now: number): void {
+    const s = state.player.sproto;
+    const view = this.ensureSproto(state);
+    if (!s || !view) return;
     const target = s.target ? state.zone.enemies.find((e) => e.id === s.target) : null;
-    this.drive(this.sproto, [s.from, s], t, dt, now, s, {
+    this.drive(view, [s.from, s], t, dt, now, s, {
       combat: target != null,
       work: null,
       face: target ?? null,
     });
     const max = this.content.sprotos.get(s.defId)?.hp ?? s.hp;
-    this.sproto.hpBar.set(s.hp / max, now - this.sproto.hitAt < HP_BAR_MS);
+    view.hpBar.set(s.hp / max, now - view.hitAt < HP_BAR_MS);
   }
 
   private updateEnemies(state: GameState, t: number, dt: number, now: number): void {

@@ -194,6 +194,8 @@ An audit compared movement and interface with OSRS; these choices came out of it
   and enemies drop you while you fall.
 - **Projectile timing is visual only.** Damage still lands on the tick; the client delays the
   hitsplat, flinch, death fall and explosion until the shot arrives (`RENDER.projectile*`).
+  Shots leave the posed model's muzzle or staff tip. The Champion's rock leaves the held rock's
+  position when the throw animation releases it. Models without a launch point use body height.
 - **Terminal** left-click is Value; buying is in the right-click menu, like OSRS shops.
 - **Bosses stay one tile** in the sim; their models were scaled down to fit it rather than adding
   multi-tile enemies.
