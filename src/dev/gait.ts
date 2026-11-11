@@ -14,7 +14,7 @@ import { MOVEMENT, TICK_MS } from '../config/balance';
 import { poseActor, STRIDE_RAD_PER_TILE, type AnimInput } from '../render/animate';
 import manifest from '../config/assets.manifest.json';
 import { riggedActor } from '../render/rigged';
-import { buildActor, type ActorModel, type ActorSpec } from '../render/actors';
+import { buildActor, PLAYER_MODEL, type ActorModel, type ActorSpec } from '../render/actors';
 
 const MODELS = import.meta.glob('../assets/models/*.glb', {
   eager: true,
@@ -23,7 +23,7 @@ const MODELS = import.meta.glob('../assets/models/*.glb', {
 }) as Record<string, string>;
 
 const params = new URLSearchParams(location.search);
-const modelId = params.get('model') ?? 'player_president';
+const modelId = params.get('model') ?? PLAYER_MODEL;
 const frozen = params.has('phase') ? Number(params.get('phase')) : null;
 const view = params.get('view') ?? 'side';
 
@@ -89,7 +89,9 @@ const url = MODELS[`../assets/models/${modelId}.glb`];
 const gltf = url ? await new GLTFLoader().loadAsync(url) : null;
 const spec = (manifest as unknown as Record<string, Partial<ActorSpec>>)[modelId];
 const makeActor = (): ActorModel =>
-  gltf ? riggedActor(gltf.scene, 1) : buildActor({ color: '#888888', scale: 1, ...spec })!;
+  gltf
+    ? riggedActor(gltf.scene, spec?.scale ?? 1, spec?.look, modelId === PLAYER_MODEL)
+    : buildActor({ color: '#888888', scale: 1, ...spec })!;
 const tilesPerSec = (n: number) => n / (TICK_MS / 1000);
 const lanes: Lane[] = [
   { name: 'walk', running: false, tilesPerSec: tilesPerSec(MOVEMENT.walkTilesPerTick) },

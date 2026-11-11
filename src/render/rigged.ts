@@ -11,7 +11,7 @@
 import * as THREE from 'three';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import { hat, holdRight, type ActorModel, type Joints, type Look } from './actors';
-import type { LegGeometry } from './gait';
+import type { LegGeometry, LegRig } from './gait';
 import { gearModel } from './gear';
 import { box, lambert, shade } from './kit';
 
@@ -25,6 +25,8 @@ const BONES: Record<ProxyName, string> = {
   foreL: 'LeftForeArm',
   armR: 'RightArm',
   foreR: 'RightForeArm',
+  wristL: 'LeftHand',
+  wristR: 'RightHand',
   legL: 'LeftUpLeg',
   shinL: 'LeftLeg',
   legR: 'RightUpLeg',
@@ -41,6 +43,8 @@ const BONES: Record<ProxyName, string> = {
  * shoulders.
  */
 const SPINE = ['Spine02', 'Spine01', 'Spine'];
+const PLAYER_SPINE_SHARE = [0.22, 0.33, 0.45];
+const legRigs = new WeakMap<THREE.Object3D, LegRig>();
 
 const PARENT: Partial<Record<ProxyName, ProxyName>> = {
   torso: 'hips',
@@ -51,6 +55,8 @@ const PARENT: Partial<Record<ProxyName, ProxyName>> = {
   armR: 'torso',
   foreL: 'armL',
   foreR: 'armR',
+  wristL: 'foreL',
+  wristR: 'foreR',
   shinL: 'legL',
   shinR: 'legR',
   footL: 'shinL',
@@ -73,7 +79,7 @@ interface Link {
   restWorldInv: THREE.Quaternion;
   /** Upper arms: turns the A-pose arm down to hang at the side. */
   fix: THREE.Quaternion | null;
-  /** Forearms: the parent arm's fix, so elbows bend in the arms-down frame. */
+  /** Forearms and wrists turn in the corrected arms-down frame. */
   inherit: THREE.Quaternion | null;
   /** Share of the joint's turn this bone takes (the spine splits the torso's). */
   share: number;
@@ -81,7 +87,7 @@ interface Link {
 
 /** True if the model has a skeleton this adapter can drive. */
 export function isRigged(model: THREE.Object3D): boolean {
-  return [...Object.values(BONES), ...SPINE, 'LeftHand', 'RightHand'].every(
+  return [...Object.values(BONES), ...SPINE].every(
     (name) => model.getObjectByName(name) !== undefined,
   );
 }
@@ -90,6 +96,7 @@ export function riggedActor(
   source: THREE.Object3D,
   scale: number,
   dress: Partial<Look> = {},
+  playerLocomotion = false,
 ): ActorModel {
   const model = cloneSkinned(source);
   flatten(model);
@@ -142,14 +149,23 @@ export function riggedActor(
       restWorld,
       restWorldInv: restWorld.clone().invert(),
       fix: proxy === 'armL' ? fixL : proxy === 'armR' ? fixR : null,
-      inherit: proxy === 'foreL' ? fixL : proxy === 'foreR' ? fixR : null,
+      inherit:
+        proxy === 'foreL' || proxy === 'wristL'
+          ? fixL
+          : proxy === 'foreR' || proxy === 'wristR'
+            ? fixR
+            : null,
       share,
     };
   };
+  const neck = playerLocomotion && model.getObjectByName('neck');
   const links: Link[] = (Object.keys(BONES) as ProxyName[])
     .filter((name) => name !== 'torso')
-    .map((name) => link(name, BONES[name]));
-  for (const name of SPINE) links.push(link('torso', name, 1 / SPINE.length));
+    .map((name) => link(name, BONES[name], neck && name === 'head' ? 0.72 : 1));
+  if (neck) links.push(link('head', neck.name, 0.28));
+  SPINE.forEach((name, i) => {
+    links.push(link('torso', name, playerLocomotion ? PLAYER_SPINE_SHARE[i] : 1 / SPINE.length));
+  });
 
   const q = new THREE.Quaternion();
   const none = new THREE.Quaternion();
@@ -172,6 +188,12 @@ export function riggedActor(
   const handL = anchor(bone('LeftHand'), down, gearScale);
   const handR = anchor(bone('RightHand'), down, gearScale);
   const joints: Joints = { ...proxies, handL, handR };
+  let legs = legRigs.get(source);
+  if (!legs) {
+    // Read the bind dimensions before applying the actor's gameplay scale.
+    legs = legGeometry(model, worldPos);
+    legRigs.set(source, legs);
+  }
   root.scale.setScalar(scale);
   const actor: ActorModel = {
     root,
@@ -187,7 +209,8 @@ export function riggedActor(
     left: null,
     muzzle: null,
     sync,
-    legs: legGeometry(model, worldPos),
+    legs,
+    playerLocomotion,
   };
   wear(model, dress, height);
   const left = dress.left ? gearModel(dress.left) : null;
@@ -200,11 +223,11 @@ export function riggedActor(
 }
 
 /**
- * Leg lengths and rest angles in the side view, averaged over both legs, from
- * the rest skeleton; the heel is the back of the shoe's sole.
+ * Leg lengths and rest angles in the side view from each side of the rest rig.
+ * The heel is the back of that shoe's sole.
  */
-function legGeometry(model: THREE.Object3D, at: (bone: string) => THREE.Vector3): LegGeometry {
-  const side = (s: 'Left' | 'Right') => {
+function legGeometry(model: THREE.Object3D, at: (bone: string) => THREE.Vector3): LegRig {
+  const side = (s: 'Left' | 'Right'): LegGeometry => {
     const hip = at(`${s}UpLeg`);
     const knee = at(`${s}Leg`);
     const ankle = at(`${s}Foot`);
@@ -225,11 +248,7 @@ function legGeometry(model: THREE.Object3D, at: (bone: string) => THREE.Vector3)
       shinRest: lean(knee, ankle),
     };
   };
-  const l = side('Left');
-  const r = side('Right');
-  return Object.fromEntries(
-    Object.entries(l).map(([k, v]) => [k, (v + r[k as keyof LegGeometry]) / 2]),
-  ) as unknown as LegGeometry;
+  return { left: side('Left'), right: side('Right') };
 }
 
 /** The z of the back of a shoe: its rearmost sole vertex, weighted mostly to the foot. */
@@ -245,7 +264,7 @@ function soleBack(model: THREE.Object3D, side: 'Left' | 'Right', ankleY: number)
     for (let i = 0; i < index.count; i++) {
       let w = 0;
       for (let k = 0; k < 4; k++)
-        if (index.getComponent(i, k) === foot) w = weight.getComponent(i, k);
+        if (index.getComponent(i, k) === foot) w += weight.getComponent(i, k);
       if (w < 0.5) continue;
       mesh.getVertexPosition(i, v).applyMatrix4(mesh.matrixWorld);
       // Sole level only: a coat hem or cuff weighted to the foot isn't the heel.

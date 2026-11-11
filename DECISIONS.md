@@ -679,6 +679,18 @@ text). The owner granted full agency; the plan's QA defaults are recorded here.
   foot isn't taken for the heel. With the weights fixed, the real heels turn out long: the
   President's sole runs 0.2 m behind the ankle.
 
+## President locomotion (2026-11-11)
+
+- The President keeps the one-footfall-per-tile rhythm. Walking uses the full shoe roll with
+  a more centered stance. Running matches the ground's speed just before landing and after
+  push-off, with more heel recovery, a forward lean and stronger elbow drive.
+- The gait keeps track of the supporting foot through stops and short restarts. Run effort eases
+  down on sharp turns and returns as the body aligns. The shoulders counter-rotate and the head
+  stays level. Free wrists roll inward while held gear keeps its grip pose.
+- Rigged models measure the left and right legs and shoes independently in bind-pose units.
+  The President's neck shares the head movement, and the chest takes more of the spine bend.
+  Code-built actors have ankle and toe pivots for the same heel-to-toe roll.
+
 ## Controller and keyboard (2026-11-09)
 
 The owner asked for automatic controller support in every Sproto game, with the hub plaza's

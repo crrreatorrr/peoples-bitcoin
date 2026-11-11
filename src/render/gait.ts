@@ -30,6 +30,9 @@ export interface LegGeometry {
   shinRest: number;
 }
 
+/** Meshy rigs can have different segment lengths, shoe pivots and rest angles on each side. */
+export type LegRig = LegGeometry | { left: LegGeometry; right: LegGeometry };
+
 export interface LegPose {
   /** Thigh swing (x rotation, negative is forward). */
   hip: number;
@@ -44,10 +47,17 @@ export interface LegPose {
 export interface GaitPose {
   left: LegPose;
   right: LegPose;
+  support: 'left' | 'right';
   /** How far the hips sit above (+) or below (−) their rest height. */
   hipDrop: number;
   /** Hip yaw, swinging toward the forward leg. */
   hipYaw: number;
+}
+
+interface Settle {
+  /** Influence of the stop pose, eased out again if movement resumes. */
+  blend: number;
+  support: GaitPose['support'];
 }
 
 export interface GaitStyle {
@@ -72,6 +82,8 @@ export interface GaitStyle {
   liftPeak: number;
   /** How much of the ground's speed the foot keeps as it leaves and before it lands (0..1). */
   retract: number;
+  /** Portion of the swing at each end that matches the stance speed. */
+  matchContact?: number;
   /** Constant knee give (fraction of leg length the hips sit lower). */
   crouch: number;
   /** Bounce of the hips: lowest mid-stance, highest mid-flight (fraction of leg length). */
@@ -128,6 +140,39 @@ export const RUN: GaitStyle = {
   hipYaw: 0.18,
 };
 
+/** The President's shoes have long heels. Roll onto them gently and keep the walk upright. */
+export const PRESIDENT_WALK: GaitStyle = {
+  ...WALK,
+  duty: 0.51,
+  plant: 1,
+  reach: 0,
+  heelStrike: 0.38,
+  toeOff: 0.78,
+  heelRoll: 0.16,
+  heelLift: 0.28,
+  lift: 0.13,
+  liftPeak: 0.47,
+  retract: 0.9,
+  maxDrop: 0.145,
+  hipYaw: 0.095,
+};
+
+/** A softer landing, a clear push-off and enough heel recovery to read at the game camera. */
+export const PRESIDENT_RUN: GaitStyle = {
+  ...RUN,
+  duty: 0.37,
+  reach: -0.055,
+  heelStrike: 0.09,
+  toeOff: 0.69,
+  lift: 0.49,
+  liftPeak: 0.35,
+  retract: 1,
+  matchContact: 0.1,
+  crouch: 0.048,
+  bounce: 0.05,
+  hipYaw: 0.13,
+};
+
 const TAU = Math.PI * 2;
 
 /**
@@ -139,70 +184,85 @@ const TAU = Math.PI * 2;
  */
 export function gait(
   phase: number,
-  g: LegGeometry,
+  rig: LegRig,
   tile: number,
   run = 0,
   weight = 1,
   walkStyle: GaitStyle = WALK,
   runStyle: GaitStyle = RUN,
+  settle?: Settle,
 ): GaitPose {
-  const walking = stride(phase, walkStyle, g, tile);
-  const s = run > 0 ? mixStride(walking, stride(phase, runStyle, g, tile), run) : walking;
-  // Standing: each ankle where it rests, under the hips.
-  const stand: FootTarget = {
+  const left = 'left' in rig ? rig.left : rig;
+  const right = 'right' in rig ? rig.right : rig;
+  const walking = stride(phase, walkStyle, left, right, tile);
+  const s = run > 0 ? mixStride(walking, stride(phase, runStyle, left, right, tile), run) : walking;
+  const support = s.left.y - left.ankleY <= s.right.y - right.ankleY ? 'left' : 'right';
+  const supportLeft = (settle?.support ?? support) === 'left';
+  // Keep weight on the support leg while the other leg steps back under the body.
+  const stop = settle?.blend ?? 0;
+  const supportWeight = lerp(weight, smooth(clamp(weight / 0.6, 0, 1)), stop);
+  const swingWeight = lerp(weight, smooth(clamp((weight - 0.25) / 0.75, 0, 1)), stop);
+  const footL = mixFoot(restFoot(left), s.left, supportLeft ? supportWeight : swingWeight);
+  const footR = mixFoot(restFoot(right), s.right, supportLeft ? swingWeight : supportWeight);
+  const hipYaw = s.hipYaw * weight;
+  const shiftL = -left.hipX * Math.sin(hipYaw);
+  const shiftR = right.hipX * Math.sin(hipYaw);
+  const reach = (f: FootTarget, hipZ: number, g: LegGeometry) => {
+    const limit = lerp(1, s.maxReach, weight) * (g.thigh + g.shin);
+    const dz = Math.min(Math.abs(f.z - hipZ), limit * 0.999);
+    return f.y + Math.sqrt(limit * limit - dz * dz) - g.hipY;
+  };
+  const legLen = (left.thigh + left.shin + right.thigh + right.shin) / 2;
+  const hipDrop = Math.max(
+    -s.maxDrop * weight * legLen,
+    Math.min(s.hipDrop * weight, reach(footL, shiftL, left), reach(footR, shiftR, right)),
+  );
+  return {
+    left: solve(footL, left.hipY + hipDrop, shiftL, left),
+    right: solve(footR, right.hipY + hipDrop, shiftR, right),
+    support,
+    hipDrop,
+    hipYaw,
+  };
+}
+
+function restFoot(g: LegGeometry): FootTarget {
+  return {
     z: g.thigh * Math.sin(g.thighRest) + g.shin * Math.sin(g.shinRest),
     y: g.hipY - g.thigh * Math.cos(g.thighRest) - g.shin * Math.cos(g.shinRest),
     pitch: 0,
     toe: 0,
-  };
-  const footL = mixFoot(stand, s.left, weight);
-  const footR = mixFoot(stand, s.right, weight);
-  const hipYaw = s.hipYaw * weight;
-  // Turning the hips carries each hip joint forward or back, which the legs make up for.
-  const shift = g.hipX * Math.sin(hipYaw);
-  const legLen = g.thigh + g.shin;
-  const limit = lerp(1, s.maxReach, weight) * legLen;
-  // The hips settle as low as the gait asks, then lower still if a foot can't
-  // reach, but never past the floor the style allows.
-  let hipY = lerp(g.hipY, s.hipY, weight);
-  for (const [f, hipZ] of [
-    [footL, -shift],
-    [footR, shift],
-  ] as const) {
-    const dz = Math.min(Math.abs(f.z - hipZ), limit * 0.999);
-    hipY = Math.min(hipY, f.y + Math.sqrt(limit * limit - dz * dz));
-  }
-  hipY = Math.max(hipY, g.hipY - lerp(0, s.maxDrop, weight) * legLen);
-  return {
-    left: solve(footL, hipY, -shift, g),
-    right: solve(footR, hipY, shift, g),
-    hipDrop: hipY - g.hipY,
-    hipYaw,
   };
 }
 
 interface Stride {
   left: FootTarget;
   right: FootTarget;
-  /** Hip height the style asks for, before the feet's reach lowers it. */
-  hipY: number;
+  /** Hip displacement the style asks for, before the feet's reach lowers it. */
+  hipDrop: number;
   hipYaw: number;
   maxReach: number;
   maxDrop: number;
 }
 
 /** Where one style puts the feet and hips at `phase`. */
-function stride(phase: number, style: GaitStyle, g: LegGeometry, tile: number): Stride {
-  const legLen = g.thigh + g.shin;
+function stride(
+  phase: number,
+  style: GaitStyle,
+  l: LegGeometry,
+  r: LegGeometry,
+  tile: number,
+): Stride {
+  const legL = l.thigh + l.shin;
+  const legR = r.thigh + r.shin;
   const uL = frac((phase - Math.PI / 2) / TAU);
-  const plant = plantFor(style, g, tile);
+  const plant = Math.min(plantFor(style, l, tile), plantFor(style, r, tile));
   return {
-    left: foot(uL, style, g, tile, legLen, plant),
-    right: foot(frac(uL + 0.5), style, g, tile, legLen, plant),
-    hipY:
-      g.hipY -
-      style.crouch * legLen -
-      style.bounce * legLen * Math.cos(2 * TAU * (uL - style.duty / 2)),
+    left: foot(uL, style, l, tile, legL, plant),
+    right: foot(frac(uL + 0.5), style, r, tile, legR, plant),
+    hipDrop:
+      -(style.crouch + style.bounce * Math.cos(2 * TAU * (uL - style.duty / 2))) *
+      ((legL + legR) / 2),
     // Hips turn with the forward leg: the left (+x) leading turns them by −y.
     hipYaw: -style.hipYaw * Math.sin(phase),
     maxReach: style.maxReach,
@@ -257,7 +317,7 @@ function mixStride(a: Stride, b: Stride, t: number): Stride {
   return {
     left: mixFoot(a.left, b.left, t),
     right: mixFoot(a.right, b.right, t),
-    hipY: lerp(a.hipY, b.hipY, t),
+    hipDrop: lerp(a.hipDrop, b.hipDrop, t),
     hipYaw: lerp(a.hipYaw, b.hipYaw, t),
     maxReach: lerp(a.maxReach, b.maxReach, t),
     maxDrop: lerp(a.maxDrop, b.maxDrop, t),
@@ -309,13 +369,27 @@ export function foot(
   const lift = s.lift * legLen * bump(k, s.liftPeak);
   const pitch = lerp(start.pitch, end.pitch, smooth(k));
   return {
-    z: hermite(start.z, groundVel, end.z, groundVel, k),
+    z: swingZ(start.z, end.z, groundVel, k, s.matchContact ?? 0),
     y: lerp(start.y, end.y, k) + lift,
     pitch,
     // The toes stay level while the foot is still tipped down from the push-off, so a
     // long shoe's tip doesn't scrape through the ground as it swings.
     toe: Math.min(0, pitch),
   };
+}
+
+/** At push-off and touchdown, carry the foot backward before changing its speed. */
+function swingZ(start: number, end: number, velocity: number, t: number, edge: number): number {
+  if (t < edge) return start + velocity * t;
+  if (t > 1 - edge) return end + velocity * (t - 1);
+  const span = 1 - 2 * edge;
+  return hermite(
+    start + velocity * edge,
+    velocity * span,
+    end - velocity * edge,
+    velocity * span,
+    (t - edge) / span,
+  );
 }
 
 /**
