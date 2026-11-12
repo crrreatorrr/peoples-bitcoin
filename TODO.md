@@ -47,7 +47,7 @@
 ## Feedback window (2026-11-11)
 
 - [ ] Re-vendor hub-sdk from hub **main** once the hub's whole-page screenshot branch
-      (`claude/nifty-einstein-ptgr08`, `2a6a4bc`, hub-sdk 0.7.2) merges, and update `VENDOR.md`,
+      (`claude/nifty-einstein-ptgr08`, `5099cb5`, hub-sdk 0.7.2) merges, and update `VENDOR.md`,
       `SOURCE.pin.json` and `tests/sdk-hash.test.ts` (the earlier feedback branch, `b9ac308`, is
       on hub main now)
 - [ ] Try the window against a real hub session (sent note, id toast, offline queue); so far it

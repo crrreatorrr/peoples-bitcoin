@@ -1058,7 +1058,7 @@ keeps (Rounds get fired, food gets eaten).
 
 - **The screenshot shows the whole page.** Players' notes showed only the 3D world: the chat, side
   panel, orbs, skill guide and world select are HTML, and 0.7.0 copied only canvases. hub-sdk 0.7.2
-  (hub branch `claude/nifty-einstein-ptgr08` at `2a6a4bc`, not hub main yet) draws the page's HTML
+  (hub branch `claude/nifty-einstein-ptgr08` at `5099cb5`, not hub main yet) draws the page's HTML
   over the canvases with a vendored modern-screenshot, loaded on demand (its own Vite chunk).
 - **Only the world view is copied directly** (`canvases: gameCanvases`, `canvas.game-canvas`). By
   default the SDK copies every canvas, which included the minimap and compass: they came out as

@@ -53,7 +53,7 @@ export function vendoredSdkManifestSha256(root = 'vendor/hub-sdk'): string {
     .digest('hex');
 }
 
-// Source: crrreatorrr/metaverse-hub branch claude/nifty-einstein-ptgr08 @ 2a6a4bc (the whole-page
+// Source: crrreatorrr/metaverse-hub branch claude/nifty-einstein-ptgr08 @ 5099cb5 (the whole-page
 // feedback screenshot; not on hub main yet).
 describe('vendored hub SDK 0.7.2', () => {
   // Hub main redeems with custom auth plus the server key, then profile.get. It registers
@@ -75,17 +75,17 @@ describe('vendored hub SDK 0.7.2', () => {
     expect(pkg.version).toBe('0.7.2');
     const hash = vendoredSdkSha256();
     expect(hash, `byte hash ${hash}`).toBe(
-      '916ffac0b09d9f0a94c4cedf89cdea4cdcdaac660862e83eca93deedba9934c7',
+      '0527345eae290887afc455b1b96b7b9d058d3cdac88967c25b958a4320e24b99',
     );
     const manifest = vendoredSdkManifestSha256();
     expect(manifest, `manifest ${manifest}`).toBe(
-      '8cc25fc9797fe532e13ae65d44f656275089e6c84462b4caed107e88a4b44437',
+      '33eb416599f2487af716cf57cec2a0a0aa06fbb49976a984ae3df2e526221f0b',
     );
     const iife = createHash('sha256')
       .update(readFileSync('vendor/hub-sdk/dist/hub-sdk.iife.js'))
       .digest('hex');
     expect(iife, `iife ${iife}`).toBe(
-      '25b989eb2cda2227e4395c84965c7a4bea5f937c3df442c08aad8ab8c40e5a35',
+      '770e8e1b41ad1abef33eb0d04ef9c7eec8fda723336e5149a7809d902042013c',
     );
     const pin = JSON.parse(
       new TextDecoder().decode(readFileSync('vendor/hub-sdk/SOURCE.pin.json')),
