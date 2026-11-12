@@ -28,7 +28,7 @@ Presentation and input mapping only: no sim, config or data file changed, so `SI
 
 - **The feedback screenshot now shows what the player saw.** It used to copy only the 3D world,
   so the chat, side panel, orbs, skill guide, dialogs and world select were missing and reports
-  showed only the background. hub-sdk 0.7.2 (hub branch `claude/nifty-einstein-ptgr08`, `5099cb5`)
+  showed only the background. hub-sdk 0.7.2 (hub main `c6627e5`, metaverse-hub #183)
   draws the page's HTML over the world view. The minimap and compass are drawn with the HTML, so
   they keep their round frame, and the Google Fonts link now has `crossorigin="anonymous"` so the
   screenshot uses the game's two fonts. The vendor also brings 0.7.1's optional `tickets` field on

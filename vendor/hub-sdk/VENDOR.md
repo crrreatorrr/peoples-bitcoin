@@ -1,8 +1,8 @@
 # Vendored @metaverse/hub-sdk
 
 - repo: https://github.com/crrreatorrr/metaverse-hub
-- branch: claude/nifty-einstein-ptgr08
-- sha: 5099cb5
+- branch: main
+- sha: c6627e5
 - package: packages/hub-sdk @ 0.7.2
 - built with: `node scripts/vendor-sdk.mjs`
 - iife: dist/hub-sdk.iife.js (global HubSDK; classic script, not a CDN import)
@@ -45,14 +45,15 @@ arrives before the join reply. 0.6.4 (hub main at 2a82e9e, PR #117) added the `m
 `sdk.feedbackAccess`, `sdk.submitFeedback`), which `src/game/feedback.ts` uses. 0.7.1 added the
 optional `tickets` field to `reportEvent`'s result (this game's events pay none).
 
-This copy is package 0.7.2 from the hub branch `claude/nifty-einstein-ptgr08` at 5099cb5, which
-is **not merged to hub main yet**. 0.7.2 makes the feedback screenshot show the whole page: the
-SDK draws the HTML (HUD, panels, dialogs, world select) over the canvases with modern-screenshot
-(MIT, `dist/third_party/modern-screenshot.js`, loaded on demand; Vite splits it into its own
-chunk). The adapter names only the WebGL world view in `canvases`, so the minimap and compass
-canvases are drawn with the HTML. The Google Fonts `<link>` in `index.html` carries
+This copy is package 0.7.2 from hub main at c6627e5 (metaverse-hub #183). The built package
+matches the earlier vendor of `claude/nifty-einstein-ptgr08` at 5099cb5; the pin now names a
+commit on main. 0.7.2 makes the feedback screenshot show the whole page: the SDK draws the HTML
+(HUD, panels, dialogs, world select) over the canvases with modern-screenshot (MIT,
+`dist/third_party/modern-screenshot.js`, loaded on demand; Vite splits it into its own chunk).
+The adapter names only the WebGL world view in `canvases`, so the minimap and compass canvases
+are drawn with the HTML. The Google Fonts `<link>` in `index.html` carries
 `crossorigin="anonymous"` so the screenshot can embed the fonts. Shop, session and realtime calls
-stay the same. Re-vendor from hub main once that branch merges, so the pin names a commit on main.
-`tests/sdk-hash.test.ts` pins the version and hashes: update it with each re-vendor.
+stay the same. `tests/sdk-hash.test.ts` pins the version and hashes: update it with each
+re-vendor.
 
 Re-sync this tree to hub main whenever packages/hub-sdk changes.

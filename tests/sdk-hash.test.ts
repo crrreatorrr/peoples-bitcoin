@@ -53,8 +53,7 @@ export function vendoredSdkManifestSha256(root = 'vendor/hub-sdk'): string {
     .digest('hex');
 }
 
-// Source: crrreatorrr/metaverse-hub branch claude/nifty-einstein-ptgr08 @ 5099cb5 (the whole-page
-// feedback screenshot; not on hub main yet).
+// Source: crrreatorrr/metaverse-hub main @ c6627e5 (hub-sdk 0.7.2, metaverse-hub #183).
 describe('vendored hub SDK 0.7.2', () => {
   // Hub main redeems with custom auth plus the server key, then profile.get. It registers
   // no session.claim RPC, so a vendor that calls one never gets a session.
@@ -75,11 +74,11 @@ describe('vendored hub SDK 0.7.2', () => {
     expect(pkg.version).toBe('0.7.2');
     const hash = vendoredSdkSha256();
     expect(hash, `byte hash ${hash}`).toBe(
-      '0527345eae290887afc455b1b96b7b9d058d3cdac88967c25b958a4320e24b99',
+      'b02e5650ad9f882a802136f10b865fc2e360ccfbc3647efab38cd603e41175e1',
     );
     const manifest = vendoredSdkManifestSha256();
     expect(manifest, `manifest ${manifest}`).toBe(
-      '33eb416599f2487af716cf57cec2a0a0aa06fbb49976a984ae3df2e526221f0b',
+      '861b00424bf467381f2e31b125fc905a4068b9c25f02d643dcd8d82e3596e1ae',
     );
     const iife = createHash('sha256')
       .update(readFileSync('vendor/hub-sdk/dist/hub-sdk.iife.js'))
