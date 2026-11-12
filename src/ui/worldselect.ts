@@ -2,10 +2,15 @@
  * World select (RuneScape-style list): world number, players out of 100, and
  * a full state, with Quick join (the least full world) and Play offline. The
  * parody notice shows here too. The last world is remembered locally.
+ *
+ * It is also the game's main menu: Exit to Hub, Controller settings and Full
+ * screen sit under the list. With no way online (`list` null: standalone play
+ * after "Main menu") it shows only Play and those options.
  */
 import { NET } from '../config/balance';
 import { GAME_TITLE, PARODY_NOTICE } from '../config/branding';
 import type { WorldInfo } from '../net/transport';
+import { standardButtons, type StandardActions } from './menuOptions';
 
 const LAST_WORLD_KEY = 'peoples-bitcoin.lastWorld';
 
@@ -41,15 +46,16 @@ export class WorldSelect {
   private worlds: WorldInfo[] = [];
 
   constructor(
-    private readonly list: () => Promise<WorldInfo[]>,
+    private readonly list: (() => Promise<WorldInfo[]>) | null,
     private readonly sim: string,
+    menu?: StandardActions,
   ) {
     this.root = document.createElement('div');
-    this.root.className = 'world-select';
+    this.root.className = 'world-select main-menu';
     const panel = document.createElement('div');
     panel.className = 'panel';
     const title = document.createElement('h2');
-    title.textContent = `${GAME_TITLE}: select a world`;
+    title.textContent = list ? `${GAME_TITLE}: select a world` : GAME_TITLE;
     const notice = document.createElement('p');
     notice.className = 'notice';
     notice.textContent = PARODY_NOTICE;
@@ -68,9 +74,17 @@ export class WorldSelect {
       else this.setStatus('Every world is full. Try again in a moment.');
     });
     const refresh = button('Refresh', () => void this.refresh());
-    const offline = button('Play offline', () => this.pick({ kind: 'offline' }));
-    actions.append(quick, refresh, offline);
-    panel.append(title, notice, table, this.status, actions);
+    const offline = button(list ? 'Play offline' : 'Play', () => this.pick({ kind: 'offline' }));
+    offline.dataset.option = 'play';
+    if (list) actions.append(quick, refresh, offline);
+    else actions.append(offline);
+    panel.append(title, notice, ...(list ? [table] : []), this.status, actions);
+    if (menu) {
+      const options = document.createElement('div');
+      options.className = 'actions menu-standard';
+      options.append(...standardButtons('main', menu));
+      panel.append(options);
+    }
     this.root.append(panel);
   }
 
@@ -98,6 +112,7 @@ export class WorldSelect {
   }
 
   private async refresh(): Promise<void> {
+    if (!this.list) return;
     this.setStatus('Loading worlds...');
     try {
       this.worlds = await this.list();

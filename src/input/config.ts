@@ -43,3 +43,15 @@ export const FEEDBACK = {
   /** Crash-guard errors kept for a note, newest last. */
   recentErrors: 10,
 } as const;
+
+/**
+ * Controller settings (src/ui/controlsScreen.ts): saved under `storageKey` in localStorage. The
+ * left-stick dead zone moves in `deadzoneStep`s between `deadzoneMin` and `deadzoneMax`; its
+ * default is `PAD.leftDeadzone`.
+ */
+export const CONTROLS = {
+  storageKey: 'peoples-bitcoin.controls',
+  deadzoneMin: 0.05,
+  deadzoneMax: 0.5,
+  deadzoneStep: 0.05,
+} as const;

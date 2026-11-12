@@ -10,8 +10,15 @@
  * world, PadWorld walks and acts on a soft target. Mouse, keyboard and touch are untouched: the
  * pad only dispatches the events they would, and its ring and target marker hide as soon as the
  * mouse is used again.
+ *
+ * Buttons follow the player's map (Controller settings, ./bindings.ts): each frame's physical
+ * presses become the logical standard-layout buttons this file reads, so "A" below means the
+ * Act button wherever the player put it. Menu / Start opens the game menu; in a full-screen menu
+ * (world select, the game menu, Controller settings) B or Menu goes back.
  */
+import { BINDABLE_BUTTONS, remapButtons } from './bindings';
 import { PAD } from './config';
+import type { Controls } from './controls';
 import {
   BTN,
   dpadStick,
@@ -49,7 +56,7 @@ const FOCUSABLE = [
   '.orb',
 ].join(', ');
 
-/** The side panel and the HUD around it: what View, Start and open windows give focus to. */
+/** The side panel and the HUD around it: what View, the Settings button and open windows give focus to. */
 const PANEL_ROOTS = ['#sidepanel', '#orbs', '#minimap', '#chatbox'];
 
 type ScopeKind = 'none' | 'menu' | 'overlay' | 'window' | 'panel' | 'dialogue' | 'world';
@@ -78,7 +85,20 @@ export interface PadGameHooks {
   hideTooltip(): void;
   /** The last device changed (prompts and hover text follow it). */
   deviceChanged(device: InputDevice): void;
+  /** Menu / Start: open the game menu. */
+  openMenu(): void;
 }
+
+/** Press-to-bind in Controller settings: the next key or button goes to the screen. */
+export interface InputCapture {
+  /** A key was pressed (Esc included: the screen decides what cancels). */
+  key(e: KeyboardEvent): void;
+  /** A physical controller button went down (its standard-mapping index). */
+  button(index: number): void;
+}
+
+/** Dispatched on a full-screen menu's root when B (or Menu) is pressed in it. */
+export const PAD_BACK_EVENT = 'pad-back';
 
 const visible = (el: Element) => el.isConnected && el.getClientRects().length > 0;
 
@@ -88,7 +108,18 @@ function boxOf(el: Element): Box {
 }
 
 export class GamepadInput {
-  private readonly tracker = new PadTracker(PAD);
+  /** Deadzones the tracker reads every frame; the left one follows Controller settings. */
+  private readonly padOpts: {
+    leftDeadzone: number;
+    rightDeadzone: number;
+    triggerThreshold: number;
+  } = {
+    leftDeadzone: PAD.leftDeadzone,
+    rightDeadzone: PAD.rightDeadzone,
+    triggerThreshold: PAD.triggerThreshold,
+  };
+  private readonly tracker = new PadTracker(this.padOpts);
+  private capture: InputCapture | null = null;
   private readonly repeat = new RepeatTimer(PAD.menuFirstRepeatMs, PAD.menuRepeatMs);
   private frameState: PadFrame | null = null;
   private hooks: PadGameHooks | null = null;
@@ -96,7 +127,7 @@ export class GamepadInput {
   private scopeKind: ScopeKind = 'none';
   private focused: HTMLElement | null = null;
   private lastFocusBox: Box | null = null;
-  /** View / Start put focus in the side panel until B (or the same button) takes it back. */
+  /** View (or the game menu's Settings) puts focus in the side panel until B takes it back. */
   private panelMode = false;
   /** Where focus goes the next time it is placed: a selector tried before the scope's default. */
   private preferred: string | null = null;
@@ -104,6 +135,34 @@ export class GamepadInput {
   private lastInvSlot = 0;
   /** Set while the feedback window is up: B calls it, and nothing else reaches the game. */
   private suspendedBack: (() => void) | null = null;
+
+  /** `controls`: the player's button map and left-stick dead zone (Controller settings). */
+  constructor(private readonly controls: Controls | null = null) {
+    const sync = () => {
+      if (controls) this.padOpts.leftDeadzone = controls.leftDeadzone;
+    };
+    sync();
+    controls?.onChange(sync);
+  }
+
+  /**
+   * Sends the next key press and controller button to `capture` (press-to-bind) until
+   * `endCapture()`. Nothing else in the game sees them meanwhile.
+   */
+  beginCapture(capture: InputCapture): void {
+    this.capture = capture;
+  }
+
+  endCapture(): void {
+    this.capture = null;
+  }
+
+  /** Puts focus in the side panel (the open tab), as View and Menu used to. */
+  focusPanel(): void {
+    this.panelMode = true;
+    this.preferred = '.tab-body';
+    this.enterScope(this.scope());
+  }
 
   /**
    * Hand the controller and the menu keys to an overlay outside the game (the feedback window).
@@ -176,6 +235,12 @@ export class GamepadInput {
    * is showing, so a mouse player's Space or Enter keeps doing what it did. Never while typing.
    */
   private onKey(e: KeyboardEvent): void {
+    if (this.capture && e.isTrusted) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if (!e.repeat) this.capture.key(e);
+      return;
+    }
     if (this.suspendedBack) return;
     if (!e.isTrusted || e.ctrlKey || e.metaKey || e.altKey) return;
     const t = e.target;
@@ -227,7 +292,22 @@ export class GamepadInput {
   }
 
   private poll(now: number): void {
-    const f = this.tracker.update(this.readPads());
+    const physical = this.tracker.update(this.readPads());
+    if (this.capture) {
+      if (physical.active) this.setDevice('pad');
+      const hit = BINDABLE_BUTTONS.find((b) => physical.pressed[b]);
+      if (hit !== undefined) this.capture.button(hit);
+      return;
+    }
+    // The player's button map: from here on every button index is the logical one.
+    const map = this.controls?.pad;
+    const f = map
+      ? {
+          ...physical,
+          down: remapButtons(physical.down, map),
+          pressed: remapButtons(physical.pressed, map),
+        }
+      : physical;
     if (this.suspendedBack) {
       // Presses are still tracked, so a button held now is not a fresh press afterwards.
       if (f.connected && f.pressed[BTN.B]) this.suspendedBack();
@@ -247,7 +327,7 @@ export class GamepadInput {
 
     // Buttons that work the same everywhere in the game.
     if (hooks && scope.kind !== 'overlay' && scope.kind !== 'none') {
-      if (pressed(BTN.MENU)) return this.onMenu(scope.kind, hooks);
+      if (pressed(BTN.MENU)) return this.onMenu(hooks);
       if (pressed(BTN.VIEW)) return this.onView(scope.kind, hooks);
       if (pressed(BTN.Y) && scope.kind !== 'menu') hooks.toggleRun();
       if (pressed(BTN.R3)) hooks.faceNorth();
@@ -281,7 +361,8 @@ export class GamepadInput {
     if (dir) this.move(scope, dir);
     if (pressed(BTN.A) && this.focused) this.click(this.focused);
     else if (pressed(BTN.X) && this.focused) this.rightClick(this.focused);
-    if (pressed(BTN.B)) this.back(scope.kind);
+    if (pressed(BTN.B)) this.back(scope);
+    else if (pressed(BTN.MENU) && scope.kind === 'overlay') this.back(scope);
     if ((scope.kind === 'panel' || scope.kind === 'window') && hooks) {
       const step = Number(pressed(BTN.RB)) - Number(pressed(BTN.LB));
       if (step !== 0) {
@@ -291,18 +372,14 @@ export class GamepadInput {
     }
   }
 
-  /** Menu / Start: the main menu (Settings: Exit to Hub, save, controls), or back to the game. */
-  private onMenu(kind: ScopeKind, hooks: PadGameHooks): void {
-    if (kind === 'panel' && hooks.currentTab() === 'settings') {
-      this.panelMode = false;
-      return;
-    }
+  /**
+   * Menu / Start: the game menu (Resume, Settings, Controller settings, Full screen, Main menu,
+   * Exit to Hub). Inside the menu, Menu closes it again (see `back`).
+   */
+  private onMenu(hooks: PadGameHooks): void {
     this.closeMenus();
-    hooks.escape();
-    hooks.selectTab('settings');
-    this.panelMode = true;
-    this.preferred = '.tab-body';
-    this.enterScope(this.scope());
+    this.panelMode = false;
+    hooks.openMenu();
   }
 
   /** View / Back: the inventory (with the bank or a shop open too), or back to the game. */
@@ -318,8 +395,11 @@ export class GamepadInput {
     this.enterScope(this.scope());
   }
 
-  private back(kind: ScopeKind): void {
-    if (kind === 'menu') this.closeMenus();
+  private back(scope: Scope): void {
+    const kind = scope.kind;
+    // Full-screen menus (world select, the game menu, Controller settings) handle B themselves.
+    if (kind === 'overlay') scope.roots[0]?.dispatchEvent(new CustomEvent(PAD_BACK_EVENT));
+    else if (kind === 'menu') this.closeMenus();
     else if (kind === 'window') {
       this.panelMode = false;
       this.hooks?.escape();

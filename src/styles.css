@@ -2236,3 +2236,124 @@ body[data-input='keys'] .world-select tr.pad-focus {
     inset 0 0 0 1px #000;
   pointer-events: none;
 }
+
+/* ── Menu screens: world select (the main menu), the game menu, Controller settings ──────────
+   They fit the window at any size: a panel taller than the window scrolls inside itself. */
+.world-select {
+  padding: 8px;
+}
+.world-select .panel {
+  position: relative;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.world-select .panel > table {
+  flex: none;
+}
+.world-select .actions {
+  flex-wrap: wrap;
+}
+.world-select button {
+  padding: 3px 10px;
+  font-size: 18px;
+}
+.world-select button:hover {
+  background: #4d4233;
+}
+.world-select button[hidden] {
+  display: none;
+}
+.world-select.pause-menu {
+  background: rgba(18, 15, 10, 0.6);
+}
+.world-select.pause-menu .panel,
+.world-select.kicked .panel {
+  width: min(340px, 94vw);
+}
+.menu-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  min-height: 0;
+}
+.menu-options p {
+  margin: 0 0 4px;
+  color: #fff;
+}
+.world-select .menu-standard {
+  border-top: 1px solid #1c1812;
+  padding-top: 8px;
+}
+.world-select.controls-screen .panel {
+  width: min(620px, 96vw);
+}
+.menu-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #6b5a40 #2a231b;
+  padding-right: 4px;
+}
+.menu-scroll h3 {
+  margin: 8px 0 4px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  color: #ffd27a;
+}
+.world-select .bind-table td {
+  padding: 1px 6px;
+  font-size: 17px;
+}
+.world-select .bind-table td:last-child {
+  text-align: right;
+  white-space: nowrap;
+}
+.world-select .bind-btn {
+  min-width: 120px;
+  text-align: center;
+}
+.bind-fixed {
+  color: #c8b89a;
+}
+.deadzone-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 4px;
+  font-size: 17px;
+}
+.deadzone-row span:first-child {
+  flex: 1;
+}
+.deadzone-row span:nth-child(3) {
+  min-width: 3em;
+  text-align: center;
+  color: #fff;
+}
+body[data-input='pad'] .world-select button.pad-focus,
+body[data-input='keys'] .world-select button.pad-focus {
+  background: #4d4233;
+}
+
+/* The Menu orb, above the XP orb: opens the game menu (also Esc, Menu on a controller). */
+.orb-menu {
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--gold);
+  background: #2a241d;
+}
+
+/* Short windows: the orbs go in a row beside the minimap so the side panel never covers one. */
+@media (max-height: 640px) {
+  #orbs {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}

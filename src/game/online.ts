@@ -10,6 +10,7 @@ import { HubTransport } from '../net/hubTransport';
 import { SIM_VERSION } from '../net/simVersion';
 import type { Transport } from '../net/transport';
 import type { Content } from '../sim/content';
+import type { StandardActions } from '../ui/menuOptions';
 import { WorldSelect } from '../ui/worldselect';
 import { OnlineDriver } from './onlineDriver';
 
@@ -105,16 +106,32 @@ async function join(
   }
 }
 
+/** What the main menu (world select) offers besides worlds, and whether to stop there. */
+export interface MainMenuOptions extends StandardActions {
+  /** The player chose "Main menu": show it even offline or in the test world. */
+  show: boolean;
+}
+
 /** World select until the player joins a world (or picks offline: null). */
 export async function chooseOnline(
   content: Content,
   bridge: HubBridge,
   clock: () => number,
+  menu?: MainMenuOptions,
 ): Promise<OnlineSession | null> {
   const transport = await transportFor(content, bridge);
-  if (!transport) return null;
-  // The test world (loopback) has one world: go straight in (Settings → Test world to leave).
-  if (transport.kind === 'loopback') {
+  if (!transport) {
+    // Standalone: the main menu only when asked for; it offers Play and the standard options.
+    if (menu?.show) {
+      const select = new WorldSelect(null, SIM_VERSION, menu);
+      await select.choose();
+      select.close();
+    }
+    return null;
+  }
+  // The test world (loopback) has one world: go straight in (Settings → Test world to leave),
+  // unless the player asked for the main menu.
+  if (transport.kind === 'loopback' && !menu?.show) {
     const [only] = await transport.listWorlds();
     try {
       return { driver: await join(content, transport, only.matchId, clock), world: only.world };
@@ -122,7 +139,7 @@ export async function chooseOnline(
       // Fall back to world select, which shows the error.
     }
   }
-  const select = new WorldSelect(() => transport.listWorlds(), SIM_VERSION);
+  const select = new WorldSelect(() => transport.listWorlds(), SIM_VERSION, menu);
   let message: string | undefined;
   for (;;) {
     const choice = await select.choose(message);

@@ -1,5 +1,29 @@
 # Changelog
 
+## Unreleased — Full screen and standard menus (2026-11-12)
+
+Presentation and input mapping only: no sim, config or data file changed, so `SIM_VERSION` stays
+`0d77b686c8efbfd5` and online worlds need no rebuild.
+
+- **A game menu:** Esc (once nothing else is open), the new ☰ orb above the XP orb, or Menu on a
+  controller. Resume, Settings, Main menu, Exit to Hub, Controller settings and Full screen.
+  Offline it pauses the game exactly like the feedback window; an online world keeps running and
+  the menu says so. Menu on a controller opened the Settings tab before; it opens this menu now.
+- **Main menu everywhere:** world select is the main menu. From the game, Main menu saves and
+  reloads into it; offline it is the same screen with Play instead of the world list. The
+  disconnect screen's "Back to world select" is now Main menu.
+- **Every menu** (world select, the game menu, the Settings tab, the disconnect screen) has Exit
+  to Hub, Controller settings and Full screen, and Main menu except on the main menu itself.
+- **Full screen:** the game already filled the window; menus now fit any window height and scroll
+  inside themselves, and below 640 px of height the orbs sit in a row beside the minimap so the
+  side panel no longer covers one. The Full screen option uses the browser's full screen; an Esc
+  that leaves full screen does nothing else in the game.
+- **Controller settings:** every key and controller button with what it does; remap camera keys,
+  the run key, continue dialogue and the tab keys, and A / B / X / Y / LB / RB / View / Menu / L3 /
+  R3 on a controller (press to bind, conflicts swap, Esc or B cancels); the left-stick dead zone;
+  Reset to defaults. Saved in this browser and applied at once. It replaces the controls list
+  that was at the bottom of the Settings tab.
+
 ## Unreleased — Balance follow-up (2026-11-12)
 
 Three fixes from QA on the gameplay improvement plan. The sim, config and data changed, so
