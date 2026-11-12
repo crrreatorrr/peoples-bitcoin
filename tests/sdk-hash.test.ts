@@ -53,9 +53,9 @@ export function vendoredSdkManifestSha256(root = 'vendor/hub-sdk'): string {
     .digest('hex');
 }
 
-// Source: crrreatorrr/metaverse-hub branch claude/festive-ptolemy-4mg8oe @ b9ac308 (the feedback
-// window; not on hub main yet).
-describe('vendored hub SDK 0.7.0', () => {
+// Source: crrreatorrr/metaverse-hub branch claude/nifty-einstein-ptgr08 @ 5099cb5 (the whole-page
+// feedback screenshot; not on hub main yet).
+describe('vendored hub SDK 0.7.2', () => {
   // Hub main redeems with custom auth plus the server key, then profile.get. It registers
   // no session.claim RPC, so a vendor that calls one never gets a session.
   it('redeems the way the merged hub server expects', () => {
@@ -72,25 +72,25 @@ describe('vendored hub SDK 0.7.0', () => {
     ) as {
       version: string;
     };
-    expect(pkg.version).toBe('0.7.0');
+    expect(pkg.version).toBe('0.7.2');
     const hash = vendoredSdkSha256();
     expect(hash, `byte hash ${hash}`).toBe(
-      '2dad367f29b0a9e6698ac828e8ef0708c081d0c50c53c728dd99f149a689d152',
+      '0527345eae290887afc455b1b96b7b9d058d3cdac88967c25b958a4320e24b99',
     );
     const manifest = vendoredSdkManifestSha256();
     expect(manifest, `manifest ${manifest}`).toBe(
-      '6832a14272d64a66e012f8c91846d0873cd52f888747a0d1e40837b1bb647ecf',
+      '33eb416599f2487af716cf57cec2a0a0aa06fbb49976a984ae3df2e526221f0b',
     );
     const iife = createHash('sha256')
       .update(readFileSync('vendor/hub-sdk/dist/hub-sdk.iife.js'))
       .digest('hex');
     expect(iife, `iife ${iife}`).toBe(
-      '092603b61a3511fbbcaa3b674b16f02b24d581752e1fa1dc69eeb577bc5ae5e8',
+      '770e8e1b41ad1abef33eb0d04ef9c7eec8fda723336e5149a7809d902042013c',
     );
     const pin = JSON.parse(
       new TextDecoder().decode(readFileSync('vendor/hub-sdk/SOURCE.pin.json')),
     ) as { version: string; iifeSha256: string; global: string };
-    expect(pin.version).toBe('0.7.0');
+    expect(pin.version).toBe('0.7.2');
     expect(pin.global).toBe('HubSDK');
     expect(pin.iifeSha256).toBe(iife);
   });

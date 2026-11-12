@@ -89,6 +89,17 @@ export function recentErrors(guard: CrashGuard, max: number): () => unknown[] {
   return () => list.slice();
 }
 
+/**
+ * The canvases the screenshot copies directly: only the WebGL world view. Everything else (the
+ * HTML HUD, panels, dialogs, world select) is drawn over it by the SDK, and that includes the
+ * minimap and compass canvases, so they keep their round frame and sit in the right order with the
+ * HUD around them. Copied directly they came out as squares with no border. Before the world view
+ * exists (world select) the list is empty and the screenshot is the HTML alone.
+ */
+export function gameCanvases(): HTMLCanvasElement[] {
+  return Array.from(document.querySelectorAll<HTMLCanvasElement>('canvas.game-canvas'));
+}
+
 /** Install the shortcut and the window. Call once, before the game adds its key listeners. */
 export function createFeedback(sdk: HubSdk): GameFeedback {
   let hooks: FeedbackGameHooks | null = null;
@@ -109,6 +120,7 @@ export function createFeedback(sdk: HubSdk): GameFeedback {
         simVersion: SIM_VERSION,
       }),
     beforeCapture: () => hooks?.render(),
+    canvases: gameCanvases,
     errors,
     onOpen: () => hooks?.inputHeld(true),
     onClose: () => hooks?.inputHeld(false),

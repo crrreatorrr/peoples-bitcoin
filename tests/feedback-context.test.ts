@@ -1,8 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { START_ZONE_ID, TICK_MS } from '../src/config/balance';
 import { buildFeedbackContext, newQuestSteps } from '../src/game/feedbackContext';
 import { CrashGuard } from '../src/game/crash';
-import { recentErrors } from '../src/game/feedback';
+import { gameCanvases, recentErrors } from '../src/game/feedback';
 import { createGameState, type GameState } from '../src/sim/state';
 import { xpForLevel } from '../src/sim/xp';
 import { content } from './helpers';
@@ -110,5 +111,29 @@ describe('recent errors for a note', () => {
     guard.report(new Error('two'), 'frame'); // also the fatal report, which is not listed twice
     guard.report(new Error('three'), 'error');
     expect(errors().map((e) => (e as { message: string }).message)).toEqual(['two', 'three']);
+  });
+});
+
+describe('feedback screenshot', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('copies only the world view directly, so the HUD canvases are drawn with the HTML', () => {
+    const world = { className: 'game-canvas' };
+    const asked: string[] = [];
+    vi.stubGlobal('document', {
+      querySelectorAll: (selector: string) => {
+        asked.push(selector);
+        return selector === 'canvas.game-canvas' ? [world] : [];
+      },
+    });
+    expect(gameCanvases()).toEqual([world]);
+    expect(asked).toEqual(['canvas.game-canvas']);
+  });
+
+  it('loads Google Fonts with CORS, so the screenshot can embed them', () => {
+    const html = new TextDecoder().decode(readFileSync('index.html'));
+    const links = html.match(/<link[^>]*fonts\.googleapis\.com\/css2[^>]*>/g) ?? [];
+    expect(links.length).toBe(1);
+    expect(links[0]).toContain('crossorigin="anonymous"');
   });
 });
