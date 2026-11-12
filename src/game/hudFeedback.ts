@@ -13,33 +13,43 @@ const POCKET_LABEL: Record<StreamReason, string> = {
 };
 
 export interface WalletFraction {
-  /** Fractions of a Ticket earned but not yet a whole Ticket, all sources added up. */
-  total: number;
-  /** The fullest pocket's progress to its next whole Ticket, 0..1. */
+  /** The fullest pocket's progress to its next whole Ticket, 0..1 (0 when all are empty). */
   progress: number;
+  /** Which source that pocket is ("loot", "favors" or "sales"), or null when all are empty. */
+  lead: string | null;
   /** One line per pocket that holds something, e.g. "loot 0.36". */
   parts: string[];
 }
 
 /**
  * Each repeatable source (loot, favors, sales) keeps its own fraction and pays a Ticket when
- * it fills. Standalone play keeps them in `offlineRemainder`; a hub session in the stream pockets.
+ * it fills, so the fractions are never added up: 0.22 of loot and 0.38 of sales are not 0.60
+ * of a Ticket, and two pockets can hold more than 1 between them with no Ticket due. The HUD
+ * shows the fullest pocket, which is the next Ticket to arrive, and lists the rest in a tooltip.
+ * Standalone play keeps them in `offlineRemainder`; a hub session in the stream pockets.
  */
 export function walletFraction(state: GameState): WalletFraction {
   const ledger = state.player.ledger;
   const hub = state.hubSession.mode === 'hub';
-  let total = 0;
   let progress = 0;
+  let lead: string | null = null;
   const parts: string[] = [];
   for (const reason of STREAM_REASONS) {
     const raw = hub ? ledger.streams[reason].remainder : ledger.offlineRemainder[reason];
     const value = Number.isFinite(raw) ? Math.min(Math.max(raw, 0), 0.999999) : 0;
     if (value < 0.005) continue;
-    total += value;
-    progress = Math.max(progress, value);
-    parts.push(`${POCKET_LABEL[reason]} ${value.toFixed(2)}`);
+    if (value > progress) {
+      progress = value;
+      lead = POCKET_LABEL[reason];
+    }
+    parts.push(`${POCKET_LABEL[reason]} ${walletFractionText(value)}`);
   }
-  return { total, progress, parts };
+  return { progress, lead, parts };
+}
+
+/** Two decimals, capped at "0.99": a pocket that read "1.00" would already have paid its Ticket. */
+export function walletFractionText(value: number): string {
+  return Math.min(0.99, Math.round(value * 100) / 100).toFixed(2);
 }
 
 /** Whether HP is at or under the warning line (UI.lowHpWarnPct of the maximum) and above 0. */

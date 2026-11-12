@@ -5,7 +5,7 @@
  */
 import { MOVEMENT, SUMMONING, UI } from '../config/balance';
 import { COIN_TICKER } from '../config/branding';
-import { walletFraction } from '../game/hudFeedback';
+import { walletFraction, walletFractionText } from '../game/hudFeedback';
 import { maxHp, type GameState } from '../sim/state';
 import { span } from './tooltips';
 
@@ -14,7 +14,7 @@ const amount = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
 export class Hud {
   private readonly wallet = document.createElement('div');
   private readonly walletText = span('ticker-wallet-text', '');
-  /** The fraction of a Ticket earned but not yet whole, e.g. "+0.28". */
+  /** The fullest source's part-Ticket and its name, e.g. "+0.38 sales". Sources are never added. */
   private readonly walletPart = span('ticker-fraction', '');
   /** Thin bar: the fullest source's progress to its next whole Ticket. */
   private readonly walletBar = document.createElement('div');
@@ -81,16 +81,19 @@ export class Hud {
   update(state: GameState): void {
     const tickets = state.player.currencies.tickets;
     const part = walletFraction(state);
-    const walletKey = `${tickets}|${part.total.toFixed(2)}|${part.progress.toFixed(2)}`;
+    const walletKey = `${tickets}|${part.parts.join('|')}`;
     if (walletKey !== this.walletKey) {
       this.walletKey = walletKey;
       this.walletText.textContent = `Wallet: ${amount.format(tickets)} ${COIN_TICKER}`;
-      const show = part.parts.length > 0;
-      this.walletPart.textContent = show ? ` +${part.total.toFixed(2)}` : '';
+      const show = part.lead !== null;
+      this.walletPart.textContent = show
+        ? ` +${walletFractionText(part.progress)} ${part.lead}`
+        : '';
       this.walletBar.hidden = !show;
-      this.walletFill.style.width = `${Math.round(part.progress * 100)}%`;
+      this.walletFill.style.width = `${Math.floor(part.progress * 100)}%`;
       const tip = show
-        ? `Part-Tickets earned so far: ${part.parts.join(', ')}. Each fills up to a whole Ticket.`
+        ? `Toward the next Ticket, by source: ${part.parts.join(', ')}. ` +
+          'Each source fills its own Ticket; they do not add up.'
         : '';
       this.wallet.title = tip;
       this.walletBar.title = tip;

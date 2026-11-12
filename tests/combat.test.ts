@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { COMBAT, TICKETS } from '../src/config/balance';
 import {
   combatLevel,
+  damageEnemy,
+  dropUsdMultiplierFor,
   hitChance,
   inAttackRange,
   maxHit,
@@ -10,7 +12,7 @@ import {
 import { attackProfile } from '../src/sim/equipment';
 import { hasLineOfSight } from '../src/sim/grid';
 import { countItem } from '../src/sim/inventory';
-import { newEnemy, type GameState } from '../src/sim/state';
+import { newEnemy, type GameState, type SimEvent } from '../src/sim/state';
 import { runTick } from '../src/sim/tick';
 import { changeZone } from '../src/sim/zones';
 import { xpForLevel } from '../src/sim/xp';
@@ -93,6 +95,50 @@ describe('fighting', () => {
     expect(carry).toBeLessThanOrEqual((max * TICKETS.dropUsdMultiplier) / TICKETS.usdPerTicket);
     const loot = messages(events).find((m) => m.startsWith('You loot '));
     expect(loot).toBe(`You loot ${carry.toFixed(2)} Tickets.`);
+  });
+
+  it('the coin bonus fades as the better of Shooting and Melee goes from 65 to 75', () => {
+    const { fromLevel, toLevel, multiplier } = TICKETS.dropUsdFade;
+    expect([fromLevel, toLevel, multiplier]).toEqual([65, 75, 1]);
+    const full = TICKETS.dropUsdMultiplier;
+    const ordinary = content().enemies.get('enemy_bear_raider')!;
+    const at = (shooting: number, melee = 1) =>
+      dropUsdMultiplierFor(ordinary, { shooting: xpForLevel(shooting), melee: xpForLevel(melee) });
+    expect(dropUsdMultiplierFor(ordinary, {})).toBe(full);
+    expect(at(1)).toBe(full);
+    expect(at(60)).toBe(full);
+    expect(at(fromLevel)).toBe(full);
+    expect(at(70)).toBeCloseTo((full + multiplier) / 2);
+    expect(at(toLevel)).toBe(multiplier);
+    expect(at(99)).toBe(multiplier);
+    // The better attack skill counts, whichever weapon is in hand.
+    expect(at(1, 70)).toBeCloseTo((full + multiplier) / 2);
+    expect(at(40, 99)).toBe(multiplier);
+    // It only ever goes down with level.
+    for (let lv = 2; lv <= 99; lv++) expect(at(lv)).toBeLessThanOrEqual(at(lv - 1));
+    // A boss is fought once for its quest, so it always pays the full bonus.
+    const boss = content().enemies.get('enemy_captain_motion')!;
+    expect(dropUsdMultiplierFor(boss, { shooting: xpForLevel(99) })).toBe(full);
+  });
+
+  it('a Margin Caller pays its table as written at Shooting 75, and four times that at 60', () => {
+    const [min, max] = content().drops.get('drops_margin_caller')!.usd;
+    const coinFor = (shooting: number) => {
+      const { state, ctx } = newGame(11);
+      changeZone(state, ctx, 'zone_trenches', { x: 20, y: 115 }, []);
+      state.player.skills.shooting = xpForLevel(shooting);
+      const target = state.zone.enemies.find((e) => e.defId === 'enemy_margin_caller')!;
+      const events: SimEvent[] = [];
+      damageEnemy(state, ctx, target, 9999, events);
+      const coin = state.player.currencies.tickets + state.player.ledger.offlineRemainder.pb_drop;
+      expect(messages(events).some((m) => m.startsWith('You loot '))).toBe(true);
+      return coin * TICKETS.usdPerTicket;
+    };
+    const late = coinFor(75);
+    expect(late).toBeGreaterThanOrEqual(min);
+    expect(late).toBeLessThanOrEqual(max);
+    // Same seed, same roll: only the multiplier differs.
+    expect(coinFor(60)).toBeCloseTo(late * TICKETS.dropUsdMultiplier);
   });
 
   it('Defense XP is COMBAT.defenseXpPerDamageTaken per point of damage taken', () => {

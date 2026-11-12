@@ -1,9 +1,9 @@
 /** Boss mechanics beyond adds (src/sim/bossMechanics.ts): falling sludge, the shouted ticker, the rage-quit run. */
 import { describe, expect, it } from 'vitest';
-import { BOSSES, CHAT } from '../src/config/balance';
+import { BOSSES, CHAT, COMBAT } from '../src/config/balance';
 import quickchat from '../src/data/quickchat.json';
 import { answerShout, heckleScale, namesTheCoin } from '../src/sim/bossMechanics';
-import { damageEnemy } from '../src/sim/combat';
+import { damageEnemy, maxHit } from '../src/sim/combat';
 import { isWalkable } from '../src/sim/grid';
 import {
   maxHp,
@@ -339,7 +339,7 @@ interface Kit {
   weapon: string;
   armor: Record<string, string>;
   food: string;
-  style?: 'rapid';
+  style?: 'accurate' | 'rapid' | 'longrange';
 }
 
 const CAMPAIGN = {
@@ -465,18 +465,29 @@ describe('boss duels with the mechanics', () => {
     expect(silent.wins).toBeLessThan(answer.wins);
   });
 
-  it('Captain Motion: Shooting 45 and the rifle on Rapid can finish him; letting him run cannot', () => {
-    const kit: Kit = {
-      boss: 'enemy_captain_motion',
-      skills: { shooting: 45, melee: 30, hitpoints: 40, defense: 30 },
-      weapon: 'gun_treasury_rifle',
-      armor: FLAK,
-      food: 'item_tp_mic_drop',
-      style: 'rapid',
-    };
-    const chase = tally(kit, true);
-    const wait = tally(kit, false);
-    expect(chase.wins).toBeGreaterThanOrEqual(SEEDS.length / 2);
-    expect(wait.wins).toBe(0);
+  it('Captain Motion: at Shooting 45 the rifle can finish him on any style; letting him run cannot', () => {
+    // Tuned on 200 seeds a style to win about 60% (Accurate), 74% (Rapid) and 60% (Longrange)
+    // with a pack of Mic Drops. Eight seeds only pin that each style stays a real fight.
+    for (const style of ['accurate', 'rapid', 'longrange'] as const) {
+      const kit: Kit = {
+        boss: 'enemy_captain_motion',
+        skills: { shooting: 45, melee: 30, hitpoints: 40, defense: 30 },
+        weapon: 'gun_treasury_rifle',
+        armor: FLAK,
+        food: 'item_tp_mic_drop',
+        style,
+      };
+      expect(tally(kit, true).wins, style).toBeGreaterThanOrEqual(3);
+      // Holding fire while he runs never wins on any style (he returns at 30% each time);
+      // one style is enough to pin it, since those duels run to the tick limit.
+      if (style === 'rapid') expect(tally(kit, false).wins).toBe(0);
+    }
+  });
+
+  it('Captain Motion hits hard and slowly: a swing every 5 ticks for up to 17', () => {
+    const def = content().enemies.get('enemy_captain_motion')!;
+    expect(def.speed).toBe(5);
+    expect(maxHit(def.strength + COMBAT.levelOffset, def.damage)).toBe(17);
+    expect(def.hp).toBe(190);
   });
 });

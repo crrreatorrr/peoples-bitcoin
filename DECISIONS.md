@@ -989,3 +989,66 @@ point, it was tuned with the plan's simulations (rebuilt outside the repo, as be
 - **D3**, as decision 3 above.
 - **H1–H3** are hub-side or need the hub server; nothing in this repo changed for them.
 - **Boss weapon prices** were not halved here: `shop_prices.tickets.json` is copied from the hub.
+
+## Balance follow-up (2026-11-12)
+
+QA on the gameplay improvement plan left three things open. The simulations were rebuilt outside
+the repo as before (plan section 2); two seeds a row, two game hours each, fixed levels, HP
+topped up below half, Hitpoints = level − 5, Defense = level − 15, armor for that Defense.
+"Total" is coin plus the Terminal sale value of every item drop, which overstates what a player
+keeps (Rounds get fired, food gets eaten).
+
+**The combat coin bonus fades with the killer's level**
+
+- The request suggested a multiplier per tier or per enemy. That does not hold: with ×4 on every
+  table the Diamond Hands Minigun (one shot a tick, Shooting 75) farms whatever it is pointed
+  at. Measured at Shooting 75 / 90: Margin Callers 2,450 / 2,640 Tickets an hour, Bear Raiders
+  1,810 / 2,010, Rug Pullers 1,740 / 1,870, against 1,250 for the Broker. Cutting only the Margin
+  Caller table moves the farm to Bear Raiders; cutting the Bear Raider and Rug Puller tables far
+  enough takes the bonus away from the Shooting 45 to 60 player it was made for.
+- So the rule keys on the looter: `TICKETS.dropUsdFade` = { fromLevel 65, toLevel 75,
+  multiplier 1 }. Ordinary enemies pay `dropUsdMultiplier` (4) while the better of the looter's
+  Shooting and Melee levels is 65 or less, then a straight line down to ×1 at 75, the Minigun's
+  level. `dropUsdMultiplierFor` in `src/sim/combat.ts`. The better attack skill is used, not the
+  combat level, so a low-Defense character cannot keep the bonus and Melee is treated the same.
+- **Bosses always pay ×4.** Every boss is quest-gated and leaves after its step, so its coin is
+  paid once and cannot be farmed.
+- Result: every row up to Shooting 65 is unchanged (Bear Raiders at 50: 345 total; Rug Pullers
+  at 60: 640). At 75 / 90 the best target is still the hardest one, Margin Callers, at 1,310 /
+  1,410, which is 4% / 13% over the Broker; Bear Raiders 930 / 1,030, Rug Pullers 860 / 920.
+  Between 65 and 75 coin per kill drops as the level rises (Rug Pullers with the Gremlin Blaster:
+  about 550 total at 70 against 640 at 60). That dip is the cost of ending the subsidy before the
+  Minigun rather than at it.
+- Non-combat, for comparison: Broker 870 / 1,110 / 1,250 at Lobbying 40 / 50 / 60 and flat from
+  there (the success chance is capped); Molten Hash 890 at Mining 50; Veteran lobbying 770 at 39.
+- Not changed: the Minigun itself. It does about 2.7 times the Gremlin Blaster's damage per tick
+  at the same level, which is the root of the kill rates above. It is a weapon stat, not a
+  payout, and was left for a balance pass of its own (TODO.md).
+
+**Captain Motion hits harder and slower, with less HP**
+
+- `enemies.json`: HP 220 → 190, speed 3 → 5, strength 45 → 75, damage 40 → 70 (max hit 9 → 17).
+  The flee numbers (10%, 40 ticks, back at 30%) are unchanged.
+- Why not just less HP or less damage: Rapid fires 25% faster, and the old fight was pure
+  attrition over about 430 ticks, so anything that let Accurate win half the time let Rapid win
+  nearly always (200 seeds, Shooting 45, 27 Mic Drops: HP 180 alone gave 75% / 97% / 73%). Bigger,
+  rarer hits make the fight shorter and swingier, which narrows the gap between styles without
+  touching the styles.
+- Shooting 45, Hitpoints 40, Defense 30, Flak, Treasury Rifle, 27 Mic Drops, eating under 60%:
+  20 seeds, Accurate / Rapid / Longrange won 5 / 14 / 5 before and 11 / 14 / 11 after. On 200
+  seeds: 37% / 77% / 33% before, 62% / 74% / 61% after. At Shooting 50 it is 20 / 19 / 17 of 20.
+- **Ignoring the mechanic** (holding fire while he runs) still wins 0 of 20 on every style: he
+  comes back at 30% each time and no rifle shot takes him from above 10% to nothing. With the
+  mechanic switched off the same fights are 10 / 12 / 13 of 20, so answering it costs nothing.
+- The fight still uses nearly the whole pack (about 3 Mic Drops left on a win), and it is not
+  winnable on Zingers at 45 (about 10% on Rapid, under 1% otherwise). That is as before; "reasonable food" was read as a pack
+  of the best food the level can make.
+
+**The wallet shows one pocket, not a sum**
+
+- Loot, favors and sales each keep their own remainder and pay their own Ticket, and the hub is
+  told about each stream separately, so the pockets were not merged. The old "+0.60" added them,
+  and could read above 1 with no Ticket due.
+- Now the wallet shows the fullest pocket and names it ("+0.38 sales"); the bar is the same
+  pocket; the tooltip lists every pocket and says they do not add up. Two decimals, capped at
+  0.99. `walletFraction` no longer returns a total.

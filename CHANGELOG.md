@@ -1,5 +1,27 @@
 # Changelog
 
+## Unreleased — Balance follow-up (2026-11-12)
+
+Three fixes from QA on the gameplay improvement plan. The sim, config and data changed, so
+`SIM_VERSION` moves from `6ab4c4a13b686fc9` to `0d77b686c8efbfd5`; the hub needs a new `pb-sim.js`
+(`npm run build:sim`) before online worlds accept this client.
+
+- **The combat coin bonus fades at high level.** Enemy coin is still ×4
+  (`TICKETS.dropUsdMultiplier`) while the better of your Shooting and Melee levels is 65 or less.
+  From 65 to 75 it falls in a straight line to ×1 (`TICKETS.dropUsdFade`) and stays there. Bosses
+  always pay ×4. Before, the Diamond Hands Minigun earned 2,450 Tickets an hour on Margin Callers
+  at Shooting 75 (coin plus loot sold) and 1,810 on Bear Raiders, against 1,250 for the best
+  Lobbying; now Margin Callers are the best combat target at about 1,310 (1,410 at Shooting 90).
+  Nothing changes for a character at 65 or below.
+- **Captain Motion is a fair fight on every style.** HP 220 → 190; he swings every 5 ticks
+  instead of 3 for up to 17 instead of 9. At Shooting 45 with the Treasury Rifle and a pack of
+  Mic Drops, Accurate / Rapid / Longrange won 5 / 14 / 5 of 20 simulated duels before and
+  11 / 14 / 11 now. The rage-quit run is unchanged: hold fire while he runs and you cannot win.
+- **The wallet no longer adds its pockets.** It showed loot 0.22 + sales 0.38 as "+0.60", and
+  could read above 1 with no Ticket paid. It now shows the fullest pocket by name
+  ("+0.38 sales"), the bar shows the same pocket, and the tooltip lists all three. What is
+  reported to the hub per stream is unchanged.
+
 ## Unreleased — In-game feedback window (2026-11-11)
 
 - **N twice opens a feedback window** (also Settings → Send feedback): seven options, an optional
