@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased — Feedback screenshot shows the whole page (2026-11-12)
+
+- **The feedback screenshot now shows what the player saw.** It used to copy only the 3D world,
+  so the chat, side panel, orbs, skill guide, dialogs and world select were missing and reports
+  showed only the background. hub-sdk 0.7.2 (hub branch `claude/nifty-einstein-ptgr08`, `2a6a4bc`)
+  draws the page's HTML over the world view. The minimap and compass are drawn with the HTML, so
+  they keep their round frame, and the Google Fonts link now has `crossorigin="anonymous"` so the
+  screenshot uses the game's two fonts. The vendor also brings 0.7.1's optional `tickets` field on
+  `reportEvent`, which this game does not use. No sim change; `SIM_VERSION` is unchanged.
+
 ## Unreleased — Balance follow-up (2026-11-12)
 
 Three fixes from QA on the gameplay improvement plan. The sim, config and data changed, so

@@ -46,9 +46,10 @@
 
 ## Feedback window (2026-11-11)
 
-- [ ] Re-vendor hub-sdk from hub **main** once the hub's feedback branch
-      (`claude/festive-ptolemy-4mg8oe`, `b9ac308`) merges, and update `VENDOR.md`,
-      `SOURCE.pin.json` and `tests/sdk-hash.test.ts`
+- [ ] Re-vendor hub-sdk from hub **main** once the hub's whole-page screenshot branch
+      (`claude/nifty-einstein-ptgr08`, `2a6a4bc`, hub-sdk 0.7.2) merges, and update `VENDOR.md`,
+      `SOURCE.pin.json` and `tests/sdk-hash.test.ts` (the earlier feedback branch, `b9ac308`, is
+      on hub main now)
 - [ ] Try the window against a real hub session (sent note, id toast, offline queue); so far it
       was driven with a stubbed transport only
 - [ ] The window has no controller navigation: a pad can open it from Settings and close it with

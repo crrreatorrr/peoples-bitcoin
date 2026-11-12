@@ -854,7 +854,8 @@ and the attack (thrown rocks); the rest was chosen here.
 - **Screenshot.** The SDK composites every visible canvas (the low-res WebGL view and the
   minimap) in the frame after the game's own render, so the WebGL canvas is not blank without
   `preserveDrawingBuffer`. `beforeCapture` renders one more frame anyway, which covers a loop that
-  is not running (after the crash panel). DOM panels (chat, side panel) are not in the picture.
+  is not running (after the crash panel). DOM panels (chat, side panel) were not in the picture
+  until hub-sdk 0.7.2; see "Whole-page feedback screenshot" below.
 - **Tunables live in `src/input/config.ts` (`FEEDBACK`), not `config/balance.ts`:** `src/config`
   feeds the sim version hash, and a change there would lock clients out of online worlds until the
   hub rebuilds `pb_world`, the same reason the controller tunables are there.
@@ -1052,3 +1053,26 @@ keeps (Rounds get fired, food gets eaten).
 - Now the wallet shows the fullest pocket and names it ("+0.38 sales"); the bar is the same
   pocket; the tooltip lists every pocket and says they do not add up. Two decimals, capped at
   0.99. `walletFraction` no longer returns a total.
+
+## Whole-page feedback screenshot (2026-11-12)
+
+- **The screenshot shows the whole page.** Players' notes showed only the 3D world: the chat, side
+  panel, orbs, skill guide and world select are HTML, and 0.7.0 copied only canvases. hub-sdk 0.7.2
+  (hub branch `claude/nifty-einstein-ptgr08` at `2a6a4bc`, not hub main yet) draws the page's HTML
+  over the canvases with a vendored modern-screenshot, loaded on demand (its own Vite chunk).
+- **Only the world view is copied directly** (`canvases: gameCanvases`, `canvas.game-canvas`). By
+  default the SDK copies every canvas, which included the minimap and compass: they came out as
+  squares with map pixels in the corners and without their stone border, because a copied canvas
+  is drawn at its box and left out of the HTML. Named this way, those two are drawn as part of the
+  HTML with their round frame. On world select there is no world view yet, so the list is empty
+  and the screenshot is the HTML alone.
+- **Google Fonts link has `crossorigin="anonymous"`.** Without it the stylesheet cannot be read to
+  embed VT323 and Press Start 2P, and the screenshot falls back to a system font (checked on
+  world select). Google serves the CSS and fonts with CORS headers,
+  so the page itself is unchanged.
+- **No `preserveDrawingBuffer`.** The only WebGL canvas is the world view, which the SDK copies in
+  the frame after the game's render (and `beforeCapture` renders once more). The other canvases
+  are 2D. Checked in Chromium (SwiftShader): world select, the world with the HUD, and the world
+  with the skill guide open all matched a page screenshot of the same moment, in dev and in the
+  production build. The one visible difference is the chat line's placeholder text, which the
+  library draws in the input's text color instead of the grey placeholder color.
