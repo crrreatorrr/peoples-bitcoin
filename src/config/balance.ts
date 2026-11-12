@@ -122,7 +122,8 @@ export const BOSSES = {
    * Captain Motion (`'flee'`): at or below `atHpShare` of his HP he stops fighting and runs
    * for the north barricade. Finish him within `ticks` or he comes back with at least
    * `returnHpShare` of his HP. (The plan's 20 ticks and 50% made the Shooting 45 rifle duel
-   * unwinnable in simulation; 40 and 30% keep it where it was. See DECISIONS.md.)
+   * unwinnable in simulation. His own numbers in enemies.json are tuned with these: see
+   * DECISIONS.md "Balance follow-up (2026-11-12)".)
    */
   flee: {
     atHpShare: 0.1,
@@ -231,9 +232,19 @@ export const TICKETS = {
   exchangeMax: 500,
   /**
    * Every enemy coin roll (drop table `usd`) is multiplied by this before it becomes Tickets,
-   * bosses included, so fighting pays for the gear fighting needs.
+   * so fighting pays for the gear fighting needs. Bosses always pay it (a boss is fought once,
+   * for its quest). For ordinary enemies it fades with the killer's level: see `dropUsdFade`.
    */
   dropUsdMultiplier: 4,
+  /**
+   * The bonus is a subsidy for the levels where gear is dear. As the better of the killer's
+   * Shooting and Melee levels goes from `fromLevel` to `toLevel`, the multiplier on ordinary
+   * enemies falls in a straight line from `dropUsdMultiplier` to `multiplier`, and stays there.
+   * `toLevel` is the Diamond Hands Minigun's level: with it and ×4, Bear Raiders, Rug Pullers
+   * and Margin Callers each paid 1,700 to 2,600 Tickets an hour (coin plus loot) against about
+   * 1,250 for the best Lobbying. See DECISIONS.md "Balance follow-up (2026-11-12)".
+   */
+  dropUsdFade: { fromLevel: 65, toLevel: 75, multiplier: 1 },
 } as const;
 
 // ── Bank, ground items, chat, NPCs ───────────────────────────────────────────

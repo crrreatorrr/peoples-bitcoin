@@ -340,6 +340,24 @@ function lootOwner(state: GameState, enemy: EnemyInstance): GameState {
   return view.player && view.zone === state.zone ? view : state;
 }
 
+/**
+ * What an enemy's coin roll is multiplied by for this looter. A boss always pays
+ * TICKETS.dropUsdMultiplier. For an ordinary enemy the bonus fades as the better of the
+ * looter's Shooting and Melee levels crosses TICKETS.dropUsdFade.
+ */
+export function dropUsdMultiplierFor(
+  def: Pick<EnemyDef, 'boss'>,
+  skills: Record<string, number>,
+): number {
+  const full = TICKETS.dropUsdMultiplier;
+  if (def.boss) return full;
+  const { fromLevel, toLevel, multiplier } = TICKETS.dropUsdFade;
+  const level = Math.max(levelForXp(skills.shooting ?? 0), levelForXp(skills.melee ?? 0));
+  if (level <= fromLevel) return full;
+  if (level >= toLevel) return multiplier;
+  return full + ((multiplier - full) * (level - fromLevel)) / (toLevel - fromLevel);
+}
+
 /** Messages for a looter other than the killer go to the world's `pending` mailbox. */
 function dropLoot(
   state: GameState,
@@ -352,9 +370,10 @@ function dropLoot(
   if (!table) return;
   const events = maybeEvents ?? mailbox(state);
   const [min, max] = table.usd;
-  // Fighting pays TICKETS.dropUsdMultiplier times the table's roll. Every coin drop says
+  // Fighting pays a multiple of the table's roll (dropUsdMultiplierFor). Every coin drop says
   // what it was worth, even when it banks only a fraction of a Ticket.
-  const usd = (min + (max - min) * nextFloat(state.rng)) * TICKETS.dropUsdMultiplier;
+  const usd =
+    (min + (max - min) * nextFloat(state.rng)) * dropUsdMultiplierFor(def, state.player.skills);
   addStreamUsd(state, 'pb_drop', usd);
   if (usd > 0) {
     events.push({
