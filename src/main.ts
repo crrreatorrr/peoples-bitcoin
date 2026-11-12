@@ -17,8 +17,11 @@ import { HubClient } from './hub/client';
 import { clearHubLedger } from './hub/ledgerStore';
 import { claimWriter } from './hub/singleWriter';
 import { GAME_TITLE, PARODY_NOTICE, PRESIDENT_NAME } from './config/branding';
+import { buttonLabel, physicalFor, TAB_OF_ACTION } from './input/bindings';
 import { PAD } from './input/config';
-import { GamepadInput } from './input/gamepad';
+import { Controls, controlsStore } from './input/controls';
+import { GamepadInput, type InputDevice } from './input/gamepad';
+import { BTN } from './input/padlogic';
 import { Keyboard } from './input/keyboard';
 import { PadWorld } from './input/padworld';
 import { attachMouse } from './input/mouse';
@@ -58,6 +61,7 @@ import { createFeedback } from './game/feedback';
 import { newQuestSteps } from './game/feedbackContext';
 import { LocalDriver, type GameDriver } from './game/driver';
 import { LowHpWatch } from './game/hudFeedback';
+import { PauseClock } from './game/pause';
 import { applyGodmode, browserStorage, godmodeEnabled } from './game/godmode';
 import { chooseOnline, type OnlineSession } from './game/online';
 import type { ChatOut } from './net/protocol';
@@ -82,6 +86,17 @@ import { Minimap } from './ui/minimap';
 import { OverheadPool, OverheadText } from './ui/overhead';
 import { showCrashPanel } from './ui/crashpanel';
 import { buildSettingsPanel } from './ui/settings';
+import { ControlsScreen } from './ui/controlsScreen';
+import { escapeLeavesFullscreen } from './ui/fullscreen';
+import {
+  requestMainMenu,
+  sessionStore,
+  standardButtons,
+  takeMainMenuRequest,
+} from './ui/menuOptions';
+import { OverlayStack } from './ui/overlay';
+import { PauseMenu } from './ui/pausemenu';
+import { choiceFromUrl } from './ui/testworld';
 import { SidePanel } from './ui/sidepanel';
 import { SkillGuide } from './ui/skillguide';
 import { SkillsPanel } from './ui/skills';
@@ -124,11 +139,26 @@ async function boot(): Promise<void> {
   const crumb = feedback.handle.breadcrumb;
 
   // Controller (and keyboard menu keys) next, so world select can be driven before the game starts.
-  const pad = new GamepadInput();
+  // Its buttons and the keyboard's follow the player's bindings (Controller settings).
+  const controls = new Controls(controlsStore());
+  const pad = new GamepadInput(controls);
   pad.start();
 
+  // Full-screen menus (the game menu, Controller settings): Esc and B go back through these.
+  const overlays = new OverlayStack();
+  let controlsScreen: ControlsScreen | null = null;
+  const openControls = () => {
+    controlsScreen ??= new ControlsScreen({ controls, pad, overlays });
+    controlsScreen.open();
+  };
+
   // With a hub session (or ?net=loopback), world select first; else, or "Play offline", standalone.
-  const session: OnlineSession | null = await chooseOnline(content, bridge, clockNow);
+  // World select is the main menu; "Main menu" from the game reloads into it (offline too).
+  const session: OnlineSession | null = await chooseOnline(content, bridge, clockNow, {
+    show: takeMainMenuRequest(sessionStore()),
+    hub: () => bridge.exit('exit_to_hub'),
+    controls: openControls,
+  });
   const online = session?.driver ?? null;
   /** Owner godmode: standalone wallet kept at GODMODE.tickets (src/game/godmode.ts). */
   const godmode = !online && godmodeEnabled(location.search, browserStorage());
@@ -185,7 +215,16 @@ async function boot(): Promise<void> {
   const canvas = renderer.domElement;
   let view = new ZoneView(state, content, assets, cam.camera, canvas);
   const heads = new ChatHeads(renderer, assets);
-  const resize = () => fitToContainer(renderer, cam.camera, viewport);
+  /** Offline pause (the game menu, the feedback window); online worlds never pause. */
+  const pauseClock = new PauseClock(
+    () => performance.now(),
+    (ms) => (clockOffset -= ms),
+  );
+  const resize = () => {
+    fitToContainer(renderer, cam.camera, viewport);
+    // Paused, the loop draws nothing: redraw so a resized (cleared) canvas isn't left blank.
+    if (pauseClock.paused) renderer.render(view.scene, cam.camera);
+  };
   resize();
   window.addEventListener('resize', resize);
 
@@ -440,7 +479,9 @@ async function boot(): Promise<void> {
       if (open && !trading) crumb('trade_open');
       trading = open;
     });
-    online.kicked.add((reason) => showKick(reason));
+    online.kicked.add((reason) =>
+      showKick(reason, { hub: () => bridge.exit('exit_to_hub'), controls: openControls }),
+    );
   }
   /** Right-click actions on another player. */
   const playerAction = (info: EntityInfo, action: string) => {
@@ -535,10 +576,7 @@ async function boot(): Promise<void> {
               clearHubLedger();
               location.reload();
             },
-            () => {
-              online?.dispose();
-              void hub.exitToHub();
-            },
+            () => pauseMenu.leaveVia(() => leaveFor('hub')),
             online !== null,
             () => feedback.handle.open(),
             {
@@ -556,6 +594,7 @@ async function boot(): Promise<void> {
                 sfx.play('purchase');
               },
             },
+            { mainMenu: () => pauseMenu.leaveVia(() => leaveFor('main')), controls: openControls },
           ),
         ),
       },
@@ -563,9 +602,51 @@ async function boot(): Promise<void> {
   );
   sidePanel.select('inventory');
 
+  // ── Game menu (Esc, the Menu orb, Menu on a controller) ───────────────────
+  /** Main menu: save, then reload into world select (the main menu). Exit to Hub: as before. */
+  function leaveFor(where: 'main' | 'hub'): void {
+    if (where === 'hub') {
+      online?.dispose();
+      void hub.exitToHub();
+      return;
+    }
+    if (online) online.dispose();
+    else {
+      hub.checkpoint();
+      persist();
+    }
+    requestMainMenu(sessionStore());
+    location.reload();
+  }
+  const testWorld = online !== null && choiceFromUrl(location.href) !== null;
+  const pauseMenu = new PauseMenu({
+    overlays,
+    online: online !== null,
+    leaveWarning: testWorld ? 'This test world is not saved. Leave it?' : null,
+    pause: () => pauseClock.hold(),
+    settings: () => {
+      sidePanel.select('settings');
+      if (pad.lastDevice !== 'pointer') pad.focusPanel();
+    },
+    mainMenu: () => leaveFor('main'),
+    hub: () => leaveFor('hub'),
+    controls: openControls,
+  });
+  const menuOrb = document.createElement('button');
+  menuOrb.className = 'orb orb-menu';
+  menuOrb.title = 'Menu (Esc)';
+  menuOrb.setAttribute('aria-label', 'Menu');
+  menuOrb.textContent = '☰';
+  menuOrb.addEventListener('click', () => pauseMenu.open());
+  $('#orbs').prepend(menuOrb);
+
   // ── Mouse & keyboard ───────────────────────────────────────────────────────
-  // A tap of Shift on its own toggles run (Shift = run, as in the other Sproto games).
-  const keyboard = new Keyboard(() => queue({ type: 'toggleRun' }));
+  // A tap of Shift on its own toggles run (Shift = run, as in the other Sproto games). The run
+  // and camera keys can be rebound in Controller settings; menus over the game stop them.
+  const keyboard = new Keyboard(() => queue({ type: 'toggleRun' }), {
+    keyOf: (action) => controls.keyOf(action),
+    active: () => !overlays.isOpen,
+  });
   let hover: { x: number; y: number } | null = null;
 
   attachMouse(canvas, {
@@ -609,6 +690,22 @@ async function boot(): Promise<void> {
       e.preventDefault();
     }
   });
+  /** A window (bank, Terminal, trade...) is on screen. */
+  const windowOpen = () =>
+    [...document.querySelectorAll<HTMLElement>('#hud > div.panel')].some(
+      (el) => el.id !== 'xpcounter' && el.getClientRects().length > 0,
+    );
+  // The right-click and quick-chat menus close themselves on Esc before the handler below runs:
+  // note here whether one was open, so that Esc closes it without also opening the game menu.
+  let escClosedMenu = false;
+  window.addEventListener(
+    'keydown',
+    (e) => {
+      if (e.key === 'Escape')
+        escClosedMenu = menu.isOpen || document.querySelector('.quickchat-menu') !== null;
+    },
+    { capture: true },
+  );
   /** Esc (and B on a controller): close windows, drop a pending "Use", back to Inventory. */
   const escapeAll = () => {
     usingSlot = null;
@@ -621,16 +718,28 @@ async function boot(): Promise<void> {
     sidePanel.select('inventory');
   };
   window.addEventListener('keydown', (e) => {
-    if (/^F\d+$/.test(e.key) && sidePanel.selectByHotkey(e.key)) {
-      e.preventDefault(); // F-keys switch tabs, as in OSRS (F5 must not reload)
+    if (overlays.isOpen) return; // the game menu or Controller settings has the keyboard
+    const typing = document.activeElement === chat.input;
+    const bound = controls.actionForKey(e.key);
+    const tab = bound ? TAB_OF_ACTION[bound] : undefined;
+    // Tab keys (F-keys by default, as in OSRS) work from the chat line too, letters don't.
+    if (tab && !(typing && e.key.length === 1)) {
+      e.preventDefault(); // F5 must not reload
+      sidePanel.select(tab);
       return;
     }
-    if (document.activeElement === chat.input) return;
+    if (typing) return;
     if (e.key === 'Escape') {
+      // In browser full screen this Esc leaves full screen; the game does nothing with it.
+      if (escapeLeavesFullscreen(document) || frozen) return;
+      const busy =
+        escClosedMenu || usingSlot !== null || windowOpen() || sidePanel.currentId !== 'inventory';
       escapeAll();
+      // Nothing left to close: Esc opens the game menu.
+      if (!busy) pauseMenu.open();
     } else if (/^[1-5]$/.test(e.key) && dialogue.choose(Number(e.key) - 1)) {
       e.preventDefault();
-    } else if (e.key === ' ' && dialogue.isOpen) {
+    } else if (bound === 'continue' && dialogue.isOpen) {
       e.preventDefault();
       dialogue.continue();
     } else if (e.key === 'Enter' && dialogue.canContinue) {
@@ -638,12 +747,22 @@ async function boot(): Promise<void> {
       dialogue.continue();
     } else if (e.key === 'Enter') {
       chat.input.focus();
+    } else if (bound) {
+      // A rebound camera or run key (Keyboard handles it): it doesn't start a chat message.
     } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
       chat.input.focus(); // typing anywhere starts a chat message
     }
   });
 
   // ── Controller: the soft target stands in for the cursor in the world ─────
+  let padDevice: InputDevice = 'pointer';
+  /** "Press A to continue", naming the button the player bound to Act. */
+  function continuePrompt(): void {
+    const a = buttonLabel(physicalFor(controls.pad, BTN.A));
+    dialogue.setContinuePrompt(
+      padDevice === 'pad' ? `Press ${a} to continue` : 'Click to continue',
+    );
+  }
   const padMarker = hudRoot.appendChild(
     Object.assign(document.createElement('div'), { className: 'pad-target' }),
   );
@@ -706,10 +825,13 @@ async function boot(): Promise<void> {
     leaveDialogue: () => walk(state.player.pos, false), // walking away closes it, as in OSRS
     hideTooltip: () => tooltip.hide(),
     deviceChanged: (device) => {
-      dialogue.setContinuePrompt(device === 'pad' ? 'Press A to continue' : 'Click to continue');
+      padDevice = device;
+      continuePrompt();
       if (device === 'pad') hover = null; // the soft target owns the mouseover text now
     },
+    openMenu: () => pauseMenu.toggle(),
   });
+  controls.onChange(continuePrompt);
 
   const updateHoverTooltip = () => {
     if (!hover || menu.isOpen || pad.lastDevice === 'pad') return;
@@ -916,18 +1038,19 @@ async function boot(): Promise<void> {
         cam,
         feedback: feedback.handle,
         hubSdk: bridge.sdk,
+        online,
+        controls,
+        pauseMenu,
       },
     });
   }
 
   // ── Main loop: fixed 600 ms ticks (local or the server's), rendering every frame ──
   let lastFrameAt = clockNow();
-  /** The feedback window is up and the world is stopped (offline only). */
-  let feedbackPaused = false;
   // Returns whether the frame counts as good for the crash guard: offline, only a frame in which a
   // tick ran cleanly does, so a tick that always throws (one frame in ~36) still trips the panel.
   const step = (now: number): boolean => {
-    if (frozen || feedbackPaused) return true;
+    if (frozen || pauseClock.paused) return true;
     const ticks = driver.advance(now);
     // Ticks that ran before a failing one keep their events; the failure ends the frame after them.
     const failure = driver.takeFailure();
@@ -1059,17 +1182,11 @@ async function boot(): Promise<void> {
     world: session?.world ?? null,
     // An online world cannot stop. Offline the whole game holds still: no ticks and no frames,
     // and on resume the game clock is wound back by the time the window was up, so tick timing,
-    // animations and effects carry on from the exact moment they stopped.
-    pause: () => {
-      if (online || frozen) return false;
-      const token = { was: feedbackPaused, at: performance.now() };
-      feedbackPaused = true;
-      return token;
-    },
+    // animations and effects carry on from the exact moment they stopped (game/pause.ts; the
+    // game menu shares the same clock, so the two can overlap).
+    pause: () => (online || frozen ? false : pauseClock.hold()),
     resume: (token) => {
-      const t = token as { was: boolean; at: number };
-      if (!t.was) clockOffset -= performance.now() - t.at;
-      feedbackPaused = t.was;
+      if (typeof token === 'function') (token as () => void)();
     },
     render: () => renderer.render(view.scene, cam.camera),
     inputHeld: (held) => {
@@ -1207,18 +1324,24 @@ const KICK_TEXT: Record<string, string> = {
   connection_lost: 'The connection to the world was lost.',
 };
 
-/** The world is gone: say why, and offer to go back to world select. */
-function showKick(reason: string): void {
+/**
+ * The world is gone: say why, and offer the main menu (world select), the hub, Controller
+ * settings and Full screen.
+ */
+function showKick(reason: string, menu: { hub(): void; controls(): void }): void {
   const box = document.createElement('div');
-  box.className = 'world-select';
+  box.className = 'world-select menu-screen kicked';
   const panel = document.createElement('div');
   panel.className = 'panel';
   const text = document.createElement('p');
   text.textContent = KICK_TEXT[reason] ?? `Disconnected (${reason}).`;
-  const again = document.createElement('button');
-  again.textContent = 'Back to world select';
-  again.addEventListener('click', () => location.reload());
-  panel.append(text, again);
+  const options = document.createElement('div');
+  options.className = 'menu-options';
+  // Reloading returns to world select, the main menu.
+  options.append(
+    ...standardButtons('disconnected', { mainMenu: () => location.reload(), ...menu }),
+  );
+  panel.append(text, options);
   box.append(panel);
   document.body.append(box);
 }

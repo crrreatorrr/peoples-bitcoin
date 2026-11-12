@@ -710,7 +710,8 @@ to the hub from it), and for keyboard controls that make sense across the games.
   aiming a walk two tiles ahead, re-aimed once a tile (at most one intent a tick, well under the
   server's flood limit). Y toggles run, B cancels (Esc), View focuses the inventory, Menu opens
   Settings (Save, Exit to Hub, the controls list): the game has no pause, so Settings is its main
-  menu. Camera on the right stick (stick up looks up, not inverted), zoom on the triggers.
+  menu (2026-11-12: Menu now opens the game menu, see "Full screen and standard menus"). Camera
+  on the right stick (stick up looks up, not inverted), zoom on the triggers.
 - **Tunables live in `src/input/config.ts`, not `config/balance.ts`.** `src/config` feeds the sim
   version hash, so a client-only number there would force a world server rebuild (as for the walk
   glide and the gait).
@@ -1053,6 +1054,70 @@ keeps (Rounds get fired, food gets eaten).
 - Now the wallet shows the fullest pocket and names it ("+0.38 sales"); the bar is the same
   pocket; the tooltip lists every pocket and says they do not add up. Two decimals, capped at
   0.99. `walletFraction` no longer returns a total.
+
+## Full screen and standard menus (2026-11-12)
+
+The owner asked, for every game: fill the window, and in every menu offer Main menu, Hub,
+Controller settings and Full screen next to what the menu already had.
+
+- **Filling the window** was already the case (`#viewport` and `#hud` are fixed to the whole
+  window, the page never scrolls, the WebGL view resizes with it). What changed: menu panels are
+  capped at the window height and scroll inside themselves, and below 640 px of height the orbs go
+  in a row beside the minimap, because at 900 × 560 the side panel covered the special orb.
+- **Full screen** is the browser's Fullscreen API, called from the click, key or button that
+  chose the option (it needs a user gesture). Every toggle relabels on `fullscreenchange`, so F11
+  or Esc leaving full screen keep the labels right, and it is hidden where the API is missing.
+  An Esc pressed while in full screen belongs to the browser: the game ignores it (no window
+  closes, no menu opens) and the next Esc does the usual thing.
+- **The game menu is new** (the game had no pause and used the Settings tab as its menu). It
+  opens with Esc once nothing is left to close (windows, a pending Use, the right-click or
+  quick-chat menu, a tab other than Inventory: those come first, as before), with a ☰ orb above
+  the XP orb for the mouse, and with Menu / Start on a controller, which used to open the Settings
+  tab. Resume, Settings (opens the tab), Main menu, Exit to Hub, Controller settings, Full screen.
+- **Pause:** offline the game menu stops the world the way the feedback window does (no ticks,
+  no frames, the game clock wound back on resume). Both now share `PauseClock`
+  (`src/game/pause.ts`), whose holds nest, so the feedback window opened over the menu doesn't
+  restart the game when it closes. An online world can't pause: the menu is titled "Menu" and says
+  the world keeps running; camera keys and the run key do nothing while it is open.
+- **Main menu = world select.** With a hub session the game already starts there. Standalone play
+  had no title screen, and adding one would put a click between the page and the game; instead
+  "Main menu" saves, asks the next load to stop at the main menu (a one-shot `sessionStorage`
+  flag) and reloads. Offline that screen is world select without the list: Play, Exit to Hub,
+  Controller settings, Full screen. In the test world the flag shows world select instead of
+  going straight in. Nothing is lost offline or online (the server keeps the character), so no
+  question is asked; the test world (in memory only) asks inside the menu, so a pad can answer.
+  The owner confirmed (2026-11-12): standalone play keeps opening straight into the game, with no
+  title screen at page load; the main menu appears only when chosen.
+- **Exit to Hub** everywhere reuses `HubClient.exitToHub` in the game (save, send what is
+  pending, then the SDK's exit and the hub URL) and `HubBridge.exit` before the game starts. Like
+  the old Settings button, it does not ask.
+- **Menus covered:** world select (the main menu), the game menu, the Settings tab, the
+  disconnect screen ("Back to world select" became Main menu) and Controller settings (Back and
+  Full screen). Not covered, by judgment: the right-click and quick-chat menus, the game windows
+  (bank, Terminal, Exchange, build, skill guide, quest journal, trade: in-world interfaces closed
+  with Esc / B), the "playing in another tab" notice and the crash panel.
+- **Controller settings** (`src/ui/controlsScreen.ts`) replaces the controls list that was in the
+  Settings tab. Keyboard: camera keys, the run key, continue dialogue and every tab (Inventory
+  included, with no default) can be rebound. Esc (menu and cancel), Enter and Tab (chat), N
+  (feedback), 1-5 (dialogue options), F11 / F12, Alt and the system keys stay fixed. Binding a key
+  another action had swaps the two. A letter bound to an action no longer starts a chat message
+  (like N today); the screen says so. Shift and Ctrl for run act on a tap on their own, any other
+  run key on press. Mouse buttons and the menu keys are listed but fixed.
+- **Controller remap** applies to A, B, X, Y, LB, RB, View, Menu, L3 and R3: each frame's physical
+  presses are turned into logical standard-layout buttons before the rest of `gamepad.ts` reads
+  them, so menus, the world and B-to-go-back all follow the map; the "Press A to continue" prompt
+  names the button bound to Act. The sticks, D-pad and triggers stay fixed (walking, menus,
+  analog zoom). While a binding waits, Esc or the button bound to Back cancels.
+- **Dead zone:** the left stick's (walking) moves from 5 % to 50 % in 5 % steps, default
+  `PAD.leftDeadzone`. The game has no vibration, so there is no vibration switch.
+- **Storage:** `localStorage['peoples-bitcoin.controls']`, versioned JSON, every access in
+  try/catch (blocked storage means defaults for the visit). A save with a key bound twice, a
+  reserved key or two actions on one button is dropped whole rather than half-applied.
+- **Input layer only.** Bindings decide which existing action a key or button runs; the sim gets
+  the same intents. Nothing under `src/sim`, `src/server`, `src/config`, `src/data` or
+  `src/net/protocol.ts` changed, so `SIM_VERSION` stays `0d77b686c8efbfd5`. The new tunables
+  (`CONTROLS` in `src/input/config.ts`) live there and not in `config/balance.ts` for the same
+  reason as the other controller numbers.
 
 ## Whole-page feedback screenshot (2026-11-12)
 

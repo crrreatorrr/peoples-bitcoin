@@ -1,4 +1,5 @@
 import { PARODY_NOTICE } from '../config/branding';
+import { standardButtons } from './menuOptions';
 import { buildTestWorldPanel } from './testworld';
 /** What the Settings tab needs to show and change the sound. */
 export interface SoundControls {
@@ -48,7 +49,17 @@ function buildSoundRow(sound: SoundControls): HTMLElement {
   return row;
 }
 
-/** Settings tab: manual save, feedback, sound, reset progress, a test world with AI players, and controls. */
+/** Main menu and Controller settings, which the Settings tab offers next to Exit to Hub. */
+export interface SettingsMenu {
+  mainMenu(): void;
+  controls(): void;
+}
+
+/**
+ * Settings tab: manual save, the standard menu options (Exit to Hub, Main menu, Controller
+ * settings, Full screen), feedback, sound, reset progress and a test world with AI players. The
+ * controls list moved to Controller settings, which can also remap them.
+ */
 export function buildSettingsPanel(
   onSave: () => void,
   onReset: () => void,
@@ -56,6 +67,7 @@ export function buildSettingsPanel(
   online = false,
   onFeedback?: () => void,
   sound?: SoundControls,
+  menu?: SettingsMenu,
 ): HTMLElement {
   const el = document.createElement('div');
   el.className = 'settings';
@@ -74,44 +86,33 @@ export function buildSettingsPanel(
     if (confirm('Start a new term? All progress in this browser will be lost.')) onReset();
   });
 
-  const exit = document.createElement('button');
-  exit.className = 'stone-btn';
-  exit.textContent = 'Exit to Hub';
-  exit.addEventListener('click', onExit);
+  const standard = menu
+    ? standardButtons(
+        'settings',
+        { mainMenu: menu.mainMenu, hub: onExit, controls: menu.controls },
+        'stone-btn',
+      )
+    : [exitButton(onExit)];
 
   const feedback = document.createElement('button');
   feedback.className = 'stone-btn';
   feedback.textContent = 'Send feedback';
   feedback.addEventListener('click', () => onFeedback?.());
 
-  const help = document.createElement('ul');
-  help.className = 'controls-help';
-  for (const line of [
-    'Left-click: walk / default action',
-    'Right-click: all options',
-    'Middle-drag, arrow keys, sideways swipe: camera',
-    'Mouse wheel: zoom',
-    'Shift-click item: drop',
-    'Tap Shift, or the Motion orb (top right): toggle run',
-    'Space / Enter: continue dialogue; 1-5: pick an option',
-    'Menus and windows: arrow keys move, Enter / Space choose, Esc closes',
-    'F1-F4, F6, F10: tabs; Esc: Inventory; Enter or typing: chat',
-    'N twice (not while typing): send feedback',
-    'Controller: left stick / D-pad walk, A act, X options, LB / RB target',
-    'Controller: right stick camera, LT / RT zoom, Y run, B cancel',
-    'Controller: View inventory, Menu this tab (Exit to Hub)',
-  ]) {
-    const li = document.createElement('li');
-    li.textContent = line;
-    help.append(li);
-  }
-
   const notice = document.createElement('p');
   notice.className = 'parody-notice';
   notice.textContent = PARODY_NOTICE;
 
-  el.append(save, exit, ...(onFeedback ? [feedback] : []));
+  el.append(save, ...standard, ...(onFeedback ? [feedback] : []));
   if (sound) el.append(buildSoundRow(sound));
-  el.append(reset, buildTestWorldPanel(online), help, notice);
+  el.append(reset, buildTestWorldPanel(online), notice);
   return el;
+}
+
+function exitButton(onExit: () => void): HTMLButtonElement {
+  const exit = document.createElement('button');
+  exit.className = 'stone-btn';
+  exit.textContent = 'Exit to Hub';
+  exit.addEventListener('click', onExit);
+  return exit;
 }

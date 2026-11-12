@@ -62,6 +62,10 @@
 - [ ] Owner decision: an optional WASD walking mode (today: click to walk, letters start chat)
 - [ ] Controller text entry (chat, private messages, adding friends) needs an on-screen keyboard;
       quick-chat and the pad's menus cover the rest
+- [ ] Full screen and remapping (2026-11-12): try the Full screen option and Esc / F11 in Chrome,
+      Firefox and Safari on a real screen (headless Chromium entered and left it), and remap a
+      real controller's buttons. Firefox and Safari may pass the Esc that leaves full screen to
+      the page; the game ignores an Esc while in full screen, which covers both cases
 
 ## Online (0.7.0) leftovers
 
