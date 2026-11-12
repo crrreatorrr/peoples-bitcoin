@@ -28,14 +28,27 @@ Then open the URL Vite prints (default http://localhost:5173).
 
 ## Controls
 
-Clicks act on press, like OSRS.
+Clicks act on press, like OSRS. The game fills the browser window at any size; every menu also
+has **Full screen** (the browser's full screen; Esc or F11 leaves it as usual).
+
+- **Game menu:** Esc (once no window is open and the Inventory tab is showing), the ☰ orb above
+  the XP orb, or Menu on a controller. Resume, Settings, Main menu, Exit to Hub, Controller
+  settings, Full screen. Offline it pauses the game; an online world keeps running, and the menu
+  says so. In the test world, Main menu and Exit to Hub ask first (it is not saved).
+- **Main menu** is world select (with a hub session), or offline a screen with Play, Exit to Hub,
+  Controller settings and Full screen. Choosing it from the game saves and reloads into it.
+- **Controller settings** (game menu, Settings tab, world select, the disconnect screen): every
+  key and button and what it does, press-to-bind remapping for the keyboard and the controller (a
+  key or button another action had swaps over; Esc or B cancels), the left-stick dead zone and
+  Reset to defaults. Saved in this browser (`peoples-bitcoin.controls`) and applied at once.
 
 - **Left-click:** walk, or the default action (Mine, Attack, Talk-to, Bank, Take...)
 - **Right-click:** every option for everything under the cursor; the top-left text shows the
   left-click option. Monsters show `(level-N)`, colored against your combat level.
 - **Middle-drag, arrow keys, or a sideways two-finger trackpad swipe:** rotate and tilt the camera
+  (the keys can be rebound)
 - **Mouse wheel:** zoom
-- **F-keys (OSRS defaults):** F1 Combat, F2 Skills, F3 Quests, F4 Equipment, F6 Summoning (Magic position), F10 Settings; Esc returns to Inventory
+- **F-keys (OSRS defaults):** F1 Combat, F2 Skills, F3 Quests, F4 Equipment, F6 Summoning (Magic position), F10 Settings (rebindable, and Inventory can get a key too); Esc returns to Inventory
 - **Minimap:** click to walk, scroll to zoom; click the compass to face north
 - **Chat:** start typing (or press Enter), Enter to send. Space or Enter continues NPC dialogue;
   number keys 1–5 pick a "Select an Option" answer.
@@ -52,7 +65,8 @@ Clicks act on press, like OSRS.
   Tabs along the top sort the stock (Weapons, Armor, Tools, Food & drinks, Contracts, Materials,
   Travel); each item shows its name and the level it needs, dimmed until you have it.
   Right-click a Treasury terminal and choose Exchange to turn Tickets into Verse (hub session).
-- **Settings → Exit to Hub** leaves for the hub (`VITE_HUB_URL`, default `/hub/`)
+- **Settings → Exit to Hub** leaves for the hub (`VITE_HUB_URL`, default `/hub/`); the Settings
+  tab also has Main menu, Controller settings and Full screen
 - **Settings → Sound:** on/off and Vol − / Vol + (remembered in this browser). Sound starts after
   your first click or key press; the effects are synthesised, so there are no sound files.
 - **Wallet (top-left):** whole Tickets, then the part-Ticket of whichever source is closest to
@@ -71,7 +85,8 @@ Clicks act on press, like OSRS.
 - **Summoning tab:** the active Sproto, its special and Dismiss. With no Sproto out it also lists
   relic Sprotos the hub says you own (Champion Sproto, from Sproto Fighter's Tidebreaker Belt),
   each with a free Summon button
-- **Esc:** close windows and return to the Inventory tab
+- **Esc:** close windows and return to the Inventory tab; with nothing left to close, the game
+  menu. In browser full screen the first Esc only leaves full screen.
 - **N twice: send feedback.** Press N twice quickly (not while typing in chat), or use Settings →
   Send feedback. A small window takes a few options, an optional note and a screenshot from just
   before it opened; Esc closes it and the game carries on exactly where it was. Offline the world
@@ -84,8 +99,10 @@ typing anywhere starts a chat message (see DECISIONS.md "Controller and keyboard
 
 ### Controller
 
-Any controller with the browser's standard mapping works with no setup (Xbox names below;
-PlayStation and Switch buttons work by position). It is detected on its first button press; a
+Any controller with the browser's standard mapping works with no setup (default layout and Xbox
+names below; PlayStation and Switch buttons work by position). A, B, X, Y, the bumpers, View, Menu
+and the stick clicks can be remapped in Controller settings, along with the left-stick dead zone;
+the sticks, D-pad and triggers stay fixed. There is no vibration. It is detected on its first button press; a
 button already held at that moment (the A that chose the hub portal) is ignored until released.
 Mouse and keyboard keep working alongside it, and the prompts follow the last device used.
 
@@ -101,7 +118,7 @@ Mouse and keyboard keep working alongside it, and the prompts follow the last de
 | LT / RT | Zoom out / in | Zoom out / in |
 | Right stick click | Face north | Face north |
 | View | Inventory (focus in the side panel; again to leave) | Inventory |
-| Menu | Settings: Save, **Exit to Hub**, controls (again to leave) | Settings |
+| Menu | The game menu (Main menu, **Exit to Hub**, Controller settings...) | Close the game menu |
 
 The yellow ring in the world marks the soft target and the top-left text shows what A will do.
 Settings → Reset progress and the Add / Del friend and ignore buttons need the mouse or keyboard
