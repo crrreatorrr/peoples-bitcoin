@@ -20,8 +20,18 @@
 - [ ] Moonward Academy: library and potions content (spellbooks, brewing) beyond decoration
 - [ ] Balance pass: XP rates, drop values, Terminal prices, enemy stats (all in data/balance.ts).
       Done 2026-11-11 from `docs/gameplay-improvement-plan.md`: combat coin ×4, Broker pay,
-      Defense XP, idle regen, Med Bay level. Still open: hours to The Way Out (plan decision 4)
+      Defense XP, idle regen, Med Bay level. Done 2026-11-12: the coin bonus fades from level 65
+      to 75, Captain Motion retuned. Still open: hours to The Way Out (plan decision 4)
       and the boss weapon prices, which belong to the hub's price CSV
+- [ ] The Diamond Hands Minigun does about 2.7 times the Gremlin Blaster's damage per tick at the
+      same level (it fires every tick). The coin fade hides it in the economy; the weapon itself
+      still needs a look, along with the spin-up from DESIGN.md §8
+- [ ] Dump Golems pay less per hour than Rug Pullers twelve levels below them (about 370 against
+      640 Tickets at the level each is fought) and need far more healing
+- [ ] Captain Motion at Shooting 45 still takes nearly a full pack of Mic Drops; decide whether
+      the quest should say so or the fight should ask for less food
+- [ ] Melee can stand next to an enemy in the Trenches and never swing (seen by a bot beside
+      Sockpuppets near 14,97); check `inAttackRange` against the trench walls there
 
 ## Gameplay improvement plan leftovers (2026-11-11)
 

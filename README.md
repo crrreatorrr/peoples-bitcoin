@@ -55,8 +55,11 @@ Clicks act on press, like OSRS.
 - **Settings → Exit to Hub** leaves for the hub (`VITE_HUB_URL`, default `/hub/`)
 - **Settings → Sound:** on/off and Vol − / Vol + (remembered in this browser). Sound starts after
   your first click or key press; the effects are synthesised, so there are no sound files.
-- **Wallet (top-left):** whole Tickets, then the fraction earned toward the next one ("+0.28")
-  and a thin bar. Loot, favors and sales each fill their own Ticket.
+- **Wallet (top-left):** whole Tickets, then the part-Ticket of whichever source is closest to
+  paying one ("+0.38 sales") and a thin bar for it. Loot, favors and sales each fill their own
+  Ticket and are never added together; hover for all three.
+- **Coin from kills** is four times the drop table while your better attack skill (Shooting or
+  Melee) is 65 or less, fading to the table as written at 75. Bosses always pay four times.
 - **Boss fights:** marked ground means something is about to land there, so step off it; when
   the Wrong-Namer Chief shouts the wrong name, type the right one ($BITCOIN) or use quick-chat.
 - **Equipment tab:** combat styles, Auto Retaliate; click (or right-click) a slot to remove gear
