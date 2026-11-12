@@ -65,8 +65,6 @@
       Firefox and Safari on a real screen (headless Chromium entered and left it), and remap a
       real controller's buttons. Firefox and Safari may pass the Esc that leaves full screen to
       the page; the game ignores an Esc while in full screen, which covers both cases
-- [ ] Owner decision: a title screen at page load for standalone play (today the main menu only
-      appears when chosen from the game; with a hub session world select is the first screen)
 
 ## Online (0.7.0) leftovers
 

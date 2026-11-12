@@ -1085,6 +1085,8 @@ Controller settings and Full screen next to what the menu already had.
   Controller settings, Full screen. In the test world the flag shows world select instead of
   going straight in. Nothing is lost offline or online (the server keeps the character), so no
   question is asked; the test world (in memory only) asks inside the menu, so a pad can answer.
+  The owner confirmed (2026-11-12): standalone play keeps opening straight into the game, with no
+  title screen at page load; the main menu appears only when chosen.
 - **Exit to Hub** everywhere reuses `HubClient.exitToHub` in the game (save, send what is
   pending, then the SDK's exit and the hub URL) and `HubBridge.exit` before the game starts. Like
   the old Settings button, it does not ask.
