@@ -14,7 +14,7 @@ rebuild.
   never does, the game runs unsaved and standalone and says so in chat.
 - **Device saves never bank Tickets into an account.** Only the live account's own save banks,
   spends or reports to the hub.
-- hub-sdk 0.8.0 (from hub branch `claude/account-progress`; re-vendor from main once it merges).
+- hub-sdk 0.8.0 from hub main at `b7921f2` (metaverse-hub #187).
 
 ## Unreleased — Full screen and standard menus (2026-11-12)
 

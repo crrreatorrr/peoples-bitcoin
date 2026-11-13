@@ -1,8 +1,8 @@
 # Vendored @metaverse/hub-sdk
 
 - repo: https://github.com/crrreatorrr/metaverse-hub
-- branch: claude/account-progress
-- sha: c9d01b3
+- branch: main
+- sha: b7921f2
 - package: packages/hub-sdk @ 0.8.0
 - built with: `node scripts/vendor-sdk.mjs`
 - iife: dist/hub-sdk.iife.js (global HubSDK; classic script, not a CDN import)
@@ -46,9 +46,7 @@ arrives before the join reply. 0.6.4 (hub main at 2a82e9e, PR #117) added the `m
 `sdk.feedbackAccess`, `sdk.submitFeedback`), which `src/game/feedback.ts` uses. 0.7.1 added the
 optional `tickets` field to `reportEvent`'s result (this game's events pay none).
 
-This copy is package 0.8.0 from hub branch `claude/account-progress` at c9d01b3 (metaverse-hub #187), not yet on main.
-Re-vendor from hub main once that branch merges, before this game's account-progress change
-merges. 0.8.0 adds `createProgressStore` and `hubVisitStarting` and raises the cloud save limit to
+This copy is package 0.8.0 from hub main at b7921f2 (metaverse-hub #187). 0.8.0 adds `createProgressStore` and `hubVisitStarting` and raises the cloud save limit to
 16384 bytes. This game uses only `hubVisitStarting` (src/main.ts): its offline save is a world
 snapshot kept per owner (src/hub/saveOwner.ts), not a progress store. Run `vendor-sdk.mjs` with the
 hub worktree as the current directory: esbuild writes cwd-relative module paths into the IIFE's

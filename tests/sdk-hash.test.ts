@@ -53,8 +53,7 @@ export function vendoredSdkManifestSha256(root = 'vendor/hub-sdk'): string {
     .digest('hex');
 }
 
-// Source: crrreatorrr/metaverse-hub claude/account-progress @ c9d01b3 (hub-sdk 0.8.0, metaverse-hub #187). Re-vendor
-// from hub main once that branch merges, and update these hashes.
+// Source: crrreatorrr/metaverse-hub main @ b7921f2 (hub-sdk 0.8.0, metaverse-hub #187).
 describe('vendored hub SDK 0.8.0', () => {
   // Hub main redeems with custom auth plus the server key, then profile.get. It registers
   // no session.claim RPC, so a vendor that calls one never gets a session.
@@ -75,11 +74,11 @@ describe('vendored hub SDK 0.8.0', () => {
     expect(pkg.version).toBe('0.8.0');
     const hash = vendoredSdkSha256();
     expect(hash, `byte hash ${hash}`).toBe(
-      '5392dcb67f678455ea475276178e4eaa4d31f0cdc5bf44f27435ec44970c098f',
+      '6ab5da37d64c2deae5d3170f253b93d0c4b473375aa2ca889e05163d33774775',
     );
     const manifest = vendoredSdkManifestSha256();
     expect(manifest, `manifest ${manifest}`).toBe(
-      'afd73c09d3bcb751244db70c4423e2266375acad2f35fbb2f87ea497d8b1b074',
+      '8aaebdf2746bada8bf8f646f8caaec3782484afc480278abc98ee98ea63e5920',
     );
     const iife = createHash('sha256')
       .update(readFileSync('vendor/hub-sdk/dist/hub-sdk.iife.js'))
