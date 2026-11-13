@@ -1,8 +1,11 @@
 /**
  * One tab writes the save. The newest claim wins; an older tab stops and
  * shows the overlay. M11's server lease replaces this later. Tabs do not
- * merge inventories.
+ * merge inventories. The lock belongs to the save's owner (src/hub/saveOwner.ts): a tab
+ * playing another account's save, or the device save, writes other keys and does not compete.
  */
+import { DEVICE, ownedKey, type SaveOwner } from './saveOwner';
+
 const LOCK_KEY = 'peoples-bitcoin.writer';
 const CHANNEL = 'peoples-bitcoin-writer';
 
@@ -11,8 +14,11 @@ interface WriterClaim {
   at: number;
 }
 
-/** Claims the writer lock. Calls `onLost` if a newer tab takes over. */
-export function claimWriter(onLost: () => void): void {
+/** Claims `owner`'s writer lock. Calls `onLost` if a newer tab takes over. A pending owner saves nothing and claims nothing. */
+export function claimWriter(onLost: () => void, owner: SaveOwner = DEVICE): void {
+  const lockKey = ownedKey(LOCK_KEY, owner);
+  const channelName = ownedKey(CHANNEL, owner);
+  if (!lockKey || !channelName) return;
   const mine: WriterClaim = { id: crypto.randomUUID(), at: Date.now() };
   let writing = true;
   const lose = () => {
@@ -25,18 +31,18 @@ export function claimWriter(onLost: () => void): void {
   };
 
   try {
-    const existing = readClaim(JSON.parse(localStorage.getItem(LOCK_KEY) ?? 'null') as unknown);
+    const existing = readClaim(JSON.parse(localStorage.getItem(lockKey) ?? 'null') as unknown);
     if (existing && newerThan(existing, mine)) {
       lose();
       return;
     }
-    localStorage.setItem(LOCK_KEY, JSON.stringify(mine));
+    localStorage.setItem(lockKey, JSON.stringify(mine));
   } catch {
     // Storage blocked: this tab still plays. Another tab cannot see the claim.
   }
 
   try {
-    const channel = new BroadcastChannel(CHANNEL);
+    const channel = new BroadcastChannel(channelName);
     channel.onmessage = (event: MessageEvent<unknown>) => consider(readClaim(event.data));
     channel.postMessage(mine);
   } catch {
@@ -44,7 +50,7 @@ export function claimWriter(onLost: () => void): void {
   }
 
   window.addEventListener('storage', (event) => {
-    if (event.key !== LOCK_KEY || !event.newValue) return;
+    if (event.key !== lockKey || !event.newValue) return;
     try {
       consider(readClaim(JSON.parse(event.newValue) as unknown));
     } catch {
@@ -53,7 +59,7 @@ export function claimWriter(onLost: () => void): void {
   });
 
   try {
-    const raw = localStorage.getItem(LOCK_KEY);
+    const raw = localStorage.getItem(lockKey);
     if (raw) consider(readClaim(JSON.parse(raw) as unknown));
   } catch {
     // The claim we just wrote is enough.

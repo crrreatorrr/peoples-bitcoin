@@ -35,6 +35,7 @@ import {
 } from './bridge';
 import { HubSdkError } from '@metaverse/hub-sdk';
 import { ackSeal, forgetSeal, reconcileSeals, rememberSeal } from './ledgerStore';
+import { DEVICE, type SaveOwner } from './saveOwner';
 import { questEarnWireKey, uuidv7 } from './uuid';
 
 const QUEST_REASON = 'pb_quest';
@@ -54,6 +55,8 @@ export class HubClient {
     private readonly save: () => boolean,
     /** Shared with world select, which may have redeemed the ticket already. */
     private readonly bridge: HubBridge = new HubBridge(),
+    /** Whose save this is; the hub ledger record follows it (src/hub/saveOwner.ts). */
+    private readonly saveOwner: SaveOwner = DEVICE,
   ) {}
 
   /** After the first start, a later start redeems again (a new hub session). */
@@ -119,19 +122,23 @@ export class HubClient {
     const opened: { reason: StreamReason; id: string }[] = [];
     if (this.state.hubSession.mode !== 'hub') return opened;
     // Disk seals win over a stale in-memory pending balance.
-    reconcileSeals(this.state);
+    reconcileSeals(this.state, this.saveOwner);
     for (const reason of STREAM_REASONS) {
       // An open batch keeps its key. New Tickets for this stream stay in pending.
       if (this.state.player.ledger.batches[reason]) continue;
       const id = uuidv7();
       const batch = openStreamBatch(this.state, reason, id);
       if (!batch) continue;
-      const sealed = rememberSeal(this.lockOwner, {
-        id,
-        reason,
-        amount: batch.amount,
-        acked: false,
-      });
+      const sealed = rememberSeal(
+        this.lockOwner,
+        {
+          id,
+          reason,
+          amount: batch.amount,
+          acked: false,
+        },
+        this.saveOwner,
+      );
       if (!sealed) {
         undoStreamBatch(this.state, reason, id);
         continue;
@@ -363,11 +370,15 @@ export class HubClient {
 
   private applyLink(): void {
     const link = this.state.hubSession;
-    link.mode = this.bridge.mode;
-    link.reachable = this.bridge.reachable;
+    // Only the live account's own save banks, spends or reports to the hub. A device save
+    // (or another account's) plays standalone, so its Tickets never reach an account.
+    const owner = this.saveOwner;
+    const mine = owner.kind === 'account' && this.bridge.accountId() === owner.playerId;
+    link.mode = mine ? this.bridge.mode : 'standalone';
+    link.reachable = mine && this.bridge.reachable;
     // Effects and relics apply for this session only. They are not part of the save.
-    link.effects = { ...this.bridge.effects };
-    link.relics = [...this.bridge.relics];
+    link.effects = mine ? { ...this.bridge.effects } : {};
+    link.relics = mine ? [...this.bridge.relics] : [];
   }
 
   private openShopId(): string {
@@ -381,7 +392,7 @@ export class HubClient {
       this.state.player.ledger.appliedSealIds = this.state.player.ledger.appliedSealIds.filter(
         (id) => id !== row.id,
       );
-      forgetSeal(this.lockOwner, row.id);
+      forgetSeal(this.lockOwner, row.id, this.saveOwner);
     }
   }
 
@@ -417,7 +428,7 @@ export class HubClient {
       const result = await this.bridge.earnTickets(amount, reason, id);
       // A 2xx body is success even when capped is true. The server already applied it.
       ackStreamBatch(this.state, reason, id, result.balance);
-      ackSeal(this.lockOwner, id);
+      ackSeal(this.lockOwner, id, this.saveOwner);
       if (!result.capped) this.noteCredit(amount);
       this.save();
     } catch (err) {
@@ -426,7 +437,7 @@ export class HubClient {
       if (isStreamTerminal(code)) {
         console.warn('[hub] earn batch dropped', { reason, id, amount, code });
         dropStreamBatch(this.state, reason, id, this.state.hubSession.serverBalance);
-        ackSeal(this.lockOwner, id);
+        ackSeal(this.lockOwner, id, this.saveOwner);
         const fresh = await this.bridge.getTicketBalance();
         if (fresh != null) this.applySnapshot(fresh);
         this.say('Could not bank Tickets.');

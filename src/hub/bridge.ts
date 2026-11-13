@@ -153,9 +153,25 @@ export class HubBridge {
 
   /** Set once init has run (world select redeems the ticket before the game starts). */
   initialized = false;
+  private running: Promise<void> = Promise.resolve();
 
-  async init(): Promise<void> {
+  /** Resolves when the latest `init` has answered (at once if none ran). Never rejects. */
+  settled(): Promise<void> {
+    return this.running;
+  }
+
+  /** The hub player id while a hub session is live, else null (a standalone id is not an account). */
+  accountId(): string | null {
+    return this.mode === 'hub' ? this.profile?.playerId || null : null;
+  }
+
+  init(): Promise<void> {
     this.initialized = true;
+    this.running = this.redeem();
+    return this.running;
+  }
+
+  private async redeem(): Promise<void> {
     try {
       this.profile = await this.sdk.init(HUB_GAME_ID);
       const saved = sessionStorage.getItem(`hub:${HUB_GAME_ID}:session`);
