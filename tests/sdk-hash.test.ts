@@ -53,7 +53,7 @@ export function vendoredSdkManifestSha256(root = 'vendor/hub-sdk'): string {
     .digest('hex');
 }
 
-// Source: crrreatorrr/metaverse-hub claude/account-progress @ dbbf398 (hub-sdk 0.8.0). Re-vendor
+// Source: crrreatorrr/metaverse-hub claude/account-progress @ c9d01b3 (hub-sdk 0.8.0, metaverse-hub #187). Re-vendor
 // from hub main once that branch merges, and update these hashes.
 describe('vendored hub SDK 0.8.0', () => {
   // Hub main redeems with custom auth plus the server key, then profile.get. It registers
@@ -75,17 +75,17 @@ describe('vendored hub SDK 0.8.0', () => {
     expect(pkg.version).toBe('0.8.0');
     const hash = vendoredSdkSha256();
     expect(hash, `byte hash ${hash}`).toBe(
-      '3d8147b1eb107250f02c8347184b4253bbc396fe969b58f3b0a0f2ecd2cff73b',
+      '5392dcb67f678455ea475276178e4eaa4d31f0cdc5bf44f27435ec44970c098f',
     );
     const manifest = vendoredSdkManifestSha256();
     expect(manifest, `manifest ${manifest}`).toBe(
-      'fd8844c0a2894ec4f64ea8bc7e8add670c37d9f3e0a8072cbc7cd17e6e1d4f22',
+      'afd73c09d3bcb751244db70c4423e2266375acad2f35fbb2f87ea497d8b1b074',
     );
     const iife = createHash('sha256')
       .update(readFileSync('vendor/hub-sdk/dist/hub-sdk.iife.js'))
       .digest('hex');
     expect(iife, `iife ${iife}`).toBe(
-      'c0ea77abad144abfd8f01d8f21c29b5e1d869bfcb4462db318ea3982f591aab4',
+      '833ce281696f9769bd13d284b9d9262957838181cf1ac308358c6b602b21f309',
     );
     const pin = JSON.parse(
       new TextDecoder().decode(readFileSync('vendor/hub-sdk/SOURCE.pin.json')),
