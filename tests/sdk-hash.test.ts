@@ -53,8 +53,9 @@ export function vendoredSdkManifestSha256(root = 'vendor/hub-sdk'): string {
     .digest('hex');
 }
 
-// Source: crrreatorrr/metaverse-hub main @ c6627e5 (hub-sdk 0.7.2, metaverse-hub #183).
-describe('vendored hub SDK 0.7.2', () => {
+// Source: crrreatorrr/metaverse-hub claude/account-progress @ dbbf398 (hub-sdk 0.8.0). Re-vendor
+// from hub main once that branch merges, and update these hashes.
+describe('vendored hub SDK 0.8.0', () => {
   // Hub main redeems with custom auth plus the server key, then profile.get. It registers
   // no session.claim RPC, so a vendor that calls one never gets a session.
   it('redeems the way the merged hub server expects', () => {
@@ -71,25 +72,25 @@ describe('vendored hub SDK 0.7.2', () => {
     ) as {
       version: string;
     };
-    expect(pkg.version).toBe('0.7.2');
+    expect(pkg.version).toBe('0.8.0');
     const hash = vendoredSdkSha256();
     expect(hash, `byte hash ${hash}`).toBe(
-      'b02e5650ad9f882a802136f10b865fc2e360ccfbc3647efab38cd603e41175e1',
+      '3d8147b1eb107250f02c8347184b4253bbc396fe969b58f3b0a0f2ecd2cff73b',
     );
     const manifest = vendoredSdkManifestSha256();
     expect(manifest, `manifest ${manifest}`).toBe(
-      '861b00424bf467381f2e31b125fc905a4068b9c25f02d643dcd8d82e3596e1ae',
+      'fd8844c0a2894ec4f64ea8bc7e8add670c37d9f3e0a8072cbc7cd17e6e1d4f22',
     );
     const iife = createHash('sha256')
       .update(readFileSync('vendor/hub-sdk/dist/hub-sdk.iife.js'))
       .digest('hex');
     expect(iife, `iife ${iife}`).toBe(
-      '770e8e1b41ad1abef33eb0d04ef9c7eec8fda723336e5149a7809d902042013c',
+      'c0ea77abad144abfd8f01d8f21c29b5e1d869bfcb4462db318ea3982f591aab4',
     );
     const pin = JSON.parse(
       new TextDecoder().decode(readFileSync('vendor/hub-sdk/SOURCE.pin.json')),
     ) as { version: string; iifeSha256: string; global: string };
-    expect(pin.version).toBe('0.7.2');
+    expect(pin.version).toBe('0.8.0');
     expect(pin.global).toBe('HubSDK');
     expect(pin.iifeSha256).toBe(iife);
   });
