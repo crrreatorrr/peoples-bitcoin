@@ -14,6 +14,7 @@ import {
   type TicketBalanceResult,
 } from '@metaverse/hub-sdk';
 import { TICKETS } from '../src/config/balance';
+import { HubBridge } from '../src/hub/bridge';
 import { HubClient } from '../src/hub/client';
 import { claimWriter } from '../src/hub/singleWriter';
 import { questEarnWireKey, uuidv5 } from '../src/hub/uuid';
@@ -28,6 +29,8 @@ import { content, give, newGame } from './helpers';
 
 const SAVE_KEY = 'peoples-bitcoin.save';
 const SESSION_KEY = 'hub:peoples-bitcoin:session';
+const SCRIPTED_ACCOUNT = { kind: 'account', playerId: 'p' } as const;
+const LEDGER_KEY = 'peoples-bitcoin.hub-ledger@p';
 
 const holder: { sdk: HubSdk | null } = { sdk: null };
 
@@ -367,7 +370,16 @@ function attach(
 ) {
   holder.sdk = script.asSdk();
   const said: string[] = [];
-  const hub = new HubClient(state, ctx, (text) => said.push(text), queue, save);
+  // The scripted hub's player owns the save: HubClient links only an account's own save.
+  const hub = new HubClient(
+    state,
+    ctx,
+    (text) => said.push(text),
+    queue,
+    save,
+    new HubBridge(),
+    SCRIPTED_ACCOUNT,
+  );
   return { hub, said };
 }
 
@@ -1406,7 +1418,7 @@ describe('earn caps from getTicketBalance', () => {
     saveGame(state);
     const loaded = loadSavedGame(content()).state!;
     expect(loaded.player.ledger.batches.pb_drop).toMatchObject({ id: key, amount: 80 });
-    expect(localStorage.getItem('peoples-bitcoin.hub-ledger')).toContain(key);
+    expect(localStorage.getItem(LEDGER_KEY)).toContain(key);
     script.sessionCapLeft = 0;
     script.earnError = null;
     const { hub: again } = attach(loaded, ctx);
@@ -1632,7 +1644,7 @@ describe('earn caps from getTicketBalance', () => {
       amount: 22,
       retryAtInit: true,
     });
-    expect(localStorage.getItem('peoples-bitcoin.hub-ledger')).toContain(key);
+    expect(localStorage.getItem(LEDGER_KEY)).toContain(key);
     loaded.hubSession.mode = 'hub';
     const { hub: reloaded } = attach(loaded, ctx);
     reloaded.checkpoint();

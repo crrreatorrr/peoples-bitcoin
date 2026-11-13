@@ -12,9 +12,11 @@ import {
   TICK_MS,
   UI,
 } from './config/balance';
-import { HubBridge } from './hub/bridge';
+import { hubVisitStarting } from '@metaverse/hub-sdk';
+import { HUB_GAME_ID, HubBridge } from './hub/bridge';
 import { HubClient } from './hub/client';
 import { clearHubLedger } from './hub/ledgerStore';
+import { resolveSaveOwner, SAVE_OWNER_WAIT_MS, type SaveOwner } from './hub/saveOwner';
 import { claimWriter } from './hub/singleWriter';
 import { GAME_TITLE, PARODY_NOTICE, PRESIDENT_NAME } from './config/branding';
 import { buttonLabel, physicalFor, TAB_OF_ACTION } from './input/bindings';
@@ -135,6 +137,8 @@ async function boot(): Promise<void> {
   // The feedback window (N twice) goes in before every other key listener: its capture listener
   // then sees N first, so the game never does and a lone N does not start a chat message.
   const bridge = new HubBridge();
+  // Read before init redeems the ticket: a hub visit's offline game must never use the device save.
+  const visitStarting = hubVisitStarting(HUB_GAME_ID);
   const feedback = createFeedback(bridge.sdk);
   const crumb = feedback.handle.breadcrumb;
 
@@ -162,7 +166,12 @@ async function boot(): Promise<void> {
   const online = session?.driver ?? null;
   /** Owner godmode: standalone wallet kept at GODMODE.tickets (src/game/godmode.ts). */
   const godmode = !online && godmodeEnabled(location.search, browserStorage());
-  const loaded = online ? null : loadSavedGame(content);
+  // Offline, the save belongs to the hub account playing, or to this browser (src/hub/saveOwner.ts).
+  // Online, the world server keeps the character and nothing is saved here.
+  const saveOwner: SaveOwner = online
+    ? { kind: 'pending' }
+    : await resolveSaveOwner(bridge, visitStarting, SAVE_OWNER_WAIT_MS);
+  const loaded = online ? null : loadSavedGame(content, saveOwner);
   const state: GameState =
     online?.state ?? loaded?.state ?? createGameState(content, START_ZONE_ID, Date.now() >>> 0);
   const local = online ? null : new LocalDriver(state, ctx, clockNow());
@@ -178,24 +187,26 @@ async function boot(): Promise<void> {
   window.addEventListener('pointerdown', unlockAudio, { capture: true });
   window.addEventListener('keydown', unlockAudio, { capture: true });
   const chat = new Chat($('#chatbox'), PRESIDENT_NAME, (text) => queue({ type: 'chat', text }));
-  if (loaded) greet(chat, loaded.status);
+  if (loaded) greet(chat, loaded.status, saveOwner);
   else greetOnline(chat, session!);
   crumb(online ? 'world_join' : 'offline_start', {
     zone: state.zone.id,
-    ...(session ? { world: session.world } : { save: loaded?.status ?? 'none' }),
+    ...(session
+      ? { world: session.world }
+      : { save: loaded?.status ?? 'none', owner: saveOwner.kind }),
   });
   let resetting = false;
   const tabLock = document.querySelector<HTMLElement>('#tab-lock');
   const freeze = () => {
     if (frozen) return;
-    saveGame(state);
+    saveGame(state, saveOwner);
     frozen = true;
     if (local) local.frozen = true;
     tabLock?.removeAttribute('hidden');
   };
   // Online, the server keeps the character and one session per account.
-  if (!online) claimWriter(freeze);
-  const persist = () => !online && !resetting && !frozen && saveGame(state);
+  if (!online) claimWriter(freeze, saveOwner);
+  const persist = () => !online && !resetting && !frozen && saveGame(state, saveOwner);
   const hub = new HubClient(
     state,
     ctx,
@@ -203,6 +214,7 @@ async function boot(): Promise<void> {
     queue,
     persist,
     bridge,
+    saveOwner,
   );
   const openShopId = () =>
     state.player.interface?.kind === 'terminal' ? state.player.interface.shopId : TERMINAL_SHOP_ID;
@@ -563,7 +575,9 @@ async function boot(): Promise<void> {
                 return;
               }
               hub.checkpoint();
-              chat.add(persist() ? 'Game saved.' : 'Saving is unavailable in this browser.');
+              if (persist()) chat.add('Game saved.');
+              else if (saveOwner.kind === 'pending') chat.add(UNSAVED_VISIT, 'warning');
+              else chat.add('Saving is unavailable in this browser.');
             },
             () => {
               if (online) {
@@ -572,8 +586,8 @@ async function boot(): Promise<void> {
               }
               hub.logReset();
               resetting = true;
-              clearSavedGame();
-              clearHubLedger();
+              clearSavedGame(saveOwner);
+              clearHubLedger(saveOwner);
               location.reload();
             },
             () => pauseMenu.leaveVia(() => leaveFor('hub')),
@@ -1198,7 +1212,8 @@ async function boot(): Promise<void> {
     },
   });
   if (frozen) return;
-  if (!online) await hub.start();
+  // A pending owner stays standalone: its game is not saved, so it must not bank or spend Tickets.
+  if (!online && saveOwner.kind !== 'pending') await hub.start();
   if (frozen) return;
   if (godmode) {
     if (state.hubSession.mode === 'hub') {
@@ -1354,7 +1369,11 @@ function greetOnline(chat: Chat, session: OnlineSession): void {
   );
 }
 
-function greet(chat: Chat, status: 'loaded' | 'none' | 'unreadable'): void {
+const UNSAVED_VISIT =
+  'The hub did not answer, so this game is not being saved. Return to the hub to play your own save.';
+
+function greet(chat: Chat, status: 'loaded' | 'none' | 'unreadable', owner: SaveOwner): void {
+  if (owner.kind === 'pending') chat.add(UNSAVED_VISIT, 'warning');
   if (status === 'loaded') {
     chat.add(`Welcome back, ${PRESIDENT_NAME}. Your progress has been restored.`);
     return;

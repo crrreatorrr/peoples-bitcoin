@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased — Offline saves per hub account (2026-11-12)
+
+No sim, config or data file changed, so `SIM_VERSION` stays `0d77b686c8efbfd5` and online worlds need no
+rebuild.
+
+- **Each hub account has its own offline save.** Playing offline from a hub visit saves under
+  `peoples-bitcoin.save@<playerId>`, with its own unreadable-save backup, writer lock and Ticket
+  ledger. A new account on a used browser starts a new game instead of loading the last
+  player's. Saves from before this change, and play without a hub session, stay with the browser
+  and are never given to an account.
+- **The owner is known before the save loads.** A hub visit waits for the hub to answer; if it
+  never does, the game runs unsaved and standalone and says so in chat.
+- **Device saves never bank Tickets into an account.** Only the live account's own save banks,
+  spends or reports to the hub.
+- hub-sdk 0.8.0 (from hub branch `claude/account-progress`; re-vendor from main once it merges).
+
 ## Unreleased — Full screen and standard menus (2026-11-12)
 
 Presentation and input mapping only: no sim, config or data file changed, so `SIM_VERSION` stays

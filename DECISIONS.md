@@ -1141,3 +1141,41 @@ Controller settings and Full screen next to what the menu already had.
   with the skill guide open all matched a page screenshot of the same moment, in dev and in the
   production build. The one visible difference is the chat line's placeholder text, which the
   library draws in the input's text color instead of the grey placeholder color.
+
+## Offline save per hub account (2026-11-12)
+
+- **Owner decided.** Progress belongs to the hub account that earned it. Saves made before this
+  change, and play outside a hub session, stay with the browser ("device") and never move into
+  an account. Online play was already per account: the world server keeps the character.
+- **The offline save is keyed by owner** (`src/hub/saveOwner.ts`). The device keeps
+  `peoples-bitcoin.save`, `.save.unreadable`, `.writer` (and the `peoples-bitcoin-writer`
+  channel), `.hub-ledger` and `.hub-ledger.lock`. An account adds `@<playerId>` to each, so a new
+  account on a used browser starts a new game. Nothing is migrated: the existing keys simply are
+  the device's.
+- **The owner is decided before the save is read.** `hubVisitStarting` (hub-sdk 0.8.0) is read at
+  page start, before `init` can consume the portal ticket. With no visit the owner is the device
+  at once. With one, the game waits for `init` (world select already waited 8 s; this waits up
+  to 12 s more, `SAVE_OWNER_WAIT_MS`): a live session makes it the account, a standalone or
+  failed `init` the device.
+- **Pending: an unanswered hub visit saves nothing.** If `init` still has not answered, the game
+  starts fresh in memory, saves nothing, stays standalone (no Ticket banking, spending or
+  Relic reports) and says so in chat. Loading the device save there would show another person's
+  game on a shared browser, and saving under either key could overwrite the wrong owner's game.
+  It needs `init` to hang past 20 s, which should be rare.
+- **The hub ledger record follows the save.** Its seal ids live in the save's `appliedSealIds`;
+  another owner's record would take Tickets out of this save's pending balance. `HubClient` also
+  links to the hub only when its save belongs to the live account (`applyLink`), so a device save
+  can never bank its Tickets into whichever account is signed in.
+- **Tickets pending in the device save from before this change stay there.** Batches that were
+  sealed but never sent (the SDK outbox still delivers any call it queued) are not sent to an
+  account, by the rule above.
+- **No cloud sync for offline progress.** The snapshot is tens of KB, holds world state that can
+  go backwards, and does not fit `createProgressStore`'s merge model or its 16 KB cloud save. A
+  small projection (completed quests, skill levels) was considered and left out: nothing on
+  another device would read it, because an offline game is defined by its whole snapshot and
+  granting quests or levels without the matching world state would break it. The account's
+  progress that follows it everywhere is its online character. The offline save under an account
+  key stays in that browser.
+- **The wait is not in `config/balance.ts`.** It is a client network timeout like
+  `HUB_INIT_TIMEOUT_MS`, and `src/config` is part of the sim version hash, so putting it there
+  would need a world server rebuild for a client-only number.
