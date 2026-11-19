@@ -107,8 +107,8 @@
       static meshes per prop by material (or instance racks/trees).
 - [ ] Mobile: long-press menu, one-finger camera drag, bottom-drawer panels (Phase 6). Taps already work.
 - [ ] Bundle is ~1 MB (306 KB gzipped; mostly Three.js plus the code-built models); Vite warns at 500 KB. Split the vendor chunk or raise the limit.
-- [ ] Character GLBs total ~9.5 MB and all load at start. Load per zone, or compress meshes with
-      `gltf-transform` (meshopt).
+- [ ] Character GLBs total ~7 MB and all load at start. Load per zone, or compress meshes with
+      `gltf-transform` (meshopt). (Sprite textures no longer preload: 2026-11-19.)
 - [ ] Treasury exit portal once a second zone exists.
 
 ## OSRS features deferred to their phase

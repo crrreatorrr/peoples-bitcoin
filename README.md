@@ -145,8 +145,9 @@ operations; the server runs the 600 ms tick and sends back what you can see. Cha
 fresh and saved on the server (offline saves stay offline).
 
 - **With a hub session** (entering from the hub portal) the game opens on **world select**: World,
-  Players / 100, Quick join (the least full world) and Play offline. Without one, it plays offline
-  as before.
+  Players / 100, Quick join (the least full world) and Offline practice. Offline practice never
+  writes to the hub: no hub Tickets, Verse exchange, relics or leaderboard XP (the save is in this
+  browser and anyone can edit it). Without a hub session it plays offline as before.
 - **`?net=loopback`** (dev): runs a world in the page with bots (`&bots=3`, default 3), so the
   online client can be built and tried without Nakama: `npm run dev`, then
   `http://localhost:5173/play/peoples-bitcoin/?net=loopback&bots=5`. Bots walk and now and then

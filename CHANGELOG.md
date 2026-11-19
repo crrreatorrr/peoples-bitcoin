@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased — Optimization handoff, Phase 0 (2026-11-19)
+
+Client only: no sim, server, config or data file changed in this phase, so `SIM_VERSION` stays
+`0d77b686c8efbfd5`.
+
+- **Faster boot:** the 189 sprite PNGs are no longer fetched and uploaded as GPU textures before
+  the first frame. Ground items load their icon on first drop; the small pixel icons warm into the
+  browser cache once the page is idle. Cold boot to The Treasury: 219 requests / 11.46 MB before,
+  48 requests / 7.83 MB after (Playwright, `vite preview`).
+- **Offline practice:** offline play never writes to the hub, even from a hub visit (it banked
+  Tickets, used the hub shop and exchange, claimed the tutorial relic and posted XP from an
+  editable localStorage save). The world select button reads "Offline practice". The offline
+  ledger code (`src/hub/client.ts`, `src/hub/ledgerStore.ts`) is gone.
+- `HubBridge` reads the session through `sdk.getSession()` and no longer navigates twice on exit.
+
 ## Unreleased — Offline saves per hub account (2026-11-12)
 
 No sim, config or data file changed, so `SIM_VERSION` stays `0d77b686c8efbfd5` and online worlds need no
