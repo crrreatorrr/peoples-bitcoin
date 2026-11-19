@@ -10,9 +10,13 @@
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Not render-blocking: loads as a print stylesheet, then applies (display=swap covers the
+         gap). crossorigin lets the feedback screenshot embed the fonts (DECISIONS.md). -->
     <link
       href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap"
       rel="stylesheet"
+      media="print"
+      onload="this.media = 'all'"
       crossorigin="anonymous"
     />
   </head>
