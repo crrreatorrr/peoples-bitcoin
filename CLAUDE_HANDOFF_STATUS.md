@@ -80,13 +80,35 @@ Branch `claude/happy-pasteur-0dhfzp`. Handoff: `CLAUDE_HANDOFF_OPTIMIZATION.md`.
   `PbSim.benchWorld` from the built bundle in Node and in Node `--jitless` (V8's interpreter,
   the closest stand-in available). Measure in the hub: `pb.bench` RPC.
 
+### Phase 3
+- §4.1 Quaternion churn in `rigged.ts` sync — **done** (e033a99): `inheritInv` precomputed, one
+  scratch quaternion; no clones per frame.
+- §4.2 Forced layout in `toScreen()` — **done** (2c3a0dc): `src/render/canvasRect.ts` caches the
+  rectangle until resize/scroll/ResizeObserver; `picking.ts` uses it too.
+- §4.3 60 Hz hover raycast — **done** (6713b22): repick when cursor, camera matrix, tick or view
+  changed, or after 150 ms (entities glide between ticks). Smoke-tested: tooltips correct.
+- §4.4 GPU leaks — **done** (2c3a0dc): `releaseObject()` (src/render/kit.ts) frees an entity's own
+  materials and canvas textures when remote players leave, enemies despawn, the Sproto changes,
+  an object swaps model, armor redresses and a chat head is rendered. Geometries and GLB image
+  textures are left alone on purpose (shared with the loaded GLB and every copy).
+- §4.5a `vendor-three` chunk — **done** (ff79789): 648 KB / 164 KB gzip, cached across deploys.
+  The game chunk is still 982 KB (364 KB gzip) and Vite still warns.
+- §4.5b Non-blocking Google Fonts — **done** (ff79789): print-media swap, `crossorigin` kept
+  (the feedback screenshot test still passes). Self-hosting **skipped**: it needs the font files
+  fetched and committed, and the current CORS setup is already relied on and tested.
+- §4.5c Merge static prop geometries to get draw calls under 300 — **skipped**: it rebuilds how
+  every prop in `src/render/props.ts` is made, needs per-prop visual checks on a real GPU, and
+  changes nothing in load time. Left in TODO ("Known gaps from Phase 1").
+- §4.5d Decompose `src/main.ts` — **skipped**: a 1,400-line pure refactor that would conflict with
+  every other agent's work on the game shell; better done as its own task.
+
 ## Checks
 
 | Command | Result |
 | --- | --- |
 | `npm run lint` | pass |
 | `npm run typecheck` | pass |
-| `npm test` | pass (64 files, 548 tests after Phase 2; Phase 1: 59 / 530; Phase 0: 58 / 528; was 59 / 596 — `tests/hub-duplication.test.ts`, 68 tests of the removed offline ledger, deleted) |
+| `npm test` | pass (64 files, 548 tests after Phase 2 and Phase 3; Phase 1: 59 / 530; Phase 0: 58 / 528; was 59 / 596 — `tests/hub-duplication.test.ts`, 68 tests of the removed offline ledger, deleted) |
 | `npm run build` | pass |
 
 ## Measurements
@@ -102,12 +124,16 @@ into The Treasury, local requests and transfer bytes (JS gzip), measured after n
 | After Phase 1 — first frame | 30 | 2,546,294 | | 25 |
 | After Phase 1 — all, incl. background | 48 | 3,901,680 | 1 | 42 / 3.29 MB |
 | After Phase 1, `?net=loopback` — first frame | 31 | 2,567,882 | | 25 |
+| After Phase 3 — first frame (3 runs) | 31 | 2,548,091 | | 25 |
+| After Phase 3 — all, incl. background | 49 | 3,903,477 | 1 | 42 / 3.29 MB |
 
 Baseline loaded everything before the first frame, so its first-frame numbers equal its totals.
 "First frame" = requests finished when `canvas.game-canvas` appears (it is created after the zone's
 models are awaited). Time to canvas in this headless run: 1,155 ms baseline → ~750 ms.
 
-`dist/` baseline: 12,652,137 bytes, 219 files.
+`dist/` baseline: 12,652,137 bytes, 219 files. After Phase 3: 8,731,287 bytes, 220 files (the
+unused legacy icons and sprites are still emitted; they are never requested at boot).
+Time to canvas after Phase 3: ~500 ms (three runs; baseline 1,155 ms).
 
 ### World tick (`PbSim.benchWorld(100 players, 30% walking per tick)`, median of 5 runs, two rounds)
 

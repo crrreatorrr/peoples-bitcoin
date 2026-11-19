@@ -110,10 +110,18 @@
 - [ ] Draw calls: props are a dozen meshes each, over the Phase 6 budget of 300. Fix: merge
       static meshes per prop by material (or instance racks/trees).
 - [ ] Mobile: long-press menu, one-finger camera drag, bottom-drawer panels (Phase 6). Taps already work.
-- [ ] Bundle is ~1 MB (306 KB gzipped; mostly Three.js plus the code-built models); Vite warns at 500 KB. Split the vendor chunk or raise the limit.
+- [ ] Bundle: Three.js is its own chunk now (648 KB, 164 KB gzip, 2026-11-19); the game chunk
+      is still 982 KB (364 KB gzip) and Vite warns at 500 KB. Split it further or raise the limit.
 - [x] Character GLBs load per zone and are meshopt-compressed (2026-11-19). Still open: the
       GLB textures are 512 px JPEGs (1.4 MB in all); WebP saved only ~25% and was left out.
 - [ ] Treasury exit portal once a second zone exists.
+
+## Optimization handoff leftovers (2026-11-19, see CLAUDE_HANDOFF_STATUS.md)
+
+- [ ] Measure the world tick in Goja (the hub's `pb.bench` RPC) after the hub re-vendors the bundle
+- [ ] Dirty flags for `selfPatch` (the sim would mark the player keys it writes)
+- [ ] Split `src/main.ts` (boot, HUD, online) into focused modules
+- [ ] Owner: delete the legacy `src/assets/icons/*.png` if `UI.pixelIcons` stays true
 
 ## OSRS features deferred to their phase
 

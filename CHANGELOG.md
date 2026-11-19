@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased — Optimization handoff, Phase 3 (2026-11-19)
+
+Client only.
+
+- **Smoother frames:** no quaternion clones in the rigged bone sync, the canvas rectangle read
+  once instead of per nameplate, and the mouseover raycast only when the cursor, camera or tick
+  changed (or every 150 ms).
+- **GPU memory:** players leaving view, despawned enemies, swapped object models, redressed armor
+  and chat heads free their own materials and HP bar textures.
+- **Bundle:** Three.js in its own `vendor-three` chunk; the Google Fonts no longer block the first
+  paint.
+
 ## Unreleased — Optimization handoff, Phase 2 (2026-11-19)
 
 Server, protocol and config changed: `SIM_VERSION` is now `49699e030161ede6`. Online worlds
