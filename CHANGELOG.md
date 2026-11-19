@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — hub-sdk 0.9.0 (2026-11-19)
+
+- **Vendored hub SDK 0.9.0** from metaverse-hub main at `a3d94f9` (#196). `reportEvent` returns
+  `granted_items`, and Relic ids the SDK does not know pass through as `otherRelics` /
+  `grantedOther`. The bridge now counts `otherRelics` too, so a Relic from a newer hub still
+  unlocks its Sproto when this game's content has it. `tests/sdk-hash.test.ts` pins the new
+  version and hashes.
+
 ## Unreleased — Optimization handoff, Phase 3 (2026-11-19)
 
 Client only.

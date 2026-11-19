@@ -36,3 +36,22 @@ describe('HubBridge.exchange', () => {
     expect(out.verseCapLeft).toBeNull();
   });
 });
+
+describe('HubBridge.init relics', () => {
+  // hub-sdk 0.9.0 puts Relic ids it does not know in otherRelics instead of dropping them.
+  it('keeps the Relic ids the SDK does not know', async () => {
+    const sdk = {
+      init: async () => ({
+        playerId: 'p1',
+        relics: ['tidebreaker_belt'],
+        otherRelics: ['future_relic', 'tidebreaker_belt'],
+        effects: {},
+      }),
+      getSession: () => ({ token: 't' }),
+    } as unknown as HubSdk;
+    const bridge = new HubBridge(sdk);
+    await bridge.init();
+    expect(bridge.mode).toBe('hub');
+    expect(bridge.relics).toEqual(['tidebreaker_belt', 'future_relic']);
+  });
+});
