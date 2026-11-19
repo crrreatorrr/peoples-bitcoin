@@ -876,8 +876,36 @@ async function boot(): Promise<void> {
   });
   controls.onChange(continuePrompt);
 
-  const updateHoverTooltip = () => {
-    if (!hover || menu.isOpen || pad.lastDevice === 'pad') return;
+  // The mouseover text raycasts every model under the cursor. Redo it only when the cursor, the
+  // camera, the tick or the view changed, or the last pick is older than HOVER_REPICK_MS
+  // (entities glide between ticks).
+  const HOVER_REPICK_MS = 150;
+  let lastHover: {
+    x: number;
+    y: number;
+    tick: number;
+    view: ZoneView;
+    cam: string;
+    at: number;
+  } | null = null;
+  const updateHoverTooltip = (now: number) => {
+    if (!hover || menu.isOpen || pad.lastDevice === 'pad') {
+      lastHover = null;
+      return;
+    }
+    const camKey = cam.camera.matrixWorld.elements.join(',');
+    const h = lastHover;
+    if (
+      h &&
+      h.x === hover.x &&
+      h.y === hover.y &&
+      h.tick === state.tick &&
+      h.view === view &&
+      h.cam === camKey &&
+      now - h.at < HOVER_REPICK_MS
+    )
+      return;
+    lastHover = { x: hover.x, y: hover.y, tick: state.tick, view, cam: camKey, at: now };
     const [top, ...rest] = menuOptions(view.picker.pick(hover.x, hover.y));
     if (top) tooltip.showFixed({ ...top, moreOptions: rest.length });
     else tooltip.hide();
@@ -1151,7 +1179,7 @@ async function boot(): Promise<void> {
     view.marks.update(now);
     const hint = hintTarget();
     view.hint.update(hint?.pos ?? null, hint?.height ?? 0, now / 1000);
-    updateHoverTooltip();
+    updateHoverTooltip(now);
 
     const screenOf = (id: string) => {
       const pos = view.entities.positionOf(id);
