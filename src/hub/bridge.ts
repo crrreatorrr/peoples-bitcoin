@@ -69,7 +69,10 @@ export class HubBridge {
   mode: 'standalone' | 'hub' = 'standalone';
   reachable = false;
   effects: Record<string, number | boolean | string> = {};
-  /** Relic ids from init (e.g. tidebreaker_belt). Session only; they unlock relic Sprotos. */
+  /**
+   * Relic ids from init (e.g. tidebreaker_belt), typed `relics` plus `otherRelics`. Session only;
+   * they unlock relic Sprotos.
+   */
   relics: string[] = [];
   private profile: InitResult | null = null;
 
@@ -103,7 +106,12 @@ export class HubBridge {
       this.mode = this.sdk.getSession?.() ? 'hub' : 'standalone';
       this.reachable = this.mode === 'hub';
       this.effects = { ...(this.profile?.effects ?? {}) };
-      this.relics = this.mode === 'hub' ? [...(this.profile?.relics ?? [])] : [];
+      // hub-sdk 0.9.0 lists Relic ids it does not know in otherRelics; this game's content
+      // decides what an id unlocks, so both lists count (an unknown id unlocks nothing).
+      this.relics =
+        this.mode === 'hub'
+          ? [...new Set([...(this.profile?.relics ?? []), ...(this.profile?.otherRelics ?? [])])]
+          : [];
     } catch (err) {
       console.warn('[hub] init failed; running standalone', err);
       this.mode = 'standalone';

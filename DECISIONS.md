@@ -1244,3 +1244,16 @@ Controller settings and Full screen next to what the menu already had.
   happens once per interval; a full world writes a few rows a tick instead of 200 in one.
 - **Walk intents skip the schema.** `parseIntent` (src/net/protocol.ts) checks `walk` by hand with
   the schema's rules; a test compares it with `IntentSchema` on valid and malformed input.
+
+## hub-sdk 0.9.0 (2026-11-19)
+
+- **Unknown Relic ids count.** `HubBridge` merges `InitResult.otherRelics` (ids the SDK does not
+  type) into `relics`, de-duplicated. This game's content decides what an id unlocks, so an id
+  with no relic Sproto unlocks nothing, and a Relic from a newer hub works without waiting for
+  the next re-vendor.
+- **`granted_items` is not shown.** The client reports no events, and the game has no cosmetics
+  (owner revision 2026-10-28), so nothing reads the pets an event grants. The server's
+  `reportEvent` goes through the hub shell's `HostIO`, not the SDK; it already adds any string
+  `granted` id, so it needed no change.
+- **Root entry only.** The new sub-path entries (`/core`, `/feedback`, ...) are vendored but
+  unused; Vite already splits modern-screenshot into its own chunk.

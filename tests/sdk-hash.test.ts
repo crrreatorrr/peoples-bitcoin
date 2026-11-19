@@ -53,8 +53,8 @@ export function vendoredSdkManifestSha256(root = 'vendor/hub-sdk'): string {
     .digest('hex');
 }
 
-// Source: crrreatorrr/metaverse-hub main @ b7921f2 (hub-sdk 0.8.0, metaverse-hub #187).
-describe('vendored hub SDK 0.8.0', () => {
+// Source: crrreatorrr/metaverse-hub main @ a3d94f9 (hub-sdk 0.9.0, metaverse-hub #196).
+describe('vendored hub SDK 0.9.0', () => {
   // Hub main redeems with custom auth plus the server key, then profile.get. It registers
   // no session.claim RPC, so a vendor that calls one never gets a session.
   it('redeems the way the merged hub server expects', () => {
@@ -71,25 +71,25 @@ describe('vendored hub SDK 0.8.0', () => {
     ) as {
       version: string;
     };
-    expect(pkg.version).toBe('0.8.0');
+    expect(pkg.version).toBe('0.9.0');
     const hash = vendoredSdkSha256();
     expect(hash, `byte hash ${hash}`).toBe(
-      '6ab5da37d64c2deae5d3170f253b93d0c4b473375aa2ca889e05163d33774775',
+      '3708f19d4a8d6233535dfe762c69acca3282d91325a1c698bff79b0ecfb31a32',
     );
     const manifest = vendoredSdkManifestSha256();
     expect(manifest, `manifest ${manifest}`).toBe(
-      '8aaebdf2746bada8bf8f646f8caaec3782484afc480278abc98ee98ea63e5920',
+      '6bd451d1e28f6bec33a067112cab19126ead9865ea4c2d1f28481c5d94afec12',
     );
     const iife = createHash('sha256')
       .update(readFileSync('vendor/hub-sdk/dist/hub-sdk.iife.js'))
       .digest('hex');
     expect(iife, `iife ${iife}`).toBe(
-      '833ce281696f9769bd13d284b9d9262957838181cf1ac308358c6b602b21f309',
+      'd74ffe49c3a59390040e57ad0016d25db194bd68410fbcf5a0e199a1acbe17be',
     );
     const pin = JSON.parse(
       new TextDecoder().decode(readFileSync('vendor/hub-sdk/SOURCE.pin.json')),
     ) as { version: string; iifeSha256: string; global: string };
-    expect(pin.version).toBe('0.8.0');
+    expect(pin.version).toBe('0.9.0');
     expect(pin.global).toBe('HubSDK');
     expect(pin.iifeSha256).toBe(iife);
   });
