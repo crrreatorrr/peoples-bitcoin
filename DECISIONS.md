@@ -1207,3 +1207,40 @@ Controller settings and Full screen next to what the menu already had.
 - **`HubBridge` reads the session from `sdk.getSession()`** instead of the SDK's private
   `sessionStorage` key, and `exit` navigates itself only when the SDK had no session to close
   (the SDK navigates when it does).
+
+## Online hub parity (2026-11-19)
+
+- **The world reads the hub, the shell decides how.** `HostIO` (src/server/host.ts) gains four
+  optional calls; the world uses each only when the hub's `pb_world` shell provides it, so the
+  adapter vendored in metaverse-hub today keeps working and simply skips the feature:
+  - `loadProfile?(who: Who): { relics?: string[]; effects?: Record<string, number | boolean | string> } | null`
+  - `getRelics?(who: Who): string[] | null` (used only when there is no `loadProfile`)
+  - `reportEvent?(who: Who, eventId: string, data: Record<string, unknown>, key: string): EconomyResult`
+    (`{ error }` on failure; `{ granted?: string }` may name a relic the hub granted)
+  - `submitScore?(who: Who, boardId: string, value: number, meta: Record<string, unknown>): EconomyResult`
+- **Relics online:** read once at join; WELCOME carries `hub: { relics, effects }` (only when the
+  shell read a profile), and `OP.HUB_OUT` (109) carries a change (a granted relic). `summonRelic`
+  is a valid intent; the sim checks ownership against the server's copy, never the client's.
+- **The tutorial relic:** `pb.quest_complete` with `{ questId: 'quest_tutorial', tick }` once per
+  character, key `uuidv5('pb.quest_complete:<userId>')` so every world sends the same event.
+  Sent on completion, on join and on the character's Ticket flush until acked;
+  `idempotency_mismatch` counts as acked. `ledger.relicAcked` is saved with the character.
+- **XP board:** `submitScore(who, 'pb_total_xp', floor(total XP), {})` on a level-up, on the
+  character's save tick and at logout, only when it grew past `ledger.submittedXp`.
+- **Exchange online:** the client calls the hub's exchange with its live session (as the Verse
+  Exchange expects; the world never touches Verse), then sends `OP.WALLET` (8), which makes the
+  world re-read the Ticket balance from the hub, at most once per `NET.walletRefreshMinTicks`.
+  A lost answer keeps its key, so a retry cannot exchange twice. The window opens only when the
+  world sent a hub profile (WELCOME `hub`) and the page has a hub session; the loopback test world
+  has neither.
+
+## Server tick work (2026-11-19)
+
+- **Same answers, less work.** Pathfinding reuses module-scoped buffers with a generation stamp;
+  a golden test pins 14,000 seeded paths. Entity JSON is built only when a recipient needs the
+  whole entity; a golden test pins every byte a seeded world (walking, combat, a logout) sends.
+- **Staggered persistence is a timing change, on purpose.** Each player gets a join slot; saves,
+  Ticket flushes and online rows run when `(tick + slot)` lines up with their interval. Each still
+  happens once per interval; a full world writes a few rows a tick instead of 200 in one.
+- **Walk intents skip the schema.** `parseIntent` (src/net/protocol.ts) checks `walk` by hand with
+  the schema's rules; a test compares it with `IntentSchema` on valid and malformed input.

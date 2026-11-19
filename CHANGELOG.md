@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased — Optimization handoff, Phase 2 (2026-11-19)
+
+Server, protocol and config changed: `SIM_VERSION` is now `49699e030161ede6`. Online worlds
+need the new `dist-sim/pb-sim.js` (`npm run build:sim`) copied to
+`metaverse-hub/server/modules/vendor/pb-sim.js` and the hub module rebuilt.
+
+- **Hub features in online worlds:** relic Sprotos summon online (`summonRelic` is a valid
+  intent), finishing the tutorial reports `pb.quest_complete`, total XP posts to `pb_total_xp`,
+  and the exchange window trades Tickets for Verse. Each needs the hub shell's matching optional
+  `HostIO` call; without it the world skips the feature.
+- **New ops:** `OP.WALLET` (8, client → server: re-read my Ticket balance) and `OP.HUB_OUT`
+  (109, server → client: relics and effects). WELCOME may carry `hub`.
+- **Faster world tick:** pathfinding without per-call allocation, entity JSON built only when
+  sent, a set-free broadcast, walk intents validated without the schema, and saves, Ticket
+  flushes and online rows spread over their interval by join slot. 100-bot bench (median of
+  5): Node 10.3 → 6.8 ms/tick, Node `--jitless` (a stand-in for Goja) 21.0 → 16.3 ms/tick. A
+  full world's 200 storage writes in one tick are now at most 3 per tick.
+
 ## Unreleased — Optimization handoff, Phase 1 (2026-11-19)
 
 Client and assets only (`src/config`, `src/sim`, `src/server` untouched), so `SIM_VERSION` stays

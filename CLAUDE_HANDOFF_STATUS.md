@@ -42,13 +42,51 @@ Branch `claude/happy-pasteur-0dhfzp`. Handoff: `CLAUDE_HANDOFF_OPTIMIZATION.md`.
   loader never requests the missing file (zero 404s in every measurement here). The art itself is
   still a TODO item for the owner.
 
+### Phase 2
+- §2.1.1 Optional `HostIO` calls — **done** (4b5148b). Exact signatures (src/server/host.ts):
+  - `loadProfile?(who: Who): HubProfile | null` with `HubProfile = { relics?: string[]; effects?: Record<string, number | boolean | string> }`
+  - `getRelics?(who: Who): string[] | null` (fallback when `loadProfile` is absent)
+  - `reportEvent?(who: Who, eventId: string, data: Record<string, unknown>, key: string): EconomyResult`
+    — called as `reportEvent(who, 'pb.quest_complete', { questId: 'quest_tutorial', tick }, uuidv5('pb.quest_complete:<userId>'))`;
+    `{ error: code }` on failure (`session_closed` expires the session, `idempotency_mismatch` = acked), may return `{ granted: '<relic id>' }`
+  - `submitScore?(who: Who, boardId: string, value: number, meta: Record<string, unknown>): EconomyResult`
+    — called as `submitScore(who, 'pb_total_xp', floor(totalXp), {})`; `{ error: code }` on failure
+  - `Who = { userId, sid }` as for the existing economy calls. Every call is wrapped in try/catch.
+- §2.1.2 Hub profile → `view.hubSession` on join, `hub: { relics, effects }` in WELCOME,
+  client `Replica` state hydrated (`OnlineDriver.applyHub`), `OP.HUB_OUT` for later changes —
+  **done** (4b5148b). Online Exchange: client `bridge.exchange()` with the live hub JWT
+  (`src/game/onlineExchange.ts`), then `OP.WALLET` makes the world re-read the balance — **done**.
+- §2.1.3 `summonRelic` in `IntentSchema`, ownership checked authoritatively (sim against the
+  server's hubSession) — **done** (4b5148b).
+- §2.1.4 `pb.quest_complete` from the host on tutorial completion (and on join / flush until
+  acked); `pb_total_xp` on level-up, the save tick and logout — **done** (4b5148b).
+  Tests: `tests/net/hub-parity.test.ts`, `tests/online-exchange.test.ts`.
+- §2.1 Live end-to-end — **blocked** on metaverse-hub: its `pb_world` shell must implement the
+  four optional calls and re-vendor this repo's pb bundle (see follow-ups).
+- §3.1 Zero-allocation A* — **done** (97eaaa6): module-scoped buffers + generation stamp,
+  reused heap, inlined neighbour/walkability/heuristic. `tests/pathfinding-golden.test.ts` pins
+  14,000 seeded paths; also checked equal on all 870 calls of a 14-player world run.
+- §3.2 Dirty-flag serialization — **partial** (b6c4b16, c26ba8c): the whole-entity JSON is built
+  lazily (only for new entities or a changed static part), change detection uses the two parts,
+  no object spread (a helper call in the Goja bundle), inlined distance, a set-free broadcast.
+  Not done: per-field dirty flags for `selfPatch` (would need the sim to mark its own writes,
+  invasive across `src/sim`) and cached static JSON across ticks. `tests/net/broadcast-golden.test.ts`
+  pins every byte a seeded 14-player world with walking, combat and a logout sends; unchanged.
+- §3.3 Staggered persistence — **done** (9b21c3c): saves, Ticket flushes and online rows by join
+  slot. Storage writes in the worst tick, 100 bots: 200 → 3. `tests/net/stagger.test.ts`.
+- Extra (f85332f): `parseIntent` validates `walk` intents without zod (zod was ~7% of jitless
+  time); a test checks it agrees with `IntentSchema`.
+- §3.4 Goja measurement — **blocked**: no Goja/Nakama runtime here. Measured with the same
+  `PbSim.benchWorld` from the built bundle in Node and in Node `--jitless` (V8's interpreter,
+  the closest stand-in available). Measure in the hub: `pb.bench` RPC.
+
 ## Checks
 
 | Command | Result |
 | --- | --- |
 | `npm run lint` | pass |
 | `npm run typecheck` | pass |
-| `npm test` | pass (59 files, 530 tests after Phase 1; Phase 0: 58 / 528; was 59 / 596 — `tests/hub-duplication.test.ts`, 68 tests of the removed offline ledger, deleted) |
+| `npm test` | pass (64 files, 548 tests after Phase 2; Phase 1: 59 / 530; Phase 0: 58 / 528; was 59 / 596 — `tests/hub-duplication.test.ts`, 68 tests of the removed offline ledger, deleted) |
 | `npm run build` | pass |
 
 ## Measurements
@@ -71,8 +109,28 @@ models are awaited). Time to canvas in this headless run: 1,155 ms baseline → 
 
 `dist/` baseline: 12,652,137 bytes, 219 files.
 
+### World tick (`PbSim.benchWorld(100 players, 30% walking per tick)`, median of 5 runs, two rounds)
+
+| Build | Node ms/tick | Node `--jitless` ms/tick | jitless sim | jitless broadcast | jitless visible |
+| --- | --- | --- | --- | --- | --- |
+| main (`0d77b686c8efbfd5`) | 10.83 / 9.73 | 21.05 / 20.94 | 6.5 | 13.9 | 5.5 |
+| Phase 2 (`49699e030161ede6`) | 6.59 / 7.04 | 15.92 / 16.63 | 5.3 | 10.4 | 3.1 |
+
+About −34% in Node and −22% in `--jitless`. The handoff's 440 ms is a Goja figure from the owner's
+machine; Goja is far slower than V8's interpreter, so the absolute numbers do not transfer, and the
+3–5× target is not shown here. Worst tick storage writes: 200 → 3.
+
 ## Repo hygiene proposals (owner to decide)
 - `src/assets/icons/*.png` (120 files, 1.6 MB): only used when `UI.pixelIcons` is false.
 
 ## Cross-repo follow-ups
-- None yet from Phase 0 (client only; `SIM_VERSION` unchanged).
+- **metaverse-hub: re-vendor the pb bundle.** `SIM_VERSION` is now `49699e030161ede6` (was
+  `0d77b686c8efbfd5`). `npm run build:sim -- --out ../metaverse-hub/server/modules/vendor/pb-sim.js`
+  from this branch, rebuild the hub module. Clients and worlds must come from the same commit.
+- **metaverse-hub `pb_world` shell:** implement the optional `HostIO` calls above (`loadProfile`
+  or `getRelics`, `reportEvent`, `submitScore`) on top of its existing hub profile, event and
+  score code; the game works without them.
+- **metaverse-hub:** route the client's `OP.WALLET` (8) like the other client ops (the shell
+  passes every op to `host.message`, so likely nothing to do) and allow server op 109.
+- **Measure in Goja:** the hub's dev `pb.bench` RPC, before and after the re-vendor.
+- No hub-sdk re-vendor was needed (and none was done, per the brief).

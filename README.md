@@ -166,6 +166,10 @@ fresh and saved on the server (offline saves stay offline).
   then here `npm run build:sim -- --out ../metaverse-hub/server/modules/vendor/pb-sim.js`, rebuild
   the hub module, and open the game through the hub portal. The client and the bundle must come
   from the same commit (their sim version is a hash of the sim sources; a mismatch is refused).
+- **Hub features online:** relic Sprotos, the tutorial relic (`pb.quest_complete`), the
+  `pb_total_xp` board and the Tickets → Verse exchange work in worlds once the hub's `pb_world`
+  shell passes the optional `HostIO` calls (`loadProfile` or `getRelics`, `reportEvent`,
+  `submitScore`; see DECISIONS.md "Online hub parity"). Without them the world skips each one.
 - **Load test:** `NAKAMA_URL=http://127.0.0.1:7350 BOTS=100 node scripts/pb-bots.mjs` runs guest
   bots through the portal (`CHAT=0` keeps them from chatting); the world logs its loop time about once a minute.
 
