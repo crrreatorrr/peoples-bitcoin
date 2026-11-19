@@ -21,6 +21,7 @@ import {
   type SocialOut,
   type TradeIn,
   type TradeOut,
+  type HubInfo,
   type Welcome,
 } from '../net/protocol';
 import { Playout } from '../net/playout';
@@ -136,6 +137,7 @@ export class OnlineDriver implements GameDriver {
       case OP.WELCOME:
         this.welcome = body as Welcome;
         this.replica.setSelf(this.welcome.you);
+        if (this.welcome.hub) this.applyHub(this.welcome.hub);
         this.welcomed.emit();
         this.hello();
         return;
@@ -164,6 +166,26 @@ export class OnlineDriver implements GameDriver {
       case OP.PONG:
         this.rtt = this.clock() - (body as Pong).t;
         return;
+      case OP.HUB_OUT:
+        this.applyHub(body as HubInfo);
+        return;
     }
+  }
+
+  /** Asks the world to re-read this character's Ticket balance (after an exchange on the hub). */
+  refreshWallet(): void {
+    this.transport.send(OP.WALLET, {});
+  }
+
+  /**
+   * The server read this character's hub profile: show the relic Sprotos it owns (the server
+   * checks ownership again on summon) and let the exchange window open.
+   */
+  private applyHub(hub: HubInfo): void {
+    const link = this.state.hubSession;
+    link.mode = 'hub';
+    link.reachable = true;
+    link.relics = Array.isArray(hub.relics) ? hub.relics.filter((r) => typeof r === 'string') : [];
+    link.effects = hub.effects && typeof hub.effects === 'object' ? { ...hub.effects } : {};
   }
 }

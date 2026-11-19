@@ -49,6 +49,7 @@ import {
   TradeInSchema,
   type ChatOut,
   type Delta,
+  type HubInfo,
   type KickReason,
   type Snapshot,
   type SocialIn,
@@ -80,7 +81,7 @@ import {
 } from './chat';
 import { checkText, cleanText, reservedName } from './chatfilter';
 import { TradeBook, type TradeEnv } from './trade';
-import { questEarnWireKey } from './uuid';
+import { questEarnWireKey, uuidv5 } from './uuid';
 
 export const GAME_ID = 'peoples-bitcoin';
 
@@ -135,6 +136,50 @@ export interface HostIO {
   /** Account lookup by username (case-insensitive). */
   resolveUsername(name: string): { userId: string; username: string } | null;
   log(level: 'info' | 'warn' | 'error', msg: string): void;
+  // ── Optional hub calls. A shell without them keeps working: the world skips the feature. ──
+  /**
+   * The player's hub profile: relic ids (or hub item ids) owned and active relic effects
+   * (e.g. `{ summon: 'tidebreaker_belt' }`), as `init` gives a client. Null if unknown.
+   */
+  loadProfile?(who: Who): HubProfile | null;
+  /** Relic ids only, for a shell that has no `loadProfile`. Null if unknown. */
+  getRelics?(who: Who): string[] | null;
+  /**
+   * A hub game event, e.g. `reportEvent(who, 'pb.quest_complete', { questId, tick }, key)`.
+   * `key` is idempotent per player. `{ error }` on failure; `{ granted }` may name a relic.
+   */
+  reportEvent?(
+    who: Who,
+    eventId: string,
+    data: Record<string, unknown>,
+    key: string,
+  ): EconomyResult;
+  /** A leaderboard score, e.g. `submitScore(who, 'pb_total_xp', totalXp, {})`. `{ error }` on failure. */
+  submitScore?(
+    who: Who,
+    boardId: string,
+    value: number,
+    meta: Record<string, unknown>,
+  ): EconomyResult;
+}
+
+/** What `HostIO.loadProfile` returns. */
+export interface HubProfile {
+  relics?: string[];
+  effects?: Record<string, number | boolean | string>;
+}
+
+/** The hub event a finished tutorial reports; the hub grants its relic. */
+export const RELIC_EVENT = 'pb.quest_complete';
+export const RELIC_QUEST = 'quest_tutorial';
+/** The hub leaderboard for total XP. */
+export const XP_BOARD = 'pb_total_xp';
+
+/** Whole XP over every skill, as the hub board counts it. */
+function totalXp(view: GameState): number {
+  let sum = 0;
+  for (const xp of Object.values(view.player.skills)) sum += xp;
+  return Math.floor(sum);
 }
 
 export interface Outbound {
@@ -186,6 +231,10 @@ interface Session {
   /** Where this player stood when the last delta was built (idle fast path). */
   lastPos: { x: number; y: number } | null;
   shopSeq: number;
+  /** The hub profile was read (so WELCOME and OP.HUB_OUT carry it). */
+  hubInfo: HubInfo | null;
+  /** Last tick this player asked for a wallet refresh (OP.WALLET). */
+  walletAt: number;
 }
 
 let cachedContent: Content | null = null;
@@ -334,6 +383,7 @@ export function createWorldHost(opts: HostOptions): WorldHost {
     trades.cancelFor(tradeEnv(), s.uid, 'left');
     if (save) {
       flushTickets(s);
+      submitXp(s);
       saveRows([s]);
     }
     try {
@@ -392,6 +442,7 @@ export function createWorldHost(opts: HostOptions): WorldHost {
         if (batch) sendBatch(s, reason, batch.id, batch.amount);
       }
       sendQuestEarns(s);
+      if (s.view.player.quests[RELIC_QUEST]?.complete) reportRelic(s, world.tick);
     }
   }
 
@@ -459,6 +510,96 @@ export function createWorldHost(opts: HostOptions): WorldHost {
         row.cappedSessionId = s.sid;
       }
     }
+  }
+
+  // ── Hub profile, the tutorial relic and the XP leaderboard ─────────────────
+  /** Reads relics and effects from the hub, if the shell can. Relic Sprotos check these (sim). */
+  function loadHubProfile(s: Session): void {
+    let profile: HubProfile | null = null;
+    try {
+      if (io.loadProfile) profile = io.loadProfile(who(s));
+      else if (io.getRelics) {
+        const relics = io.getRelics(who(s));
+        profile = relics ? { relics } : null;
+      } else return;
+    } catch (err) {
+      io.log('warn', `profile ${s.uid}: ${String(err)}`);
+    }
+    const relics = (profile?.relics ?? []).filter((r) => typeof r === 'string').slice(0, 64);
+    const effects: Record<string, number | boolean | string> = {};
+    for (const [k, v] of Object.entries(profile?.effects ?? {})) {
+      if (typeof v === 'number' || typeof v === 'boolean' || typeof v === 'string') effects[k] = v;
+    }
+    s.view.hubSession.relics = relics;
+    s.view.hubSession.effects = effects;
+    s.hubInfo = { relics: [...relics], effects: { ...effects } };
+  }
+
+  /** Reports the finished tutorial once per character (the hub grants the relic). Saved as acked. */
+  function reportRelic(s: Session, tick: number): void {
+    if (!io.reportEvent || s.expired || s.sid === '') return;
+    const ledger = s.view.player.ledger;
+    if (ledger.relicAcked) return;
+    // One key per character, so a retry from any world is the same event.
+    ledger.relicKey ??= uuidv5(`${RELIC_EVENT}:${s.uid}`);
+    ledger.relicTick ??= tick;
+    let r: EconomyResult;
+    try {
+      r = io.reportEvent(
+        who(s),
+        RELIC_EVENT,
+        { questId: RELIC_QUEST, tick: ledger.relicTick },
+        ledger.relicKey,
+      );
+    } catch (err) {
+      io.log('warn', `relic ${s.uid}: ${String(err)}`);
+      return; // retried on the next join or ticket flush
+    }
+    const code = typeof r.error === 'string' ? r.error : null;
+    if (code === 'session_closed') return expire(s);
+    if (code !== null && code !== 'idempotency_mismatch') {
+      io.log('warn', `relic ${s.uid}: ${code}`);
+      return;
+    }
+    ledger.relicAcked = true;
+    const granted = typeof r.granted === 'string' ? r.granted : null;
+    if (granted && !s.view.hubSession.relics.includes(granted)) {
+      s.view.hubSession.relics = [...s.view.hubSession.relics, granted];
+      s.hubInfo = {
+        relics: [...s.view.hubSession.relics],
+        effects: { ...s.view.hubSession.effects },
+      };
+      send(s.uid, OP.HUB_OUT, s.hubInfo);
+    }
+  }
+
+  /** Posts total XP to the hub board when it has grown since the last accepted post. */
+  function submitXp(s: Session): void {
+    if (!io.submitScore || s.expired || s.sid === '') return;
+    const ledger = s.view.player.ledger;
+    const xp = totalXp(s.view);
+    if (xp <= ledger.submittedXp) return;
+    let r: EconomyResult;
+    try {
+      r = io.submitScore(who(s), XP_BOARD, xp, {});
+    } catch (err) {
+      io.log('warn', `score ${s.uid}: ${String(err)}`);
+      return;
+    }
+    const code = typeof r.error === 'string' ? r.error : null;
+    if (code === 'session_closed') return expire(s);
+    if (code !== null) {
+      io.log('warn', `score ${s.uid}: ${code}`);
+      return;
+    }
+    ledger.submittedXp = xp;
+  }
+
+  /** OP.WALLET: the client exchanged Tickets on the hub; re-read the balance (rate-limited). */
+  function onWallet(s: Session): void {
+    if (world.tick - s.walletAt < NET.walletRefreshMinTicks) return;
+    s.walletAt = world.tick;
+    refreshBalance(s);
   }
 
   // ── Chat, trade and social environments ────────────────────────────────────
@@ -662,6 +803,7 @@ export function createWorldHost(opts: HostOptions): WorldHost {
       name: s.name,
       needsCharacter: false,
       canImport: NET.allowSaveImport,
+      ...(s.hubInfo ? { hub: s.hubInfo } : {}),
     };
     send(s.uid, OP.WELCOME, body);
   }
@@ -725,11 +867,15 @@ export function createWorldHost(opts: HostOptions): WorldHost {
       expired: false,
       lastPos: null,
       shopSeq: 0,
+      hubInfo: null,
+      walletAt: -Infinity,
     };
     sessions.set(s.uid, s);
     refreshBalance(s);
+    loadHubProfile(s);
     writeOnlineSafe(s);
     welcome(s);
+    if (s.view.player.quests[RELIC_QUEST]?.complete) reportRelic(s, world.tick);
     io.log('info', `join ${s.uid} as ${name} (world ${worldNo}, ${sessions.size} online)`);
   }
 
@@ -795,6 +941,16 @@ export function createWorldHost(opts: HostOptions): WorldHost {
     const events = timed('sim', () => runWorldTick(world, ctx, intents));
     const acted = new Set(Object.keys(intents));
     trades.tick(tradeEnv());
+    for (const [uid, list] of Object.entries(events)) {
+      const s = sessions.get(uid);
+      if (!s) continue;
+      let levelled = false;
+      for (const e of list) {
+        if (e.type === 'questComplete' && e.questId === RELIC_QUEST) reportRelic(s, e.tick);
+        else if (e.type === 'levelUp') levelled = true;
+      }
+      if (levelled) submitXp(s);
+    }
 
     for (const s of live()) {
       if (s.graceUntil !== null && world.tick >= s.graceUntil) {
@@ -806,7 +962,11 @@ export function createWorldHost(opts: HostOptions): WorldHost {
     else
       for (const s of live())
         if (s.view.player.ledger.questEarns.some((r) => r.status === 'pending')) sendQuestEarns(s);
-    if (world.tick % NET.saveEveryTicks === 0) saveRows(live());
+    if (world.tick % NET.saveEveryTicks === 0) {
+      const all = live();
+      for (const s of all) submitXp(s);
+      saveRows(all);
+    }
     if (world.tick % NET.onlineRefreshEveryTicks === 0) {
       const all = live();
       for (const s of all) writeOnlineSafe(s);
@@ -1074,6 +1234,8 @@ export function createWorldHost(opts: HostOptions): WorldHost {
           if (!parsed.success) return strike(s, 'bad social');
           return handleSocial(s, parsed.data);
         }
+        case OP.WALLET:
+          return onWallet(s);
         case OP.PING: {
           const parsed = PingSchema.safeParse(body);
           if (parsed.success) send(s.uid, OP.PONG, { t: parsed.data.t, serverTick: world.tick });

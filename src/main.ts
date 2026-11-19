@@ -17,6 +17,7 @@ import { HUB_GAME_ID, HubBridge } from './hub/bridge';
 import { resolveSaveOwner, SAVE_OWNER_WAIT_MS, type SaveOwner } from './hub/saveOwner';
 import { claimWriter } from './hub/singleWriter';
 import { OfflineShop, PRACTICE_NOTICE } from './game/offlineShop';
+import { OnlineExchange } from './game/onlineExchange';
 import { GAME_TITLE, PARODY_NOTICE, PRESIDENT_NAME } from './config/branding';
 import { buttonLabel, physicalFor, TAB_OF_ACTION } from './input/bindings';
 import { PAD } from './input/config';
@@ -403,7 +404,20 @@ async function boot(): Promise<void> {
         ?.packSize ?? 1,
     levelOf: (skillId) => levelForXp(state.player.skills[skillId] ?? 0),
   });
-  const exchange = new ExchangeWindow(hudRoot, () => hub.requestExchange(), closeInterface);
+  // Online, Tickets → Verse goes to the hub with the live session; offline practice has none.
+  const onlineExchange = online
+    ? new OnlineExchange(
+        state,
+        bridge,
+        (text, kind) => chat.add(text, kind),
+        () => online.refreshWallet(),
+      )
+    : null;
+  const exchange = new ExchangeWindow(
+    hudRoot,
+    (tickets) => (onlineExchange ? void onlineExchange.request(tickets) : hub.requestExchange()),
+    closeInterface,
+  );
   const buildWindow = new BuildWindow(hudRoot, content, iconUrl, {
     build: (buildId) => queue({ type: 'build', buildId }),
     close: closeInterface,
@@ -1185,10 +1199,10 @@ async function boot(): Promise<void> {
     exchange.update(
       p.interface?.kind === 'exchange',
       p.currencies.tickets,
-      hub.exchangeAmounts(),
-      p.ledger.exchange !== null,
+      onlineExchange ? onlineExchange.amounts() : hub.exchangeAmounts(),
+      onlineExchange ? onlineExchange.isPending() : p.ledger.exchange !== null,
       state.hubSession.verseCapLeft,
-      state.hubSession.mode === 'hub',
+      onlineExchange ? onlineExchange.available() : false,
     );
     const build = buildState(content, ctx, state);
     buildWindow.update(build.name, build.choices);

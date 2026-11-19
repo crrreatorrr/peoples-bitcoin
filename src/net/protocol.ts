@@ -15,6 +15,8 @@ export const OP = {
   TRADE: 4,
   SOCIAL: 5,
   PING: 7,
+  /** Client → server: re-read my Ticket balance from the hub (after an online exchange). */
+  WALLET: 8,
   WELCOME: 101,
   SNAPSHOT: 102,
   DELTA: 103,
@@ -23,6 +25,8 @@ export const OP = {
   SOCIAL_OUT: 106,
   KICK: 107,
   PONG: 108,
+  /** Server → client: the hub relics and effects this character has (also in WELCOME). */
+  HUB_OUT: 109,
 } as const;
 
 const int = z.number().int();
@@ -50,6 +54,7 @@ export const IntentSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('useItem'), slot, targetId: id }).strict(),
   z.object({ type: z.literal('chooseOption'), index: int.min(0).max(9) }).strict(),
   z.object({ type: z.literal('summon'), slot }).strict(),
+  z.object({ type: z.literal('summonRelic'), sprotoId: id }).strict(),
   z.object({ type: z.literal('dismiss') }).strict(),
   z.object({ type: z.literal('special') }).strict(),
   z.object({ type: z.literal('setStyle'), style: z.enum(STYLES) }).strict(),
@@ -144,6 +149,12 @@ export interface WireEntity {
   dy?: 1;
 }
 
+/** Hub relics and effects for this character, read by the server from the hub (OP.HUB_OUT). */
+export interface HubInfo {
+  relics: string[];
+  effects: Record<string, number | boolean | string>;
+}
+
 export interface Welcome {
   you: string;
   world: number;
@@ -152,6 +163,8 @@ export interface Welcome {
   name: string;
   needsCharacter: boolean;
   canImport: boolean;
+  /** Present when the world's hub reads profiles (HostIO.loadProfile or getRelics). */
+  hub?: HubInfo;
 }
 
 /** Top-level PlayerState keys that changed, by value. */
