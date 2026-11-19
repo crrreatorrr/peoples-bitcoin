@@ -14,10 +14,9 @@ import {
 } from './config/balance';
 import { hubVisitStarting } from '@metaverse/hub-sdk';
 import { HUB_GAME_ID, HubBridge } from './hub/bridge';
-import { HubClient } from './hub/client';
-import { clearHubLedger } from './hub/ledgerStore';
 import { resolveSaveOwner, SAVE_OWNER_WAIT_MS, type SaveOwner } from './hub/saveOwner';
 import { claimWriter } from './hub/singleWriter';
+import { OfflineShop, PRACTICE_NOTICE } from './game/offlineShop';
 import { GAME_TITLE, PARODY_NOTICE, PRESIDENT_NAME } from './config/branding';
 import { buttonLabel, physicalFor, TAB_OF_ACTION } from './input/bindings';
 import { PAD } from './input/config';
@@ -207,15 +206,16 @@ async function boot(): Promise<void> {
   // Online, the server keeps the character and one session per account.
   if (!online) claimWriter(freeze, saveOwner);
   const persist = () => !online && !resetting && !frozen && saveGame(state, saveOwner);
-  const hub = new HubClient(
+  // Offline play is practice: it never banks, spends or reports to the hub (src/game/offlineShop.ts).
+  const hub = new OfflineShop(
     state,
     ctx,
     (text, kind) => chat.add(text, kind),
     queue,
     persist,
     bridge,
-    saveOwner,
   );
+  if (!online && bridge.mode === 'hub') chat.add(PRACTICE_NOTICE, 'warning');
   const openShopId = () =>
     state.player.interface?.kind === 'terminal' ? state.player.interface.shopId : TERMINAL_SHOP_ID;
 
@@ -384,11 +384,7 @@ async function boot(): Promise<void> {
         ?.packSize ?? 1,
     levelOf: (skillId) => levelForXp(state.player.skills[skillId] ?? 0),
   });
-  const exchange = new ExchangeWindow(
-    hudRoot,
-    (tickets) => hub.requestExchange(tickets),
-    closeInterface,
-  );
+  const exchange = new ExchangeWindow(hudRoot, () => hub.requestExchange(), closeInterface);
   const buildWindow = new BuildWindow(hudRoot, content, iconUrl, {
     build: (buildId) => queue({ type: 'build', buildId }),
     close: closeInterface,
@@ -585,10 +581,8 @@ async function boot(): Promise<void> {
                 chat.add('Starting over is only for offline play.', 'warning');
                 return;
               }
-              hub.logReset();
               resetting = true;
               clearSavedGame(saveOwner);
-              clearHubLedger(saveOwner);
               location.reload();
             },
             () => pauseMenu.leaveVia(() => leaveFor('hub')),
@@ -622,7 +616,8 @@ async function boot(): Promise<void> {
   function leaveFor(where: 'main' | 'hub'): void {
     if (where === 'hub') {
       online?.dispose();
-      void hub.exitToHub();
+      if (online) bridge.exit('exit_to_hub');
+      else hub.exitToHub();
       return;
     }
     if (online) online.dispose();
@@ -1018,7 +1013,8 @@ async function boot(): Promise<void> {
           break;
       }
     }
-    if (!online) hub.onEvents(events);
+    if (!online && events.some((e) => e.type === 'autosave' || e.type === 'zoneChanged'))
+      hub.checkpoint();
     crumbTick();
     if (xpThisTick.size > 0) {
       hud.xpDrop([...xpThisTick].map(([id, amount]) => ({ icon: glyph(`skill_${id}`), amount })));
@@ -1213,17 +1209,10 @@ async function boot(): Promise<void> {
     },
   });
   if (frozen) return;
-  // A pending owner stays standalone: its game is not saved, so it must not bank or spend Tickets.
-  if (!online && saveOwner.kind !== 'pending') await hub.start();
-  if (frozen) return;
   if (godmode) {
-    if (state.hubSession.mode === 'hub') {
-      chat.add('Godmode is on, but hub sessions use the server wallet.', 'game');
-    } else {
-      applyGodmode(state);
-      persist();
-      chat.add(`Godmode: ${GODMODE.tickets.toLocaleString('en-US')} Tickets.`, 'game');
-    }
+    applyGodmode(state);
+    persist();
+    chat.add(`Godmode: ${GODMODE.tickets.toLocaleString('en-US')} Tickets.`, 'game');
   }
   requestAnimationFrame(frame);
 }

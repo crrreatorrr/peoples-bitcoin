@@ -1179,3 +1179,31 @@ Controller settings and Full screen next to what the menu already had.
 - **The wait is not in `config/balance.ts`.** It is a client network timeout like
   `HUB_INIT_TIMEOUT_MS`, and `src/config` is part of the sim version hash, so putting it there
   would need a world server rebuild for a client-only number.
+
+## Offline practice (2026-11-19)
+
+- **Offline play never writes to the hub.** Choosing Offline practice on world select (or playing
+  with no world to join) runs the whole game in this browser against a save anyone can edit in
+  DevTools. Before this, an offline game opened from a hub visit banked its Tickets, spent and
+  sold through the hub shop, exchanged Tickets for Verse, claimed the `pb.quest_complete` relic
+  and posted `pb_total_xp`, all from that editable save. Now it does none of these: the offline
+  Terminal is the local shop, the exchange says it needs an online world, and no relic or score
+  is sent. Online worlds do all of it on the server. The handoff (`CLAUDE_HANDOFF_OPTIMIZATION.md`
+  §2.2) asked for this; it reverses the offline banking part of "Offline save per hub account".
+- **Relics do not unlock relic Sprotos offline** either: `hubSession` stays `standalone`, so the
+  practice game is the same with or without a hub session. Online worlds unlock them from the
+  hub profile (see "Online hub parity").
+- **The label:** the button reads "Offline practice" when worlds are listed (its tooltip and a
+  chat line say "Offline Practice: does not earn Hub Tickets, Relics, or Leaderboard XP").
+  Without a hub session the button still reads "Play".
+- **Saves stay per owner.** The save keys, the writer lock and the owner wait are unchanged, so
+  an account's practice game is still its own on a shared browser.
+- **Removed:** `src/hub/client.ts`, `src/hub/ledgerStore.ts`, `src/hub/uuid.ts` and their tests
+  (`tests/hub-duplication.test.ts`); the hub shop, earn, relic and score calls in
+  `src/hub/bridge.ts`. `src/game/offlineShop.ts` keeps the local Terminal checks. Tickets left
+  pending in an old save stay there as practice Tickets. Comments in `src/sim/save.ts` and
+  `src/sim/saleHold.ts` still name `HubClient`; they were left alone because `src/sim` is hashed
+  into `SIM_VERSION`.
+- **`HubBridge` reads the session from `sdk.getSession()`** instead of the SDK's private
+  `sessionStorage` key, and `exit` navigates itself only when the SDK had no session to close
+  (the SDK navigates when it does).
