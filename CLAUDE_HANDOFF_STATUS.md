@@ -110,6 +110,8 @@ Branch `claude/happy-pasteur-0dhfzp`. Handoff: `CLAUDE_HANDOFF_OPTIMIZATION.md`.
 | `npm run typecheck` | pass |
 | `npm test` | pass (64 files, 548 tests after Phase 2 and Phase 3; Phase 1: 59 / 530; Phase 0: 58 / 528; was 59 / 596 — `tests/hub-duplication.test.ts`, 68 tests of the removed offline ledger, deleted) |
 | `npm run build` | pass |
+| `node scripts/build-sim-bundle.mjs` | pass: `pb-sim 49699e030161ede6`, 836 KB, `dist-sim/pb-sim.js` sha256 `1d770c578c3c9d079f56a39f2f2d51a14dc34106a48626f58483c304f302926d` (not committed; `dist-sim` is gitignored) |
+| Goja `pb.bench` | not run: no Nakama/Goja here (see Phase 2 §3.4) |
 
 ## Measurements
 
@@ -145,6 +147,17 @@ Time to canvas after Phase 3: ~500 ms (three runs; baseline 1,155 ms).
 About −34% in Node and −22% in `--jitless`. The handoff's 440 ms is a Goja figure from the owner's
 machine; Goja is far slower than V8's interpreter, so the absolute numbers do not transfer, and the
 3–5× target is not shown here. Worst tick storage writes: 200 → 3.
+
+## Pre-existing issues seen in review (not changed here)
+From a review pass over main's last change (#46, offline saves per hub account); still present:
+- `src/hub/saveOwner.ts` `resolveSaveOwner`: a hub visit whose `init` *fails* (expired or used
+  ticket, network error) resolves to the device owner, so that visit plays and saves over the
+  browser's device game. Suggest `pending` when `visitStarting` and init answered without an
+  account. Lower stakes now that offline play never reaches the hub, but it is still another
+  person's save on a shared browser.
+- Same function: with no visit starting but `init` already started by world select, it waits up
+  to `SAVE_OWNER_WAIT_MS` for `init` before returning the device owner it could return at once.
+- `src/persist.ts` `clearSavedGame` leaves the owner's `.save.unreadable` backup behind.
 
 ## Repo hygiene proposals (owner to decide)
 - `src/assets/icons/*.png` (120 files, 1.6 MB): only used when `UI.pixelIcons` is false.
