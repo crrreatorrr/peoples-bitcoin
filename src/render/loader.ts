@@ -87,7 +87,6 @@ const MISSING: AssetEntry = {
 
 export class AssetLoader {
   private readonly models = new Map<string, THREE.Object3D>();
-  private readonly sprites = new Map<string, THREE.Texture>();
   private readonly icons = new Map<string, HTMLCanvasElement>();
   private readonly iconTextures = new Map<string, THREE.Texture>();
   private readonly terrain = new Map<string, TerrainPart>();
@@ -98,7 +97,9 @@ export class AssetLoader {
   static async load(): Promise<AssetLoader> {
     const parsed = z.record(z.string(), AssetEntrySchema).parse(manifestJson);
     const loader = new AssetLoader(new Map(Object.entries(parsed)));
-    await Promise.all([loader.preloadModels(), loader.preloadSprites()]);
+    // Sprites are UI art shown through <img> URLs; nothing uploads them to the GPU at boot.
+    // A ground item without a pixel icon loads its sprite texture on first drop (iconTexture).
+    await loader.preloadModels();
     return loader;
   }
 
@@ -112,23 +113,6 @@ export class AssetLoader {
         // keep the code-built placeholder until the file lands, instead of failing the boot.
         if (!bundled && e.placeholder) return;
         this.models.set(id, (await gltf.loadAsync(bundled ?? e.path!)).scene);
-      });
-    await Promise.all(jobs);
-  }
-
-  private async preloadSprites(): Promise<void> {
-    const loader = new THREE.TextureLoader();
-    const jobs = [...this.entries]
-      .filter(([, e]) => e.sprite)
-      .map(async ([id, e]) => {
-        const url = this.spriteUrl(e);
-        if (!url) return;
-        const tex = await loader.loadAsync(url);
-        tex.colorSpace = THREE.SRGBColorSpace;
-        tex.magFilter = THREE.NearestFilter;
-        tex.minFilter = THREE.NearestFilter;
-        tex.generateMipmaps = false;
-        this.sprites.set(id, share(tex));
       });
     await Promise.all(jobs);
   }
@@ -230,28 +214,44 @@ export class AssetLoader {
     return this.imageUrl(id) ?? this.icon(id).toDataURL();
   }
 
-  /** The icon as a texture, for items lying on the ground. */
+  /** The icon as a texture, for items lying on the ground, loaded on first use. */
   iconTexture(id: string): THREE.Texture {
     let tex = this.iconTextures.get(id);
-    const e = this.entry(id);
-    const pixel = this.pixelUrl(e);
-    if (!tex && pixel && (UI.pixelIcons || !this.sprites.has(id))) {
-      tex = new THREE.TextureLoader().load(pixel);
-      tex.magFilter = THREE.NearestFilter;
-      tex.minFilter = THREE.NearestFilter;
+    if (tex) return tex;
+    const url = this.imageUrl(id);
+    if (url) {
+      tex = new THREE.TextureLoader().load(url);
       tex.generateMipmaps = false;
-      tex.colorSpace = THREE.SRGBColorSpace;
-      this.iconTextures.set(id, share(tex));
-    }
-    tex ??= this.sprites.get(id);
-    if (!tex) {
+    } else {
       tex = new THREE.CanvasTexture(this.icon(id));
-      tex.magFilter = THREE.NearestFilter;
-      tex.minFilter = THREE.NearestFilter;
-      tex.colorSpace = THREE.SRGBColorSpace;
-      this.iconTextures.set(id, share(tex));
     }
+    tex.magFilter = THREE.NearestFilter;
+    tex.minFilter = THREE.NearestFilter;
+    tex.colorSpace = THREE.SRGBColorSpace;
+    this.iconTextures.set(id, share(tex));
     return tex;
+  }
+
+  /**
+   * Fetches the small pixel icons into the browser cache once the game is idle, so the first
+   * look at the pack, bank or Terminal shows them at once. Sprite portraits (Summoning, build
+   * menu) stay on demand: they are bigger and only those two panels show them.
+   */
+  warmIcons(): void {
+    const urls = new Set<string>();
+    for (const e of this.entries.values()) {
+      const url = this.pixelUrl(e);
+      if (url) urls.add(url);
+    }
+    const run = () => {
+      for (const url of urls) {
+        const img = new Image();
+        img.decoding = 'async';
+        img.src = url;
+      }
+    };
+    if (typeof requestIdleCallback === 'function') requestIdleCallback(run, { timeout: 4000 });
+    else setTimeout(run, 1000);
   }
 
   /** Short text glyph (emoji) for UI tab/skill icons. */

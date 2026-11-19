@@ -221,6 +221,7 @@ async function boot(): Promise<void> {
 
   // ── Rendering ──────────────────────────────────────────────────────────────
   const assets = await AssetLoader.load();
+  assets.warmIcons();
   const viewport = $('#viewport');
   const renderer = createLowResRenderer(viewport);
   const cam = new OrbitCamera();
