@@ -235,6 +235,12 @@ interface Session {
   hubInfo: HubInfo | null;
   /** Last tick this player asked for a wallet refresh (OP.WALLET). */
   walletAt: number;
+  /**
+   * Join order. Periodic saves, Ticket flushes and online rows run for the players whose slot
+   * lines up with the tick, so a full world spreads its storage writes over the interval
+   * instead of writing all 100 characters in one tick.
+   */
+  slot: number;
 }
 
 let cachedContent: Content | null = null;
@@ -281,6 +287,9 @@ export function createWorldHost(opts: HostOptions): WorldHost {
   const sessions = new Map<string, Session>();
   /** sid from joinAttempt, until join. */
   const pendingSid = new Map<string, string>();
+  let nextSlot = 0;
+  /** This player's turn for a job that runs every `every` ticks (see Session.slot). */
+  const due = (s: Session, every: number) => (world.tick + s.slot) % every === 0;
   const trades = new TradeBook();
   let outbox: Outbound[] = [];
   let kicks: string[] = [];
@@ -416,8 +425,9 @@ export function createWorldHost(opts: HostOptions): WorldHost {
   }
 
   /** Seals batches into the save first, so a retry after a crash reuses the same key and amount. */
-  function flushTickets(only?: Session): void {
-    const list = (only ? [only] : live()).filter((s) => !s.expired && s.sid !== '');
+  function flushTickets(only?: Session | Session[]): void {
+    const given = only === undefined ? live() : Array.isArray(only) ? only : [only];
+    const list = given.filter((s) => !s.expired && s.sid !== '');
     const sealed: Session[] = [];
     for (const s of list) {
       let any = false;
@@ -869,6 +879,7 @@ export function createWorldHost(opts: HostOptions): WorldHost {
       shopSeq: 0,
       hubInfo: null,
       walletAt: -Infinity,
+      slot: nextSlot++,
     };
     sessions.set(s.uid, s);
     refreshBalance(s);
@@ -958,18 +969,19 @@ export function createWorldHost(opts: HostOptions): WorldHost {
         dropSession(s, true);
       }
     }
-    if (world.tick % NET.ticketFlushEveryTicks === 0) flushTickets();
-    else
-      for (const s of live())
+    const flushing = live().filter((s) => due(s, NET.ticketFlushEveryTicks));
+    if (flushing.length > 0) flushTickets(flushing);
+    for (const s of live())
+      if (!due(s, NET.ticketFlushEveryTicks))
         if (s.view.player.ledger.questEarns.some((r) => r.status === 'pending')) sendQuestEarns(s);
-    if (world.tick % NET.saveEveryTicks === 0) {
-      const all = live();
-      for (const s of all) submitXp(s);
-      saveRows(all);
+    const saving = live().filter((s) => due(s, NET.saveEveryTicks));
+    if (saving.length > 0) {
+      for (const s of saving) submitXp(s);
+      saveRows(saving);
     }
+    for (const s of live()) if (due(s, NET.onlineRefreshEveryTicks)) writeOnlineSafe(s);
     if (world.tick % NET.onlineRefreshEveryTicks === 0) {
       const all = live();
-      for (const s of all) writeOnlineSafe(s);
       const ids = [...new Set(all.flatMap((s) => s.view.player.social.friends.map((f) => f.id)))];
       const rows = safeReadOnline(ids);
       for (const s of all) if (s.presence && s.helloed) pushSocial(s, rows);
