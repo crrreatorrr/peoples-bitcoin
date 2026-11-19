@@ -81,6 +81,8 @@ interface Link {
   fix: THREE.Quaternion | null;
   /** Forearms and wrists turn in the corrected arms-down frame. */
   inherit: THREE.Quaternion | null;
+  /** `inherit` inverted, once. */
+  inheritInv: THREE.Quaternion | null;
   /** Share of the joint's turn this bone takes (the spine splits the torso's). */
   share: number;
 }
@@ -155,6 +157,13 @@ export function riggedActor(
           : proxy === 'foreR' || proxy === 'wristR'
             ? fixR
             : null,
+      // The arm fixes never change after setup, so their inverses are taken once here.
+      inheritInv:
+        proxy === 'foreL' || proxy === 'wristL'
+          ? fixL.clone().invert()
+          : proxy === 'foreR' || proxy === 'wristR'
+            ? fixR.clone().invert()
+            : null,
       share,
     };
   };
@@ -169,16 +178,17 @@ export function riggedActor(
 
   const q = new THREE.Quaternion();
   const none = new THREE.Quaternion();
+  // Scratch for sync(), which runs for every actor every frame: no clones there.
+  const about = new THREE.Quaternion();
   const sync = () => {
     for (const l of links) {
       q.copy(l.proxy.quaternion);
       if (l.share < 1) q.slerpQuaternions(none, l.proxy.quaternion, l.share);
       if (l.fix) q.multiply(l.fix);
-      if (l.inherit) q.premultiply(l.inherit.clone().invert()).multiply(l.inherit);
+      if (l.inherit && l.inheritInv) q.premultiply(l.inheritInv).multiply(l.inherit);
       // bone = restLocal · (restWorld⁻¹ · q · restWorld): rotate about character axes.
-      l.bone.quaternion
-        .copy(l.restLocal)
-        .multiply(l.restWorldInv.clone().multiply(q).multiply(l.restWorld));
+      about.copy(l.restWorldInv).multiply(q).multiply(l.restWorld);
+      l.bone.quaternion.copy(l.restLocal).multiply(about);
     }
   };
   sync();
