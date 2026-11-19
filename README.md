@@ -217,6 +217,11 @@ load a GLB instead. A code-built placeholder stays in use while its registered G
 `sprites/sp_champion.png` are registered ahead of the art).
 See [ART_GUIDE.md](ART_GUIDE.md).
 
+GLBs load per zone: the starting zone's models (`src/render/zoneAssets.ts`) start fetching at boot
+while world select is up, and the rest load after the first frame. The shipped GLBs are
+meshopt-compressed; compress a new one the same way (plain GLBs still load):
+`npx @gltf-transform/cli@4 meshopt in.glb src/assets/models/out.glb --level high`.
+
 ## Deploy
 
 The client is a static site: `npm run build` and deploy `dist/`. Vite's `base` defaults to

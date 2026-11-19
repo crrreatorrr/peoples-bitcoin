@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased — Optimization handoff, Phase 1 (2026-11-19)
+
+Client and assets only (`src/config`, `src/sim`, `src/server` untouched), so `SIM_VERSION` stays
+`0d77b686c8efbfd5`.
+
+- **Models load per zone.** The starting zone's GLBs start fetching at boot, during hub sign-in
+  and world select; the rest load after the first frame. Each GLB URL is fetched and parsed once.
+  If the zone is still loading when the game starts, a "Loading The Treasury..." box shows.
+- **Meshopt-compressed GLBs:** `src/assets/models` 7.23 MB → 3.29 MB (geometry only; textures
+  unchanged, screenshots match).
+- Cold boot to the first frame: 219 requests / 11.46 MB → 30 requests / 2.55 MB; everything,
+  background loads included: 48 requests / 3.90 MB.
+- Joining a world waits for WELCOME on an event instead of a 50 ms poll.
+
 ## Unreleased — Optimization handoff, Phase 0 (2026-11-19)
 
 Client only: no sim, server, config or data file changed in this phase, so `SIM_VERSION` stays
