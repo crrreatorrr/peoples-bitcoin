@@ -18,6 +18,11 @@ export class ChatHeads {
   private readonly camera = new THREE.PerspectiveCamera(FOV_DEG, 1, 0.05, 20);
   private readonly pixels = new Uint8Array(SIZE * SIZE * 4);
   private readonly cache = new Map<string, string>();
+
+  /** Forgets every portrait (a model that was a placeholder when drawn has loaded since). */
+  clear(): void {
+    this.cache.clear();
+  }
   private readonly clearColor = new THREE.Color();
 
   constructor(

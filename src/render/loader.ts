@@ -145,9 +145,17 @@ export class AssetLoader {
           scene = this.gltf.loadAsync(url).then((g) => g.scene);
           this.byUrl.set(url, scene);
         }
-        job = scene.then((root) => {
-          if (root) this.models.set(id, root);
-        });
+        job = scene.then(
+          (root) => {
+            if (root) this.models.set(id, root);
+          },
+          (err: unknown) => {
+            // Forget the failure so a later ensure can try again; the id stays a placeholder.
+            this.byUrl.delete(url);
+            this.loading.delete(id);
+            throw err;
+          },
+        );
         this.loading.set(id, job);
       }
       jobs.push(job);

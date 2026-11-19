@@ -148,6 +148,18 @@ About −34% in Node and −22% in `--jitless`. The handoff's 440 ms is a Goja f
 machine; Goja is far slower than V8's interpreter, so the absolute numbers do not transfer, and the
 3–5× target is not shown here. Worst tick storage writes: 200 → 3.
 
+## Review of this branch
+A fresh subagent reviewed `git diff 35b7f56..HEAD` without my conclusions: no important bugs.
+It checked pathfinding, AOI and broadcast equivalence, `parseIntent`, `releaseObject` sharing,
+and the online trust path. Four nits; three fixed (next commit), one left:
+- Fixed: chat-head portraits drawn while models were loading stayed placeholders (cache now
+  cleared on the model rebuild); a zone change before that zone's models loaded (for example online,
+  where the first snapshot moves you out of the start zone) now loads them first and redraws; a failed
+  GLB fetch no longer stops the placeholder rebuild, and a later load can try it again.
+- Left: after `OP.WALLET` the wallet shows the hub balance, so Tickets earned since the last flush
+  disappear from the display until the next earn ack. That is the same behaviour as every earn
+  ack; nothing is lost.
+
 ## Pre-existing issues seen in review (not changed here)
 From a review pass over main's last change (#46, offline saves per hub account); still present:
 - `src/hub/saveOwner.ts` `resolveSaveOwner`: a hub visit whose `init` *fails* (expired or used

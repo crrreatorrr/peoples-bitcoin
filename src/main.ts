@@ -1065,6 +1065,16 @@ async function boot(): Promise<void> {
           const old = view;
           view = new ZoneView(state, content, assets, cam.camera, canvas);
           old.dispose();
+          // Models of the new zone not loaded yet: load them first, then redraw with them.
+          const zoneIds = zoneModelIds(content, e.zoneId);
+          if (!assets.ready(zoneIds)) {
+            void assets
+              .ensure(zoneIds)
+              .catch((err: unknown) => console.warn('[assets] zone model load failed', err))
+              .then(() => {
+                if (state.zone.id === e.zoneId) rebuildForModels();
+              });
+          }
           minimap.setZone(content.zones.get(e.zoneId)!);
           hitsplats.clear();
           crumb('zone_change', { zone: e.zoneId });
@@ -1278,16 +1288,20 @@ async function boot(): Promise<void> {
   requestAnimationFrame(frame);
   // Every other zone's models, in the background. A model drawn as a placeholder meanwhile (a zone
   // entered early, or an id the zone walk missed) is swapped in by rebuilding the view once.
-  assets
+  void assets
     .ensureAll()
-    .then(() => {
-      if (assets.takeMissed().size === 0) return;
-      const old = view;
-      view = new ZoneView(state, content, assets, cam.camera, canvas);
-      old.dispose();
-      hitsplats.clear();
-    })
-    .catch((err: unknown) => console.warn('[assets] background model load failed', err));
+    .catch((err: unknown) => console.warn('[assets] background model load failed', err))
+    .then(rebuildForModels);
+
+  /** Redraws the view (and forgets chat-head portraits) if something was drawn as a placeholder. */
+  function rebuildForModels(): void {
+    if (assets.takeMissed().size === 0) return;
+    const old = view;
+    view = new ZoneView(state, content, assets, cam.camera, canvas);
+    old.dispose();
+    heads.clear();
+    hitsplats.clear();
+  }
 }
 
 /** The build window's title and choices for the open hotspot, if any. */
