@@ -39,6 +39,8 @@ export class OnlineDriver implements GameDriver {
   readonly trade = new Listeners<[TradeOut]>();
   readonly social = new Listeners<[SocialOut]>();
   readonly kicked = new Listeners<[string]>();
+  /** Fires when WELCOME arrives (join waits on this instead of polling). */
+  readonly welcomed = new Listeners<[]>();
   welcome: Welcome | null = null;
   /** Round trip in ms, from PING/PONG. */
   rtt: number | null = null;
@@ -134,6 +136,7 @@ export class OnlineDriver implements GameDriver {
       case OP.WELCOME:
         this.welcome = body as Welcome;
         this.replica.setSelf(this.welcome.you);
+        this.welcomed.emit();
         this.hello();
         return;
       case OP.SNAPSHOT: {

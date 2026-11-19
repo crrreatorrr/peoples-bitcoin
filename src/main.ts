@@ -34,6 +34,7 @@ import { ChatHeads } from './render/chatheads';
 import { PALETTES } from './render/effects';
 import { dressKeyOf } from './render/entities';
 import { AssetLoader } from './render/loader';
+import { zoneModelIds } from './render/zoneAssets';
 import { createLowResRenderer, fitToContainer } from './render/lowres';
 import type { PickResult } from './render/picking';
 import { ZoneView } from './render/zoneview';
@@ -127,6 +128,13 @@ async function boot(): Promise<void> {
   document.title = GAME_TITLE;
   const content = loadContent();
   const ctx: SimContext = { content, grids: buildGrids(content) };
+  // Start fetching the starting zone's models now, while the hub signs in and the player picks a
+  // world, so they are usually ready by the time the game starts. The rest load after the first
+  // frame (see the end of boot).
+  const assets = AssetLoader.create();
+  assets.ensure(zoneModelIds(content, START_ZONE_ID)).catch(() => {
+    // Reported where boot awaits the zone's models.
+  });
 
   /** Added to the browser clock; only the dev QA hook moves it. */
   let clockOffset = 0;
@@ -220,7 +228,18 @@ async function boot(): Promise<void> {
     state.player.interface?.kind === 'terminal' ? state.player.interface.shopId : TERMINAL_SHOP_ID;
 
   // ── Rendering ──────────────────────────────────────────────────────────────
-  const assets = await AssetLoader.load();
+  const zoneIds = zoneModelIds(content, state.zone.id);
+  if (!assets.ready(zoneIds)) {
+    const loading = document.createElement('div');
+    loading.className = 'loading-models';
+    loading.textContent = `Loading ${content.zones.get(state.zone.id)?.name ?? 'the world'}...`;
+    document.body.append(loading);
+    try {
+      await assets.ensure(zoneIds);
+    } finally {
+      loading.remove();
+    }
+  }
   assets.warmIcons();
   const viewport = $('#viewport');
   const renderer = createLowResRenderer(viewport);
@@ -1215,6 +1234,18 @@ async function boot(): Promise<void> {
     chat.add(`Godmode: ${GODMODE.tickets.toLocaleString('en-US')} Tickets.`, 'game');
   }
   requestAnimationFrame(frame);
+  // Every other zone's models, in the background. A model drawn as a placeholder meanwhile (a zone
+  // entered early, or an id the zone walk missed) is swapped in by rebuilding the view once.
+  assets
+    .ensureAll()
+    .then(() => {
+      if (assets.takeMissed().size === 0) return;
+      const old = view;
+      view = new ZoneView(state, content, assets, cam.camera, canvas);
+      old.dispose();
+      hitsplats.clear();
+    })
+    .catch((err: unknown) => console.warn('[assets] background model load failed', err));
 }
 
 /** The build window's title and choices for the open hotspot, if any. */

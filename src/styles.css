@@ -2357,3 +2357,19 @@ body[data-input='keys'] .world-select button.pad-focus {
     align-items: flex-start;
   }
 }
+
+/* Shown only if the zone's models are still loading when the game starts. */
+.loading-models {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 40;
+  padding: 16px 18px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--parchment);
+  border: 3px solid var(--edge-dark);
+}
