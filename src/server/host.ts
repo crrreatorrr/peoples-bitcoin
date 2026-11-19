@@ -1102,17 +1102,26 @@ export function createWorldHost(opts: HostOptions): WorldHost {
       }
 
       const visible = timed('visible', () => visibleTo(view, cache.get(key) ?? [], s.aoi.lastSent));
-      const seen = new Set(visible.map((e) => e.wire.id));
-      seen.add(view.selfId);
-      seen.add(view.sprotoId);
-      const others = (area.get(key) ?? [])
-        .filter((a) => a.from !== s.uid && eventEntities(a.e).some((id) => seen.has(id)))
-        .map((a) => a.e);
+      const tick = world.tick;
+      // Area events about something this player sees (or itself, or its Sproto). The id set is
+      // built only on ticks with area events in this zone.
+      const areaList = area.get(key);
+      let others: SimEvent[] = [];
+      if (areaList) {
+        const seen = new Set<string>();
+        for (const e of visible) seen.add(e.wire.id);
+        seen.add(view.selfId);
+        seen.add(view.sprotoId);
+        others = areaList
+          .filter((a) => a.from !== s.uid && eventEntities(a.e).some((id) => seen.has(id)))
+          .map((a) => a.e);
+      }
       const ev = [...own, ...others];
+      const lastSent = s.aoi.lastSent;
       if (full) {
-        s.aoi.lastSent.clear();
+        lastSent.clear();
         s.aoi.lastSelf.clear();
-        for (const e of visible) s.aoi.lastSent.set(e.wire.id, { stat: e.stat, dyn: e.dyn });
+        for (const e of visible) lastSent.set(e.wire.id, { stat: e.stat, dyn: e.dyn, at: tick });
         const snap: Snapshot & { ev: SimEvent[]; ack: number } = {
           tick: world.tick,
           zone: view.zone.id,
@@ -1133,19 +1142,27 @@ export function createWorldHost(opts: HostOptions): WorldHost {
         outbox.push({ op: OP.SNAPSHOT, data: body, to: [s.uid] });
         continue;
       }
+      // Stamp what is visible this tick; whatever keeps an older stamp has left view.
       const texts: string[] = [];
       for (const e of visible) {
-        const last = s.aoi.lastSent.get(e.wire.id);
-        if (last && last.dyn === e.dyn && last.stat === e.stat) continue;
+        const last = lastSent.get(e.wire.id);
+        if (!last) {
+          texts.push(e.text);
+          lastSent.set(e.wire.id, { stat: e.stat, dyn: e.dyn, at: tick });
+          continue;
+        }
+        last.at = tick;
+        if (last.dyn === e.dyn && last.stat === e.stat) continue;
         // Unchanged static parts: send only the moving parts.
-        texts.push(last && last.stat === e.stat ? e.dyn : e.text);
-        s.aoi.lastSent.set(e.wire.id, { stat: e.stat, dyn: e.dyn });
+        texts.push(last.stat === e.stat ? e.dyn : e.text);
+        last.stat = e.stat;
+        last.dyn = e.dyn;
       }
       const del: string[] = [];
-      for (const id of s.aoi.lastSent.keys()) {
-        if (!seen.has(id)) {
+      for (const [id, last] of lastSent) {
+        if (last.at !== tick) {
           del.push(id);
-          s.aoi.lastSent.delete(id);
+          lastSent.delete(id);
         }
       }
       const delta: Delta = { tick: world.tick, ack: s.ack, ent: [], del, ev };

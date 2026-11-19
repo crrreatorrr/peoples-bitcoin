@@ -44,7 +44,7 @@ export interface CachedEntity {
 export interface AoiState {
   zoneKey: string | null;
   /** Entity id → the static and moving parts last sent. */
-  lastSent: Map<string, { stat: string; dyn: string }>;
+  lastSent: Map<string, { stat: string; dyn: string; at?: number }>;
   lastSelf: Map<string, string>;
   lastObj: Map<string, number>;
 }
