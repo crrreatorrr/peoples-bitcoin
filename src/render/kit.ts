@@ -37,6 +37,26 @@ export function disposeScene(scene: THREE.Object3D): void {
   });
 }
 
+/**
+ * Frees what one entity's model owns when the entity leaves the scene: its own materials (the
+ * flat-shaded copies a GLB clone gets, gear, the HP bar's sprite) and canvas textures (the HP bar).
+ * Unlike disposeScene it leaves geometries and image textures alone: those are shared with the
+ * loaded GLB and every other copy of it, and freeing them would only make the GPU upload them
+ * again for the next copy.
+ */
+export function releaseObject(root: THREE.Object3D): void {
+  root.traverse((o) => {
+    const { material } = o as Partial<THREE.Mesh>;
+    for (const mat of Array.isArray(material) ? material : material ? [material] : []) {
+      if (shared.has(mat)) continue;
+      for (const value of Object.values(mat)) {
+        if (value instanceof THREE.CanvasTexture && !shared.has(value)) value.dispose();
+      }
+      mat.dispose();
+    }
+  });
+}
+
 export interface MatOptions {
   emissive?: string;
   map?: THREE.Texture;

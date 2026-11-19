@@ -3,6 +3,7 @@
  * of the terrain (nearest first) and the ground tile, for "Walk here".
  */
 import * as THREE from 'three';
+import { canvasRect } from './canvasRect';
 import type { Tile } from '../sim/state';
 
 export interface PickResult {
@@ -28,7 +29,7 @@ export class Picker {
   ) {}
 
   pick(clientX: number, clientY: number): PickResult {
-    const rect = this.canvas.getBoundingClientRect();
+    const rect = canvasRect(this.canvas);
     this.ndc.set(
       ((clientX - rect.left) / rect.width) * 2 - 1,
       -((clientY - rect.top) / rect.height) * 2 + 1,

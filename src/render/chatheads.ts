@@ -3,6 +3,7 @@
  * rendered once from their 3D model into an offscreen target and cached as an
  * image URL for the dialogue box.
  */
+import { releaseObject } from './kit';
 import * as THREE from 'three';
 import type { Look } from './actors';
 import type { AssetLoader } from './loader';
@@ -69,6 +70,7 @@ export class ChatHeads {
     r.setRenderTarget(null);
     r.setClearColor(this.clearColor, alpha);
     this.scene.remove(actor.root);
+    releaseObject(actor.root);
 
     // WebGL rows run bottom-up; flip them into a canvas.
     const canvas = document.createElement('canvas');
