@@ -40,7 +40,7 @@ import {
   decode,
   encode,
   HelloSchema,
-  IntentSchema,
+  parseIntent,
   IntentsSchema,
   OP,
   PingSchema,
@@ -908,7 +908,7 @@ export function createWorldHost(opts: HostOptions): WorldHost {
     s.ack = Math.max(s.ack, parsed.data.seq);
     let bad = false;
     for (const raw of parsed.data.intents) {
-      const intent = IntentSchema.safeParse(raw);
+      const intent = parseIntent(raw);
       if (!intent.success) {
         bad = true;
         continue;

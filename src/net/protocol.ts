@@ -75,6 +75,42 @@ export const IntentSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('closeInterface') }).strict(),
 ]);
 
+/**
+ * `IntentSchema.safeParse`, with a fast path for `walk` (most of a busy world's intents): the
+ * same rules (exactly type, x and y; whole numbers 0..1024) without the schema machinery, which
+ * is slow in the server's interpreted runtime. Anything else goes through the schema.
+ */
+export function parseIntent(
+  raw: unknown,
+): { success: true; data: z.output<typeof IntentSchema> } | { success: false } {
+  if (raw !== null && typeof raw === 'object' && !Array.isArray(raw)) {
+    const r = raw as Record<string, unknown>;
+    if (r.type === 'walk') {
+      let keys = 0;
+      for (const k in r) {
+        if (k !== 'type' && k !== 'x' && k !== 'y') return { success: false };
+        keys++;
+      }
+      const { x, y } = r;
+      if (
+        keys === 3 &&
+        typeof x === 'number' &&
+        typeof y === 'number' &&
+        Number.isInteger(x) &&
+        Number.isInteger(y) &&
+        x >= 0 &&
+        x <= 1024 &&
+        y >= 0 &&
+        y <= 1024
+      )
+        return { success: true, data: { type: 'walk', x, y } };
+      return { success: false };
+    }
+  }
+  const parsed = IntentSchema.safeParse(raw);
+  return parsed.success ? { success: true, data: parsed.data } : { success: false };
+}
+
 export const HelloSchema = z.object({
   proto: int,
   sim: z.string().max(64),

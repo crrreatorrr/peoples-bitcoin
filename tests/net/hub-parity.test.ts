@@ -163,3 +163,39 @@ describe('wallet refresh (OP.WALLET)', () => {
     expect(w.host.viewOf('a')!.player.currencies.tickets).toBe(10);
   });
 });
+
+describe('parseIntent fast path', () => {
+  it('agrees with IntentSchema on walk intents, valid and not', async () => {
+    const { parseIntent } = await import('../../src/net/protocol');
+    const values: unknown[] = [
+      0,
+      1,
+      1024,
+      1025,
+      -1,
+      3.5,
+      NaN,
+      Infinity,
+      '5',
+      null,
+      undefined,
+      1e20,
+    ];
+    const cases: unknown[] = [
+      null,
+      [],
+      'walk',
+      { type: 'walk' },
+      { type: 'walk', x: 1, y: 2, z: 3 },
+    ];
+    for (const x of values) for (const y of values) cases.push({ type: 'walk', x, y });
+    cases.push(JSON.parse('{"type":"walk","x":1,"y":2,"__proto__":{"a":1}}'));
+    cases.push({ type: 'toggleRun' }, { type: 'summon', slot: 2 }, { type: 'nope' });
+    for (const c of cases) {
+      const fast = parseIntent(c);
+      const slow = IntentSchema.safeParse(c);
+      expect(fast.success, JSON.stringify(c)).toBe(slow.success);
+      if (fast.success && slow.success) expect(fast.data).toEqual(slow.data);
+    }
+  });
+});
