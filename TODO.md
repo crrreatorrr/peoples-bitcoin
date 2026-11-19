@@ -76,13 +76,17 @@
 - [ ] S5 PvP in The Trenches (skull/risk, single-way PvP)
 - [ ] S6 Binary delta encoding; spatial-hash AOI for zones over 100×100
 - [ ] S7 Report button, admin mute and kick, a trade audit table, bot heuristics
-- [ ] S9 Server-side `pb_total_xp` and the `pb.quest_complete` relic event for online characters
+- [x] S9 Server-side `pb_total_xp` and the `pb.quest_complete` relic event for online characters
+      (2026-11-19; live once the hub's `pb_world` shell passes `reportEvent` / `submitScore`)
 - [ ] S10 Follow a player, emotes, world hopping with a cooldown, friends' column in world select
 - [ ] S11 Mobile layout for world select, the trade window and the friends list
 - [ ] Save import ("Bring your offline President online"): off by decision; would need an HTTP RPC
-- [ ] Exchange (Tickets → Verse) online
+- [x] Exchange (Tickets → Verse) online (2026-11-19; needs the hub shell's `loadProfile` or
+      `getRelics` so the client knows the world read its profile)
 - [ ] A Friends tab of its own (needs a tab socket painted into the frame art)
-- [ ] Goja tick time: 100 players clicking 30 times a tick use ~440 ms of the 600 ms tick on one dev
+- [ ] Goja tick time (2026-11-19: A* scratch buffers, lazy entity JSON, staggered saves; Node
+      --jitless bench 21.0 → 16.3 ms/tick, not yet measured in Goja. Next: dirty flags for
+      selfPatch, a spatial hash for visibility): 100 players clicking 30 times a tick use ~440 ms of the 600 ms tick on one dev
       machine. Profile the sim phase (pathfinding, enemies) and entity serialization if a world fills
 - [ ] Clickable "wishes to trade with you" line (today: Trade with the player back)
 
@@ -106,10 +110,18 @@
 - [ ] Draw calls: props are a dozen meshes each, over the Phase 6 budget of 300. Fix: merge
       static meshes per prop by material (or instance racks/trees).
 - [ ] Mobile: long-press menu, one-finger camera drag, bottom-drawer panels (Phase 6). Taps already work.
-- [ ] Bundle is ~1 MB (306 KB gzipped; mostly Three.js plus the code-built models); Vite warns at 500 KB. Split the vendor chunk or raise the limit.
-- [ ] Character GLBs total ~9.5 MB and all load at start. Load per zone, or compress meshes with
-      `gltf-transform` (meshopt).
+- [ ] Bundle: Three.js is its own chunk now (648 KB, 164 KB gzip, 2026-11-19); the game chunk
+      is still 982 KB (364 KB gzip) and Vite warns at 500 KB. Split it further or raise the limit.
+- [x] Character GLBs load per zone and are meshopt-compressed (2026-11-19). Still open: the
+      GLB textures are 512 px JPEGs (1.4 MB in all); WebP saved only ~25% and was left out.
 - [ ] Treasury exit portal once a second zone exists.
+
+## Optimization handoff leftovers (2026-11-19, see CLAUDE_HANDOFF_STATUS.md)
+
+- [ ] Measure the world tick in Goja (the hub's `pb.bench` RPC) after the hub re-vendors the bundle
+- [ ] Dirty flags for `selfPatch` (the sim would mark the player keys it writes)
+- [ ] Split `src/main.ts` (boot, HUD, online) into focused modules
+- [ ] Owner: delete the legacy `src/assets/icons/*.png` if `UI.pixelIcons` stays true
 
 ## OSRS features deferred to their phase
 

@@ -1,12 +1,13 @@
 /**
  * World select (RuneScape-style list): world number, players out of 100, and
- * a full state, with Quick join (the least full world) and Play offline. The
+ * a full state, with Quick join (the least full world) and Offline practice. The
  * parody notice shows here too. The last world is remembered locally.
  *
  * It is also the game's main menu: Exit to Hub, Controller settings and Full
  * screen sit under the list. With no way online (`list` null: standalone play
  * after "Main menu") it shows only Play and those options.
  */
+import { PRACTICE_NOTICE } from '../game/offlineShop';
 import { NET } from '../config/balance';
 import { GAME_TITLE, PARODY_NOTICE } from '../config/branding';
 import type { WorldInfo } from '../net/transport';
@@ -74,8 +75,12 @@ export class WorldSelect {
       else this.setStatus('Every world is full. Try again in a moment.');
     });
     const refresh = button('Refresh', () => void this.refresh());
-    const offline = button(list ? 'Play offline' : 'Play', () => this.pick({ kind: 'offline' }));
+    const offline = button(list ? 'Offline practice' : 'Play', () =>
+      this.pick({ kind: 'offline' }),
+    );
     offline.dataset.option = 'play';
+    // With worlds to join, offline play is practice: nothing it does reaches the hub.
+    if (list) offline.title = PRACTICE_NOTICE;
     if (list) actions.append(quick, refresh, offline);
     else actions.append(offline);
     panel.append(title, notice, ...(list ? [table] : []), this.status, actions);

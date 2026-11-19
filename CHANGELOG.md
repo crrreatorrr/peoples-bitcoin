@@ -1,5 +1,64 @@
 # Changelog
 
+## Unreleased — Optimization handoff, Phase 3 (2026-11-19)
+
+Client only.
+
+- **Smoother frames:** no quaternion clones in the rigged bone sync, the canvas rectangle read
+  once instead of per nameplate, and the mouseover raycast only when the cursor, camera or tick
+  changed (or every 150 ms).
+- **GPU memory:** players leaving view, despawned enemies, swapped object models, redressed armor
+  and chat heads free their own materials and HP bar textures.
+- **Bundle:** Three.js in its own `vendor-three` chunk; the Google Fonts no longer block the first
+  paint.
+
+## Unreleased — Optimization handoff, Phase 2 (2026-11-19)
+
+Server, protocol and config changed: `SIM_VERSION` is now `49699e030161ede6`. Online worlds
+need the new `dist-sim/pb-sim.js` (`npm run build:sim`) copied to
+`metaverse-hub/server/modules/vendor/pb-sim.js` and the hub module rebuilt.
+
+- **Hub features in online worlds:** relic Sprotos summon online (`summonRelic` is a valid
+  intent), finishing the tutorial reports `pb.quest_complete`, total XP posts to `pb_total_xp`,
+  and the exchange window trades Tickets for Verse. Each needs the hub shell's matching optional
+  `HostIO` call; without it the world skips the feature.
+- **New ops:** `OP.WALLET` (8, client → server: re-read my Ticket balance) and `OP.HUB_OUT`
+  (109, server → client: relics and effects). WELCOME may carry `hub`.
+- **Faster world tick:** pathfinding without per-call allocation, entity JSON built only when
+  sent, a set-free broadcast, walk intents validated without the schema, and saves, Ticket
+  flushes and online rows spread over their interval by join slot. 100-bot bench (median of
+  5): Node 10.3 → 6.8 ms/tick, Node `--jitless` (a stand-in for Goja) 21.0 → 16.3 ms/tick. A
+  full world's 200 storage writes in one tick are now at most 3 per tick.
+
+## Unreleased — Optimization handoff, Phase 1 (2026-11-19)
+
+Client and assets only (`src/config`, `src/sim`, `src/server` untouched), so `SIM_VERSION` stays
+`0d77b686c8efbfd5`.
+
+- **Models load per zone.** The starting zone's GLBs start fetching at boot, during hub sign-in
+  and world select; the rest load after the first frame. Each GLB URL is fetched and parsed once.
+  If the zone is still loading when the game starts, a "Loading The Treasury..." box shows.
+- **Meshopt-compressed GLBs:** `src/assets/models` 7.23 MB → 3.29 MB (geometry only; textures
+  unchanged, screenshots match).
+- Cold boot to the first frame: 219 requests / 11.46 MB → 30 requests / 2.55 MB; everything,
+  background loads included: 48 requests / 3.90 MB.
+- Joining a world waits for WELCOME on an event instead of a 50 ms poll.
+
+## Unreleased — Optimization handoff, Phase 0 (2026-11-19)
+
+Client only: no sim, server, config or data file changed in this phase, so `SIM_VERSION` stays
+`0d77b686c8efbfd5`.
+
+- **Faster boot:** the 189 sprite PNGs are no longer fetched and uploaded as GPU textures before
+  the first frame. Ground items load their icon on first drop; the small pixel icons warm into the
+  browser cache once the page is idle. Cold boot to The Treasury: 219 requests / 11.46 MB before,
+  48 requests / 7.83 MB after (Playwright, `vite preview`).
+- **Offline practice:** offline play never writes to the hub, even from a hub visit (it banked
+  Tickets, used the hub shop and exchange, claimed the tutorial relic and posted XP from an
+  editable localStorage save). The world select button reads "Offline practice". The offline
+  ledger code (`src/hub/client.ts`, `src/hub/ledgerStore.ts`) is gone.
+- `HubBridge` reads the session through `sdk.getSession()` and no longer navigates twice on exit.
+
 ## Unreleased — Offline saves per hub account (2026-11-12)
 
 No sim, config or data file changed, so `SIM_VERSION` stays `0d77b686c8efbfd5` and online worlds need no

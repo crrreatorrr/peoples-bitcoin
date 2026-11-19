@@ -6,12 +6,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { hubVisitStarting, type HubSdk, type InitResult } from '@metaverse/hub-sdk';
 import { HUB_GAME_ID, HubBridge } from '../src/hub/bridge';
-import { HubClient } from '../src/hub/client';
-import { clearHubLedger, reconcileSeals, rememberSeal } from '../src/hub/ledgerStore';
+import { OfflineShop } from '../src/game/offlineShop';
 import { DEVICE, ownedKey, resolveSaveOwner, type SaveOwner } from '../src/hub/saveOwner';
 import { claimWriter } from '../src/hub/singleWriter';
 import { clearSavedGame, loadSavedGame, saveGame } from '../src/persist';
 import { addStreamUsd } from '../src/sim/ledger';
+import type { Intent } from '../src/sim/state';
 import { content, give, newGame } from './helpers';
 
 const SAVE_KEY = 'peoples-bitcoin.save';
@@ -62,6 +62,8 @@ async function settle(): Promise<void> {
 interface FakeHub {
   sdk: HubSdk;
   earns: { amount: number; reason: string; key: string }[];
+  /** Every other hub write: spend, sell, exchange, reportEvent, submitScore. */
+  calls: string[];
   /** Resolves a held init. */
   answer: () => void;
 }
@@ -75,7 +77,16 @@ function fakeHub(playerId: string, opts: { live?: boolean; hold?: boolean } = {}
   let answer = () => {};
   const gate = opts.hold ? new Promise<void>((resolve) => (answer = resolve)) : Promise.resolve();
   const earns: FakeHub['earns'] = [];
+  const calls: string[] = [];
+  const write = (name: string) => async () => {
+    calls.push(name);
+    return {};
+  };
   const sdk = {
+    getSession: () =>
+      sessionStorage.getItem(SESSION_KEY)
+        ? { token: 't', playerId, game: HUB_GAME_ID, ranked: false, expiresAt: Date.now() + 1e6 }
+        : null,
     init: async (): Promise<InitResult> => {
       await gate;
       if (live) {
@@ -102,11 +113,14 @@ function fakeHub(playerId: string, opts: { live?: boolean; hold?: boolean } = {}
       earns.push({ amount, reason, key });
       return { balance: amount, capped: false };
     },
-    reportEvent: async () => ({ granted: null }),
-    submitScore: async () => ({}),
+    spendTickets: write('spendTickets'),
+    sellItem: write('sellItem'),
+    exchange: write('exchange'),
+    reportEvent: write('reportEvent'),
+    submitScore: write('submitScore'),
     exit: () => {},
   } as unknown as HubSdk;
-  return { sdk, earns, answer: () => answer() };
+  return { sdk, earns, calls, answer: () => answer() };
 }
 
 /** Tickets earned during an earlier hub session: still pending in the save, not yet banked. */
@@ -176,20 +190,6 @@ describe('account isolation', () => {
     expect(localStorage.getItem(`${SAVE_KEY}@alice`)).toBeNull();
     expect(localStorage.getItem(SAVE_KEY)).not.toBeNull();
   });
-
-  it('keeps each owner its own hub ledger', () => {
-    rememberSeal('tab', { id: 'seal-a', reason: 'pb_drop', amount: 40, acked: false }, ALICE);
-    expect(localStorage.getItem('peoples-bitcoin.hub-ledger@alice')).toContain('seal-a');
-    expect(localStorage.getItem('peoples-bitcoin.hub-ledger')).toBeNull();
-    // Bob's save must not take Alice's sealed Tickets out of its own pending balance.
-    const bob = newGame();
-    earnedInHub(bob.state, 40);
-    reconcileSeals(bob.state, BOB);
-    expect(bob.state.player.ledger.streams.pb_drop.pending).toBe(40);
-    expect(bob.state.player.ledger.appliedSealIds).toEqual([]);
-    clearHubLedger(BOB);
-    expect(localStorage.getItem('peoples-bitcoin.hub-ledger@alice')).toContain('seal-a');
-  });
 });
 
 describe('pending owner', () => {
@@ -199,7 +199,6 @@ describe('pending owner', () => {
     expect(loadSavedGame(content(), PENDING)).toEqual({ status: 'none', state: null });
     expect(saveGame(playedSave().state, PENDING)).toBe(false);
     clearSavedGame(PENDING);
-    clearHubLedger(PENDING);
     let lost = false;
     claimWriter(() => (lost = true), PENDING);
     expect(lost).toBe(false);
@@ -271,71 +270,37 @@ describe('deciding the owner', () => {
   });
 });
 
-describe('Tickets follow the save owner', () => {
-  it('never banks a device save into the account that is signed in', async () => {
+describe('offline practice', () => {
+  // Offline play runs against an editable save, so even an account's own save never reaches the hub.
+  it("never banks, spends, exchanges or reports from the account's own save", async () => {
     const hub = fakeHub('alice');
     const bridge = new HubBridge(hub.sdk);
     await bridge.init();
+    expect(bridge.mode).toBe('hub');
     const { state, ctx } = newGame();
     earnedInHub(state, 40);
-    const client = new HubClient(
+    give(state, 'item_concrete_bag', 1);
+    const said: string[] = [];
+    const queued: Intent[] = [];
+    const shop = new OfflineShop(
       state,
       ctx,
-      () => {},
-      () => {},
-      () => saveGame(state),
+      (text) => said.push(text),
+      (intent) => queued.push(intent),
+      () => saveGame(state, ALICE),
       bridge,
     );
-    await client.start();
+    shop.checkpoint();
+    shop.requestExchange();
+    shop.sell(0, 1);
     await settle();
     expect(state.hubSession.mode).toBe('standalone');
+    expect(shop.shopStatus()).toBe('local');
+    expect(shop.exchangeAmounts()).toEqual([]);
+    expect(said).toContain('The exchange needs an online world.');
+    expect(queued).toEqual([{ type: 'sell', slot: 0, qty: 1 }]);
     expect(hub.earns).toEqual([]);
-  });
-
-  it("never banks one account's save into another account", async () => {
-    const hub = fakeHub('bob');
-    const bridge = new HubBridge(hub.sdk);
-    await bridge.init();
-    const { state, ctx } = newGame();
-    earnedInHub(state, 40);
-    const save = () => saveGame(state, ALICE);
-    const client = new HubClient(
-      state,
-      ctx,
-      () => {},
-      () => {},
-      save,
-      bridge,
-      ALICE,
-    );
-    await client.start();
-    await settle();
-    expect(state.hubSession.mode).toBe('standalone');
-    expect(hub.earns).toEqual([]);
-  });
-
-  it("banks the account's own save", async () => {
-    const hub = fakeHub('alice');
-    const bridge = new HubBridge(hub.sdk);
-    await bridge.init();
-    const { state, ctx } = newGame();
-    earnedInHub(state, 40);
-    const save = () => saveGame(state, ALICE);
-    const client = new HubClient(
-      state,
-      ctx,
-      () => {},
-      () => {},
-      save,
-      bridge,
-      ALICE,
-    );
-    await client.start();
-    await settle();
-    expect(state.hubSession.mode).toBe('hub');
-    expect(hub.earns).toHaveLength(1);
-    expect(hub.earns[0]).toMatchObject({ amount: 40, reason: 'pb_drop' });
-    expect(localStorage.getItem('peoples-bitcoin.hub-ledger@alice')).toContain(hub.earns[0]!.key);
-    expect(localStorage.getItem('peoples-bitcoin.hub-ledger')).toBeNull();
+    expect(hub.calls).toEqual([]);
+    expect(localStorage.getItem(`${SAVE_KEY}@alice`)).not.toBeNull();
   });
 });

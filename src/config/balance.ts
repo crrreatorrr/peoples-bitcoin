@@ -294,6 +294,8 @@ export const NET = {
   saveEveryTicks: 100,
   worldSaveEveryTicks: 500,
   ticketFlushEveryTicks: 50,
+  /** A client may ask the server to re-read its Ticket balance (OP.WALLET) at most this often. */
+  walletRefreshMinTicks: 5,
   onlineRefreshEveryTicks: 50,
   /** An online-status row older than this many refreshes counts as offline. */
   onlineStaleRefreshes: 3,

@@ -3,6 +3,7 @@
  * rendered once from their 3D model into an offscreen target and cached as an
  * image URL for the dialogue box.
  */
+import { releaseObject } from './kit';
 import * as THREE from 'three';
 import type { Look } from './actors';
 import type { AssetLoader } from './loader';
@@ -17,6 +18,11 @@ export class ChatHeads {
   private readonly camera = new THREE.PerspectiveCamera(FOV_DEG, 1, 0.05, 20);
   private readonly pixels = new Uint8Array(SIZE * SIZE * 4);
   private readonly cache = new Map<string, string>();
+
+  /** Forgets every portrait (a model that was a placeholder when drawn has loaded since). */
+  clear(): void {
+    this.cache.clear();
+  }
   private readonly clearColor = new THREE.Color();
 
   constructor(
@@ -69,6 +75,7 @@ export class ChatHeads {
     r.setRenderTarget(null);
     r.setClearColor(this.clearColor, alpha);
     this.scene.remove(actor.root);
+    releaseObject(actor.root);
 
     // WebGL rows run bottom-up; flip them into a canvas.
     const canvas = document.createElement('canvas');

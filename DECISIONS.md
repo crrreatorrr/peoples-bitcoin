@@ -1179,3 +1179,68 @@ Controller settings and Full screen next to what the menu already had.
 - **The wait is not in `config/balance.ts`.** It is a client network timeout like
   `HUB_INIT_TIMEOUT_MS`, and `src/config` is part of the sim version hash, so putting it there
   would need a world server rebuild for a client-only number.
+
+## Offline practice (2026-11-19)
+
+- **Offline play never writes to the hub.** Choosing Offline practice on world select (or playing
+  with no world to join) runs the whole game in this browser against a save anyone can edit in
+  DevTools. Before this, an offline game opened from a hub visit banked its Tickets, spent and
+  sold through the hub shop, exchanged Tickets for Verse, claimed the `pb.quest_complete` relic
+  and posted `pb_total_xp`, all from that editable save. Now it does none of these: the offline
+  Terminal is the local shop, the exchange says it needs an online world, and no relic or score
+  is sent. Online worlds do all of it on the server. The handoff (`CLAUDE_HANDOFF_OPTIMIZATION.md`
+  §2.2) asked for this; it reverses the offline banking part of "Offline save per hub account".
+- **Relics do not unlock relic Sprotos offline** either: `hubSession` stays `standalone`, so the
+  practice game is the same with or without a hub session. Online worlds unlock them from the
+  hub profile (see "Online hub parity").
+- **The label:** the button reads "Offline practice" when worlds are listed (its tooltip and a
+  chat line say "Offline Practice: does not earn Hub Tickets, Relics, or Leaderboard XP").
+  Without a hub session the button still reads "Play".
+- **Saves stay per owner.** The save keys, the writer lock and the owner wait are unchanged, so
+  an account's practice game is still its own on a shared browser.
+- **Removed:** `src/hub/client.ts`, `src/hub/ledgerStore.ts`, `src/hub/uuid.ts` and their tests
+  (`tests/hub-duplication.test.ts`); the hub shop, earn, relic and score calls in
+  `src/hub/bridge.ts`. `src/game/offlineShop.ts` keeps the local Terminal checks. Tickets left
+  pending in an old save stay there as practice Tickets. Comments in `src/sim/save.ts` and
+  `src/sim/saleHold.ts` still name `HubClient`; they were left alone because `src/sim` is hashed
+  into `SIM_VERSION`.
+- **`HubBridge` reads the session from `sdk.getSession()`** instead of the SDK's private
+  `sessionStorage` key, and `exit` navigates itself only when the SDK had no session to close
+  (the SDK navigates when it does).
+
+## Online hub parity (2026-11-19)
+
+- **The world reads the hub, the shell decides how.** `HostIO` (src/server/host.ts) gains four
+  optional calls; the world uses each only when the hub's `pb_world` shell provides it, so the
+  adapter vendored in metaverse-hub today keeps working and simply skips the feature:
+  - `loadProfile?(who: Who): { relics?: string[]; effects?: Record<string, number | boolean | string> } | null`
+  - `getRelics?(who: Who): string[] | null` (used only when there is no `loadProfile`)
+  - `reportEvent?(who: Who, eventId: string, data: Record<string, unknown>, key: string): EconomyResult`
+    (`{ error }` on failure; `{ granted?: string }` may name a relic the hub granted)
+  - `submitScore?(who: Who, boardId: string, value: number, meta: Record<string, unknown>): EconomyResult`
+- **Relics online:** read once at join; WELCOME carries `hub: { relics, effects }` (only when the
+  shell read a profile), and `OP.HUB_OUT` (109) carries a change (a granted relic). `summonRelic`
+  is a valid intent; the sim checks ownership against the server's copy, never the client's.
+- **The tutorial relic:** `pb.quest_complete` with `{ questId: 'quest_tutorial', tick }` once per
+  character, key `uuidv5('pb.quest_complete:<userId>')` so every world sends the same event.
+  Sent on completion, on join and on the character's Ticket flush until acked;
+  `idempotency_mismatch` counts as acked. `ledger.relicAcked` is saved with the character.
+- **XP board:** `submitScore(who, 'pb_total_xp', floor(total XP), {})` on a level-up, on the
+  character's save tick and at logout, only when it grew past `ledger.submittedXp`.
+- **Exchange online:** the client calls the hub's exchange with its live session (as the Verse
+  Exchange expects; the world never touches Verse), then sends `OP.WALLET` (8), which makes the
+  world re-read the Ticket balance from the hub, at most once per `NET.walletRefreshMinTicks`.
+  A lost answer keeps its key, so a retry cannot exchange twice. The window opens only when the
+  world sent a hub profile (WELCOME `hub`) and the page has a hub session; the loopback test world
+  has neither.
+
+## Server tick work (2026-11-19)
+
+- **Same answers, less work.** Pathfinding reuses module-scoped buffers with a generation stamp;
+  a golden test pins 14,000 seeded paths. Entity JSON is built only when a recipient needs the
+  whole entity; a golden test pins every byte a seeded world (walking, combat, a logout) sends.
+- **Staggered persistence is a timing change, on purpose.** Each player gets a join slot; saves,
+  Ticket flushes and online rows run when `(tick + slot)` lines up with their interval. Each still
+  happens once per interval; a full world writes a few rows a tick instead of 200 in one.
+- **Walk intents skip the schema.** `parseIntent` (src/net/protocol.ts) checks `walk` by hand with
+  the schema's rules; a test compares it with `IntentSchema` on valid and malformed input.

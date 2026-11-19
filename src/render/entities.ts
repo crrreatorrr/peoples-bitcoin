@@ -25,6 +25,8 @@ import {
 import { levelForXp } from '../sim/xp';
 import { dressFor, holdRight, PLAYER_MODEL, type ActorModel } from './actors';
 import { DEATH_MS, poseActor, STRIDE_RAD_PER_TILE, type WorkAnim } from './animate';
+import { canvasRect } from './canvasRect';
+import { releaseObject } from './kit';
 import { HpBar } from './effects';
 import { THROW_ORIGIN } from './gear';
 import type { RemoteActor } from '../net/replica';
@@ -223,7 +225,7 @@ export class EntityRenderer {
     v.y += lift;
     v.project(camera);
     if (v.z > 1) return null;
-    const rect = canvas.getBoundingClientRect();
+    const rect = canvasRect(canvas);
     return {
       x: rect.left + ((v.x + 1) / 2) * rect.width,
       y: rect.top + ((1 - v.y) / 2) * rect.height,
@@ -260,6 +262,7 @@ export class EntityRenderer {
       if (view && view.modelId !== modelId) {
         this.scene.remove(view.root);
         this.unpick(view.root);
+        releaseObject(view.root);
         view = undefined;
       }
       if (!view) {
@@ -284,6 +287,7 @@ export class EntityRenderer {
       if (live.has(id)) continue;
       this.scene.remove(view.root);
       this.unpick(view.root);
+      releaseObject(view.root);
       this.others.delete(id);
     }
   }
@@ -300,6 +304,7 @@ export class EntityRenderer {
       const modelId = this.objectModel(state, view.instance);
       if (modelId !== view.modelId) {
         view.root.remove(view.model);
+        releaseObject(view.model);
         view.model = this.assets.create(modelId);
         view.root.add(view.model);
         view.modelId = modelId;
@@ -373,6 +378,7 @@ export class EntityRenderer {
     if (this.sproto && (!s || this.sproto.modelId !== modelId)) {
       this.scene.remove(this.sproto.root);
       this.unpick(this.sproto.root);
+      releaseObject(this.sproto.root);
       this.sproto = null;
     }
     if (!s || !modelId) return null;
@@ -451,6 +457,7 @@ export class EntityRenderer {
       }
       this.scene.remove(view.root);
       this.unpick(view.root);
+      releaseObject(view.root);
       this.enemies.delete(id);
     }
   }
@@ -561,6 +568,7 @@ export class EntityRenderer {
   private redress(view: ActorView, dressKey: string): void {
     const old = view.actor;
     view.root.remove(old.root);
+    releaseObject(old.root);
     view.actor = this.assets.actor(view.modelId, dressFor(dressKey.split('|')));
     view.actor.gaitBlend = old.gaitBlend;
     view.actor.runBlend = old.runBlend;

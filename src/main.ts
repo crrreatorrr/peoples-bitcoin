@@ -14,10 +14,10 @@ import {
 } from './config/balance';
 import { hubVisitStarting } from '@metaverse/hub-sdk';
 import { HUB_GAME_ID, HubBridge } from './hub/bridge';
-import { HubClient } from './hub/client';
-import { clearHubLedger } from './hub/ledgerStore';
 import { resolveSaveOwner, SAVE_OWNER_WAIT_MS, type SaveOwner } from './hub/saveOwner';
 import { claimWriter } from './hub/singleWriter';
+import { OfflineShop, PRACTICE_NOTICE } from './game/offlineShop';
+import { OnlineExchange } from './game/onlineExchange';
 import { GAME_TITLE, PARODY_NOTICE, PRESIDENT_NAME } from './config/branding';
 import { buttonLabel, physicalFor, TAB_OF_ACTION } from './input/bindings';
 import { PAD } from './input/config';
@@ -35,6 +35,7 @@ import { ChatHeads } from './render/chatheads';
 import { PALETTES } from './render/effects';
 import { dressKeyOf } from './render/entities';
 import { AssetLoader } from './render/loader';
+import { zoneModelIds } from './render/zoneAssets';
 import { createLowResRenderer, fitToContainer } from './render/lowres';
 import type { PickResult } from './render/picking';
 import { ZoneView } from './render/zoneview';
@@ -128,6 +129,13 @@ async function boot(): Promise<void> {
   document.title = GAME_TITLE;
   const content = loadContent();
   const ctx: SimContext = { content, grids: buildGrids(content) };
+  // Start fetching the starting zone's models now, while the hub signs in and the player picks a
+  // world, so they are usually ready by the time the game starts. The rest load after the first
+  // frame (see the end of boot).
+  const assets = AssetLoader.create();
+  assets.ensure(zoneModelIds(content, START_ZONE_ID)).catch(() => {
+    // Reported where boot awaits the zone's models.
+  });
 
   /** Added to the browser clock; only the dev QA hook moves it. */
   let clockOffset = 0;
@@ -207,20 +215,33 @@ async function boot(): Promise<void> {
   // Online, the server keeps the character and one session per account.
   if (!online) claimWriter(freeze, saveOwner);
   const persist = () => !online && !resetting && !frozen && saveGame(state, saveOwner);
-  const hub = new HubClient(
+  // Offline play is practice: it never banks, spends or reports to the hub (src/game/offlineShop.ts).
+  const hub = new OfflineShop(
     state,
     ctx,
     (text, kind) => chat.add(text, kind),
     queue,
     persist,
     bridge,
-    saveOwner,
   );
+  if (!online && bridge.mode === 'hub') chat.add(PRACTICE_NOTICE, 'warning');
   const openShopId = () =>
     state.player.interface?.kind === 'terminal' ? state.player.interface.shopId : TERMINAL_SHOP_ID;
 
   // ── Rendering ──────────────────────────────────────────────────────────────
-  const assets = await AssetLoader.load();
+  const zoneIds = zoneModelIds(content, state.zone.id);
+  if (!assets.ready(zoneIds)) {
+    const loading = document.createElement('div');
+    loading.className = 'loading-models';
+    loading.textContent = `Loading ${content.zones.get(state.zone.id)?.name ?? 'the world'}...`;
+    document.body.append(loading);
+    try {
+      await assets.ensure(zoneIds);
+    } finally {
+      loading.remove();
+    }
+  }
+  assets.warmIcons();
   const viewport = $('#viewport');
   const renderer = createLowResRenderer(viewport);
   const cam = new OrbitCamera();
@@ -383,9 +404,18 @@ async function boot(): Promise<void> {
         ?.packSize ?? 1,
     levelOf: (skillId) => levelForXp(state.player.skills[skillId] ?? 0),
   });
+  // Online, Tickets → Verse goes to the hub with the live session; offline practice has none.
+  const onlineExchange = online
+    ? new OnlineExchange(
+        state,
+        bridge,
+        (text, kind) => chat.add(text, kind),
+        () => online.refreshWallet(),
+      )
+    : null;
   const exchange = new ExchangeWindow(
     hudRoot,
-    (tickets) => hub.requestExchange(tickets),
+    (tickets) => (onlineExchange ? void onlineExchange.request(tickets) : hub.requestExchange()),
     closeInterface,
   );
   const buildWindow = new BuildWindow(hudRoot, content, iconUrl, {
@@ -584,10 +614,8 @@ async function boot(): Promise<void> {
                 chat.add('Starting over is only for offline play.', 'warning');
                 return;
               }
-              hub.logReset();
               resetting = true;
               clearSavedGame(saveOwner);
-              clearHubLedger(saveOwner);
               location.reload();
             },
             () => pauseMenu.leaveVia(() => leaveFor('hub')),
@@ -621,7 +649,8 @@ async function boot(): Promise<void> {
   function leaveFor(where: 'main' | 'hub'): void {
     if (where === 'hub') {
       online?.dispose();
-      void hub.exitToHub();
+      if (online) bridge.exit('exit_to_hub');
+      else hub.exitToHub();
       return;
     }
     if (online) online.dispose();
@@ -847,8 +876,36 @@ async function boot(): Promise<void> {
   });
   controls.onChange(continuePrompt);
 
-  const updateHoverTooltip = () => {
-    if (!hover || menu.isOpen || pad.lastDevice === 'pad') return;
+  // The mouseover text raycasts every model under the cursor. Redo it only when the cursor, the
+  // camera, the tick or the view changed, or the last pick is older than HOVER_REPICK_MS
+  // (entities glide between ticks).
+  const HOVER_REPICK_MS = 150;
+  let lastHover: {
+    x: number;
+    y: number;
+    tick: number;
+    view: ZoneView;
+    cam: string;
+    at: number;
+  } | null = null;
+  const updateHoverTooltip = (now: number) => {
+    if (!hover || menu.isOpen || pad.lastDevice === 'pad') {
+      lastHover = null;
+      return;
+    }
+    const camKey = cam.camera.matrixWorld.elements.join(',');
+    const h = lastHover;
+    if (
+      h &&
+      h.x === hover.x &&
+      h.y === hover.y &&
+      h.tick === state.tick &&
+      h.view === view &&
+      h.cam === camKey &&
+      now - h.at < HOVER_REPICK_MS
+    )
+      return;
+    lastHover = { x: hover.x, y: hover.y, tick: state.tick, view, cam: camKey, at: now };
     const [top, ...rest] = menuOptions(view.picker.pick(hover.x, hover.y));
     if (top) tooltip.showFixed({ ...top, moreOptions: rest.length });
     else tooltip.hide();
@@ -1008,6 +1065,16 @@ async function boot(): Promise<void> {
           const old = view;
           view = new ZoneView(state, content, assets, cam.camera, canvas);
           old.dispose();
+          // Models of the new zone not loaded yet: load them first, then redraw with them.
+          const zoneIds = zoneModelIds(content, e.zoneId);
+          if (!assets.ready(zoneIds)) {
+            void assets
+              .ensure(zoneIds)
+              .catch((err: unknown) => console.warn('[assets] zone model load failed', err))
+              .then(() => {
+                if (state.zone.id === e.zoneId) rebuildForModels();
+              });
+          }
           minimap.setZone(content.zones.get(e.zoneId)!);
           hitsplats.clear();
           crumb('zone_change', { zone: e.zoneId });
@@ -1017,7 +1084,8 @@ async function boot(): Promise<void> {
           break;
       }
     }
-    if (!online) hub.onEvents(events);
+    if (!online && events.some((e) => e.type === 'autosave' || e.type === 'zoneChanged'))
+      hub.checkpoint();
     crumbTick();
     if (xpThisTick.size > 0) {
       hud.xpDrop([...xpThisTick].map(([id, amount]) => ({ icon: glyph(`skill_${id}`), amount })));
@@ -1121,7 +1189,7 @@ async function boot(): Promise<void> {
     view.marks.update(now);
     const hint = hintTarget();
     view.hint.update(hint?.pos ?? null, hint?.height ?? 0, now / 1000);
-    updateHoverTooltip();
+    updateHoverTooltip(now);
 
     const screenOf = (id: string) => {
       const pos = view.entities.positionOf(id);
@@ -1169,10 +1237,10 @@ async function boot(): Promise<void> {
     exchange.update(
       p.interface?.kind === 'exchange',
       p.currencies.tickets,
-      hub.exchangeAmounts(),
-      p.ledger.exchange !== null,
+      onlineExchange ? onlineExchange.amounts() : hub.exchangeAmounts(),
+      onlineExchange ? onlineExchange.isPending() : p.ledger.exchange !== null,
       state.hubSession.verseCapLeft,
-      state.hubSession.mode === 'hub',
+      onlineExchange ? onlineExchange.available() : false,
     );
     const build = buildState(content, ctx, state);
     buildWindow.update(build.name, build.choices);
@@ -1212,19 +1280,28 @@ async function boot(): Promise<void> {
     },
   });
   if (frozen) return;
-  // A pending owner stays standalone: its game is not saved, so it must not bank or spend Tickets.
-  if (!online && saveOwner.kind !== 'pending') await hub.start();
-  if (frozen) return;
   if (godmode) {
-    if (state.hubSession.mode === 'hub') {
-      chat.add('Godmode is on, but hub sessions use the server wallet.', 'game');
-    } else {
-      applyGodmode(state);
-      persist();
-      chat.add(`Godmode: ${GODMODE.tickets.toLocaleString('en-US')} Tickets.`, 'game');
-    }
+    applyGodmode(state);
+    persist();
+    chat.add(`Godmode: ${GODMODE.tickets.toLocaleString('en-US')} Tickets.`, 'game');
   }
   requestAnimationFrame(frame);
+  // Every other zone's models, in the background. A model drawn as a placeholder meanwhile (a zone
+  // entered early, or an id the zone walk missed) is swapped in by rebuilding the view once.
+  void assets
+    .ensureAll()
+    .catch((err: unknown) => console.warn('[assets] background model load failed', err))
+    .then(rebuildForModels);
+
+  /** Redraws the view (and forgets chat-head portraits) if something was drawn as a placeholder. */
+  function rebuildForModels(): void {
+    if (assets.takeMissed().size === 0) return;
+    const old = view;
+    view = new ZoneView(state, content, assets, cam.camera, canvas);
+    old.dispose();
+    heads.clear();
+    hitsplats.clear();
+  }
 }
 
 /** The build window's title and choices for the open hotspot, if any. */

@@ -12,16 +12,46 @@ import type { Tile } from './state';
 const STRAIGHT_COST = 10;
 const DIAGONAL_COST = 11;
 
-const DIRECTIONS: readonly (readonly [number, number])[] = [
-  [1, 0],
-  [-1, 0],
-  [0, 1],
-  [0, -1],
-  [1, 1],
-  [1, -1],
-  [-1, 1],
-  [-1, -1],
-];
+// The eight neighbours as flat arrays, in the search's fixed order (indexed loops, no tuples:
+// this runs millions of times a minute in an interpreted server runtime).
+const DX: readonly number[] = [1, -1, 0, 0, 1, 1, -1, -1];
+const DY: readonly number[] = [0, 0, 1, -1, 1, -1, 1, -1];
+
+/**
+ * Scratch buffers shared by every search, grown to the largest grid seen. A cell's g, parent
+ * and closed flag are valid only when its stamp equals the current search's `gen`, so a search
+ * touches only the cells it visits instead of clearing the whole grid.
+ */
+let stamp = new Uint32Array(0);
+let gScore = new Float64Array(0);
+let cameFrom = new Int32Array(0);
+let closed = new Uint8Array(0);
+let gen = 0;
+
+function beginSearch(size: number): void {
+  if (stamp.length < size) {
+    stamp = new Uint32Array(size);
+    gScore = new Float64Array(size);
+    cameFrom = new Int32Array(size);
+    closed = new Uint8Array(size);
+    gen = 0;
+  }
+  gen = (gen + 1) >>> 0;
+  if (gen === 0) {
+    // Wrapped after 2^32 searches: forget every old stamp.
+    stamp.fill(0);
+    gen = 1;
+  }
+}
+
+/** Marks `idx` as seen by this search, with no parent, unreached and open. */
+function touch(idx: number): void {
+  if (stamp[idx] === gen) return;
+  stamp[idx] = gen;
+  gScore[idx] = Infinity;
+  cameFrom[idx] = -1;
+  closed[idx] = 0;
+}
 
 export interface PathResult {
   /** Steps to take, excluding the start tile. */
@@ -46,27 +76,34 @@ export function findPath(grid: Grid, start: Tile, goals: readonly Tile[]): PathR
   const goalSet = new Set(validGoals.map((g) => g.y * width + g.x));
   if (goalSet.has(startIdx)) return { path: [], complete: !substituted };
 
+  // Hot loop: plain arithmetic, no Math calls or helper functions (the server runs this in an
+  // interpreter). Same costs as before: STRAIGHT per step plus the diagonal surcharge.
+  const goalCount = validGoals.length;
   const heuristic = (idx: number): number => {
     const x = idx % width;
     const y = (idx - x) / width;
     let best = Infinity;
-    for (let i = 0; i < validGoals.length; i++) {
+    for (let i = 0; i < goalCount; i++) {
       const g = validGoals[i];
-      const dx = Math.abs(x - g.x);
-      const dy = Math.abs(y - g.y);
+      const dx = x > g.x ? x - g.x : g.x - x;
+      const dy = y > g.y ? y - g.y : g.y - y;
       const h =
-        STRAIGHT_COST * Math.max(dx, dy) + (DIAGONAL_COST - STRAIGHT_COST) * Math.min(dx, dy);
+        dx > dy
+          ? STRAIGHT_COST * dx + (DIAGONAL_COST - STRAIGHT_COST) * dy
+          : STRAIGHT_COST * dy + (DIAGONAL_COST - STRAIGHT_COST) * dx;
       if (h < best) best = h;
     }
     return best;
   };
+  const { height, blocked } = grid;
+  const open1 = (x: number, y: number) =>
+    x >= 0 && y >= 0 && x < width && y < height && blocked[y * width + x] === 0;
 
-  const size = width * grid.height;
-  const gScore = new Float64Array(size).fill(Infinity);
-  const cameFrom = new Int32Array(size).fill(-1);
-  const closed = new Uint8Array(size);
-  const open = new MinHeap();
+  beginSearch(width * grid.height);
+  const open = heap;
+  open.clear();
 
+  touch(startIdx);
   gScore[startIdx] = 0;
   const startH = heuristic(startIdx);
   open.push(startIdx, startH, startH);
@@ -80,7 +117,7 @@ export function findPath(grid: Grid, start: Tile, goals: readonly Tile[]): PathR
     if (goalSet.has(current))
       return { path: reconstruct(cameFrom, current, width), complete: !substituted };
 
-    const h = heuristic(current);
+    const h = open.lastH;
     if (h < closestH || (h === closestH && gScore[current] < gScore[closestIdx])) {
       closestH = h;
       closestIdx = current;
@@ -88,13 +125,16 @@ export function findPath(grid: Grid, start: Tile, goals: readonly Tile[]): PathR
 
     const cx = current % width;
     const cy = (current - cx) / width;
-    for (const [dx, dy] of DIRECTIONS) {
+    for (let d = 0; d < 8; d++) {
+      const dx = DX[d];
+      const dy = DY[d];
       const nx = cx + dx;
       const ny = cy + dy;
-      if (!isWalkable(grid, nx, ny)) continue;
+      if (!open1(nx, ny)) continue;
       const diagonal = dx !== 0 && dy !== 0;
-      if (diagonal && (!isWalkable(grid, cx + dx, cy) || !isWalkable(grid, cx, cy + dy))) continue;
+      if (diagonal && (!open1(nx, cy) || !open1(cx, ny))) continue;
       const next = ny * width + nx;
+      touch(next);
       if (closed[next]) continue;
       const tentative = gScore[current] + (diagonal ? DIAGONAL_COST : STRAIGHT_COST);
       if (tentative < gScore[next]) {
@@ -161,6 +201,12 @@ class MinHeap {
     return this.nodes.length;
   }
 
+  clear(): void {
+    this.nodes.length = 0;
+    this.f.length = 0;
+    this.h.length = 0;
+  }
+
   push(node: number, f: number, h: number): void {
     this.nodes.push(node);
     this.f.push(f);
@@ -174,8 +220,12 @@ class MinHeap {
     }
   }
 
+  /** The h of the node the last pop returned. */
+  lastH = 0;
+
   pop(): number {
     const top = this.nodes[0];
+    this.lastH = this.h[0];
     const last = this.nodes.length - 1;
     this.swap(0, last);
     this.nodes.pop();
@@ -213,3 +263,6 @@ class MinHeap {
     this.h[b] = h;
   }
 }
+
+/** The one open list every search reuses (searches never overlap). */
+const heap = new MinHeap();

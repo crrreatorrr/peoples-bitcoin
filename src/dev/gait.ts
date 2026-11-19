@@ -9,7 +9,7 @@
  * `?model=<id>` picks another rigged GLB or a code-built character.
  */
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { createGltfLoader } from '../render/loader';
 import { MOVEMENT, TICK_MS } from '../config/balance';
 import { poseActor, STRIDE_RAD_PER_TILE, type AnimInput } from '../render/animate';
 import manifest from '../config/assets.manifest.json';
@@ -86,7 +86,7 @@ function treadmill(): THREE.Group {
 
 // A rigged GLB, or else a code-built character from the manifest (no foot-contact numbers).
 const url = MODELS[`../assets/models/${modelId}.glb`];
-const gltf = url ? await new GLTFLoader().loadAsync(url) : null;
+const gltf = url ? await createGltfLoader().loadAsync(url) : null;
 const spec = (manifest as unknown as Record<string, Partial<ActorSpec>>)[modelId];
 const makeActor = (): ActorModel =>
   gltf

@@ -76,20 +76,27 @@ async function join(
     const driver = new OnlineDriver(content, START_ZONE_ID, transport, clock);
     try {
       const welcomed = new Promise<void>((resolve, reject) => {
-        const timer = setTimeout(() => reject(new Error('timeout')), WELCOME_TIMEOUT_MS);
-        const stop = driver.kicked.add((reason) => {
+        const done = () => {
           clearTimeout(timer);
-          stop();
+          stopKick();
+          stopWelcome();
+        };
+        const timer = setTimeout(() => {
+          done();
+          reject(new Error('timeout'));
+        }, WELCOME_TIMEOUT_MS);
+        const stopKick = driver.kicked.add((reason) => {
+          done();
           reject(new Error(`match_rejected:${reason}`));
         });
-        const poll = () => {
-          if (driver.welcome) {
-            clearTimeout(timer);
-            stop();
-            resolve();
-          } else setTimeout(poll, 50);
-        };
-        poll();
+        const stopWelcome = driver.welcomed.add(() => {
+          done();
+          resolve();
+        });
+        if (driver.welcome) {
+          done();
+          resolve();
+        }
       });
       await transport.join(matchId);
       await welcomed;

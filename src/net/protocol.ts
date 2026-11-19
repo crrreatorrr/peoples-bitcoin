@@ -15,6 +15,8 @@ export const OP = {
   TRADE: 4,
   SOCIAL: 5,
   PING: 7,
+  /** Client → server: re-read my Ticket balance from the hub (after an online exchange). */
+  WALLET: 8,
   WELCOME: 101,
   SNAPSHOT: 102,
   DELTA: 103,
@@ -23,6 +25,8 @@ export const OP = {
   SOCIAL_OUT: 106,
   KICK: 107,
   PONG: 108,
+  /** Server → client: the hub relics and effects this character has (also in WELCOME). */
+  HUB_OUT: 109,
 } as const;
 
 const int = z.number().int();
@@ -50,6 +54,7 @@ export const IntentSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('useItem'), slot, targetId: id }).strict(),
   z.object({ type: z.literal('chooseOption'), index: int.min(0).max(9) }).strict(),
   z.object({ type: z.literal('summon'), slot }).strict(),
+  z.object({ type: z.literal('summonRelic'), sprotoId: id }).strict(),
   z.object({ type: z.literal('dismiss') }).strict(),
   z.object({ type: z.literal('special') }).strict(),
   z.object({ type: z.literal('setStyle'), style: z.enum(STYLES) }).strict(),
@@ -69,6 +74,42 @@ export const IntentSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('build'), buildId: id }).strict(),
   z.object({ type: z.literal('closeInterface') }).strict(),
 ]);
+
+/**
+ * `IntentSchema.safeParse`, with a fast path for `walk` (most of a busy world's intents): the
+ * same rules (exactly type, x and y; whole numbers 0..1024) without the schema machinery, which
+ * is slow in the server's interpreted runtime. Anything else goes through the schema.
+ */
+export function parseIntent(
+  raw: unknown,
+): { success: true; data: z.output<typeof IntentSchema> } | { success: false } {
+  if (raw !== null && typeof raw === 'object' && !Array.isArray(raw)) {
+    const r = raw as Record<string, unknown>;
+    if (r.type === 'walk') {
+      let keys = 0;
+      for (const k in r) {
+        if (k !== 'type' && k !== 'x' && k !== 'y') return { success: false };
+        keys++;
+      }
+      const { x, y } = r;
+      if (
+        keys === 3 &&
+        typeof x === 'number' &&
+        typeof y === 'number' &&
+        Number.isInteger(x) &&
+        Number.isInteger(y) &&
+        x >= 0 &&
+        x <= 1024 &&
+        y >= 0 &&
+        y <= 1024
+      )
+        return { success: true, data: { type: 'walk', x, y } };
+      return { success: false };
+    }
+  }
+  const parsed = IntentSchema.safeParse(raw);
+  return parsed.success ? { success: true, data: parsed.data } : { success: false };
+}
 
 export const HelloSchema = z.object({
   proto: int,
@@ -144,6 +185,12 @@ export interface WireEntity {
   dy?: 1;
 }
 
+/** Hub relics and effects for this character, read by the server from the hub (OP.HUB_OUT). */
+export interface HubInfo {
+  relics: string[];
+  effects: Record<string, number | boolean | string>;
+}
+
 export interface Welcome {
   you: string;
   world: number;
@@ -152,6 +199,8 @@ export interface Welcome {
   name: string;
   needsCharacter: boolean;
   canImport: boolean;
+  /** Present when the world's hub reads profiles (HostIO.loadProfile or getRelics). */
+  hub?: HubInfo;
 }
 
 /** Top-level PlayerState keys that changed, by value. */

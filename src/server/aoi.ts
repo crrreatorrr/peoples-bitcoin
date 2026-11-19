@@ -7,7 +7,6 @@
  */
 import { NET } from '../config/balance';
 import { combatLevel } from '../sim/combat';
-import { chebyshev } from '../sim/grid';
 import type { Content } from '../sim/content';
 import {
   groundVisible,
@@ -22,15 +21,15 @@ import { pairs, type WireEntity } from '../net/protocol';
 
 /** One serialized entity, with what visibility needs. */
 export interface CachedEntity {
-  wire: WireEntity;
-  /** The whole entity as JSON. */
-  text: string;
+  readonly wire: WireEntity;
+  /** The whole entity as JSON (built on first read). */
+  readonly text: string;
   /** Only its moving parts (no d, name, cl, look, mhp), for updates. */
-  dyn: string;
+  readonly dyn: string;
   /** Its static parts, to tell whether an update must be a full one. */
-  stat: string;
-  x: number;
-  y: number;
+  readonly stat: string;
+  readonly x: number;
+  readonly y: number;
   /** Visible only to this pid (private enemies). */
   owner?: string;
   /** Zone-wide (NPCs). */
@@ -45,7 +44,7 @@ export interface CachedEntity {
 export interface AoiState {
   zoneKey: string | null;
   /** Entity id → the static and moving parts last sent. */
-  lastSent: Map<string, { stat: string; dyn: string }>;
+  lastSent: Map<string, { stat: string; dyn: string; at?: number }>;
   lastSelf: Map<string, string>;
   lastObj: Map<string, number>;
 }
@@ -65,20 +64,43 @@ export function lookOf(p: PlayerState): string {
 
 /** Fields that rarely change; an update without them keeps the client's copy. */
 export const STATIC_KEYS = ['k', 'd', 'name', 'cl', 'look', 'mhp'] as const;
+const STATIC = new Set<string>(STATIC_KEYS);
 
-function wire(e: WireEntity): { wire: WireEntity; text: string; dyn: string; stat: string } {
-  const dynamic: Record<string, unknown> = {};
-  const fixed: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(e)) {
-    if ((STATIC_KEYS as readonly string[]).includes(k)) fixed[k] = v;
-    else dynamic[k] = v;
+/**
+ * One entity's wire forms. `dyn` and `stat` are built every tick (they decide what changed);
+ * the whole-entity `text` only when a recipient needs it (new to it, or its static part changed),
+ * which on a busy world is a small share of entities. Built field by field rather than with
+ * object spread: the server bundle runs in an interpreter where spread is a slow helper call.
+ */
+class Cached implements CachedEntity {
+  readonly dyn: string;
+  readonly stat: string;
+  private full: string | null = null;
+  owner?: string;
+  global?: boolean;
+  check?: (viewer: GameState) => boolean;
+  self?: string;
+
+  constructor(
+    readonly wire: WireEntity,
+    readonly x: number,
+    readonly y: number,
+  ) {
+    const dynamic: Record<string, unknown> = {};
+    const fixed: Record<string, unknown> = {};
+    const fields = wire as unknown as Record<string, unknown>;
+    for (const k in fields) {
+      if (STATIC.has(k)) fixed[k] = fields[k];
+      else dynamic[k] = fields[k];
+    }
+    this.dyn = JSON.stringify(dynamic);
+    this.stat = JSON.stringify(fixed);
   }
-  return {
-    wire: e,
-    text: JSON.stringify(e),
-    dyn: JSON.stringify(dynamic),
-    stat: JSON.stringify(fixed),
-  };
+
+  get text(): string {
+    this.full ??= JSON.stringify(this.wire);
+    return this.full;
+  }
 }
 
 /** Every entity of one zone instance, serialized once for this tick. */
@@ -106,7 +128,9 @@ export function zoneEntities(
     if (p.overhead) e.oh = p.overhead.text;
     if (p.action?.action === 'Attack') e.tgt = p.action.targetId;
     if (p.dyingUntil !== null) e.dy = 1;
-    out.push({ ...wire(e), x: p.pos.x, y: p.pos.y, self: v.pid });
+    const pe = new Cached(e, p.pos.x, p.pos.y);
+    pe.self = v.pid;
+    out.push(pe);
     const s = p.sproto;
     if (s) {
       const se: WireEntity = {
@@ -120,7 +144,9 @@ export function zoneEntities(
         mhp: content.sprotos.get(s.defId)?.hp ?? s.hp,
       };
       if (s.target) se.tgt = s.target;
-      out.push({ ...wire(se), x: s.x, y: s.y, self: v.pid });
+      const ce = new Cached(se, s.x, s.y);
+      ce.self = v.pid;
+      out.push(ce);
     }
   }
   for (const en of zone.enemies) {
@@ -137,26 +163,22 @@ export function zoneEntities(
     };
     if (en.overhead) e.oh = en.overhead.text;
     if (en.target) e.tgt = en.target;
-    out.push({ ...wire(e), x: en.x, y: en.y, owner: en.owner });
+    const ee = new Cached(e, en.x, en.y);
+    if (en.owner !== undefined) ee.owner = en.owner;
+    out.push(ee);
   }
   for (const n of zone.npcs) {
     const e: WireEntity = { id: n.id, k: 'n', d: n.defId, x: n.x, y: n.y, f: [n.from.x, n.from.y] };
-    out.push({
-      ...wire(e),
-      x: n.x,
-      y: n.y,
-      global: true,
-      check: n.requires ? (viewer) => npcVisible(viewer, n) : undefined,
-    });
+    const ne = new Cached(e, n.x, n.y);
+    ne.global = true;
+    if (n.requires) ne.check = (viewer) => npcVisible(viewer, n);
+    out.push(ne);
   }
   for (const g of zone.groundItems) {
     const e: WireEntity = { id: g.id, k: 'g', d: g.itemId, x: g.x, y: g.y, q: g.qty };
-    out.push({
-      ...wire(e),
-      x: g.x,
-      y: g.y,
-      check: g.owner !== undefined ? (viewer) => groundVisible(viewer, g) : undefined,
-    });
+    const ge = new Cached(e, g.x, g.y);
+    if (g.owner !== undefined) ge.check = (viewer) => groundVisible(viewer, g);
+    out.push(ge);
   }
   return out;
 }
@@ -167,7 +189,11 @@ export function seesEntity(viewer: GameState, e: CachedEntity, seen: boolean): b
   if (e.owner !== undefined && e.owner !== viewer.pid) return false;
   if (e.check && !e.check(viewer)) return false;
   if (e.global) return true;
-  const d = chebyshev(viewer.player.pos, e);
+  // Chebyshev distance, inlined (hot: every recipient against every entity).
+  const pos = viewer.player.pos;
+  const dx = pos.x > e.x ? pos.x - e.x : e.x - pos.x;
+  const dy = pos.y > e.y ? pos.y - e.y : e.y - pos.y;
+  const d = dx > dy ? dx : dy;
   return d <= NET.aoiRadius || (seen && d <= NET.aoiExitRadius);
 }
 
@@ -177,7 +203,12 @@ export function visibleTo(
   entities: readonly CachedEntity[],
   previously: ReadonlyMap<string, unknown>,
 ): CachedEntity[] {
-  return entities.filter((e) => seesEntity(viewer, e, previously.has(e.wire.id)));
+  const out: CachedEntity[] = [];
+  for (let i = 0; i < entities.length; i++) {
+    const e = entities[i];
+    if (seesEntity(viewer, e, previously.has(e.wire.id))) out.push(e);
+  }
+  return out;
 }
 
 /**
@@ -195,7 +226,8 @@ export function zoneChanges(
   const changed: CachedEntity[] = [];
   const publicNow = new Set(zone.groundItems.filter((g) => g.publicAt === tick).map((g) => g.id));
   for (const e of entities) {
-    const key = e.text;
+    // Same entity, same parts: the static and moving parts decide it exactly as the whole text.
+    const key = e.stat + e.dyn;
     now.set(e.wire.id, key);
     if (!previous || previous.get(e.wire.id) !== key || publicNow.has(e.wire.id)) changed.push(e);
   }

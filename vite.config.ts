@@ -53,6 +53,16 @@ export default defineConfig(({ command, mode }) => ({
     __PB_VERSION__: JSON.stringify(packageVersion),
     __PB_COMMIT__: JSON.stringify(shortCommit()),
   },
+  build: {
+    rolldownOptions: {
+      output: {
+        // Three.js changes far less often than the game: its own chunk stays cached across deploys.
+        codeSplitting: {
+          groups: [{ name: 'vendor-three', test: /node_modules[\\/]three[\\/]/ }],
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       '/v2': { target: 'http://127.0.0.1:7350', changeOrigin: true },

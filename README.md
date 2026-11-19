@@ -145,8 +145,9 @@ operations; the server runs the 600 ms tick and sends back what you can see. Cha
 fresh and saved on the server (offline saves stay offline).
 
 - **With a hub session** (entering from the hub portal) the game opens on **world select**: World,
-  Players / 100, Quick join (the least full world) and Play offline. Without one, it plays offline
-  as before.
+  Players / 100, Quick join (the least full world) and Offline practice. Offline practice never
+  writes to the hub: no hub Tickets, Verse exchange, relics or leaderboard XP (the save is in this
+  browser and anyone can edit it). Without a hub session it plays offline as before.
 - **`?net=loopback`** (dev): runs a world in the page with bots (`&bots=3`, default 3), so the
   online client can be built and tried without Nakama: `npm run dev`, then
   `http://localhost:5173/play/peoples-bitcoin/?net=loopback&bots=5`. Bots walk and now and then
@@ -165,6 +166,10 @@ fresh and saved on the server (offline saves stay offline).
   then here `npm run build:sim -- --out ../metaverse-hub/server/modules/vendor/pb-sim.js`, rebuild
   the hub module, and open the game through the hub portal. The client and the bundle must come
   from the same commit (their sim version is a hash of the sim sources; a mismatch is refused).
+- **Hub features online:** relic Sprotos, the tutorial relic (`pb.quest_complete`), the
+  `pb_total_xp` board and the Tickets → Verse exchange work in worlds once the hub's `pb_world`
+  shell passes the optional `HostIO` calls (`loadProfile` or `getRelics`, `reportEvent`,
+  `submitScore`; see DECISIONS.md "Online hub parity"). Without them the world skips each one.
 - **Load test:** `NAKAMA_URL=http://127.0.0.1:7350 BOTS=100 node scripts/pb-bots.mjs` runs guest
   bots through the portal (`CHAT=0` keeps them from chatting); the world logs its loop time about once a minute.
 
@@ -215,6 +220,11 @@ load a GLB instead. A code-built placeholder stays in use while its registered G
 `src/assets/` yet (the Champion Sproto's `models/sp_champion.glb` and
 `sprites/sp_champion.png` are registered ahead of the art).
 See [ART_GUIDE.md](ART_GUIDE.md).
+
+GLBs load per zone: the starting zone's models (`src/render/zoneAssets.ts`) start fetching at boot
+while world select is up, and the rest load after the first frame. The shipped GLBs are
+meshopt-compressed; compress a new one the same way (plain GLBs still load):
+`npx @gltf-transform/cli@4 meshopt in.glb src/assets/models/out.glb --level high`.
 
 ## Deploy
 
