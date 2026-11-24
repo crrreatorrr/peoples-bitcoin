@@ -1,5 +1,26 @@
 # Changelog
 
+## Unreleased — Gameplay QA pass (2026-11-24)
+
+Sim changed: `SIM_VERSION` is now `6cbe3fe34368c023`. Online worlds need a fresh
+`dist-sim/pb-sim.js` (`npm run build:sim`) copied to
+`metaverse-hub/server/modules/vendor/pb-sim.js`, as for Phase 2 below.
+
+- **Melee fights start.** Walking up to an enemy that was walking up to you could put the
+  President on the enemy's own tile. The enemy stepped aside, the President followed, and the two
+  shuffled in a line (then back and forth against a wall) for good, with nobody swinging. An
+  attacker whose target has come into reach now stops where they are. Seen in 35 of 40 scripted
+  Corporate Raider fights with the Briefcase Bludgeon; `tests/melee-approach.test.ts`.
+- **A lost Empty Canister comes back.** Server Meltdown's second step is "obtain a Coolant
+  Canister", which only comes from using the Empty Canister on the fountain. Lost before it was
+  filled (dropped, or left at your feet with a full pack until it despawned), it was never handed
+  out again, so the quest and The Way Out behind it could not be finished. Sysadmin Opal now
+  gives another, like every other quest item.
+- **Measurements, no balance changes.** Scripted players finished the whole game in the real sim
+  (The Way Out in 17 to 19 game hours, The Hatchery in 55 to 58). Boss win rates by level, and the
+  places where a quest boss or its neighbors make a fight harder than the notes say, are in
+  TODO.md "Gameplay QA pass leftovers".
+
 ## Unreleased — hub-sdk 0.9.0 (2026-11-19)
 
 - **Vendored hub SDK 0.9.0** from metaverse-hub main at `a3d94f9` (#196). `reportEvent` returns

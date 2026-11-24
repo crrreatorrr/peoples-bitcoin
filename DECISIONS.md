@@ -1257,3 +1257,16 @@ Controller settings and Full screen next to what the menu already had.
   `granted` id, so it needed no change.
 - **Root entry only.** The new sub-path entries (`/core`, `/feedback`, ...) are vendored but
   unused; Vite already splits modern-screenshot into its own chunk.
+
+## Gameplay QA pass (2026-11-24)
+
+- **An attacker in reach does not finish its walk.** Before the player moves, an Attack whose
+  target is already in reach (melee: sharing an edge; guns: in range with a clear line) clears
+  the rest of the path (`holdIfInReach`, `src/sim/combat.ts`). It is a reach check only, no
+  pathfinding, so it costs a busy world nothing. Guns stop one tile sooner than before when the
+  enemy comes to them; nothing else about the tick order changed.
+- **Reclaim covers items an 'obtain' step is made from.** `reissueLostItems` used to look only at
+  'use' and 'deliver' steps. For an 'obtain' step it now also hands back the input of any
+  `uses.json` entry tied to that step that gives the wanted item (today only the Empty Canister).
+  The usual rules still apply: worth nothing, none in the pack, bank or equipment, and only from
+  whoever gave it.

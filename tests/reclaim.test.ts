@@ -94,3 +94,39 @@ describe('the seated Captain', () => {
     expect(here()).toBe(true);
   });
 });
+
+describe('the Empty Canister (Server Meltdown)', () => {
+  /** A President who has heard Sysadmin Opal out and then lost the canister she handed over. */
+  function atFill(): { state: GameState; ctx: SimContext } {
+    const { state, ctx } = newGame();
+    state.player.quests.quest_tutorial.complete = true;
+    state.player.quests.quest_server_meltdown = {
+      done: ['briefing'],
+      complete: false,
+      choices: [],
+    };
+    return { state, ctx };
+  }
+
+  it('is handed over again when it is lost before it is filled', () => {
+    // The fill step is "obtain a Coolant Canister", and the only way to get one is to use the
+    // Empty Canister on the fountain. Without a reissue the quest, and The Way Out behind it,
+    // could never be finished.
+    const { state, ctx } = atFill();
+    const events = talkTo(state, ctx, 'npc_sysadmin');
+    expect(countItem(state.player.inventory, 'item_empty_canister')).toBe(1);
+    expect(events).toContainEqual(
+      expect.objectContaining({ text: expect.stringMatching(/another Empty Canister/) }),
+    );
+    talkTo(state, ctx, 'npc_sysadmin');
+    expect(countItem(state.player.inventory, 'item_empty_canister')).toBe(1); // only one
+  });
+
+  it('is not handed over again once the canister is filled', () => {
+    const { state, ctx } = atFill();
+    state.player.quests.quest_server_meltdown.done.push('fill');
+    give(state, 'item_coolant_canister');
+    talkTo(state, ctx, 'npc_sysadmin');
+    expect(countItem(state.player.inventory, 'item_empty_canister')).toBe(0);
+  });
+});

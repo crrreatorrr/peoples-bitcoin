@@ -123,6 +123,18 @@ export function approachEnemy(state: GameState, ctx: SimContext, enemy: EnemyIns
   return player.path.length > 0;
 }
 
+/**
+ * Before the player moves: if the enemy they are attacking has already walked into reach, stop
+ * here. The path was planned on an earlier tick, and its next step can be the tile the enemy
+ * now stands on; taking it made the enemy step aside, the player follow, and nobody ever swing.
+ */
+export function holdIfInReach(state: GameState, ctx: SimContext, enemy: EnemyInstance): void {
+  const player = state.player;
+  if (player.path.length === 0) return;
+  const { range, melee } = playerReach(state, ctx);
+  if (inAttackRange(gridOf(state, ctx), player.pos, enemy, range, melee)) player.path = [];
+}
+
 /** Bosses and their adds fight in multi-way combat; everywhere else is single-way. */
 export function multiCombat(ctx: SimContext, enemy: EnemyInstance): boolean {
   return enemy.temp || ctx.content.enemies.get(enemy.defId)?.boss !== undefined;
