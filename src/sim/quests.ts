@@ -106,9 +106,25 @@ function reissueLostItems(
   for (const [questId, progress] of Object.entries(player.quests)) {
     const quest = ctx.content.quests.get(questId);
     if (!quest || progress.complete) continue;
-    const t = nextStep(quest, progress.done)?.trigger;
+    const step = nextStep(quest, progress.done);
+    const t = step?.trigger;
+    // An 'obtain' step can depend on a quest item too: the Coolant Canister only comes from
+    // using the Empty Canister on the fountain, so losing the empty one would end the quest.
     const needed =
-      t?.type === 'use' ? [t.item] : t?.type === 'deliver' ? t.items.map((s) => s.item) : [];
+      t?.type === 'use'
+        ? [t.item]
+        : t?.type === 'deliver'
+          ? t.items.map((s) => s.item)
+          : t?.type === 'obtain'
+            ? ctx.content.uses
+                .filter(
+                  (u) =>
+                    u.quest?.quest === questId &&
+                    u.quest.step === step!.id &&
+                    u.give.some((g) => g.item === t.item),
+                )
+                .map((u) => u.item)
+            : [];
     for (const itemId of needed) {
       const def = ctx.content.items.get(itemId);
       if (!def || def.value > 0 || giverOf(ctx.content, quest, itemId) !== npcId) continue;

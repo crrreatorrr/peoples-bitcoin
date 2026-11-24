@@ -10,6 +10,11 @@ Sim changed, so `SIM_VERSION` changes with it: online worlds need a fresh `dist-
   shuffled in a line (then back and forth against a wall) for good, with nobody swinging. An
   attacker whose target has come into reach now stops where they are. Seen in 35 of 40 scripted
   Corporate Raider fights with the Briefcase Bludgeon; `tests/melee-approach.test.ts`.
+- **A lost Empty Canister comes back.** Server Meltdown's second step is "obtain a Coolant
+  Canister", which only comes from using the Empty Canister on the fountain. Lost before it was
+  filled (dropped, or left at your feet with a full pack until it despawned), it was never handed
+  out again, so the quest and The Way Out behind it could not be finished. Sysadmin Opal now
+  gives another, like every other quest item.
 
 ## Unreleased — hub-sdk 0.9.0 (2026-11-19)
 
