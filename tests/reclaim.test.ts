@@ -100,7 +100,11 @@ describe('the Empty Canister (Server Meltdown)', () => {
   function atFill(): { state: GameState; ctx: SimContext } {
     const { state, ctx } = newGame();
     state.player.quests.quest_tutorial.complete = true;
-    state.player.quests.quest_server_meltdown = { done: ['briefing'], complete: false, choices: [] };
+    state.player.quests.quest_server_meltdown = {
+      done: ['briefing'],
+      complete: false,
+      choices: [],
+    };
     return { state, ctx };
   }
 

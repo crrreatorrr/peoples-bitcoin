@@ -25,7 +25,11 @@ function meleeRush(gap: number, ticks = 40) {
       i === 0 ? [{ type: 'interact', targetId: enemy.id, action: 'Attack' }] : [],
     );
     swings += events.filter((e) => e.type === 'attack' && e.attackerId === state.selfId).length;
-    if (enemy.respawnAt === null && enemy.x === state.player.pos.x && enemy.y === state.player.pos.y)
+    if (
+      enemy.respawnAt === null &&
+      enemy.x === state.player.pos.x &&
+      enemy.y === state.player.pos.y
+    )
       sharedTile++;
     if (enemy.respawnAt !== null) break;
   }
@@ -33,13 +37,10 @@ function meleeRush(gap: number, ticks = 40) {
 }
 
 describe('walking up to an enemy that is walking up to you', () => {
-  it.each([2, 3, 4, 5, 6, 7, 8])(
-    'the gavel swings when the fight starts %i tiles apart',
-    (gap) => {
-      const { swings, sharedTile } = meleeRush(gap);
-      // Before the fix, some gaps ended with the two trading places forever and nobody swinging.
-      expect(swings).toBeGreaterThan(0);
-      expect(sharedTile).toBe(0);
-    },
-  );
+  it.each([2, 3, 4, 5, 6, 7, 8])('the gavel swings when the fight starts %i tiles apart', (gap) => {
+    const { swings, sharedTile } = meleeRush(gap);
+    // Before the fix, some gaps ended with the two trading places forever and nobody swinging.
+    expect(swings).toBeGreaterThan(0);
+    expect(sharedTile).toBe(0);
+  });
 });

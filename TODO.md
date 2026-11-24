@@ -30,8 +30,55 @@
       640 Tickets at the level each is fought) and need far more healing
 - [ ] Captain Motion at Shooting 45 still takes nearly a full pack of Mic Drops; decide whether
       the quest should say so or the fight should ask for less food
-- [ ] Melee can stand next to an enemy in the Trenches and never swing (seen by a bot beside
-      Sockpuppets near 14,97); check `inAttackRange` against the trench walls there
+- [x] Melee can stand next to an enemy in the Trenches and never swing (2026-11-24): the
+      President walked a stale path onto the tile the enemy had just stepped to, and the two then
+      traded places for good. Fixed in the tick loop (`holdIfInReach`); 15 scripted melee runs of
+      6,000 ticks against Trench enemies now never go more than 7 ticks without a swing
+
+## Gameplay QA pass leftovers (2026-11-24)
+
+Measured with scripted players in the real sim (40 seeds a row in an empty arena, the feared
+weapon, Hitpoints = level − 5, Defense = level − 15, armor for that Defense, eating under 60%).
+Nothing here was changed: every boss is beatable, because a boss keeps the damage it has taken
+when you die or walk away. These are for the balance pass and the owner.
+
+- [ ] Quest bosses that stand where everyone walks. The Corporate Raider (46,30) is one tile from
+      a Veteran Lobbyist and within his leash of all six lobbyists (the Broker included), so Lobbying
+      stops paying from the moment Hostile Takeover wakes him: a scripted player who kept
+      lobbying died to him 11 to 29 times a run. Inspector Greysuit (31,17) is aggressive in the
+      main hall, between the lawn and the bank and Terminal, from the moment Bunker Down's
+      materials are handed in, which a fresh President does at Shooting 2 or 3. Move them, or
+      keep them from attacking first
+- [ ] Inspector Greysuit against a new character: 0 of 40 at Shooting 3 and 5 with 10 Soundbites,
+      40% at 5 with 27, 100% at 8 with 27, 13% at 12 with 10. The quest starts inside the tutorial
+- [ ] Sludge Mother at Shooting 15, the Confetti Shotgun's level: 0 of 40 with 14 Zingers and 3%
+      with 27 (405 Tickets of food). Shooting 18 with 27 Zingers is 100%, 20 with 14 is 45%, 25
+      with 27 Soundbites is 100%. DECISIONS.md "Boss mechanics" says 20 of 20 at 15
+- [ ] Wrong-Namer Chief with the Iron Gavel: Melee 25 is 0 to 3%, Melee 30 is 25% on 27 Zingers
+      and 95% on 27 Mic Drops, Melee 35 is 93% on Zingers. A Sludge Brute stands on the path at
+      (20,56), seven tiles south of him, and its leash reaches his whole arena: in full
+      playthroughs the Chief took 2 to 6 attempts at Melee 40 to 46
+- [ ] Gatecrasher at Shooting 40: 30% with a pack of nothing but Scrap Hash (28 shells), 18% with
+      6 Zingers in place of shells, 3% with 12. 58% at 45 and 93% at 50 with no food. "One
+      inventory must be enough" (DECISIONS.md 0.6.1) does not hold at the cannon's level
+- [ ] Lockdown Warden with the Veto Hammer at Melee 40: 0 of 40 on 19 Mic Drops (the 19 that
+      DECISIONS.md leaves room for), 25% on 27. Melee 45 is 25% on 19 and 90% on 27
+- [ ] Rugmancer with the Hopium Staff (Shooting 25): 0 of 40 at 25 and 35, 10% at 45, 75% at 50,
+      100% at 55, all on 27 Mic Drops. Two Battlemages stand at the foot of his tower
+- [ ] The Extractor with the Filibuster Mace: 10% at Melee 60, 45% at 65, 83% at 70. With the
+      Diamond Hands Minigun at Shooting 75 it is 100% in about 90 ticks
+- [ ] Captain Motion in his real surroundings: an empty-arena duel at Shooting 45 with 27 Mic
+      Drops wins 68% (DECISIONS.md has 62 to 74%). Started six tiles south of him with his
+      neighbors left in, the same duel wins 3% at 45 and 33% at 50: a Rug Puller's leash reaches
+      about y 18 and its gun about y 13, and one landed the last hit in a quarter of the losses.
+      Fighting him against the north barricade works
+- [ ] Time: three scripted playthroughs reached The Way Out in 16.9, 18.1 and 19.0 game hours
+      (a bot never hesitates, so a person will take longer). Two of them went on to finish The
+      Hatchery, at 54.7 and 58.0 hours, with about 12,000 to 13,000 Tickets earned in all; over
+      those whole runs 61 to 63% of the time was combat training and 13 to 14% Lobbying for food
+      and gear. The last 30 hours are Melee 51 to 70 for the Filibuster Mace
+- [ ] A bankrupt President (no items, 1 Ticket) needs about 54 minutes of gavel work on the
+      training yard to afford a 25-Ticket tool again. It is not a dead end, but it is close to one
 
 ## Gameplay improvement plan leftovers (2026-11-11)
 

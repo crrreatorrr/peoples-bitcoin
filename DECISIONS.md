@@ -1270,4 +1270,3 @@ Controller settings and Full screen next to what the menu already had.
   `uses.json` entry tied to that step that gives the wanted item (today only the Empty Canister).
   The usual rules still apply: worth nothing, none in the pack, bank or equipment, and only from
   whoever gave it.
-
