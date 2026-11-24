@@ -1,5 +1,31 @@
 # Changelog
 
+## Unreleased — Boss fairness pass (2026-11-24)
+
+Sim changed: `SIM_VERSION` is now `dd7940baec7a687a`. Online worlds need a fresh
+`dist-sim/pb-sim.js` (`npm run build:sim`) copied to
+`metaverse-hub/server/modules/vendor/pb-sim.js`, as for Phase 2 below. This replaces
+`6cbe3fe34368c023` from the QA pass.
+
+Data and text only; no new mechanics. Numbers and reasons are in DECISIONS.md "Boss fairness
+pass".
+
+- **Lobbying is safe again.** The Corporate Raider no longer attacks first, so he stops killing
+  whoever is lobbying next to him (11 to 29 deaths a scripted run). Inspector Greysuit no longer
+  attacks first in the main hall either. Both fight back as before.
+- **Bosses fit the level their weapon unlocks.** Inspector Greysuit (a new President with four
+  Soundbites now wins about 70%), the Sludge Mother at Shooting 15, the Wrong-Namer Chief at
+  Melee 30, the Plus-One at Shooting 40, the Lockdown Warden at Melee 40, the Rugmancer at
+  Shooting 45 and the Extractor at Melee 60 with the Filibuster Mace (one Rug Puller at a time)
+  all win 60 to 90% with the food the quest now names, up from 0 to 25%.
+- **A boss fight is a boss fight.** Two Sludge Brutes, two Rug Pullers and two Battlemages moved
+  off the way in to the Wrong-Namer Chief, Captain Motion and the Rugmancer. Captain Motion at
+  Shooting 45 goes from 3% to 68% with his neighbors in.
+- **Quest steps say how much food to bring** for the bosses that take a pack.
+- **The death message** says, offline, that the pile is lost if you leave or reload the page.
+- Scripted playthroughs: The Way Out in 12 to 15 game hours (was 17 to 19) and The Hatchery in
+  33 to 35 (was 55 to 58) when training to the levels above; deaths 5 to 9 a run (was 28 to 41).
+
 ## Unreleased — Gameplay QA pass (2026-11-24)
 
 Sim changed: `SIM_VERSION` is now `6cbe3fe34368c023`. Online worlds need a fresh

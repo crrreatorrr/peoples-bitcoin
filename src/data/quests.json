@@ -359,7 +359,7 @@
       },
       {
         "id": "inspector",
-        "text": "Get Inspector Greysuit (badge: 'Bureau') off the hatch. He only respects regulation equipment.",
+        "text": "Get Inspector Greysuit (badge: 'Bureau') off the hatch. He only respects regulation equipment, and he won't start it. Keep four Soundbites or more.",
         "trigger": {
           "type": "kill",
           "enemy": "enemy_building_inspector"
@@ -415,7 +415,7 @@
       },
       {
         "id": "mother",
-        "text": "Defeat the Sludge Mother at the first barricade.",
+        "text": "Defeat the Sludge Mother at the first barricade. Bring a full pack of Soundbites, or about 20 Zingers.",
         "trigger": {
           "type": "kill",
           "enemy": "enemy_sludge_mother"
@@ -495,7 +495,7 @@
       },
       {
         "id": "chief",
-        "text": "Defeat the Wrong-Namer Chief at the second barricade.",
+        "text": "Defeat the Wrong-Namer Chief at the second barricade. Bring a full pack of Zingers.",
         "trigger": {
           "type": "kill",
           "enemy": "enemy_wrongnamer_chief"
@@ -564,7 +564,7 @@
       },
       {
         "id": "captain",
-        "text": "Stop Captain Motion at the last barricade.",
+        "text": "Stop Captain Motion at the last barricade. Bring a full pack of Mic Drops.",
         "trigger": {
           "type": "kill",
           "enemy": "enemy_captain_motion"
@@ -762,7 +762,7 @@
       },
       {
         "id": "gatecrasher",
-        "text": "Throw out the Plus-One himself. Nothing so far has moved him.",
+        "text": "Throw out the Plus-One himself. Nothing so far has moved him. Whatever you load, leave room for about 8 Zingers.",
         "trigger": {
           "type": "kill",
           "enemy": "enemy_gatecrasher"
@@ -899,7 +899,7 @@
       },
       {
         "id": "raider",
-        "text": "Stop the Corporate Raider's hostile takeover of the Treasury.",
+        "text": "Stop the Corporate Raider's hostile takeover of the Treasury. He waits by the lobbyists; bring about 20 Zingers.",
         "trigger": {
           "type": "kill",
           "enemy": "enemy_corporate_raider"
@@ -1156,7 +1156,7 @@
       },
       {
         "id": "fuel",
-        "text": "Feed the Teleport Chamber 5 Scrap Hash.",
+        "text": "Feed the Teleport Chamber 5 Scrap Hash. Fill the rest of your pack with Mic Drops first (about 19).",
         "trigger": {
           "type": "use",
           "item": "item_scrap_hash",
@@ -1289,7 +1289,7 @@
       },
       {
         "id": "rugmancer",
-        "text": "Defeat the Rugmancer in the north tower.",
+        "text": "Defeat the Rugmancer in the north tower. Bring a full pack of Mic Drops.",
         "trigger": {
           "type": "kill",
           "enemy": "enemy_rugmancer"
@@ -1510,7 +1510,7 @@
       },
       {
         "id": "extractor",
-        "text": "Stop The Extractor beaming the Hatchery's fees into orbit.",
+        "text": "Stop The Extractor beaming the Hatchery's fees into orbit. Bring a full pack of Mic Drops.",
         "trigger": {
           "type": "kill",
           "enemy": "enemy_extractor"

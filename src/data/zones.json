@@ -1149,13 +1149,13 @@
         },
         {
           "enemyId": "enemy_sludge_brute",
-          "x": 26,
-          "y": 54
+          "x": 30,
+          "y": 53
         },
         {
           "enemyId": "enemy_sludge_brute",
-          "x": 20,
-          "y": 56
+          "x": 31,
+          "y": 57
         },
         {
           "enemyId": "enemy_sludge_brute",
@@ -1198,8 +1198,8 @@
         },
         {
           "enemyId": "enemy_rug_puller",
-          "x": 18,
-          "y": 33
+          "x": 9,
+          "y": 31
         },
         {
           "enemyId": "enemy_rug_puller",
@@ -1213,8 +1213,8 @@
         },
         {
           "enemyId": "enemy_rug_puller",
-          "x": 26,
-          "y": 28
+          "x": 30,
+          "y": 30
         },
         {
           "enemyId": "enemy_rug_puller",
@@ -1974,12 +1974,12 @@
         },
         {
           "enemyId": "enemy_battlemage",
-          "x": 27,
+          "x": 21,
           "y": 13
         },
         {
           "enemyId": "enemy_battlemage",
-          "x": 32,
+          "x": 38,
           "y": 13
         },
         {

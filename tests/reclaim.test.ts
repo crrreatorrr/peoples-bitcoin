@@ -44,6 +44,15 @@ describe('lost quest items', () => {
     expect(countItem(state.player.inventory, 'item_scrap_hash')).toBe(0);
   });
 
+  it('offline, the death message says the pile is lost with the page', () => {
+    const { state, ctx } = atInstallDrive();
+    give(state, 'item_scrap_hash', 2);
+    const events: SimEvent[] = [];
+    handleDeath(state, ctx, events);
+    const said = events.flatMap((e) => (e.type === 'message' ? [e.text] : [])).join(' ');
+    expect(said).toMatch(/Hurry back for it: it is lost if you leave or reload the page/);
+  });
+
   it('come back from whoever gave them, when your next step needs one', () => {
     const { state, ctx } = atInstallDrive();
     expect(talkTo(state, ctx, 'npc_party_planner')).toEqual([]); // she never had it
