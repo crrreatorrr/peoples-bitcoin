@@ -179,10 +179,14 @@ export function handleDeath(state: GameState, ctx: SimContext, events: SimEvent[
       if (keep > 0) s.qty = keep;
       else player.inventory[i] = null;
     });
+    // Offline, zones are not saved: the pile does not survive leaving or reloading the page.
+    const offline = state.pid === PLAYER_ID;
     events.push({
       type: 'message',
       kind: 'warning',
-      text: 'Your inventory was left where you fell. Hurry back for it!',
+      text: offline
+        ? 'Your inventory was left where you fell. Hurry back for it: it is lost if you leave or reload the page.'
+        : 'Your inventory was left where you fell. Hurry back for it!',
     });
   }
   forgetPlayer(state);
