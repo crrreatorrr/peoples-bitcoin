@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased — Gameplay QA pass (2026-11-24)
+
+Sim changed, so `SIM_VERSION` changes with it: online worlds need a fresh `dist-sim/pb-sim.js`
+(`npm run build:sim`) copied to the hub, as for Phase 2 below.
+
+- **Melee fights start.** Walking up to an enemy that was walking up to you could put the
+  President on the enemy's own tile. The enemy stepped aside, the President followed, and the two
+  shuffled in a line (then back and forth against a wall) for good, with nobody swinging. An
+  attacker whose target has come into reach now stops where they are. Seen in 35 of 40 scripted
+  Corporate Raider fights with the Briefcase Bludgeon; `tests/melee-approach.test.ts`.
+
 ## Unreleased — hub-sdk 0.9.0 (2026-11-19)
 
 - **Vendored hub SDK 0.9.0** from metaverse-hub main at `a3d94f9` (#196). `reportEvent` returns

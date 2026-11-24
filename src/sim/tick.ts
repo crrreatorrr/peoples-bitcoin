@@ -15,7 +15,13 @@ import {
 } from '../config/balance';
 import { deposit, depositAll, withdraw } from './bank';
 import { build, builtOption, hotspotActions, useStation } from './bunker';
-import { approachEnemy, drainMailbox, fightingSomeoneElse, tickPlayerAttack } from './combat';
+import {
+  approachEnemy,
+  drainMailbox,
+  fightingSomeoneElse,
+  holdIfInReach,
+  tickPlayerAttack,
+} from './combat';
 import { stepEnemies } from './enemies';
 import { drink, expireBoosts } from './boosts';
 import { eat, equipFromInventory, setStyle, unequip } from './equipment';
@@ -82,6 +88,7 @@ export function runWorldTick(
     const player = state.player;
     if (player.dyingUntil === null && player.teleport === null) {
       for (const intent of intents[state.pid] ?? []) applyIntent(state, ctx, intent, events);
+      holdAttacker(state, ctx);
       stepMovement(state);
       stepActions(state, ctx, events);
     } else {
@@ -270,6 +277,14 @@ function applyIntent(state: GameState, ctx: SimContext, intent: Intent, events: 
       player.interface = null;
       break;
   }
+}
+
+/** An attacker whose target has come into reach stays put instead of finishing a stale path. */
+function holdAttacker(state: GameState, ctx: SimContext): void {
+  const action = state.player.action;
+  if (action?.action !== 'Attack' || state.player.path.length === 0) return;
+  const entity = findEntity(state, action.targetId);
+  if (entity?.kind === 'enemy') holdIfInReach(state, ctx, entity.instance);
 }
 
 function stepMovement(state: GameState): void {
