@@ -1270,3 +1270,85 @@ Controller settings and Full screen next to what the menu already had.
   `uses.json` entry tied to that step that gives the wanted item (today only the Empty Canister).
   The usual rules still apply: worth nothing, none in the pack, bank or equipment, and only from
   whoever gave it.
+
+## Boss fairness pass (2026-11-24)
+
+The owner asked for the QA pass's leftovers to be fixed with the smallest data changes and no new
+mechanics. Measured as in that pass: scripted duels in the real sim, 40 seeds a row, the feared
+weapon, Hitpoints = level − 5 (never under 10), Defense = level − 15, the armor that Defense can
+wear, eating under 60%. "Real" rows leave the boss's neighbors in and start six tiles south of it.
+The scripts live outside the repo, as before.
+
+**Which level is the truth.** "Bosses tuned to the level their weapon unlocks" (0.6.1) stays the
+rule, so the bosses were retuned and the levels were not rewritten, with two exceptions:
+
+- **Wrong-Namer Chief: Melee 30, not "25–30".** At Melee 25 the Iron Gavel wins under 10% even
+  after the retune; making 25 work would have halved him. This replaces the 0.6.1 line.
+- **The Rugmancer: Shooting 45, not the Hopium Staff's 25.** Nobody meets him below Shooting 45,
+  because The Way Out needs the Treasury Rifle. He is tuned for 45 and still cannot be beaten
+  at 25.
+
+The target was 60 to 90% for the sensible build at that level, and a boss that still loses to a
+short pack. The Sludge Mother's "20 of 20 at Shooting 15" (Boss mechanics, 2026-11-11) was
+measured with Hitpoints 14, Defense 7 and five pieces of armor; with this pass's leaner build it
+was 0 of 40.
+
+| Boss (build)                                                     | Change in `enemies.json`                                                                                            | Before             | After               |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------ | ------------------- |
+| Inspector Greysuit (Shooting 3, pistol, 4 Soundbites)            | level 12 → 8, HP 70 → 25, attack 10 → 6, strength 9 → 5, defense 10 → 6, accuracy 8 → 4, damage 5 → 2, armor 12 → 6 | 0%                 | 70%                 |
+| Sludge Mother (Shooting 15, shotgun, 27 Soundbites / 20 Zingers) | HP 120 → 80, strength 18 → 12, damage 12 → 8 (max hit 3 → 2)                                                        | 0% / 0%            | 60% / 60%           |
+| Wrong-Namer Chief (Melee 30, Iron Gavel, 27 Zingers)             | HP 160 → 130                                                                                                        | 25% alone, 0% real | 85% alone, 65% real |
+| The Plus-One (Shooting 40, Hash Cannon, 20 Hash and 8 Zingers)   | HP 70 → 40                                                                                                          | 10%                | 83%                 |
+| Captain Motion (Shooting 45, rifle, 27 Mic Drops)                | none (neighbors moved)                                                                                              | 68% alone, 3% real | 68% alone, 68% real |
+| Lockdown Warden (Melee 40, Veto Hammer, 19 Mic Drops)            | HP 240 → 190, defense 60 → 50, armor 64 → 54                                                                        | 0%                 | 73%                 |
+| The Rugmancer (Shooting 45, Hopium Staff, 27 Mic Drops)          | HP 280 → 210                                                                                                        | 10% alone, 0% real | 68% alone, 63% real |
+| The Extractor (Melee 60, Filibuster Mace, 27 Mic Drops)          | adds max 2 → 1                                                                                                      | 10%                | 88%                 |
+
+- **Not trivial.** With less food the same builds still lose: Sludge Mother on 14 Zingers 8%, the
+  Chief on 20 Zingers 13%, the Plus-One on 12 Zingers (16 shells) 63%, the Extractor on 20 Mic
+  Drops 48%, the Rugmancer on 20 Mic Drops about 15%. Standing in the Sludge Mother's sludge
+  still loses most fights (25% against 65%, 120 seeds).
+- **The Plus-One's HP is about shells, not toughness.** At Shooting 40 a shell does about 2.1
+  damage on average, so a whole pack of 28 was worth 59 against his 70 HP. "One inventory must be
+  enough" (0.6.1) now holds with room for food.
+- **The Extractor keeps his stats.** His Rug Pullers did the killing (36 of 40 losses), so the
+  change is one add at a time. The Minigun at Shooting 75 was and is 100%.
+- **The Raider, the Pundit, the Rogue Process and The Grizz** already won 95 to 100% at their
+  weapon's level with 20 of the right food and were left alone.
+
+**Bosses that stood where everyone walks**
+
+- **The Corporate Raider and Inspector Greysuit do not attack first** (`aggressive: false`,
+  `aggroRange` 0). Both stand in the Treasury, the Raider one tile from a Veteran Lobbyist and the
+  Inspector on the hatch in the main hall. They fight back as before once hit, so the quest fight
+  is unchanged. Moving the Raider was the other option; anywhere within reach of the Broker he
+  would have had the same leash over the lobbyists, and a leash per enemy would be a new mechanic.
+- The Rogue Process, the Pundit and the Plus-One are also in the Treasury and still attack first.
+  The QA pass saw no deaths from them outside their fights; they are a TODO note.
+
+**Neighbors** (`zones.json`; `ENEMIES.leashRange` is one number for everyone, so spawns moved)
+
+- Sludge Brutes (20,56) → (31,57) and (26,54) → (30,53): both could be woken from the duckboards
+  and walk into the Wrong-Namer Chief's fight.
+- Rug Pullers (18,33) → (9,31) and (26,28) → (30,30): woken from the duckboards, they followed to
+  y 18 to 23 and shot into Captain Motion's fight.
+- Battlemages (27,13) → (21,13) and (32,13) → (38,13): still either side of the Rugmancer's
+  tower, no longer in sight of its door.
+- The rule, in `tests/boss-fairness.test.ts`: an ordinary aggressive enemy that the path can wake
+  (sight plus wander reaches a path tile) must not be able to walk or shoot to within the boss's
+  sight of the boss's spawn.
+
+**Text**
+
+- Quest steps say how much food to bring where a boss takes a pack (Sludge Mother, Chief,
+  Captain Motion, Rugmancer, Extractor: a full pack; the Plus-One: room for about 8 Zingers; the
+  Raider: about 20 Zingers; the Chamber's fuel step: about 19 Mic Drops before the Warden wakes;
+  the Inspector: four Soundbites, and that he won't start it). The weapon hints are unchanged.
+- The death message adds "it is lost if you leave or reload the page" offline only. Online the
+  server keeps the pile, so that line is unchanged there.
+
+**Left alone: the Melee grind before The Hatchery.** `COMBAT.xpPerDamage` (4) and the OSRS XP
+curve are what DESIGN.md §7 asks for, and no requirement was out of line. The 30 hours were Melee
+51 to 70 because the Extractor could not be beaten with the Mace below 70. He now can at 60 (the
+Mace's level), which is 273,742 XP against 737,627: scripted players that train to the levels
+above finish The Hatchery in 33 to 35 game hours instead of 55 to 58.
